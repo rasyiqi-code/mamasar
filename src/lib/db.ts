@@ -158,11 +158,31 @@ export interface Product {
   created_at: string;
 }
 
-export function getAllZones(): Zone[] {
-  return db.prepare('SELECT * FROM zones ORDER BY name ASC').all() as Zone[];
+export function getAllZones(): (Zone & { count?: number })[] {
+  const zones = db.prepare('SELECT * FROM zones ORDER BY name ASC').all() as Zone[];
+  const counts = db.prepare(`
+    SELECT u.zone_id, count(p.id) as count 
+    FROM products p 
+    JOIN umkm u ON p.umkm_id = u.id 
+    GROUP BY u.zone_id
+  `).all() as { zone_id: number; count: number }[];
+
+  const countMap = new Map(counts.map(c => [c.zone_id, c.count]));
+
+  return zones.map(z => ({
+    ...z,
+    count: countMap.get(z.id) || 0
+  }));
 }
 
-export function getProducts(options?: { zoneSlug?: string; category?: string; search?: string }): Product[] {
+export function getProducts(options?: {
+  zoneSlug?: string;
+  category?: string;
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  sort?: string;
+}): Product[] {
   let query = `
     SELECT 
       p.*,
@@ -195,7 +215,23 @@ export function getProducts(options?: { zoneSlug?: string; category?: string; se
     params.push(searchParam, searchParam, searchParam);
   }
 
-  query += ` ORDER BY p.id DESC`;
+  if (options?.minPrice && options.minPrice > 0) {
+    query += ` AND p.price >= ?`;
+    params.push(options.minPrice);
+  }
+
+  if (options?.maxPrice && options.maxPrice > 0) {
+    query += ` AND p.price <= ?`;
+    params.push(options.maxPrice);
+  }
+
+  if (options?.sort === 'price_asc') {
+    query += ` ORDER BY p.price ASC, p.id DESC`;
+  } else if (options?.sort === 'price_desc') {
+    query += ` ORDER BY p.price DESC, p.id DESC`;
+  } else {
+    query += ` ORDER BY p.id DESC`;
+  }
 
   return db.prepare(query).all(...params) as Product[];
 }

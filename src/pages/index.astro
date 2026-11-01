@@ -1,8 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import ProductCard from '../components/ProductCard.astro';
-import ZoneFilter from '../components/ZoneFilter.astro';
-import CategoryFilter from '../components/CategoryFilter.astro';
 import { getAllZones, getProducts } from '../lib/db';
 import { PRODUCT_CATEGORIES } from '../lib/constants';
 
@@ -10,22 +8,29 @@ const url = new URL(Astro.request.url);
 const currentZone = url.searchParams.get('zona') || 'semua';
 const currentCategory = url.searchParams.get('kategori') || 'semua';
 const searchQuery = url.searchParams.get('q') || '';
+const currentSort = url.searchParams.get('sort') || 'newest';
+const minPrice = Number(url.searchParams.get('min_price')) || undefined;
+const maxPrice = Number(url.searchParams.get('max_price')) || undefined;
 
 const zones = getAllZones();
 const products = getProducts({
   zoneSlug: currentZone,
   category: currentCategory,
   search: searchQuery,
+  minPrice,
+  maxPrice,
+  sort: currentSort,
 });
+
+const currentZoneObj = zones.find((z) => z.slug === currentZone);
+const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || searchQuery !== '' || minPrice || maxPrice;
 ---
 
-<Layout title="Katalog Produk UMKM NU Sumenep">
-  <div class="space-y-3 sm:space-y-6 sm:py-6">
-    
-    <!-- Top Search & Banner Section -->
-    <div class="bg-white sm:rounded-3xl border-b sm:border border-slate-200/80 p-3 sm:p-6 shadow-xs space-y-3 sm:space-y-4">
-      
-      <!-- Search Input (Edge-to-edge on mobile, Centered/Proportioned on Desktop) -->
+<Layout title="Iklan Baris & Direktori UMKM NU Sumenep">
+  <div class="sm:py-6 space-y-4">
+
+    <!-- Mobile-Only Search & Banner (Full edge on mobile, hidden on desktop because desktop search is in header) -->
+    <div class="md:hidden bg-white border-b border-slate-200/80 p-3 space-y-3">
       <form method="GET" action="/" class="relative">
         <input type="hidden" name="zona" value={currentZone} />
         <input type="hidden" name="kategori" value={currentCategory} />
@@ -34,81 +39,304 @@ const products = getProducts({
             type="text"
             name="q"
             value={searchQuery}
-            placeholder="Cari rengginang, batik, kopi, krupuk madura..."
-            class="w-full bg-slate-50 sm:bg-white border border-slate-300 rounded-xl sm:rounded-2xl py-2.5 sm:py-3.5 pl-10 sm:pl-12 pr-10 text-xs sm:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 shadow-xs"
+            placeholder="Cari rengginang, batik, siwalan..."
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl py-2.5 pl-10 pr-10 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
-          <div class="absolute left-3 sm:left-4 text-slate-400 pointer-events-none">
-            <svg class="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="absolute left-3 text-slate-400 pointer-events-none">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
             </svg>
           </div>
           {searchQuery && (
-            <a
-              href={`/?zona=${currentZone}&kategori=${currentCategory}`}
-              aria-label="Hapus kata kunci pencarian"
-              class="absolute right-3.5 text-slate-400 hover:text-slate-600 text-xs font-bold"
-            >
+            <a href={`/?zona=${currentZone}&kategori=${currentCategory}`} aria-label="Hapus pencarian" class="absolute right-3 text-slate-400 font-bold text-xs">
               ✕
             </a>
           )}
         </div>
       </form>
 
-      <!-- Sentimen Banner "Beli Tetangga" -->
-      <div class="bg-gradient-to-r from-emerald-50 via-emerald-100/60 to-emerald-50 border border-emerald-200/80 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 flex items-center sm:items-start gap-2.5 sm:gap-3.5">
-        <div class="text-xl sm:text-2xl shrink-0">🤝</div>
-        <div class="text-[11px] sm:text-xs text-emerald-950 leading-relaxed">
-          <strong class="font-bold block text-xs sm:text-sm text-emerald-900">Gerakan Beli Produk Tetangga NU:</strong>
-          Belanja langsung ke nomor WhatsApp pemilik usaha tanpa potongan aplikasi.
+      <!-- Horizontal Pills (Mobile Only) -->
+      <div class="space-y-1.5">
+        <div class="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+          <a
+            href={`/?zona=semua&kategori=${currentCategory}&q=${searchQuery}`}
+            class={`px-3 py-1.5 rounded-full whitespace-nowrap font-medium text-xs ${
+              currentZone === 'semua' ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-700'
+            }`}
+          >
+            Semua MWC
+          </a>
+          {zones.map((z) => (
+            <a
+              href={`/?zona=${z.slug}&kategori=${currentCategory}&q=${searchQuery}`}
+              class={`px-3 py-1.5 rounded-full whitespace-nowrap font-medium text-xs ${
+                currentZone === z.slug ? 'bg-emerald-700 text-white' : 'bg-slate-100 text-slate-700'
+              }`}
+            >
+              {z.name.replace('MWC ', '')}
+            </a>
+          ))}
         </div>
       </div>
     </div>
 
-    <!-- Filter 1: Wilayah Teritorial MWC NU (Modular Component) -->
-    <ZoneFilter
-      zones={zones}
-      currentZone={currentZone}
-      currentCategory={currentCategory}
-      searchQuery={searchQuery}
-    />
+    <!-- Main Desktop Classified Layout (2 Columns: Sidebar Filter + Product Listings) -->
+    <div class="md:grid md:grid-cols-12 md:gap-6 items-start">
+      
+      <!-- LEFT SIDEBAR: Classified Ads Filter Panel (Desktop Only) -->
+      <aside class="hidden md:block md:col-span-4 lg:col-span-3 space-y-4">
+        
+        <!-- Filter Card -->
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs space-y-6">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <h2 class="font-extrabold text-sm text-slate-900 uppercase tracking-wider flex items-center gap-2">
+              <span>⚙️</span> Filter Iklan
+            </h2>
+            {isFiltered && (
+              <a href="/" class="text-xs font-bold text-emerald-700 hover:underline">
+                Reset Semua
+              </a>
+            )}
+          </div>
 
-    <!-- Filter 2: Kategori Produk (Modular Component) -->
-    <CategoryFilter
-      categories={PRODUCT_CATEGORIES}
-      currentCategory={currentCategory}
-      currentZone={currentZone}
-      searchQuery={searchQuery}
-    />
+          <!-- Filter Kategori -->
+          <div class="space-y-2">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Kategori Produk
+            </h3>
+            <ul class="space-y-1 text-xs">
+              <li>
+                <a
+                  href={`/?kategori=semua${currentZone !== 'semua' ? `&zona=${currentZone}` : ''}${searchQuery ? `&q=${searchQuery}` : ''}`}
+                  class={`flex items-center justify-between py-1.5 px-2 rounded-lg transition ${
+                    currentCategory === 'semua'
+                      ? 'bg-emerald-50 text-emerald-800 font-bold'
+                      : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <span>Semua Kategori</span>
+                  <span class="text-slate-400">●</span>
+                </a>
+              </li>
+              {PRODUCT_CATEGORIES.map((cat) => (
+                <li>
+                  <a
+                    href={`/?kategori=${encodeURIComponent(cat)}${currentZone !== 'semua' ? `&zona=${currentZone}` : ''}${searchQuery ? `&q=${searchQuery}` : ''}`}
+                    class={`flex items-center justify-between py-1.5 px-2 rounded-lg transition ${
+                      currentCategory === cat
+                        ? 'bg-emerald-50 text-emerald-800 font-bold'
+                        : 'text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    <span class="truncate">{cat}</span>
+                    {currentCategory === cat && <span class="text-emerald-700">✓</span>}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-    <!-- Status Bar & Count -->
-    <div class="flex items-center justify-between text-[11px] sm:text-xs text-slate-500 px-3 sm:px-1">
-      <span>Menampilkan <strong>{products.length}</strong> produk</span>
-      {(currentZone !== 'semua' || currentCategory !== 'semua' || searchQuery !== '') && (
-        <a href="/" class="text-emerald-700 font-bold hover:underline">
-          Reset Filter
-        </a>
-      )}
+          <!-- Filter Wilayah / MWC Sumenep with Active Listing Counts -->
+          <div class="space-y-2 pt-4 border-t border-slate-100">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Wilayah MWC NU
+              </h3>
+              <span class="text-[10px] text-slate-400 font-bold">Sumenep</span>
+            </div>
+            <div class="max-h-56 overflow-y-auto space-y-1 text-xs pr-1">
+              <a
+                href={`/?zona=semua${currentCategory !== 'semua' ? `&kategori=${encodeURIComponent(currentCategory)}` : ''}${searchQuery ? `&q=${searchQuery}` : ''}`}
+                class={`flex items-center justify-between py-1.5 px-2 rounded-lg transition ${
+                  currentZone === 'semua'
+                    ? 'bg-emerald-50 text-emerald-800 font-bold'
+                    : 'text-slate-600 hover:bg-slate-50'
+                }`}
+              >
+                <span>Semua Wilayah</span>
+              </a>
+              {zones.map((z) => (
+                <a
+                  href={`/?zona=${z.slug}${currentCategory !== 'semua' ? `&kategori=${encodeURIComponent(currentCategory)}` : ''}${searchQuery ? `&q=${searchQuery}` : ''}`}
+                  class={`flex items-center justify-between py-1.5 px-2 rounded-lg transition ${
+                    currentZone === z.slug
+                      ? 'bg-emerald-50 text-emerald-800 font-bold'
+                      : 'text-slate-600 hover:bg-slate-50'
+                  }`}
+                >
+                  <span class="truncate">{z.name}</span>
+                  {z.count !== undefined && z.count > 0 ? (
+                    <span class="text-[10px] bg-slate-100 text-slate-600 font-bold px-1.5 py-0.5 rounded-full">
+                      {z.count}
+                    </span>
+                  ) : (
+                    <span class="text-[10px] text-slate-300">0</span>
+                  )}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          <!-- Filter Rentang Harga (Classified Price Filter Form) -->
+          <div class="space-y-2 pt-4 border-t border-slate-100">
+            <h3 class="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Rentang Harga (Rp)
+            </h3>
+            <form method="GET" action="/" class="space-y-2">
+              <input type="hidden" name="zona" value={currentZone} />
+              <input type="hidden" name="kategori" value={currentCategory} />
+              <input type="hidden" name="q" value={searchQuery} />
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <input
+                  type="number"
+                  name="min_price"
+                  value={minPrice || ''}
+                  placeholder="Min"
+                  class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+                <input
+                  type="number"
+                  name="max_price"
+                  value={maxPrice || ''}
+                  placeholder="Maks"
+                  class="w-full bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                />
+              </div>
+              <button
+                type="submit"
+                class="w-full py-1.5 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-bold transition cursor-pointer"
+              >
+                Terapkan Harga
+              </button>
+            </form>
+          </div>
+
+          <!-- Trust & Sentiment Info Box -->
+          <div class="pt-4 border-t border-slate-100 bg-emerald-50/50 -mx-5 -mb-5 p-4 rounded-b-2xl border-emerald-100 space-y-1 text-xs text-emerald-900">
+            <span class="font-bold block flex items-center gap-1.5">
+              <span>🛡️</span> Transaksi Bebas Riba & Biaya
+            </span>
+            <p class="text-[11px] text-emerald-800 leading-relaxed">
+              Langsung kontak penjual warga NU via WhatsApp tanpa potongan fee platform.
+            </p>
+          </div>
+
+        </div>
+
+      </aside>
+
+      <!-- RIGHT COLUMN: Classified Listings Grid & Sorting Header -->
+      <section class="md:col-span-8 lg:col-span-9 space-y-4">
+        
+        <!-- Header Bar: Breadcrumb, Results Count, Sorting Dropdown -->
+        <div class="bg-white sm:border border-slate-200/90 sm:rounded-2xl p-3 sm:p-4 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="text-xs text-slate-500 font-medium flex items-center gap-1.5">
+              <a href="/" class="hover:text-emerald-700">Sumenep</a>
+              <span>›</span>
+              <span class="font-bold text-slate-700">
+                {currentZoneObj ? currentZoneObj.name : 'Semua Wilayah'}
+              </span>
+              {currentCategory !== 'semua' && (
+                <>
+                  <span>›</span>
+                  <span class="text-emerald-700 font-bold">{currentCategory}</span>
+                </>
+              )}
+            </div>
+            <h1 class="text-sm sm:text-base font-black text-slate-900 mt-0.5">
+              {currentCategory !== 'semua' ? currentCategory : 'Katalog Produk UMKM Warga NU'}
+              {currentZoneObj ? ` di ${currentZoneObj.name}` : ' se-Kabupaten Sumenep'}
+            </h1>
+          </div>
+
+          <!-- Sorting Controls (Classified Style) -->
+          <form method="GET" action="/" class="flex items-center gap-2 text-xs">
+            <input type="hidden" name="zona" value={currentZone} />
+            <input type="hidden" name="kategori" value={currentCategory} />
+            <input type="hidden" name="q" value={searchQuery} />
+            {minPrice && <input type="hidden" name="min_price" value={minPrice} />}
+            {maxPrice && <input type="hidden" name="max_price" value={maxPrice} />}
+            
+            <label for="sort-select" class="text-slate-500 font-bold whitespace-nowrap">
+              Urutkan:
+            </label>
+            <select
+              id="sort-select"
+              name="sort"
+              onchange="this.form.submit()"
+              class="bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-2.5 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
+            >
+              <option value="newest" selected={currentSort === 'newest'}>Terbaru</option>
+              <option value="price_asc" selected={currentSort === 'price_asc'}>Harga: Rendah ke Tinggi</option>
+              <option value="price_desc" selected={currentSort === 'price_desc'}>Harga: Tinggi ke Rendah</option>
+            </select>
+          </form>
+        </div>
+
+        <!-- Active Filters Pill Badges (If any) -->
+        {isFiltered && (
+          <div class="flex flex-wrap items-center gap-2 px-3 sm:px-0 text-xs">
+            <span class="text-slate-400 font-bold">Filter Aktif:</span>
+            {currentZone !== 'semua' && (
+              <a
+                href={`/?zona=semua${currentCategory !== 'semua' ? `&kategori=${encodeURIComponent(currentCategory)}` : ''}${searchQuery ? `&q=${searchQuery}` : ''}`}
+                class="bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-semibold hover:border-rose-400 flex items-center gap-1 shadow-xs"
+              >
+                <span>Wilayah: {currentZoneObj ? currentZoneObj.name.replace('MWC ', '') : currentZone}</span>
+                <span class="text-slate-400 font-bold">✕</span>
+              </a>
+            )}
+            {currentCategory !== 'semua' && (
+              <a
+                href={`/?kategori=semua${currentZone !== 'semua' ? `&zona=${currentZone}` : ''}${searchQuery ? `&q=${searchQuery}` : ''}`}
+                class="bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-semibold hover:border-rose-400 flex items-center gap-1 shadow-xs"
+              >
+                <span>Kategori: {currentCategory}</span>
+                <span class="text-slate-400 font-bold">✕</span>
+              </a>
+            )}
+            {searchQuery && (
+              <a
+                href={`/?zona=${currentZone}&kategori=${currentCategory}`}
+                class="bg-white border border-slate-200 text-slate-700 px-2.5 py-1 rounded-full font-semibold hover:border-rose-400 flex items-center gap-1 shadow-xs"
+              >
+                <span>Kata Kunci: "{searchQuery}"</span>
+                <span class="text-slate-400 font-bold">✕</span>
+              </a>
+            )}
+            <a href="/" class="text-rose-600 font-bold hover:underline ml-1">
+              Hapus Semua
+            </a>
+          </div>
+        )}
+
+        <!-- Products Grid: 2-Cols Full-edge on Mobile, 3-Cols Classified Grid on Desktop -->
+        {products.length > 0 ? (
+          <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-4 px-1.5 sm:px-0">
+            {products.map((p) => (
+              <ProductCard product={p} />
+            ))}
+          </div>
+        ) : (
+          <div class="bg-white border border-slate-200 sm:rounded-2xl p-10 text-center space-y-3 mx-2 sm:mx-0 shadow-xs">
+            <div class="text-4xl">📦</div>
+            <h3 class="font-extrabold text-slate-900 text-base">Belum Ada Iklan Produk</h3>
+            <p class="text-xs text-slate-500 max-w-sm mx-auto">
+              Tidak ada produk yang cocok dengan kombinasi filter Anda saat ini.
+            </p>
+            <a
+              href="/"
+              class="inline-block mt-2 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-xl transition"
+            >
+              Lihat Semua Produk
+            </a>
+          </div>
+        )}
+
+      </section>
+
     </div>
-
-    <!-- Product Grid (Modular Card Component) -->
-    {products.length > 0 ? (
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-5 px-1.5 sm:px-0">
-        {products.map((p) => (
-          <ProductCard product={p} />
-        ))}
-      </div>
-    ) : (
-      <div class="bg-white border border-slate-200 sm:rounded-3xl p-8 text-center space-y-3 mx-2 sm:mx-0">
-        <div class="text-4xl">🔍</div>
-        <h3 class="font-bold text-slate-800 text-sm sm:text-base">Belum Ada Produk Ditemukan</h3>
-        <p class="text-xs text-slate-500 max-w-sm mx-auto">
-          Coba ubah kata kunci pencarian atau pilih wilayah MWC lainnya.
-        </p>
-        <a href="/" class="inline-block mt-2 text-xs font-bold bg-emerald-700 text-white px-4 py-2 rounded-xl">
-          Kembali ke Semua Produk
-        </a>
-      </div>
-    )}
 
   </div>
 </Layout>
