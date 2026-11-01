@@ -1,0 +1,191 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getProductBySlug } from '../../lib/db';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/');
+}
+
+const product = getProductBySlug(slug);
+
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Produk Tidak Ditemukan',
+  });
+}
+
+function formatRupiah(amount: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+const currentUrl = Astro.url.href;
+
+// Formatted WhatsApp message with origin link
+const waMessage = encodeURIComponent(
+  `Halo *${product.umkm_name}*,\n\nSaya melihat produk Anda di *Direktori Digital UMKM NU Sumenep*:\n📦 *Produk:* ${product.name}\n💰 *Harga:* ${formatRupiah(product.price)}\n📍 *Wilayah:* ${product.zone_name}\n🔗 *Link:* ${currentUrl}\n\nApakah barang ini masih tersedia dan bisa dikirim ke alamat saya? Terima kasih.`
+);
+
+const waLink = `https://wa.me/${product.umkm_phone}?text=${waMessage}`;
+
+// Schema.org Product Structured Data for Google Rich Snippets
+const productSchema = {
+  '@context': 'https://schema.org/',
+  '@type': 'Product',
+  name: product.name,
+  image: [product.image_url],
+  description: product.description,
+  offers: {
+    '@type': 'Offer',
+    priceCurrency: 'IDR',
+    price: product.price,
+    availability: 'https://schema.org/InStock',
+    url: currentUrl,
+  },
+  seller: {
+    '@type': 'LocalBusiness',
+    name: product.umkm_name,
+    telephone: `+${product.umkm_phone}`,
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: product.zone_name,
+      addressRegion: 'Sumenep, Jawa Timur',
+      addressCountry: 'ID',
+    },
+  },
+};
+
+const pageTitle = `${product.name} - ${formatRupiah(product.price)} | UMKM NU Sumenep`;
+const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name} (${product.zone_name}, Sumenep) seharga ${formatRupiah(product.price)}. Hubungi penjual warga NU langsung via WhatsApp tanpa perantara.`;
+---
+
+<Layout
+  title={pageTitle}
+  description={pageDescription}
+  image={product.image_url}
+  canonicalUrl={currentUrl}
+  schema={productSchema}
+>
+  <div class="space-y-4 max-w-xl mx-auto pb-16">
+    <!-- Breadcrumb / Back button -->
+    <div class="flex items-center justify-between text-xs">
+      <a
+        href="/"
+        class="inline-flex items-center gap-1.5 text-emerald-700 font-bold hover:underline py-1"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+        <span>Kembali ke Katalog</span>
+      </a>
+      <span class="text-slate-400">
+        {product.zone_name}
+      </span>
+    </div>
+
+    <!-- Product Card Container -->
+    <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+      <!-- LCP Hero Image: Note fetchpriority="high" and no loading="lazy" as per modern-web-guidance optimize-image-priority -->
+      <div class="relative aspect-4/3 sm:aspect-16/10 bg-slate-100 overflow-hidden">
+        <img
+          src={product.image_url}
+          alt={product.name}
+          fetchpriority="high"
+          class="w-full h-full object-cover"
+        />
+        <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+          <span class="bg-slate-900/80 backdrop-blur-xs text-white text-xs font-bold px-2.5 py-1 rounded-lg">
+            📍 {product.zone_name}
+          </span>
+          <span class="bg-emerald-600/90 backdrop-blur-xs text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1">
+            <span>✓</span> Terverifikasi NU
+          </span>
+        </div>
+      </div>
+
+      <!-- Detail Info -->
+      <div class="p-4 sm:p-6 space-y-5">
+        <div>
+          <span class="text-xs font-semibold text-emerald-700 uppercase tracking-wider block mb-1">
+            {product.category}
+          </span>
+          <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 leading-tight">
+            {product.name}
+          </h1>
+          <p class="text-2xl sm:text-3xl font-black text-emerald-700 mt-2">
+            {formatRupiah(product.price)}
+          </p>
+        </div>
+
+        <!-- Profil Penjual / Toko Warga NU -->
+        <div class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-emerald-700 text-white font-extrabold flex items-center justify-center text-sm shadow-xs shrink-0">
+              {product.umkm_name.slice(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-800 leading-tight">
+                {product.umkm_name}
+              </h3>
+              <p class="text-xs text-slate-500 mt-0.5">
+                {product.umkm_address || `${product.zone_name}, Sumenep`}
+              </p>
+            </div>
+          </div>
+          <span class="text-[11px] font-bold text-emerald-700 bg-emerald-100/70 border border-emerald-200 px-2 py-1 rounded-lg shrink-0">
+            Kader Nahdliyin
+          </span>
+        </div>
+
+        <!-- Deskripsi Produk -->
+        <div class="space-y-2 border-t border-slate-100 pt-4">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Deskripsi Produk
+          </h2>
+          <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+            {product.description}
+          </p>
+        </div>
+
+        <!-- Edukasi Transaksi Tanpa Perantara -->
+        <div class="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200/80 text-xs text-amber-900 space-y-1">
+          <strong class="font-bold flex items-center gap-1.5 text-amber-950">
+            <span>ℹ️</span> Panduan Transaksi Langsung:
+          </strong>
+          <p class="text-[11px] leading-relaxed text-amber-800">
+            Klik tombol hijau di bawah untuk menghubungi nomor WhatsApp pemilik usaha. Kesepakatan pengiriman (COD, ojek lokal, atau ambil di tempat) dan pembayaran dibahas langsung tanpa potongan perantara.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sticky Bottom CTA for WhatsApp Conversion (Mobile & Desktop) -->
+    <div class="fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 sm:py-3.5 shadow-2xl">
+      <div class="max-w-xl mx-auto flex items-center gap-3">
+        <div class="hidden sm:block shrink-0">
+          <span class="text-xs text-slate-500 block leading-tight">Harga Satuan:</span>
+          <span class="text-base font-black text-emerald-700 block leading-tight">
+            {formatRupiah(product.price)}
+          </span>
+        </div>
+        <a
+          href={waLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 py-3 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-2xl font-bold text-sm flex items-center justify-center gap-2 shadow-md transition active:scale-98"
+        >
+          <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+          </svg>
+          <span>Beli via WhatsApp Penjual</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
