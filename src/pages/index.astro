@@ -43,7 +43,11 @@ const products = getProducts({
             </svg>
           </div>
           {searchQuery && (
-            <a href={`/?zona=${currentZone}&kategori=${currentCategory}`} class="absolute right-3.5 text-slate-400 hover:text-slate-600 text-xs font-bold">
+            <a
+              href={`/?zona=${currentZone}&kategori=${currentCategory}`}
+              aria-label="Hapus kata kunci pencarian"
+              class="absolute right-3.5 text-slate-400 hover:text-slate-600 text-xs font-bold"
+            >
               ✕
             </a>
           )}

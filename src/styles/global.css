@@ -8,6 +8,29 @@
     -webkit-tap-highlight-color: transparent;
     padding-top: env(safe-area-inset-top);
   }
+
+  /* R-39: Explicit cursor indicators on all interactive elements */
+  a[href],
+  button,
+  summary,
+  select,
+  label[for],
+  input[type="checkbox"],
+  input[type="radio"],
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  :disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+
+  /* R-32: Accessible keyboard focus outline */
+  :focus-visible {
+    outline: 2px solid #059669;
+    outline-offset: 2px;
+  }
 }
 
 /* Hide scrollbar for mobile horizontal pill list while maintaining touch scrolling */
