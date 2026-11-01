@@ -8,7 +8,7 @@ const totalCount = allProducts.length;
 const targetCount = 50;
 const progressPercent = Math.min(Math.round((totalCount / targetCount) * 100), 100);
 
-const recentProducts = allProducts.slice(0, 5);
+const recentProducts = allProducts.slice(0, 6);
 
 const categories = [
   'Makanan & Minuman',
@@ -28,22 +28,23 @@ function formatRupiah(amount: number) {
 ---
 
 <Layout title="Portal Input Agen Lapangan | Direktori UMKM NU Sumenep">
-  <div class="max-w-lg mx-auto space-y-4">
-    <!-- Header Banner -->
-    <div class="bg-emerald-800 text-white rounded-3xl p-4 sm:p-5 shadow-sm space-y-2">
+  <div class="max-w-xl mx-auto space-y-3 sm:space-y-6 sm:py-6">
+    
+    <!-- Header Banner: Edge-to-edge on mobile, rounded card on desktop -->
+    <div class="bg-emerald-800 text-white sm:rounded-3xl p-4 sm:p-6 shadow-xs space-y-2.5">
       <div class="flex items-center justify-between">
-        <span class="text-[10px] font-black uppercase tracking-wider bg-emerald-600/60 px-2 py-0.5 rounded-md">
+        <span class="text-[10px] font-black uppercase tracking-wider bg-emerald-600/60 px-2.5 py-0.5 rounded-md">
           Portal Kader Lapangan
         </span>
         <span class="text-xs text-emerald-200">Mode Jemput Bola</span>
       </div>
-      <h1 class="text-lg sm:text-xl font-black">Form Entri Cepat Produk UMKM</h1>
-      <p class="text-xs text-emerald-100 leading-relaxed">
-        Khusus tim pendata dan kader NU. Formulir ringkas (&lt;90 detik) dengan kompresi foto otomatis.
+      <h1 class="text-lg sm:text-2xl font-black">Form Entri Cepat Produk UMKM</h1>
+      <p class="text-xs sm:text-sm text-emerald-100 leading-relaxed">
+        Khusus tim pendata dan kader NU. Formulir ringkas (&lt;90 detik) dengan kompresi foto otomatis di HP.
       </p>
 
       <!-- Target Fase 1 Progress Bar -->
-      <div class="pt-2 border-t border-emerald-700/80 space-y-1.5">
+      <div class="pt-3 border-t border-emerald-700/80 space-y-1.5">
         <div class="flex items-center justify-between text-xs font-bold">
           <span>Target Fase 1 (14 Hari):</span>
           <span>{totalCount} / {targetCount} Produk ({progressPercent}%)</span>
@@ -58,27 +59,27 @@ function formatRupiah(amount: number) {
     </div>
 
     <!-- Feedback Message Box (Client Side) -->
-    <div id="status-box" class="hidden p-4 rounded-2xl text-xs font-semibold"></div>
+    <div id="status-box" class="hidden p-4 mx-3 sm:mx-0 rounded-2xl text-xs font-semibold"></div>
 
-    <!-- Agent Form -->
-    <form id="agent-form" class="bg-white border border-slate-200 rounded-3xl p-4 sm:p-6 space-y-4 shadow-sm">
+    <!-- Agent Form: Full edge-to-edge on mobile, rounded card on desktop -->
+    <form id="agent-form" class="bg-white border-y sm:border border-slate-200 sm:rounded-3xl p-4 sm:p-8 space-y-4 sm:space-y-5 shadow-xs">
       <input type="hidden" id="imageBase64" name="imageBase64" />
 
       <!-- PIN Agen Lapangan -->
-      <div class="space-y-1 bg-emerald-50/60 p-3 rounded-2xl border border-emerald-100">
+      <div class="space-y-1.5 bg-emerald-50/70 p-3 sm:p-4 rounded-2xl border border-emerald-200/80">
         <div class="flex items-center justify-between">
-          <label for="agentPin" class="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1">
+          <label for="agentPin" class="text-xs font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
             <span>🔑</span> PIN Akses Agen <span class="text-rose-500">*</span>
           </label>
-          <span class="text-[11px] text-emerald-700">Default: <strong>1926</strong></span>
+          <span class="text-[11px] text-emerald-700 font-medium">Default: <strong>1926</strong></span>
         </div>
         <input
           type="password"
           id="agentPin"
           name="agentPin"
-          placeholder="Masukkan PIN Agen (Contoh: 1926)"
+          placeholder="Masukkan PIN (Default: 1926)"
           required
-          class="w-full bg-white border border-emerald-300 rounded-xl p-2.5 text-xs font-mono tracking-widest text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          class="w-full bg-white border border-emerald-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-mono tracking-widest text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
         />
       </div>
 
@@ -88,7 +89,7 @@ function formatRupiah(amount: number) {
           1. Foto Produk (Kamera HP) <span class="text-rose-500">*</span>
         </label>
         
-        <label for="camera-input" class="relative group cursor-pointer block border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/50 hover:bg-emerald-50 rounded-2xl p-4 text-center transition">
+        <label for="camera-input" class="relative group cursor-pointer block border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50 rounded-2xl p-4 sm:p-6 text-center transition">
           <input
             type="file"
             id="camera-input"
@@ -97,26 +98,26 @@ function formatRupiah(amount: number) {
             class="hidden"
           />
           <div id="upload-placeholder" class="space-y-1">
-            <div class="text-3xl">📷</div>
-            <span class="text-xs font-extrabold text-emerald-800 block">
+            <div class="text-3xl sm:text-4xl">📷</div>
+            <span class="text-xs sm:text-sm font-extrabold text-emerald-800 block">
               Ketuk untuk Ambil Foto Kamera / Galeri
             </span>
-            <span class="text-[11px] text-slate-500 block">
-              Foto otomatis dikompres sebelum dikirim (hemat kuota)
+            <span class="text-[11px] sm:text-xs text-slate-500 block">
+              Foto otomatis dikompres sebelum dikirim (hemat kuota di lapangan)
             </span>
           </div>
 
           <!-- Preview & Compression Status -->
           <div id="upload-preview-container" class="hidden space-y-2">
-            <img id="upload-preview" src="" alt="Preview" class="w-32 h-32 object-cover mx-auto rounded-xl border border-emerald-300 shadow-xs" />
-            <div id="compression-info" class="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-lg inline-block"></div>
-            <span class="block text-[10px] text-slate-400">Ketuk jika ingin mengganti foto</span>
+            <img id="upload-preview" src="" alt="Preview" class="w-32 h-32 sm:w-40 sm:h-40 object-cover mx-auto rounded-2xl border border-emerald-300 shadow-xs" />
+            <div id="compression-info" class="text-[11px] sm:text-xs font-bold text-emerald-700 bg-emerald-100/80 px-3 py-1 rounded-lg inline-block"></div>
+            <span class="block text-[11px] text-slate-400">Ketuk jika ingin mengganti foto</span>
           </div>
         </label>
       </div>
 
       <!-- 2. Wilayah / MWC & Kategori -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div class="space-y-1">
           <label for="zoneId" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
             2. Wilayah / MWC <span class="text-rose-500">*</span>
@@ -125,7 +126,7 @@ function formatRupiah(amount: number) {
             id="zoneId"
             name="zoneId"
             required
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="" disabled selected>Pilih MWC...</option>
             {zones.map((z) => (
@@ -142,7 +143,7 @@ function formatRupiah(amount: number) {
             id="category"
             name="category"
             required
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             {categories.map((c) => (
               <option value={c}>{c}</option>
@@ -152,7 +153,7 @@ function formatRupiah(amount: number) {
       </div>
 
       <!-- 3. Profil Toko / UMKM -->
-      <div class="space-y-3 pt-1 border-t border-slate-100">
+      <div class="space-y-3 pt-2 border-t border-slate-100">
         <div class="space-y-1">
           <label for="umkmName" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
             3. Nama Usaha / Toko <span class="text-rose-500">*</span>
@@ -163,7 +164,7 @@ function formatRupiah(amount: number) {
             name="umkmName"
             placeholder="Contoh: UD Barokah Jaya / Dapur Bu Aminah"
             required
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
@@ -172,7 +173,7 @@ function formatRupiah(amount: number) {
             4. Nomor WhatsApp Penjual <span class="text-rose-500">*</span>
           </label>
           <div class="flex">
-            <span class="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-300 bg-slate-100 text-slate-500 font-bold text-xs">
+            <span class="inline-flex items-center px-3 sm:px-4 rounded-l-xl border border-r-0 border-slate-300 bg-slate-100 text-slate-600 font-bold text-xs sm:text-sm">
               +62
             </span>
             <input
@@ -181,17 +182,17 @@ function formatRupiah(amount: number) {
               name="phone"
               placeholder="81234567890"
               required
-              class="w-full bg-slate-50 border border-slate-300 rounded-r-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              class="w-full bg-slate-50 border border-slate-300 rounded-r-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
-          <span class="text-[10px] text-slate-400 block">
-            Nomor yang aktif WA untuk menerima pesanan langsung dari pembeli.
+          <span class="text-[10px] sm:text-[11px] text-slate-400 block">
+            Nomor yang aktif WhatsApp untuk menerima pesanan langsung dari pembeli.
           </span>
         </div>
       </div>
 
       <!-- 4. Detail Produk -->
-      <div class="space-y-3 pt-1 border-t border-slate-100">
+      <div class="space-y-3 pt-2 border-t border-slate-100">
         <div class="space-y-1">
           <label for="productName" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
             5. Nama Barang / Produk <span class="text-rose-500">*</span>
@@ -202,7 +203,7 @@ function formatRupiah(amount: number) {
             name="productName"
             placeholder="Contoh: Rengginang Lorjuk Super 250gr"
             required
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
@@ -211,7 +212,7 @@ function formatRupiah(amount: number) {
             6. Harga Jual (Rp) <span class="text-rose-500">*</span>
           </label>
           <div class="flex">
-            <span class="inline-flex items-center px-3 rounded-l-xl border border-r-0 border-slate-300 bg-slate-100 text-slate-500 font-bold text-xs">
+            <span class="inline-flex items-center px-3 sm:px-4 rounded-l-xl border border-r-0 border-slate-300 bg-slate-100 text-slate-600 font-bold text-xs sm:text-sm">
               Rp
             </span>
             <input
@@ -222,7 +223,7 @@ function formatRupiah(amount: number) {
               required
               min="500"
               step="500"
-              class="w-full bg-slate-50 border border-slate-300 rounded-r-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              class="w-full bg-slate-50 border border-slate-300 rounded-r-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
         </div>
@@ -236,17 +237,17 @@ function formatRupiah(amount: number) {
             name="description"
             rows="2"
             placeholder="Rasa gurih, bahan alami, cocok untuk camilan atau oleh-oleh..."
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           ></textarea>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="pt-3 space-y-2">
+      <div class="pt-3 space-y-2.5">
         <button
           type="submit"
           id="btn-submit"
-          class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+          class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
         >
           <span>✓ Simpan & Tayangkan Sekarang</span>
         </button>
@@ -254,7 +255,7 @@ function formatRupiah(amount: number) {
         <button
           type="button"
           id="btn-submit-another"
-          class="w-full py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-2xl transition cursor-pointer"
+          class="w-full py-2.5 sm:py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl sm:rounded-2xl transition cursor-pointer"
         >
           + Simpan & Tambah Varian Produk Toko Ini
         </button>
@@ -263,7 +264,7 @@ function formatRupiah(amount: number) {
 
     <!-- Riwayat Produk Terakhir Diinput -->
     {recentProducts.length > 0 && (
-      <div class="bg-white border border-slate-200 rounded-3xl p-4 sm:p-5 space-y-3 shadow-xs">
+      <div class="bg-white border-y sm:border border-slate-200 sm:rounded-3xl p-4 sm:p-6 space-y-3 shadow-xs">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
           📋 Produk Terakhir yang Baru Diinput:
         </h3>

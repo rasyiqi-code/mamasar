@@ -1,7 +1,20 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    height: 100%;
+  }
   body {
     -webkit-tap-highlight-color: transparent;
+    padding-top: env(safe-area-inset-top);
   }
+}
+
+/* Hide scrollbar for mobile horizontal pill list while maintaining touch scrolling */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
