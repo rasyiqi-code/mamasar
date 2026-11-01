@@ -21,364 +21,524 @@ const recentProducts = allProducts.slice(0, 5);
 ---
 
 <Layout title="Pasang Iklan Produk | Pasar Warga NU Sumenep">
-  <div class="max-w-3xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6">
+  <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
     
-    <!-- Page Header: OsClass "Post your ad" Aesthetic -->
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+    <!-- Page Header: OsClass "Post your ad" Signature -->
+    <div class="flex items-center justify-between pb-3 border-b border-slate-800">
       <div>
-        <h1 class="text-xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
-          <span>📝</span> Pasang Iklan Produk
+        <h1 class="text-xl sm:text-3xl font-black text-white tracking-tight">
+          Pasang Iklan Produk
         </h1>
-        <p class="text-xs sm:text-sm text-slate-400 mt-1">
-          Daftarkan produk UMKM nahdliyin ke direktori digital Kabupaten Sumenep
+        <p class="text-xs sm:text-sm text-slate-400 mt-0.5">
+          Direktori Digital Iklan Baris UMKM Nahdliyin Kabupaten Sumenep
         </p>
       </div>
 
-      <!-- Fase 1 Badge & Progress Bar -->
-      <div class="bg-[#141d2a] border border-slate-700/80 rounded-xl p-3 shrink-0 space-y-1.5 w-full sm:w-64">
-        <div class="flex items-center justify-between text-xs font-bold">
-          <span class="text-slate-300">Target Fase 1:</span>
-          <span class="text-emerald-400">{totalCount} / {TARGET_MVP_PRODUCTS} Produk ({progressPercent}%)</span>
-        </div>
-        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700">
-          <div
-            class="bg-indigo-500 h-full rounded-full transition-all duration-500"
-            style={`width: ${progressPercent}%`}
-          ></div>
-        </div>
-      </div>
+      <a
+        href="/"
+        class="hidden sm:inline-flex text-xs font-semibold text-slate-400 hover:text-white transition items-center gap-1.5"
+      >
+        <span>← Kembali ke Katalog</span>
+      </a>
     </div>
 
     <!-- Feedback Message Box (Client Side) -->
     <div id="status-box" class="hidden p-4 rounded-xl text-xs font-semibold"></div>
 
-    <!-- OsClass "Post your ad" Form Sections (Structured Cards) -->
-    <form id="agent-form" class="space-y-5">
-      <input type="hidden" id="imageBase64" name="imageBase64" />
+    <!-- 2-Column Desktop Grid (Matching Screenshot media_1793548262515_399382ed.png) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- LEFT COLUMN: Main "Post your ad" Form (8 cols on desktop) -->
+      <div class="lg:col-span-8 space-y-5">
+        <form id="agent-form" class="space-y-5">
+          <input type="hidden" id="imageBase64" name="imageBase64" />
 
-      <!-- Section 1: Category Card (OsClass Style) -->
-      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
-            Kategori Produk
-          </h2>
-          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
-            ?
-          </span>
-        </div>
-
-        <div class="space-y-1.5">
-          <label for="category" class="block text-xs font-bold text-slate-300">
-            Pilih Kategori Iklan <span class="text-rose-400">*</span>
-          </label>
-          <select
-            id="category"
-            name="category"
-            required
-            class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm font-semibold text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
-          >
-            <option value="" disabled selected>-- Pilih Kategori Produk --</option>
-            {PRODUCT_CATEGORIES.map((cat) => (
-              <option value={cat}>
-                {CATEGORY_ICONS[cat] || '📦'} {cat}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <!-- Section 2: Listing Location Card (OsClass Style) -->
-      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
-            Lokasi Usaha (Kabupaten Sumenep)
-          </h2>
-          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
-            ?
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div class="space-y-1.5">
-            <label for="zoneId" class="block text-xs font-bold text-slate-300">
-              Wilayah MWC NU <span class="text-rose-400">*</span>
-            </label>
-            <select
-              id="zoneId"
-              name="zoneId"
-              required
-              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm font-semibold text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
-            >
-              <option value="" disabled selected>-- Pilih MWC Kecamatan --</option>
-              {zones.map((z) => (
-                <option value={z.id}>{z.name}</option>
-              ))}
-            </select>
-          </div>
-
-          <div class="space-y-1.5">
-            <label for="address" class="block text-xs font-bold text-slate-300">
-              Desa / Dusun / Alamat Toko
-            </label>
-            <input
-              type="text"
-              id="address"
-              name="address"
-              placeholder="Contoh: Dusun Karang Anyar, Desa Gapura Timur"
-              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 3: Seller's Information Card (OsClass Style) -->
-      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
-            Informasi Penjual / Toko
-          </h2>
-          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
-            ?
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-          <div class="space-y-1.5">
-            <label for="umkmName" class="block text-xs font-bold text-slate-300">
-              Nama Toko / Pengrajin <span class="text-rose-400">*</span>
-            </label>
-            <input
-              type="text"
-              id="umkmName"
-              name="umkmName"
-              placeholder="Contoh: UD Barokah Jaya / Dapur Bu Fatimah"
-              required
-              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-
-          <div class="space-y-1.5">
-            <label for="phone" class="block text-xs font-bold text-slate-300">
-              Nomor WhatsApp Aktif <span class="text-rose-400">*</span>
-            </label>
-            <input
-              type="tel"
-              id="phone"
-              name="phone"
-              placeholder="Contoh: 081234567890"
-              required
-              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
-            />
-            <div class="flex items-center gap-1.5 pt-1">
-              <input type="checkbox" id="phoneVisible" checked disabled class="accent-indigo-600 rounded" />
-              <label for="phoneVisible" class="text-[11px] text-slate-400">Nomor WhatsApp tampil di iklan untuk transaksi langsung</label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 4: Pricing Options & Status (OsClass Style) -->
-      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
-            Harga Produk
-          </h2>
-          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
-            ?
-          </span>
-        </div>
-
-        <div class="space-y-2">
-          <label for="price" class="block text-xs font-bold text-slate-300">
-            Nominal Harga (Rupiah) <span class="text-rose-400">*</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-slate-400">
-              IDR (Rp)
-            </span>
-            <input
-              type="number"
-              id="price"
-              name="price"
-              min="0"
-              step="500"
-              placeholder="Contoh: 25000"
-              required
-              class="w-full bg-[#182334] border border-slate-700 rounded-xl py-3 pl-20 pr-4 text-xs sm:text-sm font-black text-emerald-400 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-            />
-          </div>
-          <p class="text-[11px] text-slate-400">
-            Tulis angka saja tanpa titik atau koma. Masukkan 0 jika barang gratis atau sampel.
-          </p>
-        </div>
-      </div>
-
-      <!-- Section 5: Photos Dropzone (OsClass Style with Fast Client Compression) -->
-      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
-            Foto Produk (Kamera HP / Galeri)
-          </h2>
-          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
-            ?
-          </span>
-        </div>
-
-        <div>
-          <label
-            for="camera-input"
-            class="relative group cursor-pointer block border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-[#182334] hover:bg-[#1d2b40] rounded-2xl p-6 text-center transition"
-          >
-            <input
-              type="file"
-              id="camera-input"
-              accept="image/*"
-              capture="environment"
-              class="hidden"
-            />
-            
-            <div id="upload-placeholder" class="space-y-1.5">
-              <div class="text-4xl text-slate-400">📷</div>
-              <span class="text-xs sm:text-sm font-black text-indigo-400 block">
-                Klik atau Tarik Foto Produk di Sini
-              </span>
-              <span class="text-[11px] text-slate-400 block max-w-sm mx-auto">
-                Foto otomatis dikompres via HTML5 Canvas ke resolusi optimal (&lt;150KB) sebelum dikirim, hemat kuota di lapangan.
+          <!-- Card 1: Category (OsClass Style with Blue ? Icon) -->
+          <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+                Category
+              </h2>
+              <span class="w-5 h-5 rounded-full bg-[#4f46e5]/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+                ?
               </span>
             </div>
 
-            <!-- Preview & Compression Status -->
-            <div id="upload-preview-container" class="hidden space-y-2">
-              <img
-                id="upload-preview"
-                src=""
-                alt="Preview"
-                class="w-32 h-32 sm:w-40 sm:h-40 object-cover mx-auto rounded-2xl border-2 border-indigo-500 shadow-md"
-              />
-              <div
-                id="compression-info"
-                class="text-xs font-bold text-emerald-300 bg-emerald-950 px-3 py-1 rounded-lg inline-block border border-emerald-800"
-              ></div>
-              <span class="block text-[11px] text-slate-400">Ketuk untuk mengganti foto</span>
+            <div class="space-y-1.5">
+              <label for="category" class="block text-xs font-bold text-slate-300">
+                Select category for your listing <span class="text-rose-400">*</span>
+              </label>
+              <select
+                id="category"
+                name="category"
+                required
+                class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 sm:p-3 text-xs sm:text-sm font-semibold text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
+              >
+                <option value="" disabled selected>Select category</option>
+                {PRODUCT_CATEGORIES.map((cat) => (
+                  <option value={cat}>
+                    {CATEGORY_ICONS[cat] || '📦'} {cat}
+                  </option>
+                ))}
+              </select>
             </div>
-          </label>
-        </div>
-      </div>
-
-      <!-- Section 6: Title & Description (OsClass Style) -->
-      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
-            Judul & Deskripsi Iklan
-          </h2>
-          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
-            ?
-          </span>
-        </div>
-
-        <div class="space-y-3">
-          <div class="space-y-1.5">
-            <label for="productName" class="block text-xs font-bold text-slate-300">
-              Judul Iklan / Nama Produk <span class="text-rose-400">*</span>
-            </label>
-            <input
-              type="text"
-              id="productName"
-              name="productName"
-              placeholder="Contoh: Rengginang Lorjuk Super Asli Gapura 250g"
-              required
-              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-semibold"
-            />
           </div>
 
-          <div class="space-y-1.5">
-            <label for="description" class="block text-xs font-bold text-slate-300">
-              Deskripsi Lengkap Produk
-            </label>
-            <textarea
-              id="description"
-              name="description"
-              rows="3"
-              placeholder="Jelaskan keistimewaan rasa, bahan baku lokal, proses pembuatan, dan pilihan rasa/ukuran..."
-              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none"
-            ></textarea>
-          </div>
-        </div>
-      </div>
+          <!-- Card 2: Listing Location (OsClass 3-Select & Address Grid) -->
+          <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+                Listing location
+              </h2>
+              <span class="w-5 h-5 rounded-full bg-[#4f46e5]/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+                ?
+              </span>
+            </div>
 
-      <!-- Section 7: PIN Akses Agen (Verifikasi) -->
-      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
-        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
-          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
-            Verifikasi & PIN Agen
-          </h2>
-          <span class="text-[11px] text-emerald-400 font-medium">Default: <strong>{DEFAULT_AGENT_PIN}</strong></span>
-        </div>
+            <!-- Country, Region, City (3 Columns) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-400">Country</label>
+                <select disabled class="w-full bg-[#182334] border border-slate-700/80 rounded-lg p-2.5 text-xs text-slate-300 cursor-not-allowed">
+                  <option selected>Indonesia</option>
+                </select>
+              </div>
 
-        <div class="space-y-1.5">
-          <label for="agentPin" class="block text-xs font-bold text-slate-300">
-            PIN Agen Lapangan NU <span class="text-rose-400">*</span>
-          </label>
-          <input
-            type="password"
-            id="agentPin"
-            name="agentPin"
-            placeholder={`Masukkan PIN Agen (Default: ${DEFAULT_AGENT_PIN})`}
-            required
-            class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm font-mono tracking-widest text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
-          />
-        </div>
-      </div>
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-400">Region</label>
+                <select disabled class="w-full bg-[#182334] border border-slate-700/80 rounded-lg p-2.5 text-xs text-slate-300 cursor-not-allowed">
+                  <option selected>Jawa Timur</option>
+                </select>
+              </div>
 
-      <!-- Action Buttons: Large Indigo Submit (OsClass Signature) -->
-      <div class="pt-2 space-y-2.5">
-        <button
-          type="submit"
-          id="btn-submit"
-          class="w-full py-4 px-6 bg-[#4f46e5] hover:bg-[#4338ca] active:bg-[#3730a3] text-white font-black text-sm sm:text-base rounded-xl shadow-xl transition active:scale-98 cursor-pointer flex items-center justify-center gap-2"
-        >
-          <span>✓ Terbitkan Iklan Sekarang</span>
-        </button>
-
-        <button
-          type="button"
-          id="btn-submit-another"
-          class="w-full py-3 px-4 bg-[#182334] hover:bg-[#1f2d42] border border-slate-700 text-slate-200 text-xs font-bold rounded-xl transition cursor-pointer"
-        >
-          + Simpan & Lanjut Tambah Produk Lain Toko Ini
-        </button>
-      </div>
-
-    </form>
-
-    <!-- Recent Uploads List (Audit Ringkas) -->
-    <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-3">
-      <h3 class="text-xs font-black uppercase tracking-wider text-slate-300">
-        Iklan Terakhir yang Terdaftar ({allProducts.length} Produk Aktif)
-      </h3>
-      <div class="divide-y divide-slate-800/80 text-xs">
-        {recentProducts.map((p) => (
-          <div class="py-2.5 flex items-center justify-between gap-3">
-            <div class="flex items-center gap-3 truncate">
-              <img
-                src={p.image_url}
-                alt={p.name}
-                class="w-9 h-9 rounded-lg object-cover shrink-0"
-              />
-              <div class="truncate">
-                <span class="font-bold text-white block truncate">{p.name}</span>
-                <span class="text-[11px] text-slate-400">{p.umkm_name} • {p.zone_name}</span>
+              <div class="space-y-1">
+                <label for="zoneId" class="block text-[11px] font-bold text-slate-300">
+                  City / MWC Kecamatan <span class="text-rose-400">*</span>
+                </label>
+                <select
+                  id="zoneId"
+                  name="zoneId"
+                  required
+                  class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs font-semibold text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                >
+                  <option value="" disabled selected>Pilih Wilayah MWC</option>
+                  {zones.map((z) => (
+                    <option value={z.id}>{z.name}</option>
+                  ))}
+                </select>
               </div>
             </div>
-            <div class="text-right shrink-0">
-              <span class="font-black text-emerald-400 block">{formatRupiah(p.price)}</span>
-              <a href={`/p/${p.slug}`} target="_blank" class="text-[10px] text-indigo-400 hover:text-indigo-300 underline font-semibold">
-                Lihat ➔
-              </a>
+
+            <!-- Address & ZIP (2 Columns) -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div class="sm:col-span-2 space-y-1">
+                <label for="address" class="block text-[11px] font-bold text-slate-400">
+                  Address (Dusun / Desa / Jalan)
+                </label>
+                <input
+                  type="text"
+                  id="address"
+                  name="address"
+                  placeholder="Contoh: Dusun Karang Anyar, Desa Gapura Timur"
+                  class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-400">ZIP</label>
+                <input
+                  type="text"
+                  placeholder="694xx"
+                  class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <div class="pt-1">
+              <span class="text-[11px] text-indigo-400 font-semibold">
+                Wilayah MWC menentukan penempatan produk Anda di peta pencarian lokal Sumenep →
+              </span>
             </div>
           </div>
-        ))}
+
+          <!-- Card 3: Seller's Information (OsClass Style with Avatar) -->
+          <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+                Seller's information
+              </h2>
+              <span class="w-5 h-5 rounded-full bg-[#4f46e5]/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+                ?
+              </span>
+            </div>
+
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-emerald-900/60 border-2 border-emerald-500/50 flex items-center justify-center text-xl shrink-0">
+                🏪
+              </div>
+              <div class="flex-1 space-y-1">
+                <label for="umkmName" class="block text-[11px] font-bold text-slate-300">
+                  Contact Name / Nama Toko UMKM <span class="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="umkmName"
+                  name="umkmName"
+                  placeholder="Contoh: UD Barokah Jaya / Batik Canteng"
+                  required
+                  class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <!-- Phone Number & Email / WA -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <div class="space-y-1">
+                <label for="phone" class="block text-[11px] font-bold text-slate-300">
+                  Phone Number (WhatsApp) <span class="text-rose-400">*</span>
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="Contoh: 081234567890"
+                  required
+                  class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
+                />
+                <div class="flex items-center gap-1.5 pt-1">
+                  <input type="checkbox" id="phoneVisible" checked disabled class="accent-indigo-600 rounded" />
+                  <label for="phoneVisible" class="text-[11px] text-slate-400">Phone visible on ad</label>
+                </div>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-400">
+                  E-mail (Opsional)
+                </label>
+                <input
+                  type="email"
+                  placeholder="toko@sumenep.id"
+                  class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                />
+                <div class="flex items-center gap-1.5 pt-1">
+                  <input type="checkbox" id="emailVisible" class="accent-indigo-600 rounded" />
+                  <label for="emailVisible" class="text-[11px] text-slate-400">Email visible on ad</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Pricing Options & Status (OsClass Signature Price + Option Pills) -->
+          <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+                Pricing options & status
+              </h2>
+              <span class="w-5 h-5 rounded-full bg-[#4f46e5]/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+                ?
+              </span>
+            </div>
+
+            <!-- Price input with Currency selector -->
+            <div class="space-y-1.5">
+              <label for="price" class="block text-[11px] font-bold text-slate-300">
+                Price <span class="text-rose-400">*</span>
+              </label>
+              <div class="flex items-center gap-2">
+                <div class="w-28 shrink-0 bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs font-bold text-slate-300">
+                  IDR (Rp) ▾
+                </div>
+                <input
+                  type="number"
+                  id="price"
+                  name="price"
+                  min="0"
+                  step="500"
+                  placeholder="Price"
+                  required
+                  class="flex-1 bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm font-black text-emerald-400 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+            </div>
+
+            <!-- Divider with 'or' (OsClass Price Option Divider) -->
+            <div class="relative text-center my-3">
+              <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-slate-700/60"></div>
+              </div>
+              <span class="relative px-3 bg-[#141c2b] text-[11px] text-slate-500 uppercase tracking-widest font-semibold">
+                or
+              </span>
+            </div>
+
+            <!-- Action Pills: Item for free / Check with seller -->
+            <div class="flex items-center gap-3">
+              <button
+                type="button"
+                id="btn-price-free"
+                onclick="document.getElementById('price').value = '0'"
+                class="flex-1 py-2 px-3 bg-[#4f46e5]/20 hover:bg-[#4f46e5]/40 text-indigo-300 border border-indigo-500/40 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <span>👤</span>
+                <span>Item for free</span>
+              </button>
+
+              <button
+                type="button"
+                id="btn-price-nego"
+                onclick="if(!document.getElementById('price').value) document.getElementById('price').value = '10000'"
+                class="flex-1 py-2 px-3 bg-[#4f46e5]/20 hover:bg-[#4f46e5]/40 text-indigo-300 border border-indigo-500/40 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <span>👁</span>
+                <span>Check with seller</span>
+              </button>
+            </div>
+
+            <!-- Transaction & Condition Dropdowns (OsClass Style) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-400">Transaction</label>
+                <select class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 cursor-pointer">
+                  <option selected>Dijual Langsung (Retail)</option>
+                  <option>Grosir & Partai Besar</option>
+                  <option>Pre-Order (PO)</option>
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label class="block text-[11px] font-bold text-slate-400">Condition</label>
+                <select class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs text-slate-200 cursor-pointer">
+                  <option selected>Baru / Olahan Segar</option>
+                  <option>Buatan Tangan (Handmade)</option>
+                  <option>Tradisional Khas Sumenep</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 5: Photos (OsClass Style Dropzone with Canvas Compression) -->
+          <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+                Photos
+              </h2>
+              <span class="w-5 h-5 rounded-full bg-[#4f46e5]/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+                ?
+              </span>
+            </div>
+
+            <p class="text-[11px] text-slate-400">
+              You can upload up to 4 pictures per listing
+            </p>
+
+            <label
+              for="camera-input"
+              class="relative group cursor-pointer block border border-slate-700 hover:border-indigo-500 bg-[#182334] hover:bg-[#1d2b40] rounded-xl p-6 sm:p-8 text-center transition"
+            >
+              <input
+                type="file"
+                id="camera-input"
+                accept="image/*"
+                capture="environment"
+                class="hidden"
+              />
+
+              <div id="upload-placeholder" class="space-y-1.5">
+                <div class="w-10 h-10 mx-auto rounded-lg bg-slate-800 flex items-center justify-center text-xl text-slate-300">
+                  📷
+                </div>
+                <span class="text-xs sm:text-sm font-bold text-slate-200 block">
+                  Click or Drop for upload images
+                </span>
+                <span class="text-[11px] text-slate-400 block max-w-sm mx-auto">
+                  Kompresi otomatis via HTML5 Canvas (&lt;150KB), hemat kuota dan unggah cepat di lapangan.
+                </span>
+              </div>
+
+              <!-- Preview & Compression Status -->
+              <div id="upload-preview-container" class="hidden space-y-2">
+                <img
+                  id="upload-preview"
+                  src=""
+                  alt="Preview"
+                  class="w-32 h-32 sm:w-40 sm:h-40 object-cover mx-auto rounded-xl border-2 border-indigo-500 shadow-md"
+                />
+                <div
+                  id="compression-info"
+                  class="text-xs font-bold text-emerald-300 bg-emerald-950 px-3 py-1 rounded-lg inline-block border border-emerald-800"
+                ></div>
+                <span class="block text-[11px] text-slate-400">Click to change picture</span>
+              </div>
+            </label>
+          </div>
+
+          <!-- Card 6: Listing Description and Attributes (OsClass Style) -->
+          <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+                Listing description and attributes
+              </h2>
+              <span class="w-5 h-5 rounded-full bg-[#4f46e5]/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+                ?
+              </span>
+            </div>
+
+            <div class="space-y-3">
+              <div class="space-y-1">
+                <label for="productName" class="block text-[11px] font-bold text-slate-300">
+                  Title <span class="text-rose-400">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="productName"
+                  name="productName"
+                  placeholder="Summarize your offer"
+                  required
+                  class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-semibold"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="description" class="block text-[11px] font-bold text-slate-300">
+                  Description <span class="text-rose-400">*</span>
+                </label>
+                <textarea
+                  id="description"
+                  name="description"
+                  rows="4"
+                  placeholder="Detail description of your offer"
+                  class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 7: Verification & PIN (Kader Lapangan NU) -->
+          <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+                Verifikasi Petugas / Agen Lapangan
+              </h2>
+              <span class="text-[11px] text-emerald-400 font-medium">Default: <strong>{DEFAULT_AGENT_PIN}</strong></span>
+            </div>
+
+            <div class="space-y-1">
+              <label for="agentPin" class="block text-[11px] font-bold text-slate-300">
+                PIN Akses Agen <span class="text-rose-400">*</span>
+              </label>
+              <input
+                type="password"
+                id="agentPin"
+                name="agentPin"
+                placeholder={`Masukkan PIN Akses (Default: ${DEFAULT_AGENT_PIN})`}
+                required
+                class="w-full bg-[#182334] border border-slate-700 rounded-lg p-2.5 text-xs sm:text-sm font-mono tracking-widest text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+              />
+            </div>
+          </div>
+
+          <!-- Submit Button (Large Blue/Indigo Submit matching screenshot) -->
+          <div class="pt-2 space-y-2">
+            <button
+              type="submit"
+              id="btn-submit"
+              class="w-full py-3.5 px-6 bg-[#4f46e5] hover:bg-[#4338ca] active:bg-[#3730a3] text-white font-black text-sm rounded-xl shadow-xl transition active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <span>Submit</span>
+            </button>
+
+            <button
+              type="button"
+              id="btn-submit-another"
+              class="w-full py-2.5 px-4 bg-[#182334] hover:bg-[#1f2d42] border border-slate-700 text-slate-300 text-xs font-bold rounded-xl transition cursor-pointer"
+            >
+              + Simpan & Lanjut Tambah Produk Lain Toko Ini
+            </button>
+          </div>
+
+        </form>
       </div>
+
+      <!-- RIGHT COLUMN: Desktop Sidebar with Blue Tip Box (Matching Screenshot media_1793548262515_399382ed.png) -->
+      <aside class="lg:col-span-4 space-y-5 sticky top-20">
+        
+        <!-- Blue Tip Callout Card (Exact Replica of Screenshot Tip Box) -->
+        <div id="category-tip-card" class="bg-[#4f46e5] text-white p-5 rounded-xl shadow-2xl relative space-y-2">
+          <button
+            type="button"
+            onclick="document.getElementById('category-tip-card').style.display='none'"
+            aria-label="Tutup Info"
+            class="absolute top-3.5 right-3.5 text-white/80 hover:text-white text-sm font-bold p-1 cursor-pointer"
+          >
+            ✕
+          </button>
+          
+          <h3 class="font-extrabold text-sm leading-snug pr-6">
+            Category selection is important!
+          </h3>
+          <p class="text-xs text-indigo-100 leading-relaxed">
+            Selecting correct category for your item is essential part of selling process. If you select improper category, potential buyers will not be able to find your item and it will take much more time to sell it.
+          </p>
+          <div class="pt-1 text-[11px] text-white/90 font-medium">
+            💡 <em>Pilih kategori makanan, batik, atau hasil laut yang sesuai dengan produk warga NU.</em>
+          </div>
+        </div>
+
+        <!-- Target Fase 1 Progress Card -->
+        <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-200">
+              Target Fase 1 (14 Hari)
+            </h3>
+            <span class="text-xs font-bold text-emerald-400">{progressPercent}%</span>
+          </div>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>Produk Terdaftar:</span>
+              <strong class="text-white">{totalCount} / {TARGET_MVP_PRODUCTS} Produk</strong>
+            </div>
+            <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700">
+              <div
+                class="bg-indigo-500 h-full rounded-full transition-all duration-500"
+                style={`width: ${progressPercent}%`}
+              ></div>
+            </div>
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">
+            Target 50 produk perdana untuk menjamin kepadatan katalog sebelum peluncuran resmi ke publik.
+          </p>
+        </div>
+
+        <!-- Recent Uploaded Items -->
+        <div class="bg-[#141c2b] border border-slate-800 rounded-xl p-4 sm:p-5 shadow-sm space-y-3">
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-200">
+            Iklan Terakhir Didaftarkan
+          </h3>
+          <div class="divide-y divide-slate-800/80 text-xs">
+            {recentProducts.map((p) => (
+              <div class="py-2 flex items-center justify-between gap-2.5">
+                <div class="flex items-center gap-2.5 truncate">
+                  <img
+                    src={p.image_url}
+                    alt={p.name}
+                    class="w-8 h-8 rounded-lg object-cover shrink-0"
+                  />
+                  <div class="truncate">
+                    <span class="font-bold text-white block truncate text-[11px]">{p.name}</span>
+                    <span class="text-[10px] text-slate-400">{p.zone_name}</span>
+                  </div>
+                </div>
+                <span class="font-black text-emerald-400 shrink-0 text-[11px]">
+                  {formatRupiah(p.price)}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </aside>
+
     </div>
 
   </div>
@@ -416,7 +576,7 @@ const recentProducts = allProducts.slice(0, 5);
       e.preventDefault();
 
       if (!imageBase64Input.value) {
-        showStatus('Peringatan: Silakan ambil atau pilih foto produk terlebih dahulu!', 'warning');
+        showStatus('Peringatan: Silakan pilih atau ambil foto produk terlebih dahulu!', 'warning');
         return;
       }
 
@@ -530,7 +690,7 @@ const recentProducts = allProducts.slice(0, 5);
         btnSubmit.disabled = false;
         btnSubmitAnother.disabled = false;
         btnSubmit.classList.remove('opacity-60', 'cursor-not-allowed');
-        btnSubmit.innerHTML = '<span>✓ Terbitkan Iklan Sekarang</span>';
+        btnSubmit.innerHTML = '<span>Submit</span>';
       }
     }
 
