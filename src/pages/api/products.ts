@@ -1,14 +1,14 @@
 import type { APIRoute } from 'astro';
-import fs from 'node:fs/promises';
-import path from 'node:path';
 import { createUMKMAndProduct } from '../../lib/db';
+import { DEFAULT_AGENT_PIN } from '../../lib/constants';
+import { saveUploadedImage } from '../../lib/storage';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const formData = await request.formData();
 
     const agentPin = formData.get('agentPin')?.toString().trim();
-    const correctPin = process.env.AGENT_PIN || '1926';
+    const correctPin = process.env.AGENT_PIN || DEFAULT_AGENT_PIN;
 
     // Simple security check for field agent submissions
     if (agentPin !== correctPin) {
@@ -40,33 +40,10 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Handle persistent image storage in data/uploads/
-    let imageUrl = 'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
-    const imageFile = formData.get('image');
+    // Process image storage via shared storage module
+    const imageFile = formData.get('image') as File | null;
     const imageBase64 = formData.get('imageBase64')?.toString();
-
-    const uploadsDir = path.resolve(process.cwd(), 'data/uploads');
-    await fs.mkdir(uploadsDir, { recursive: true });
-
-    if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-      const ext = path.extname(imageFile.name) || '.jpg';
-      const fileName = `prod-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
-      const filePath = path.join(uploadsDir, fileName);
-      const buffer = Buffer.from(await imageFile.arrayBuffer());
-      await fs.writeFile(filePath, buffer);
-      imageUrl = `/uploads/${fileName}`;
-    } else if (imageBase64 && imageBase64.includes(';base64,')) {
-      // Decode compressed client-side base64 reliably
-      const commaIndex = imageBase64.indexOf(',');
-      if (commaIndex !== -1) {
-        const base64Data = imageBase64.substring(commaIndex + 1);
-        const buffer = Buffer.from(base64Data, 'base64');
-        const fileName = `prod-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.jpg`;
-        const filePath = path.join(uploadsDir, fileName);
-        await fs.writeFile(filePath, buffer);
-        imageUrl = `/uploads/${fileName}`;
-      }
-    }
+    const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
 
     const result = createUMKMAndProduct({
       umkmName,

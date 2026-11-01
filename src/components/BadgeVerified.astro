@@ -1,0 +1,21 @@
+---
+interface Props {
+  size?: 'sm' | 'md';
+  label?: string;
+  class?: string;
+}
+
+const { size = 'sm', label = 'Terverifikasi NU', class: customClass = '' } = Astro.props;
+
+const sizeClasses =
+  size === 'sm'
+    ? 'text-[10px] sm:text-[11px] gap-1 px-1.5 py-0.5'
+    : 'text-xs gap-1.5 px-2.5 py-1';
+---
+
+<span
+  class={`inline-flex items-center font-bold text-emerald-700 bg-emerald-100/80 border border-emerald-200/80 rounded-md ${sizeClasses} ${customClass}`}
+>
+  <span class="text-emerald-600">✓</span>
+  <span>{label}</span>
+</span>

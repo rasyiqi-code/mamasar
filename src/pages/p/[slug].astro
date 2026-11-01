@@ -1,6 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import BadgeVerified from '../../components/BadgeVerified.astro';
 import { getProductBySlug } from '../../lib/db';
+import { formatRupiah, createProductWhatsAppUrl } from '../../lib/utils';
 
 const { slug } = Astro.params;
 
@@ -17,22 +19,17 @@ if (!product) {
   });
 }
 
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
-
 const currentUrl = Astro.url.href;
 
-// Formatted WhatsApp message with origin link
-const waMessage = encodeURIComponent(
-  `Halo *${product.umkm_name}*,\n\nSaya melihat produk Anda di *Direktori Digital UMKM NU Sumenep*:\n📦 *Produk:* ${product.name}\n💰 *Harga:* ${formatRupiah(product.price)}\n📍 *Wilayah:* ${product.zone_name}\n🔗 *Link:* ${currentUrl}\n\nApakah barang ini masih tersedia dan bisa dikirim ke alamat saya? Terima kasih.`
-);
-
-const waLink = `https://wa.me/${product.umkm_phone}?text=${waMessage}`;
+// Shared WhatsApp direct-chat link generator
+const waLink = createProductWhatsAppUrl({
+  phone: product.umkm_phone,
+  storeName: product.umkm_name,
+  productName: product.name,
+  price: product.price,
+  zoneName: product.zone_name,
+  productUrl: currentUrl,
+});
 
 // Schema.org Product Structured Data for Google Rich Snippets
 const productSchema = {
@@ -107,7 +104,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
           </svg>
         </a>
 
-        <!-- Hero Image Container (Full-bleed 0 margin on mobile, 3xl rounded on desktop) -->
+        <!-- Hero Image Container: fetchpriority="high" for optimal LCP as per modern-web-guidance -->
         <div class="relative w-full aspect-square md:aspect-4/3 bg-slate-100 overflow-hidden md:rounded-3xl md:border md:border-slate-200/80 md:shadow-sm">
           <img
             src={product.image_url}
@@ -121,9 +118,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
             <span class="bg-slate-900/80 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm">
               📍 {product.zone_name}
             </span>
-            <span class="bg-emerald-600/90 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-              <span>✓</span> Terverifikasi NU
-            </span>
+            <BadgeVerified label="Terverifikasi NU" size="md" class="backdrop-blur-md shadow-sm" />
           </div>
         </div>
       </div>
@@ -159,9 +154,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
               </p>
             </div>
           </div>
-          <span class="text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-200 px-2.5 py-1 rounded-lg shrink-0">
-            Warga NU
-          </span>
+          <BadgeVerified label="Warga NU" size="sm" />
         </div>
 
         <!-- Desktop WhatsApp CTA Button (Visible on md and above) -->

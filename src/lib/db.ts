@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
 import path from 'node:path';
 import fs from 'node:fs';
+import { formatPhoneForWhatsApp, slugify } from './utils';
 
 const dataDir = path.resolve(process.cwd(), 'data');
 if (!fs.existsSync(dataDir)) {
@@ -228,20 +229,8 @@ export function createUMKMAndProduct(data: {
   imageUrl: string;
   description?: string;
 }) {
-  // Normalize phone to start with 62
-  let cleanPhone = data.phone.replace(/\D/g, '');
-  if (cleanPhone.startsWith('0')) {
-    cleanPhone = '62' + cleanPhone.slice(1);
-  } else if (!cleanPhone.startsWith('62')) {
-    cleanPhone = '62' + cleanPhone;
-  }
-
-  // Create slug from product name + random suffix for uniqueness
-  const baseSlug = data.productName
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-  const uniqueSlug = `${baseSlug}-${Date.now().toString(36)}`;
+  const cleanPhone = formatPhoneForWhatsApp(data.phone);
+  const uniqueSlug = `${slugify(data.productName)}-${Date.now().toString(36)}`;
 
   const insertUMKM = db.prepare(
     'INSERT INTO umkm (name, phone, zone_id, is_verified, address) VALUES (?, ?, ?, 1, ?)'

@@ -1,0 +1,54 @@
+---
+import type { Zone } from '../lib/db';
+
+interface Props {
+  zones: Zone[];
+  currentZone: string;
+  currentCategory: string;
+  searchQuery: string;
+}
+
+const { zones, currentZone, currentCategory, searchQuery } = Astro.props;
+---
+
+<div class="space-y-1 sm:space-y-2">
+  <div class="flex items-center justify-between text-xs px-3 sm:px-1">
+    <span class="font-bold text-slate-700 uppercase tracking-wider text-[10px] sm:text-xs">
+      📍 Pilih Wilayah (MWC NU):
+    </span>
+    {currentZone !== 'semua' && (
+      <a
+        href={`/?zona=semua&kategori=${currentCategory}&q=${searchQuery}`}
+        class="text-emerald-700 font-bold hover:underline text-[11px]"
+      >
+        Lihat Semua Wilayah
+      </a>
+    )}
+  </div>
+
+  <!-- Horizontal Scrollable Pills -->
+  <div class="flex gap-1.5 sm:gap-2 overflow-x-auto px-3 sm:px-0 pb-1 no-scrollbar text-xs scroll-smooth">
+    <a
+      href={`/?zona=semua&kategori=${currentCategory}&q=${searchQuery}`}
+      class={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-full whitespace-nowrap font-semibold transition shrink-0 text-xs ${
+        currentZone === 'semua'
+          ? 'bg-emerald-700 text-white shadow-xs'
+          : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+      }`}
+    >
+      Semua Wilayah
+    </a>
+    {zones.map((z) => (
+      <a
+        href={`/?zona=${z.slug}&kategori=${currentCategory}&q=${searchQuery}`}
+        class={`px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-full whitespace-nowrap font-semibold transition shrink-0 text-xs ${
+          currentZone === z.slug
+            ? 'bg-emerald-700 text-white shadow-xs'
+            : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+        }`}
+      >
+        {z.name}
+      </a>
+    ))}
+  </div>
+</div>
