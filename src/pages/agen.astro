@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import { getAllZones, getProducts } from '../lib/db';
 import {
   PRODUCT_CATEGORIES,
+  CATEGORY_ICONS,
   TARGET_MVP_PRODUCTS,
   DEFAULT_AGENT_PIN,
 } from '../lib/constants';
@@ -16,34 +17,32 @@ const progressPercent = Math.min(
   100
 );
 
-const recentProducts = allProducts.slice(0, 6);
+const recentProducts = allProducts.slice(0, 5);
 ---
 
-<Layout title="Portal Input Agen Lapangan | Direktori UMKM NU Sumenep">
-  <div class="max-w-xl mx-auto space-y-3 sm:space-y-6 sm:py-6">
+<Layout title="Pasang Iklan Produk | Pasar Warga NU Sumenep">
+  <div class="max-w-3xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6">
     
-    <!-- Header Banner: Edge-to-edge on mobile, rounded card on desktop -->
-    <div class="bg-emerald-800 text-white sm:rounded-3xl p-4 sm:p-6 shadow-xs space-y-2.5">
-      <div class="flex items-center justify-between">
-        <span class="text-[10px] font-black uppercase tracking-wider bg-emerald-600/60 px-2.5 py-0.5 rounded-md">
-          Portal Kader Lapangan
-        </span>
-        <span class="text-xs text-emerald-200">Mode Jemput Bola</span>
+    <!-- Page Header: OsClass "Post your ad" Aesthetic -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+      <div>
+        <h1 class="text-xl sm:text-3xl font-black text-white tracking-tight flex items-center gap-2">
+          <span>📝</span> Pasang Iklan Produk
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-400 mt-1">
+          Daftarkan produk UMKM nahdliyin ke direktori digital Kabupaten Sumenep
+        </p>
       </div>
-      <h1 class="text-lg sm:text-2xl font-black">Form Entri Cepat Produk UMKM</h1>
-      <p class="text-xs sm:text-sm text-emerald-100 leading-relaxed">
-        Khusus tim pendata dan kader NU. Formulir ringkas (&lt;90 detik) dengan kompresi foto otomatis di HP.
-      </p>
 
-      <!-- Target Fase 1 Progress Bar -->
-      <div class="pt-3 border-t border-emerald-700/80 space-y-1.5">
+      <!-- Fase 1 Badge & Progress Bar -->
+      <div class="bg-[#141d2a] border border-slate-700/80 rounded-xl p-3 shrink-0 space-y-1.5 w-full sm:w-64">
         <div class="flex items-center justify-between text-xs font-bold">
-          <span>Target Fase 1 (14 Hari):</span>
-          <span>{totalCount} / {TARGET_MVP_PRODUCTS} Produk ({progressPercent}%)</span>
+          <span class="text-slate-300">Target Fase 1:</span>
+          <span class="text-emerald-400">{totalCount} / {TARGET_MVP_PRODUCTS} Produk ({progressPercent}%)</span>
         </div>
-        <div class="w-full bg-emerald-950/60 rounded-full h-2.5 overflow-hidden p-0.5">
+        <div class="w-full bg-slate-900 rounded-full h-2 overflow-hidden border border-slate-700">
           <div
-            class="bg-emerald-400 h-full rounded-full transition-all duration-500"
+            class="bg-indigo-500 h-full rounded-full transition-all duration-500"
             style={`width: ${progressPercent}%`}
           ></div>
         </div>
@@ -51,251 +50,350 @@ const recentProducts = allProducts.slice(0, 6);
     </div>
 
     <!-- Feedback Message Box (Client Side) -->
-    <div id="status-box" class="hidden p-4 mx-3 sm:mx-0 rounded-2xl text-xs font-semibold"></div>
+    <div id="status-box" class="hidden p-4 rounded-xl text-xs font-semibold"></div>
 
-    <!-- Agent Form: Full edge-to-edge on mobile, rounded card on desktop -->
-    <form id="agent-form" class="bg-white border-y sm:border border-slate-200 sm:rounded-3xl p-4 sm:p-8 space-y-4 sm:space-y-5 shadow-xs">
+    <!-- OsClass "Post your ad" Form Sections (Structured Cards) -->
+    <form id="agent-form" class="space-y-5">
       <input type="hidden" id="imageBase64" name="imageBase64" />
 
-      <!-- PIN Agen Lapangan -->
-      <div class="space-y-1.5 bg-emerald-50/70 p-3 sm:p-4 rounded-2xl border border-emerald-200/80">
-        <div class="flex items-center justify-between">
-          <label for="agentPin" class="text-xs font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
-            <span>🔑</span> PIN Akses Agen <span class="text-rose-500">*</span>
-          </label>
-          <span class="text-[11px] text-emerald-700 font-medium">Default: <strong>{DEFAULT_AGENT_PIN}</strong></span>
-        </div>
-        <input
-          type="password"
-          id="agentPin"
-          name="agentPin"
-          placeholder={`Masukkan PIN (Default: ${DEFAULT_AGENT_PIN})`}
-          required
-          class="w-full bg-white border border-emerald-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-mono tracking-widest text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
-      </div>
-
-      <!-- 1. Foto Produk dengan Auto-Compression Canvas -->
-      <div class="space-y-1.5">
-        <label class="block text-xs font-bold text-slate-800 uppercase tracking-wider">
-          1. Foto Produk (Kamera HP) <span class="text-rose-500">*</span>
-        </label>
-        
-        <label for="camera-input" class="relative group cursor-pointer block border-2 border-dashed border-emerald-300 hover:border-emerald-500 bg-emerald-50/40 hover:bg-emerald-50 rounded-2xl p-4 sm:p-6 text-center transition">
-          <input
-            type="file"
-            id="camera-input"
-            accept="image/*"
-            capture="environment"
-            class="hidden"
-          />
-          <div id="upload-placeholder" class="space-y-1">
-            <div class="text-3xl sm:text-4xl">📷</div>
-            <span class="text-xs sm:text-sm font-extrabold text-emerald-800 block">
-              Ketuk untuk Ambil Foto Kamera / Galeri
-            </span>
-            <span class="text-[11px] sm:text-xs text-slate-500 block">
-              Foto otomatis dikompres sebelum dikirim (hemat kuota di lapangan)
-            </span>
-          </div>
-
-          <!-- Preview & Compression Status -->
-          <div id="upload-preview-container" class="hidden space-y-2">
-            <img id="upload-preview" src="" alt="Preview" class="w-32 h-32 sm:w-40 sm:h-40 object-cover mx-auto rounded-2xl border border-emerald-300 shadow-xs" />
-            <div id="compression-info" class="text-[11px] sm:text-xs font-bold text-emerald-700 bg-emerald-100/80 px-3 py-1 rounded-lg inline-block"></div>
-            <span class="block text-[11px] text-slate-400">Ketuk jika ingin mengganti foto</span>
-          </div>
-        </label>
-      </div>
-
-      <!-- 2. Wilayah / MWC & Kategori -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-        <div class="space-y-1">
-          <label for="zoneId" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            2. Wilayah / MWC <span class="text-rose-500">*</span>
-          </label>
-          <select
-            id="zoneId"
-            name="zoneId"
-            required
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="" disabled selected>Pilih MWC...</option>
-            {zones.map((z) => (
-              <option value={z.id}>{z.name}</option>
-            ))}
-          </select>
+      <!-- Section 1: Category Card (OsClass Style) -->
+      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+            Kategori Produk
+          </h2>
+          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+            ?
+          </span>
         </div>
 
-        <div class="space-y-1">
-          <label for="category" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Kategori <span class="text-rose-500">*</span>
+        <div class="space-y-1.5">
+          <label for="category" class="block text-xs font-bold text-slate-300">
+            Pilih Kategori Iklan <span class="text-rose-400">*</span>
           </label>
           <select
             id="category"
             name="category"
             required
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm font-semibold text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
           >
-            {PRODUCT_CATEGORIES.map((c) => (
-              <option value={c}>{c}</option>
+            <option value="" disabled selected>-- Pilih Kategori Produk --</option>
+            {PRODUCT_CATEGORIES.map((cat) => (
+              <option value={cat}>
+                {CATEGORY_ICONS[cat] || '📦'} {cat}
+              </option>
             ))}
           </select>
         </div>
       </div>
 
-      <!-- 3. Profil Toko / UMKM -->
-      <div class="space-y-3 pt-2 border-t border-slate-100">
-        <div class="space-y-1">
-          <label for="umkmName" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            3. Nama Usaha / Toko <span class="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="umkmName"
-            name="umkmName"
-            placeholder="Contoh: UD Barokah Jaya / Dapur Bu Aminah"
-            required
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+      <!-- Section 2: Listing Location Card (OsClass Style) -->
+      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+            Lokasi Usaha (Kabupaten Sumenep)
+          </h2>
+          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+            ?
+          </span>
         </div>
 
-        <div class="space-y-1">
-          <label for="phone" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            4. Nomor WhatsApp Penjual <span class="text-rose-500">*</span>
-          </label>
-          <div class="flex">
-            <span class="inline-flex items-center px-3 sm:px-4 rounded-l-xl border border-r-0 border-slate-300 bg-slate-100 text-slate-600 font-bold text-xs sm:text-sm">
-              +62
-            </span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div class="space-y-1.5">
+            <label for="zoneId" class="block text-xs font-bold text-slate-300">
+              Wilayah MWC NU <span class="text-rose-400">*</span>
+            </label>
+            <select
+              id="zoneId"
+              name="zoneId"
+              required
+              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm font-semibold text-slate-100 focus:outline-none focus:border-indigo-500 cursor-pointer"
+            >
+              <option value="" disabled selected>-- Pilih MWC Kecamatan --</option>
+              {zones.map((z) => (
+                <option value={z.id}>{z.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="address" class="block text-xs font-bold text-slate-300">
+              Desa / Dusun / Alamat Toko
+            </label>
+            <input
+              type="text"
+              id="address"
+              name="address"
+              placeholder="Contoh: Dusun Karang Anyar, Desa Gapura Timur"
+              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Seller's Information Card (OsClass Style) -->
+      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+            Informasi Penjual / Toko
+          </h2>
+          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+            ?
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div class="space-y-1.5">
+            <label for="umkmName" class="block text-xs font-bold text-slate-300">
+              Nama Toko / Pengrajin <span class="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              id="umkmName"
+              name="umkmName"
+              placeholder="Contoh: UD Barokah Jaya / Dapur Bu Fatimah"
+              required
+              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="phone" class="block text-xs font-bold text-slate-300">
+              Nomor WhatsApp Aktif <span class="text-rose-400">*</span>
+            </label>
             <input
               type="tel"
               id="phone"
               name="phone"
-              placeholder="81234567890"
+              placeholder="Contoh: 081234567890"
               required
-              class="w-full bg-slate-50 border border-slate-300 rounded-r-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-mono"
             />
+            <div class="flex items-center gap-1.5 pt-1">
+              <input type="checkbox" id="phoneVisible" checked disabled class="accent-indigo-600 rounded" />
+              <label for="phoneVisible" class="text-[11px] text-slate-400">Nomor WhatsApp tampil di iklan untuk transaksi langsung</label>
+            </div>
           </div>
-          <span class="text-[10px] sm:text-[11px] text-slate-400 block">
-            Nomor yang aktif WhatsApp untuk menerima pesanan langsung dari pembeli.
-          </span>
         </div>
       </div>
 
-      <!-- 4. Detail Produk -->
-      <div class="space-y-3 pt-2 border-t border-slate-100">
-        <div class="space-y-1">
-          <label for="productName" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            5. Nama Barang / Produk <span class="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="productName"
-            name="productName"
-            placeholder="Contoh: Rengginang Lorjuk Super 250gr"
-            required
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
+      <!-- Section 4: Pricing Options & Status (OsClass Style) -->
+      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+            Harga Produk
+          </h2>
+          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+            ?
+          </span>
         </div>
 
-        <div class="space-y-1">
-          <label for="price" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            6. Harga Jual (Rp) <span class="text-rose-500">*</span>
+        <div class="space-y-2">
+          <label for="price" class="block text-xs font-bold text-slate-300">
+            Nominal Harga (Rupiah) <span class="text-rose-400">*</span>
           </label>
-          <div class="flex">
-            <span class="inline-flex items-center px-3 sm:px-4 rounded-l-xl border border-r-0 border-slate-300 bg-slate-100 text-slate-600 font-bold text-xs sm:text-sm">
-              Rp
+          <div class="relative">
+            <span class="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-xs text-slate-400">
+              IDR (Rp)
             </span>
             <input
               type="number"
               id="price"
               name="price"
-              placeholder="25000"
-              required
-              min="500"
+              min="0"
               step="500"
-              class="w-full bg-slate-50 border border-slate-300 rounded-r-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              placeholder="Contoh: 25000"
+              required
+              class="w-full bg-[#182334] border border-slate-700 rounded-xl py-3 pl-20 pr-4 text-xs sm:text-sm font-black text-emerald-400 placeholder-slate-500 focus:outline-none focus:border-indigo-500"
             />
           </div>
-        </div>
-
-        <div class="space-y-1">
-          <label for="description" class="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Deskripsi Singkat (Opsional)
-          </label>
-          <textarea
-            id="description"
-            name="description"
-            rows="2"
-            placeholder="Rasa gurih, bahan alami, cocok untuk camilan atau oleh-oleh..."
-            class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 sm:p-3 text-xs sm:text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          ></textarea>
+          <p class="text-[11px] text-slate-400">
+            Tulis angka saja tanpa titik atau koma. Masukkan 0 jika barang gratis atau sampel.
+          </p>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="pt-3 space-y-2.5">
+      <!-- Section 5: Photos Dropzone (OsClass Style with Fast Client Compression) -->
+      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+            Foto Produk (Kamera HP / Galeri)
+          </h2>
+          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+            ?
+          </span>
+        </div>
+
+        <div>
+          <label
+            for="camera-input"
+            class="relative group cursor-pointer block border-2 border-dashed border-slate-700 hover:border-indigo-500 bg-[#182334] hover:bg-[#1d2b40] rounded-2xl p-6 text-center transition"
+          >
+            <input
+              type="file"
+              id="camera-input"
+              accept="image/*"
+              capture="environment"
+              class="hidden"
+            />
+            
+            <div id="upload-placeholder" class="space-y-1.5">
+              <div class="text-4xl text-slate-400">📷</div>
+              <span class="text-xs sm:text-sm font-black text-indigo-400 block">
+                Klik atau Tarik Foto Produk di Sini
+              </span>
+              <span class="text-[11px] text-slate-400 block max-w-sm mx-auto">
+                Foto otomatis dikompres via HTML5 Canvas ke resolusi optimal (&lt;150KB) sebelum dikirim, hemat kuota di lapangan.
+              </span>
+            </div>
+
+            <!-- Preview & Compression Status -->
+            <div id="upload-preview-container" class="hidden space-y-2">
+              <img
+                id="upload-preview"
+                src=""
+                alt="Preview"
+                class="w-32 h-32 sm:w-40 sm:h-40 object-cover mx-auto rounded-2xl border-2 border-indigo-500 shadow-md"
+              />
+              <div
+                id="compression-info"
+                class="text-xs font-bold text-emerald-300 bg-emerald-950 px-3 py-1 rounded-lg inline-block border border-emerald-800"
+              ></div>
+              <span class="block text-[11px] text-slate-400">Ketuk untuk mengganti foto</span>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Section 6: Title & Description (OsClass Style) -->
+      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+            Judul & Deskripsi Iklan
+          </h2>
+          <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-400 border border-indigo-500/40 text-[10px] flex items-center justify-center font-bold">
+            ?
+          </span>
+        </div>
+
+        <div class="space-y-3">
+          <div class="space-y-1.5">
+            <label for="productName" class="block text-xs font-bold text-slate-300">
+              Judul Iklan / Nama Produk <span class="text-rose-400">*</span>
+            </label>
+            <input
+              type="text"
+              id="productName"
+              name="productName"
+              placeholder="Contoh: Rengginang Lorjuk Super Asli Gapura 250g"
+              required
+              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 font-semibold"
+            />
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="description" class="block text-xs font-bold text-slate-300">
+              Deskripsi Lengkap Produk
+            </label>
+            <textarea
+              id="description"
+              name="description"
+              rows="3"
+              placeholder="Jelaskan keistimewaan rasa, bahan baku lokal, proses pembuatan, dan pilihan rasa/ukuran..."
+              class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 resize-none"
+            ></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 7: PIN Akses Agen (Verifikasi) -->
+      <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-sm space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-800/80">
+          <h2 class="text-xs font-black uppercase tracking-wider text-slate-200">
+            Verifikasi & PIN Agen
+          </h2>
+          <span class="text-[11px] text-emerald-400 font-medium">Default: <strong>{DEFAULT_AGENT_PIN}</strong></span>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="agentPin" class="block text-xs font-bold text-slate-300">
+            PIN Agen Lapangan NU <span class="text-rose-400">*</span>
+          </label>
+          <input
+            type="password"
+            id="agentPin"
+            name="agentPin"
+            placeholder={`Masukkan PIN Agen (Default: ${DEFAULT_AGENT_PIN})`}
+            required
+            class="w-full bg-[#182334] border border-slate-700 rounded-xl p-3 text-xs sm:text-sm font-mono tracking-widest text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
+          />
+        </div>
+      </div>
+
+      <!-- Action Buttons: Large Indigo Submit (OsClass Signature) -->
+      <div class="pt-2 space-y-2.5">
         <button
           type="submit"
           id="btn-submit"
-          class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl sm:rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+          class="w-full py-4 px-6 bg-[#4f46e5] hover:bg-[#4338ca] active:bg-[#3730a3] text-white font-black text-sm sm:text-base rounded-xl shadow-xl transition active:scale-98 cursor-pointer flex items-center justify-center gap-2"
         >
-          <span>✓ Simpan & Tayangkan Sekarang</span>
+          <span>✓ Terbitkan Iklan Sekarang</span>
         </button>
 
         <button
           type="button"
           id="btn-submit-another"
-          class="w-full py-2.5 sm:py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs sm:text-sm rounded-xl sm:rounded-2xl transition cursor-pointer"
+          class="w-full py-3 px-4 bg-[#182334] hover:bg-[#1f2d42] border border-slate-700 text-slate-200 text-xs font-bold rounded-xl transition cursor-pointer"
         >
-          + Simpan & Tambah Varian Produk Toko Ini
+          + Simpan & Lanjut Tambah Produk Lain Toko Ini
         </button>
       </div>
+
     </form>
 
-    <!-- Riwayat Produk Terakhir Diinput -->
-    {recentProducts.length > 0 && (
-      <div class="bg-white border-y sm:border border-slate-200 sm:rounded-3xl p-4 sm:p-6 space-y-3 shadow-xs">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-          📋 Produk Terakhir yang Baru Diinput:
-        </h3>
-        <div class="divide-y divide-slate-100">
-          {recentProducts.map((rp) => (
-            <div class="py-2.5 flex items-center justify-between gap-2 text-xs">
+    <!-- Recent Uploads List (Audit Ringkas) -->
+    <div class="bg-[#141c2b] border border-slate-800 rounded-2xl p-4 sm:p-6 shadow-sm space-y-3">
+      <h3 class="text-xs font-black uppercase tracking-wider text-slate-300">
+        Iklan Terakhir yang Terdaftar ({allProducts.length} Produk Aktif)
+      </h3>
+      <div class="divide-y divide-slate-800/80 text-xs">
+        {recentProducts.map((p) => (
+          <div class="py-2.5 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3 truncate">
+              <img
+                src={p.image_url}
+                alt={p.name}
+                class="w-9 h-9 rounded-lg object-cover shrink-0"
+              />
               <div class="truncate">
-                <a href={`/p/${rp.slug}`} target="_blank" class="font-bold text-slate-800 hover:text-emerald-700 truncate block">
-                  {rp.name}
-                </a>
-                <span class="text-[11px] text-slate-500">
-                  {rp.umkm_name} • {formatRupiah(rp.price)} • {rp.zone_name}
-                </span>
+                <span class="font-bold text-white block truncate">{p.name}</span>
+                <span class="text-[11px] text-slate-400">{p.umkm_name} • {p.zone_name}</span>
               </div>
-              <a
-                href={`/p/${rp.slug}`}
-                target="_blank"
-                class="shrink-0 text-[11px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg hover:bg-emerald-100"
-              >
+            </div>
+            <div class="text-right shrink-0">
+              <span class="font-black text-emerald-400 block">{formatRupiah(p.price)}</span>
+              <a href={`/p/${p.slug}`} target="_blank" class="text-[10px] text-indigo-400 hover:text-indigo-300 underline font-semibold">
                 Lihat ➔
               </a>
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
-    )}
+    </div>
+
   </div>
 
-  <!-- Client-side Image Compression & State Script -->
+  <!-- Client Side Script: Canvas Auto-Compression & Fetch -->
   <script>
+    const form = document.getElementById('agent-form') as HTMLFormElement;
     const cameraInput = document.getElementById('camera-input') as HTMLInputElement;
+    const imageBase64Input = document.getElementById('imageBase64') as HTMLInputElement;
     const uploadPlaceholder = document.getElementById('upload-placeholder');
     const uploadPreviewContainer = document.getElementById('upload-preview-container');
     const uploadPreview = document.getElementById('upload-preview') as HTMLImageElement;
     const compressionInfo = document.getElementById('compression-info');
-    const imageBase64Input = document.getElementById('imageBase64') as HTMLInputElement;
-    const agentPinInput = document.getElementById('agentPin') as HTMLInputElement;
-    const form = document.getElementById('agent-form') as HTMLFormElement;
     const statusBox = document.getElementById('status-box');
+    const agentPinInput = document.getElementById('agentPin') as HTMLInputElement;
     const btnSubmit = document.getElementById('btn-submit') as HTMLButtonElement;
     const btnSubmitAnother = document.getElementById('btn-submit-another') as HTMLButtonElement;
 
@@ -304,7 +402,7 @@ const recentProducts = allProducts.slice(0, 6);
     if (savedPin && agentPinInput) {
       agentPinInput.value = savedPin;
     } else if (agentPinInput && !agentPinInput.value) {
-      agentPinInput.value = '1926'; // default
+      agentPinInput.value = '1926';
     }
 
     let keepStoreInfo = false;
@@ -322,7 +420,6 @@ const recentProducts = allProducts.slice(0, 6);
         return;
       }
 
-      // Save PIN in localStorage
       if (agentPinInput.value) {
         localStorage.setItem('mamasar_agent_pin', agentPinInput.value.trim());
       }
@@ -340,12 +437,11 @@ const recentProducts = allProducts.slice(0, 6);
 
         if (res.ok && data.success) {
           showStatus(
-            `Alhamdulillah! Produk berhasil tersimpan dan langsung aktif. <a href="/p/${data.slug}" class="underline font-bold" target="_blank">Buka Halaman Produk ➔</a>`,
+            `Alhamdulillah! Iklan berhasil diterbitkan. <a href="/p/${data.slug}" class="underline font-bold text-white" target="_blank">Lihat Iklan Tayang ➔</a>`,
             'success'
           );
 
           if (keepStoreInfo) {
-            // Keep MWC, Toko, WA, reset only product name, price, description
             (document.getElementById('productName') as HTMLInputElement).value = '';
             (document.getElementById('price') as HTMLInputElement).value = '';
             (document.getElementById('description') as HTMLTextAreaElement).value = '';
@@ -353,7 +449,6 @@ const recentProducts = allProducts.slice(0, 6);
             keepStoreInfo = false;
           } else {
             form.reset();
-            // Restore PIN
             if (savedPin) agentPinInput.value = savedPin;
             else agentPinInput.value = '1926';
             resetImage();
@@ -409,7 +504,6 @@ const recentProducts = allProducts.slice(0, 6);
             const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.8);
             imageBase64Input.value = compressedDataUrl;
 
-            // Calculate compressed size
             const compressedBytes = Math.round((compressedDataUrl.length * 3) / 4);
             const compressedKB = Math.round(compressedBytes / 1024);
 
@@ -436,20 +530,20 @@ const recentProducts = allProducts.slice(0, 6);
         btnSubmit.disabled = false;
         btnSubmitAnother.disabled = false;
         btnSubmit.classList.remove('opacity-60', 'cursor-not-allowed');
-        btnSubmit.innerHTML = '<span>✓ Simpan & Tayangkan Sekarang</span>';
+        btnSubmit.innerHTML = '<span>✓ Terbitkan Iklan Sekarang</span>';
       }
     }
 
     function showStatus(html: string, type: 'success' | 'error' | 'warning') {
       if (!statusBox) return;
-      statusBox.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-900', 'border-emerald-300', 'bg-rose-100', 'text-rose-900', 'border-rose-300', 'bg-amber-100', 'text-amber-900', 'border-amber-300');
+      statusBox.classList.remove('hidden', 'bg-emerald-950', 'text-emerald-200', 'border-emerald-700', 'bg-rose-950', 'text-rose-200', 'border-rose-700', 'bg-amber-950', 'text-amber-200', 'border-amber-700');
       
       if (type === 'success') {
-        statusBox.classList.add('bg-emerald-100', 'text-emerald-900', 'border', 'border-emerald-300');
+        statusBox.classList.add('bg-emerald-950', 'text-emerald-200', 'border', 'border-emerald-700');
       } else if (type === 'error') {
-        statusBox.classList.add('bg-rose-100', 'text-rose-900', 'border', 'border-rose-300');
+        statusBox.classList.add('bg-rose-950', 'text-rose-200', 'border', 'border-rose-700');
       } else {
-        statusBox.classList.add('bg-amber-100', 'text-amber-900', 'border', 'border-amber-300');
+        statusBox.classList.add('bg-amber-950', 'text-amber-200', 'border', 'border-amber-700');
       }
 
       statusBox.innerHTML = html;
