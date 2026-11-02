@@ -117,250 +117,255 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
     <!-- Main Classified 2-Column Grid (OsClass Desktop Layout) -->
     <div class="md:grid md:grid-cols-12 md:gap-8 items-start">
       
-      <!-- LEFT COLUMN: Main Gallery, Titles, Description, Map & Related (7-8 cols) -->
-      <div class="md:col-span-7 lg:col-span-8 space-y-5">
+      <!-- LEFT COLUMN: Main Product Details Unified Box Container (7-8 cols) -->
+      <div class="md:col-span-7 lg:col-span-8">
         
-        <!-- Large Photo Container with Thumbnails (OsClass Gallery Signature) -->
-        <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl overflow-hidden shadow-xs space-y-3 p-3 sm:p-4">
+        <!-- Unified Product Sheet Master Container -->
+        <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl shadow-xs overflow-hidden divide-y divide-slate-100">
           
-          <!-- Main Large Photo -->
-          <div class="relative w-full aspect-4/3 sm:aspect-16/10 bg-slate-100 rounded-xl overflow-hidden">
-            <img
-              id="main-photo"
-              src={product.image_url}
-              alt={product.name}
-              fetchpriority="high"
-              class="w-full h-full object-cover"
-            />
+          <!-- 1. Large Photo Container with Thumbnails (OsClass Gallery Signature) -->
+          <div class="p-3 sm:p-5 space-y-3">
             
-            <!-- Badges Overlay -->
-            <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-              <span class="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm border border-slate-200">
-                📍 {product.zone_name}
-              </span>
-              <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm">
-                Warga NU Terverifikasi
-              </span>
-            </div>
-
-            <!-- Photo Count Indicator (OsClass 1/4 badge) -->
-            <div class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
-              <span>📷</span>
-              <span>1 / 4 Foto</span>
-            </div>
-
-            <!-- Sold Ribbon (if sold out) -->
-            {Boolean(product.is_sold_out) && (
-              <div class="absolute -left-12 top-6 -rotate-45 bg-rose-600 text-white font-black text-xs uppercase tracking-wider py-1.5 w-48 text-center shadow-lg z-20 pointer-events-none">
-                Habis Terjual
-              </div>
-            )}
-          </div>
-
-          <!-- Gallery Thumbnails Row (OsClass Thumbnail Bar) -->
-          <div class="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
-            <button
-              type="button"
-              onclick={`document.getElementById('main-photo').src = '${product.image_url}'`}
-              class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-indigo-600 shrink-0 focus:outline-none"
-            >
-              <img src={product.image_url} alt="Foto 1" class="w-full h-full object-cover" />
-            </button>
-            <button
-              type="button"
-              onclick={`document.getElementById('main-photo').src = '${product.image_url}'`}
-              class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-slate-400 shrink-0 focus:outline-none opacity-80 hover:opacity-100 transition"
-            >
-              <img src={product.image_url} alt="Foto 2" class="w-full h-full object-cover brightness-95" />
-            </button>
-            <button
-              type="button"
-              onclick={`document.getElementById('main-photo').src = '${product.image_url}'`}
-              class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-slate-400 shrink-0 focus:outline-none opacity-80 hover:opacity-100 transition"
-            >
-              <img src={product.image_url} alt="Foto 3" class="w-full h-full object-cover contrast-105" />
-            </button>
-            <button
-              type="button"
-              onclick={`document.getElementById('main-photo').src = '${product.image_url}'`}
-              class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-slate-400 shrink-0 focus:outline-none opacity-80 hover:opacity-100 transition"
-            >
-              <img src={product.image_url} alt="Foto 4" class="w-full h-full object-cover hue-rotate-15" />
-            </button>
-          </div>
-
-        </div>
-
-        <!-- Product Title & Price Header (OsClass Header Layout) -->
-        <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
-          
-          <div class="flex items-start justify-between gap-4">
-            <div class="space-y-1.5 flex-1">
-              <div class="flex items-center gap-2">
-                <span class="text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded shadow-2xs">
-                  Pilihan Warga NU
+            <!-- Main Large Photo -->
+            <div class="relative w-full aspect-4/3 sm:aspect-16/10 bg-slate-100 rounded-xl overflow-hidden">
+              <img
+                id="main-photo"
+                src={product.image_url}
+                alt={product.name}
+                fetchpriority="high"
+                class="w-full h-full object-cover"
+              />
+              
+              <!-- Badges Overlay -->
+              <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                <span class="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm border border-slate-200">
+                  📍 {product.zone_name}
                 </span>
-                <span class="text-xs text-slate-500 font-medium">
-                  {product.category}
+                <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm">
+                  Warga NU Terverifikasi
                 </span>
               </div>
-              <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 leading-tight">
-                {product.name}
-              </h1>
-              <div class="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
-                <span>📍 {product.zone_name}, Sumenep</span>
-                <span>•</span>
-                <span>👁️ {product.views || 350} orang melihat iklan ini</span>
-                <span>•</span>
-                <span>ID Iklan: #{product.id + 1926}</span>
+
+              <!-- Photo Count Indicator (OsClass 1/4 badge) -->
+              <div class="absolute bottom-3 right-3 bg-black/60 backdrop-blur-md text-white text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+                <span>📷</span>
+                <span>1 / 4 Foto</span>
+              </div>
+
+              <!-- Sold Ribbon (if sold out) -->
+              {Boolean(product.is_sold_out) && (
+                <div class="absolute -left-12 top-6 -rotate-45 bg-rose-600 text-white font-black text-xs uppercase tracking-wider py-1.5 w-48 text-center shadow-lg z-20 pointer-events-none">
+                  Habis Terjual
+                </div>
+              )}
+            </div>
+
+            <!-- Gallery Thumbnails Row (OsClass Thumbnail Bar) -->
+            <div class="flex items-center gap-2.5 overflow-x-auto pb-1 no-scrollbar">
+              <button
+                type="button"
+                onclick={`document.getElementById('main-photo').src = '${product.image_url}'`}
+                class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-indigo-600 shrink-0 focus:outline-none cursor-pointer"
+              >
+                <img src={product.image_url} alt="Foto 1" class="w-full h-full object-cover" />
+              </button>
+              <button
+                type="button"
+                onclick={`document.getElementById('main-photo').src = '${product.image_url}'`}
+                class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-slate-400 shrink-0 focus:outline-none opacity-80 hover:opacity-100 transition cursor-pointer"
+              >
+                <img src={product.image_url} alt="Foto 2" class="w-full h-full object-cover brightness-95" />
+              </button>
+              <button
+                type="button"
+                onclick={`document.getElementById('main-photo').src = '${product.image_url}'`}
+                class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-slate-400 shrink-0 focus:outline-none opacity-80 hover:opacity-100 transition cursor-pointer"
+              >
+                <img src={product.image_url} alt="Foto 3" class="w-full h-full object-cover contrast-105" />
+              </button>
+              <button
+                type="button"
+                onclick={`document.getElementById('main-photo').src = '${product.image_url}'`}
+                class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 border-slate-200 hover:border-slate-400 shrink-0 focus:outline-none opacity-80 hover:opacity-100 transition cursor-pointer"
+              >
+                <img src={product.image_url} alt="Foto 4" class="w-full h-full object-cover hue-rotate-15" />
+              </button>
+            </div>
+
+          </div>
+
+          <!-- 2. Product Title & Price Header (OsClass Header Layout) -->
+          <div class="p-4 sm:p-6 space-y-4">
+            
+            <div class="flex items-start justify-between gap-4">
+              <div class="space-y-1.5 flex-1">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-black uppercase tracking-wider bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded shadow-2xs">
+                    Pilihan Warga NU
+                  </span>
+                  <span class="text-xs text-slate-500 font-medium">
+                    {product.category}
+                  </span>
+                </div>
+                <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 leading-tight">
+                  {product.name}
+                </h1>
+                <div class="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
+                  <span>📍 {product.zone_name}, Sumenep</span>
+                  <span>•</span>
+                  <span>👁️ {product.views || 350} orang melihat iklan ini</span>
+                  <span>•</span>
+                  <span>ID Iklan: #{product.id + 1926}</span>
+                </div>
+              </div>
+
+              <!-- Favorite Star Button (OsClass Icon) -->
+              <button
+                type="button"
+                aria-label="Simpan Iklan Favorit"
+                class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-amber-500 flex items-center justify-center text-lg transition shrink-0 shadow-2xs cursor-pointer"
+              >
+                ⭐
+              </button>
+            </div>
+
+            <!-- Price Display (Large Bold OsClass Typography) -->
+            <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+              <div>
+                <span class="text-2xl sm:text-3xl font-black text-emerald-700">
+                  {formatRupiah(product.price)}
+                </span>
+                <span class="block text-xs text-slate-500 mt-0.5">
+                  Harga langsung dari pengrajin/produsen (Bisa nego via WhatsApp)
+                </span>
+              </div>
+              <span class="text-[11px] text-slate-500">
+                Diterbitkan: {new Date(product.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+              </span>
+            </div>
+
+            <!-- Attributes / Specs Grid (OsClass Attributes Box) -->
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+              <div>
+                <span class="text-slate-500 block text-[10px] uppercase font-bold">Wilayah MWC</span>
+                <span class="font-bold text-slate-800">{product.zone_name}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[10px] uppercase font-bold">Kategori</span>
+                <span class="font-bold text-slate-800">{product.category}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[10px] uppercase font-bold">Status Stok</span>
+                <span class="font-bold text-emerald-700">{product.is_sold_out ? 'Habis' : 'Tersedia'}</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[10px] uppercase font-bold">Verifikasi</span>
+                <span class="font-bold text-emerald-700">Warga NU Resmi</span>
               </div>
             </div>
 
-            <!-- Favorite Star Button (OsClass Icon) -->
-            <button
-              type="button"
-              aria-label="Simpan Iklan Favorit"
-              class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-amber-500 flex items-center justify-center text-lg transition shrink-0 shadow-2xs"
-            >
-              ⭐
-            </button>
           </div>
 
-          <!-- Price Display (Large Bold OsClass Typography) -->
-          <div class="pt-3 border-t border-slate-100 flex items-baseline justify-between">
-            <div>
-              <span class="text-2xl sm:text-3xl font-black text-emerald-700">
-                {formatRupiah(product.price)}
-              </span>
-              <span class="block text-xs text-slate-500 mt-0.5">
-                Harga langsung dari pengrajin/produsen (Bisa nego via WhatsApp)
-              </span>
-            </div>
-            <span class="text-[11px] text-slate-500">
-              Diterbitkan: {new Date(product.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-            </span>
-          </div>
-
-          <!-- Attributes / Specs Grid (OsClass Attributes Box) -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-            <div>
-              <span class="text-slate-500 block text-[10px] uppercase font-bold">Wilayah MWC</span>
-              <span class="font-bold text-slate-800">{product.zone_name}</span>
-            </div>
-            <div>
-              <span class="text-slate-500 block text-[10px] uppercase font-bold">Kategori</span>
-              <span class="font-bold text-slate-800">{product.category}</span>
-            </div>
-            <div>
-              <span class="text-slate-500 block text-[10px] uppercase font-bold">Status Stok</span>
-              <span class="font-bold text-emerald-700">{product.is_sold_out ? 'Habis' : 'Tersedia'}</span>
-            </div>
-            <div>
-              <span class="text-slate-500 block text-[10px] uppercase font-bold">Verifikasi</span>
-              <span class="font-bold text-emerald-700">Warga NU Resmi</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- Middle Ad / Callout Banner (hosting.com Style) -->
-        <div class="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 border border-emerald-600 rounded-2xl p-4 sm:p-5 flex items-center justify-between gap-4 shadow-sm text-white">
-          <div class="space-y-0.5">
-            <h3 class="font-black text-xs sm:text-sm text-white">
-              Gerakan Belanja Produk Tetangga Nahdliyin
-            </h3>
-            <p class="text-[11px] sm:text-xs text-emerald-100">
-              0% Potongan Biaya Admin. Transaksi 100% langsung disepakati dengan pengrajin di Sumenep.
-            </p>
-          </div>
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="shrink-0 bg-white hover:bg-slate-100 text-emerald-900 font-extrabold text-xs px-4 py-2 rounded-xl shadow-xs transition"
-          >
-            Hubungi Penjual
-          </a>
-        </div>
-
-        <!-- Description Box with QR Code (OsClass Description Layout) -->
-        <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
-          <h2 class="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-            <span>📝</span> Deskripsi Iklan Produk
-          </h2>
-
-          <div class="flex flex-col sm:flex-row gap-6 items-start">
-            <div class="flex-1 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line space-y-3">
-              <p>{product.description}</p>
-              <p class="text-slate-500 text-xs">
-                Diproduksi dengan bahan pilihan dan standar kualitas pengrajin warga NU Sumenep. Pembelian dapat dilakukan secara langsung di tempat (COD) atau pengiriman paket sesuai kesepakatan.
+          <!-- 3. Middle Callout Banner (Gerakan Belanja Produk Warga NU) -->
+          <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="space-y-0.5">
+              <h3 class="font-black text-xs sm:text-sm text-white">
+                Gerakan Belanja Produk Tetangga Nahdliyin
+              </h3>
+              <p class="text-[11px] sm:text-xs text-emerald-100">
+                0% Potongan Biaya Admin. Transaksi 100% langsung disepakati dengan pengrajin di Sumenep.
               </p>
             </div>
-
-            <!-- Scan QR Card (OsClass Feature) -->
-            <div class="w-full sm:w-44 bg-slate-50 border border-slate-200 rounded-xl p-3 text-center space-y-2 shrink-0">
-              <div class="w-28 h-28 mx-auto bg-white p-1.5 rounded-lg border border-slate-200 flex items-center justify-center shadow-xs">
-                <!-- SVG QR Code Icon -->
-                <svg class="w-full h-full text-slate-800" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-3v-2zm-3 0h2v3h-2v-3zm3 3h3v5h-2v-3h-1v-2zm-3 2h2v3h-2v-3zm-2-2h2v2h-2v-2zm0 3h2v2h-2v-2z"/>
-                </svg>
-              </div>
-              <span class="text-[10px] font-bold text-slate-800 block uppercase tracking-wider">
-                Scan QR Produk
-              </span>
-              <span class="text-[9px] text-slate-500 block leading-tight">
-                Buka iklan ini langsung di smartphone Anda
-              </span>
-            </div>
-          </div>
-
-          <!-- Location Info Strip -->
-          <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600">
-            <div class="flex items-center gap-2">
-              <span class="text-base text-emerald-700">📍</span>
-              <div>
-                <strong class="text-slate-800">Alamat Usaha:</strong>
-                <span>{product.umkm_address || `${product.zone_name}, Kabupaten Sumenep, Jawa Timur`}</span>
-              </div>
-            </div>
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.umkm_name} ${product.zone_name} Sumenep`)}`}
+              href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              class="text-indigo-600 hover:text-indigo-800 font-bold underline shrink-0"
+              class="shrink-0 bg-white hover:bg-slate-100 text-emerald-900 font-extrabold text-xs px-4 py-2 rounded-xl shadow-xs transition cursor-pointer"
             >
-              Petunjuk Arah Maps ➔
+              Hubungi Penjual
             </a>
           </div>
 
-          <!-- Stylized Sumenep Location Map Card (OsClass OpenStreetMap style) -->
-          <div class="relative w-full h-44 sm:h-56 rounded-xl overflow-hidden border border-slate-200 bg-indigo-50/50 flex items-center justify-center">
-            <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]"></div>
-            
-            <!-- Map Circle Radius Mockup -->
-            <div class="relative flex flex-col items-center text-center space-y-1.5 p-4 z-10">
-              <div class="w-12 h-12 rounded-full bg-white border-2 border-indigo-500 text-indigo-600 flex items-center justify-center text-xl shadow-md animate-pulse">
-                📍
+          <!-- 4. Description Box with QR Code (OsClass Description Layout) -->
+          <div class="p-4 sm:p-6 space-y-4">
+            <h2 class="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+              <span>📝</span> Deskripsi Iklan Produk
+            </h2>
+
+            <div class="flex flex-col sm:flex-row gap-6 items-start">
+              <div class="flex-1 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line space-y-3">
+                <p>{product.description}</p>
+                <p class="text-slate-500 text-xs">
+                  Diproduksi dengan bahan pilihan dan standar kualitas pengrajin warga NU Sumenep. Pembelian dapat dilakukan secara langsung di tempat (COD) atau pengiriman paket sesuai kesepakatan.
+                </p>
               </div>
-              <span class="text-xs font-black text-slate-900">
-                Wilayah {product.zone_name}
-              </span>
-              <p class="text-[11px] text-slate-600 max-w-xs">
-                {product.umkm_address || 'Pusat Usaha & Produksi Warga Nahdliyin Kabupaten Sumenep'}
-              </p>
+
+              <!-- Scan QR Card (OsClass Feature) -->
+              <div class="w-full sm:w-44 bg-slate-50 border border-slate-200 rounded-xl p-3 text-center space-y-2 shrink-0">
+                <div class="w-28 h-28 mx-auto bg-white p-1.5 rounded-lg border border-slate-200 flex items-center justify-center shadow-xs">
+                  <!-- SVG QR Code Icon -->
+                  <svg class="w-full h-full text-slate-800" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm13-2h3v2h-3v-2zm-3 0h2v3h-2v-3zm3 3h3v5h-2v-3h-1v-2zm-3 2h2v3h-2v-3zm-2-2h2v2h-2v-2zm0 3h2v2h-2v-2z"/>
+                  </svg>
+                </div>
+                <span class="text-[10px] font-bold text-slate-800 block uppercase tracking-wider">
+                  Scan QR Produk
+                </span>
+                <span class="text-[9px] text-slate-500 block leading-tight">
+                  Buka iklan ini langsung di smartphone Anda
+                </span>
+              </div>
+            </div>
+
+            <!-- Location Info Strip -->
+            <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600">
+              <div class="flex items-center gap-2">
+                <span class="text-base text-emerald-700">📍</span>
+                <div>
+                  <strong class="text-slate-800">Alamat Usaha:</strong>
+                  <span>{product.umkm_address || `${product.zone_name}, Kabupaten Sumenep, Jawa Timur`}</span>
+                </div>
+              </div>
               <a
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.umkm_name} ${product.zone_name} Sumenep`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-[10px] font-bold bg-white text-indigo-700 hover:text-indigo-900 border border-indigo-200 px-3 py-1 rounded-full shadow-xs transition mt-1"
+                class="text-indigo-600 hover:text-indigo-800 font-bold underline shrink-0"
               >
-                Buka Peta Google Maps
+                Petunjuk Arah Maps ➔
               </a>
             </div>
+
+            <!-- Stylized Sumenep Location Map Card (OsClass OpenStreetMap style) -->
+            <div class="relative w-full h-44 sm:h-56 rounded-xl overflow-hidden border border-slate-200 bg-indigo-50/50 flex items-center justify-center">
+              <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#6366f1_1px,transparent_1px)] [background-size:16px_16px]"></div>
+              
+              <!-- Map Circle Radius Mockup -->
+              <div class="relative flex flex-col items-center text-center space-y-1.5 p-4 z-10">
+                <div class="w-12 h-12 rounded-full bg-white border-2 border-indigo-500 text-indigo-600 flex items-center justify-center text-xl shadow-md animate-pulse">
+                  📍
+                </div>
+                <span class="text-xs font-black text-slate-900">
+                  Wilayah {product.zone_name}
+                </span>
+                <p class="text-[11px] text-slate-600 max-w-xs">
+                  {product.umkm_address || 'Pusat Usaha & Produksi Warga Nahdliyin Kabupaten Sumenep'}
+                </p>
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.umkm_name} ${product.zone_name} Sumenep`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-[10px] font-bold bg-white text-indigo-700 hover:text-indigo-900 border border-indigo-200 px-3 py-1 rounded-full shadow-xs transition mt-1 cursor-pointer"
+                >
+                  Buka Peta Google Maps
+                </a>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Page Actions: Print, Share (OsClass Signature Footer) -->
-          <div class="pt-3 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+          <!-- 5. Page Actions Strip: Print, Share (OsClass Signature Footer) -->
+          <div class="px-4 py-3.5 sm:px-6 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
             <div class="flex items-center gap-4">
               <button
                 type="button"
@@ -374,7 +379,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="hover:text-emerald-700 flex items-center gap-1.5 transition"
+                class="hover:text-emerald-700 flex items-center gap-1.5 transition cursor-pointer"
               >
                 <span>📤</span> Bagikan via WhatsApp
               </a>
@@ -388,7 +393,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Bagikan ke WhatsApp"
-                class="w-7 h-7 rounded-full bg-slate-100 hover:bg-emerald-600 text-slate-700 hover:text-white flex items-center justify-center text-xs transition"
+                class="w-7 h-7 rounded-full bg-white hover:bg-emerald-600 border border-slate-200 text-slate-700 hover:text-white flex items-center justify-center text-xs transition shadow-2xs"
               >
                 WA
               </a>
@@ -397,7 +402,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Bagikan ke Facebook"
-                class="w-7 h-7 rounded-full bg-slate-100 hover:bg-blue-600 text-slate-700 hover:text-white flex items-center justify-center text-xs transition"
+                class="w-7 h-7 rounded-full bg-white hover:bg-blue-600 border border-slate-200 text-slate-700 hover:text-white flex items-center justify-center text-xs transition shadow-2xs"
               >
                 FB
               </a>
@@ -406,49 +411,31 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
 
         </div>
 
-        <!-- Related Items Section (OsClass "Related items" Grid) -->
-        {relatedProducts.length > 0 && (
-          <section class="space-y-4 px-3 sm:px-0 pt-2">
-            <div class="flex items-center justify-between">
-              <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <span>📦</span> Iklan Terkait Lainnya
-              </h2>
-              <a href={`/?kategori=${encodeURIComponent(product.category)}`} class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold">
-                Lihat Kategori Ini ➔
-              </a>
-            </div>
-
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              {relatedProducts.map((rp) => (
-                <ProductCard product={rp} photoCount={2} views={rp.views || 150} />
-              ))}
-            </div>
-          </section>
-        )}
-
       </div>
 
-      <!-- RIGHT COLUMN: Sticky Seller Sidebar (OsClass Right Sidebar) -->
-      <aside class="md:col-span-5 lg:col-span-4 space-y-4 px-3 sm:px-0">
+      <!-- RIGHT COLUMN: Sticky Unified Seller Sidebar (OsClass Right Sidebar) -->
+      <aside class="md:col-span-5 lg:col-span-4 md:sticky md:top-20 self-start space-y-4 px-3 sm:px-0">
         
-        <!-- Sticky Container -->
-        <div class="space-y-4 sticky top-20">
+        <!-- Unified Sidebar Box Container (Fused CTA + Seller Profile + Safety Tips) -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
           
-          <!-- Primary CTA Button (OsClass Send Message in Blue/Indigo) -->
-          <a
-            href={waLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="w-full py-4 px-4 bg-[#4f46e5] hover:bg-[#4338ca] active:bg-[#3730a3] text-white rounded-xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md transition active:scale-98 cursor-pointer"
-          >
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
-            </svg>
-            <span>Kirim Pesan WhatsApp</span>
-          </a>
+          <!-- Primary CTA Header (OsClass Send Message in Blue/Indigo) -->
+          <div class="p-4 sm:p-5 bg-gradient-to-b from-indigo-50/80 via-indigo-50/30 to-white border-b border-slate-100">
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full py-3.5 px-4 bg-[#4f46e5] hover:bg-[#4338ca] active:bg-[#3730a3] text-white rounded-xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer"
+            >
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+              </svg>
+              <span>Kirim Pesan WhatsApp</span>
+            </a>
+          </div>
 
-          <!-- Seller Profile Card (OsClass Profile Box) -->
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+          <!-- Seller Profile Section (OsClass Profile Box) -->
+          <div class="p-4 sm:p-5 space-y-4">
             
             <div class="flex items-start gap-3">
               <div class="relative shrink-0">
@@ -474,7 +461,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
             </div>
 
             <!-- Activity Status -->
-            <div class="pt-3 border-t border-slate-100 space-y-1 text-xs text-slate-600">
+            <div class="pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
               <div class="flex items-center justify-between">
                 <span>Status Penjual:</span>
                 <span class="text-emerald-700 font-bold">Terverifikasi Kader</span>
@@ -495,7 +482,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition"
+                class="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
               >
                 <span>📞</span>
                 <span>+62 {product.umkm_phone.slice(2, 6)}•••• (Hubungi WA)</span>
@@ -503,7 +490,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
 
               <a
                 href={`/?zona=${product.zone_slug}`}
-                class="w-full py-2 px-3 bg-transparent hover:bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-semibold rounded-xl flex items-center justify-center transition"
+                class="w-full py-2 px-3 bg-transparent hover:bg-slate-50 border border-slate-200 text-slate-600 hover:text-slate-900 text-xs font-semibold rounded-xl flex items-center justify-center transition cursor-pointer"
               >
                 Lihat Semua Iklan di {product.zone_name}
               </a>
@@ -511,8 +498,8 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
 
           </div>
 
-          <!-- "Be careful! / Tips Transaksi Aman" (OsClass Safety Notice Box) -->
-          <div class="bg-amber-50/90 border border-amber-200 rounded-2xl p-5 shadow-xs space-y-3">
+          <!-- Integrated "Be careful! / Tips Transaksi Aman" Section -->
+          <div class="p-4 sm:p-5 bg-amber-50/80 border-t border-amber-200/80 space-y-3">
             <h4 class="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
               <span>⚠️</span> Tips Transaksi Aman Warga NU
             </h4>
@@ -532,12 +519,12 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
               </li>
             </ul>
 
-            <div class="pt-2 border-t border-amber-200">
+            <div class="pt-2 border-t border-amber-200/70">
               <a
                 href={`https://wa.me/6281234567890?text=${encodeURIComponent(`Halo Pengurus PCNU, saya ingin melaporkan iklan mencurigakan: ${currentUrl}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="text-[11px] font-bold text-slate-500 hover:text-rose-600 flex items-center gap-1 transition"
+                class="text-[11px] font-bold text-slate-500 hover:text-rose-600 flex items-center gap-1 transition cursor-pointer"
               >
                 <span>🚩 Laporkan Iklan Ini</span>
               </a>
@@ -549,6 +536,26 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
       </aside>
 
     </div>
+
+    <!-- Related Items Section (Spans Full Width Below Main Grid) -->
+    {relatedProducts.length > 0 && (
+      <section class="space-y-4 px-3 sm:px-0 pt-6 border-t border-slate-200/80 mt-6">
+        <div class="flex items-center justify-between">
+          <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <span>📦</span> Iklan Terkait Lainnya
+          </h2>
+          <a href={`/?kategori=${encodeURIComponent(product.category)}`} class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold cursor-pointer">
+            Lihat Kategori Ini ➔
+          </a>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          {relatedProducts.map((rp) => (
+            <ProductCard product={rp} photoCount={2} views={rp.views || 150} />
+          ))}
+        </div>
+      </section>
+    )}
 
     <!-- Mobile Full Edge-to-Edge Sticky Bottom Action Bar (Hidden on desktop) -->
     <div class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-2xl">
