@@ -1,7 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import ProductCard from '../components/ProductCard.astro';
-import { getAllZones, getProducts, getAllUMKM } from '../lib/db';
+import { getAllZones, getProducts, getAllUMKM, getArticles } from '../lib/db';
 import {
   PRODUCT_CATEGORIES,
   CATEGORY_ICONS,
@@ -17,6 +17,7 @@ const currentSort = url.searchParams.get('sort') || 'newest';
 
 const zones = getAllZones();
 const sellers = getAllUMKM();
+const articles = getArticles();
 
 // All products with current filters
 const products = getProducts({
@@ -208,14 +209,13 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
               const badges = ['Pilihan Hari Ini', 'Premium', 'Premium', 'Terlaris'];
               const badgeColors: ('indigo' | 'amber' | 'emerald')[] = ['indigo', 'amber', 'amber', 'emerald'];
               const photoCounts = [3, 4, 2, 2];
-              const viewsList = [1191, 1806, 983, 1053];
               return (
                 <ProductCard
                   product={p}
-                  badge={badges[index]}
-                  badgeColor={badgeColors[index]}
-                  photoCount={photoCounts[index]}
-                  views={viewsList[index]}
+                  badge={badges[index % badges.length]}
+                  badgeColor={badgeColors[index % badgeColors.length]}
+                  photoCount={photoCounts[index % photoCounts.length]}
+                  views={p.views || 100}
                 />
               );
             })}
@@ -244,62 +244,25 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-          <!-- Article 1 -->
-          <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex gap-3 hover:border-slate-300 hover:shadow-sm transition">
-            <img
-              src="https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=240&q=80"
-              alt="Transaksi COD Aman"
-              class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0"
-              loading="lazy"
-            />
-            <div class="space-y-1">
-              <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Tips Transaksi</span>
-              <h3 class="font-extrabold text-xs sm:text-sm text-slate-900 hover:text-emerald-700 line-clamp-2">
-                Panduan Transaksi COD Aman di Sumenep
-              </h3>
-              <p class="text-[11px] text-slate-600 line-clamp-2">
-                Tips ketemuan langsung dengan penjual warga NU, cek fisik barang, dan bayar di tempat.
-              </p>
+          {articles.map((art) => (
+            <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex gap-3 hover:border-slate-300 hover:shadow-sm transition">
+              <img
+                src={art.image_url}
+                alt={art.title}
+                class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0"
+                loading="lazy"
+              />
+              <div class="space-y-1">
+                <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{art.category}</span>
+                <h3 class="font-extrabold text-xs sm:text-sm text-slate-900 hover:text-emerald-700 line-clamp-2">
+                  {art.title}
+                </h3>
+                <p class="text-[11px] text-slate-600 line-clamp-2">
+                  {art.summary}
+                </p>
+              </div>
             </div>
-          </div>
-
-          <!-- Article 2 -->
-          <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex gap-3 hover:border-slate-300 hover:shadow-sm transition">
-            <img
-              src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=240&q=80"
-              alt="Beli Produk Tetangga"
-              class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0"
-              loading="lazy"
-            />
-            <div class="space-y-1">
-              <span class="text-[10px] font-bold text-indigo-700 uppercase tracking-wider">Gerakan Warga</span>
-              <h3 class="font-extrabold text-xs sm:text-sm text-slate-900 hover:text-indigo-700 line-clamp-2">
-                Gerakan Belanja Produk Tetangga Nahdliyin
-              </h3>
-              <p class="text-[11px] text-slate-600 line-clamp-2">
-                Memperkuat ekonomi lokal Sumenep dengan memprioritaskan belanja dari warung tetangga sendiri.
-              </p>
-            </div>
-          </div>
-
-          <!-- Article 3 -->
-          <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex gap-3 hover:border-slate-300 hover:shadow-sm transition">
-            <img
-              src="https://images.unsplash.com/photo-1531497865144-0464ef8fb9a9?auto=format&fit=crop&w=240&q=80"
-              alt="Pendaftaran Produk UMKM"
-              class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0"
-              loading="lazy"
-            />
-            <div class="space-y-1">
-              <span class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Pemberdayaan</span>
-              <h3 class="font-extrabold text-xs sm:text-sm text-slate-900 hover:text-amber-700 line-clamp-2">
-                Cara Mendaftarkan Produk via Agen MWC
-              </h3>
-              <p class="text-[11px] text-slate-600 line-clamp-2">
-                Hanya 90 detik melalui agen lapangan NU kecamatan, produk toko langsung tampil online.
-              </p>
-            </div>
-          </div>
+          ))}
         </div>
       </section>
     )}
@@ -346,7 +309,7 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {favoritedProducts.map((p, index) => {
-            const initials = ['SN', 'BR', 'TS', 'PL'][index] || p.umkm_name.slice(0, 2).toUpperCase();
+            const initials = p.umkm_name.slice(0, 2).toUpperCase();
             return (
               <ProductCard
                 product={p}
