@@ -3,8 +3,8 @@
 @layer base {
   html {
     height: 100%;
-    background-color: #0d131f;
-    color: #f8fafc;
+    background-color: #f8fafc;
+    color: #0f172a;
   }
   body {
     -webkit-tap-highlight-color: transparent;
@@ -30,7 +30,7 @@
 
   /* R-32: Accessible keyboard focus outline */
   :focus-visible {
-    outline: 2px solid #10b981;
+    outline: 2px solid #059669;
     outline-offset: 2px;
   }
 }

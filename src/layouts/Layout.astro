@@ -25,7 +25,7 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 ---
 
 <!doctype html>
-<html lang="id" class="h-full bg-[#0d131f] text-slate-100">
+<html lang="id" class="h-full bg-[#f8fafc] text-slate-900">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -55,10 +55,10 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
       <script type="application/ld+json" set:html={JSON.stringify(schema)} />
     )}
   </head>
-  <body class={`min-h-full flex flex-col font-sans antialiased bg-[#0d131f] text-slate-100 ${hideMobileNav ? '' : 'pb-16 md:pb-0'}`}>
+  <body class={`min-h-full flex flex-col font-sans antialiased bg-[#f8fafc] text-slate-900 ${hideMobileNav ? '' : 'pb-16 md:pb-0'}`}>
     
-    <!-- Top Classifieds Header (OsClass Dark Aesthetic) -->
-    <header class="sticky top-0 z-30 bg-[#0d1420]/95 backdrop-blur-md border-b border-slate-800/90 shadow-md">
+    <!-- Top Classifieds Header (OsClass Light Aesthetic) -->
+    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200/90 shadow-xs">
       <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
         
         <!-- Mobile Hamburger Button & Brand Logo -->
@@ -67,7 +67,7 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
             id="open-mobile-drawer"
             type="button"
             aria-label="Buka Menu Drawer"
-            class="lg:hidden p-1.5 text-slate-300 hover:text-white rounded-lg focus:outline-none cursor-pointer"
+            class="lg:hidden p-1.5 text-slate-600 hover:text-slate-900 rounded-lg focus:outline-none cursor-pointer"
           >
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
@@ -79,36 +79,36 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
               NU
             </div>
             <div>
-              <div class="font-black text-sm sm:text-base tracking-tight leading-none text-white flex items-center gap-2">
+              <div class="font-black text-sm sm:text-base tracking-tight leading-none text-slate-900 flex items-center gap-2">
                 <span>Pasar Warga NU</span>
-                <span class="text-[9px] sm:text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
+                <span class="text-[9px] sm:text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 rounded font-bold uppercase tracking-wider">
                   Sumenep
                 </span>
               </div>
-              <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">Direktori Iklan UMKM Nahdliyin</p>
+              <p class="text-[10px] sm:text-xs text-slate-500 mt-0.5">Direktori Iklan UMKM Nahdliyin</p>
             </div>
           </a>
         </div>
 
         <!-- Desktop Navigation Links (OsClass Header Style with Icons) -->
-        <nav aria-label="Navigasi Utama" class="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-300">
-          <a href="/" class="hover:text-emerald-400 transition flex items-center gap-1.5">
+        <nav aria-label="Navigasi Utama" class="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-600">
+          <a href="/" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>📋</span>
             <span>Katalog Iklan</span>
           </a>
-          <a href="/#toko-warga" class="hover:text-emerald-400 transition flex items-center gap-1.5">
+          <a href="/#toko-warga" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>🏪</span>
             <span>Toko Warga</span>
           </a>
-          <a href="/#panduan" class="hover:text-emerald-400 transition flex items-center gap-1.5">
+          <a href="/#panduan" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>📖</span>
             <span>Panduan & Info</span>
           </a>
-          <a href="/?zona=mwc-kota-sumenep" class="hover:text-emerald-400 transition flex items-center gap-1.5">
+          <a href="/?zona=mwc-kota-sumenep" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>📍</span>
             <span>MWC Kota</span>
           </a>
-          <a href="/?zona=mwc-gapura" class="hover:text-emerald-400 transition flex items-center gap-1.5">
+          <a href="/?zona=mwc-gapura" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>📍</span>
             <span>MWC Gapura</span>
           </a>
@@ -118,13 +118,13 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
           <a
             href="/agen"
-            class="hidden sm:inline-flex text-xs text-slate-400 hover:text-white font-semibold transition px-2 py-1"
+            class="hidden sm:inline-flex text-xs text-slate-600 hover:text-slate-900 font-semibold transition px-2 py-1"
           >
             Portal Agen
           </a>
           <a
             href="/agen"
-            class="bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full shadow-md transition flex items-center gap-1.5 active:scale-98"
+            class="bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full shadow-sm transition flex items-center gap-1.5 active:scale-98"
           >
             <span class="text-base leading-none font-black">+</span>
             <span class="hidden sm:inline">Pasang Iklan</span>
@@ -134,76 +134,76 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
       </div>
     </header>
 
-    <!-- Mobile Slide-out Drawer (Matching Image 4: OsClass Drawer Navigation) -->
-    <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-xs z-50 hidden transition-opacity"></div>
+    <!-- Mobile Slide-out Drawer (Light Theme) -->
+    <div id="mobile-drawer-backdrop" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 hidden transition-opacity"></div>
     <aside
       id="mobile-drawer"
-      class="fixed top-0 left-0 bottom-0 w-72 max-w-[85vw] bg-[#0d1420] border-r border-slate-800 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between hidden"
+      class="fixed top-0 left-0 bottom-0 w-72 max-w-[85vw] bg-white border-r border-slate-200 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between hidden shadow-2xl"
     >
       <!-- User / Brand Drawer Header -->
-      <div class="p-4 border-b border-slate-800 bg-[#121926] flex items-center justify-between">
+      <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-black text-white text-xs shadow">
+          <div class="w-9 h-9 rounded-xl bg-emerald-600 flex items-center justify-center font-black text-white text-xs shadow-sm">
             NU
           </div>
           <div>
-            <h3 class="text-xs font-black text-white">Ahlan wa Sahlan!</h3>
-            <p class="text-[10px] text-slate-400">Pasar Warga NU Sumenep</p>
+            <h3 class="text-xs font-black text-slate-900">Ahlan wa Sahlan!</h3>
+            <p class="text-[10px] text-slate-500">Pasar Warga NU Sumenep</p>
           </div>
         </div>
-        <button id="close-mobile-drawer" aria-label="Tutup Menu" class="text-slate-400 hover:text-white text-base p-1 cursor-pointer">
+        <button id="close-mobile-drawer" aria-label="Tutup Menu" class="text-slate-400 hover:text-slate-700 text-base p-1 cursor-pointer">
           ✕
         </button>
       </div>
 
       <!-- Drawer Nav Links -->
-      <div class="p-3.5 space-y-1.5 flex-1 overflow-y-auto text-xs font-semibold text-slate-300">
+      <div class="p-3.5 space-y-1.5 flex-1 overflow-y-auto text-xs font-semibold text-slate-700">
         <a href="/agen" class="flex items-center gap-2.5 p-2.5 rounded-xl bg-indigo-600 text-white font-black shadow-sm">
           <span class="text-base leading-none font-black">+</span>
           <span>Pasang Iklan Produk</span>
         </a>
-        <a href="/" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-800/70 hover:text-white transition">
+        <a href="/" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
           <span>📋</span>
           <span>Katalog Iklan</span>
         </a>
-        <a href="/#toko-warga" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-800/70 hover:text-white transition">
+        <a href="/#toko-warga" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
           <span>🏪</span>
           <span>Toko & Pengrajin Warga NU</span>
         </a>
-        <a href="/#panduan" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-800/70 hover:text-white transition">
+        <a href="/#panduan" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
           <span>📖</span>
           <span>Panduan & Info Transaksi</span>
         </a>
 
-        <div class="pt-3 pb-1 text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+        <div class="pt-3 pb-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
           Wilayah MWC NU Sumenep
         </div>
-        <a href="/?zona=mwc-kota-sumenep" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800/60">
+        <a href="/?zona=mwc-kota-sumenep" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
           <span>📍</span> MWC Kota Sumenep
         </a>
-        <a href="/?zona=mwc-gapura" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800/60">
+        <a href="/?zona=mwc-gapura" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
           <span>📍</span> MWC Gapura
         </a>
-        <a href="/?zona=mwc-kalianget" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800/60">
+        <a href="/?zona=mwc-kalianget" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
           <span>📍</span> MWC Kalianget
         </a>
-        <a href="/?zona=mwc-ambunten" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800/60">
+        <a href="/?zona=mwc-ambunten" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
           <span>📍</span> MWC Ambunten
         </a>
-        <a href="/?zona=mwc-dungkek" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800/60">
+        <a href="/?zona=mwc-dungkek" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
           <span>📍</span> MWC Dungkek
         </a>
-        <a href="/?zona=mwc-saronggi" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800/60">
+        <a href="/?zona=mwc-saronggi" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
           <span>📍</span> MWC Saronggi
         </a>
-        <a href="/?zona=mwc-pragaan" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-800/60">
+        <a href="/?zona=mwc-pragaan" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
           <span>📍</span> MWC Pragaan
         </a>
       </div>
 
       <!-- Drawer Footer -->
-      <div class="p-3.5 border-t border-slate-800 bg-[#090e17] text-xs">
-        <a href="/agen" class="flex items-center justify-between text-emerald-400 font-bold hover:text-emerald-300">
+      <div class="p-3.5 border-t border-slate-200 bg-slate-50 text-xs">
+        <a href="/agen" class="flex items-center justify-between text-emerald-700 font-bold hover:text-emerald-800">
           <span>Masuk Portal Agen (PIN: 1926)</span>
           <span>➔</span>
         </a>
@@ -216,25 +216,25 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
     </main>
 
     <!-- Pre-Footer Strip (OsClass Blue Bar Signature) -->
-    <section class="bg-[#4361ee] text-white py-6 sm:py-7 border-t border-indigo-400/30 mt-12 shadow-inner">
+    <section class="bg-[#4361ee] text-white py-6 sm:py-7 border-t border-indigo-500/30 mt-12 shadow-sm">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-center sm:text-left">
         <div class="space-y-0.5">
-          <h2 class="text-base sm:text-lg font-black tracking-tight">Punya Usaha atau Produk Warga NU di Sumenep?</h2>
+          <h2 class="text-base sm:text-lg font-black tracking-tight text-white">Punya Usaha atau Produk Warga NU di Sumenep?</h2>
           <p class="text-xs sm:text-sm text-indigo-100">
             Daftarkan produk Anda sekarang secara gratis agar langsung tampil di Google dan terhubung ke WhatsApp pembeli.
           </p>
         </div>
         <a
           href="/agen"
-          class="shrink-0 bg-white hover:bg-slate-100 text-[#4361ee] font-black text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-lg transition active:scale-98"
+          class="shrink-0 bg-white hover:bg-slate-100 text-[#4361ee] font-black text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-md transition active:scale-98"
         >
           + Pasang Iklan Sekarang
         </a>
       </div>
     </section>
 
-    <!-- OsClass Dark Classified Footer -->
-    <footer class="bg-[#090e17] border-t border-slate-800 py-10 text-xs text-slate-400">
+    <!-- OsClass Light Classified Footer -->
+    <footer class="bg-white border-t border-slate-200 py-10 text-xs text-slate-600">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-8">
         
         <!-- Col 1: About -->
@@ -243,12 +243,12 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
             <div class="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-bold text-xs text-white">
               NU
             </div>
-            <span class="font-extrabold text-sm text-white">Pasar Warga NU</span>
+            <span class="font-extrabold text-sm text-slate-900">Pasar Warga NU</span>
           </div>
-          <p class="text-xs text-slate-400 leading-relaxed">
+          <p class="text-xs text-slate-600 leading-relaxed">
             Portal direktori iklan baris digital untuk memajukan produk UMKM nahdliyin Kabupaten Sumenep. Transaksi langsung ke penjual tanpa perantara.
           </p>
-          <div class="text-[11px] text-slate-400 space-y-1 pt-1">
+          <div class="text-[11px] text-slate-500 space-y-1 pt-1">
             <p>📍 {SITE_CONFIG.address}</p>
             <p>📞 WhatsApp: +62 812-3456-7890</p>
           </div>
@@ -256,47 +256,47 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 
         <!-- Col 2: Kategori Iklan -->
         <div class="space-y-2.5">
-          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-200">Kategori Iklan</h3>
-          <ul class="space-y-1.5 text-xs">
-            <li><a href="/?kategori=Makanan%20%26%20Minuman" class="hover:text-emerald-400 transition">Makanan & Minuman Khas</a></li>
-            <li><a href="/?kategori=Batik%20%26%20Kerajinan" class="hover:text-emerald-400 transition">Batik & Kerajinan Madura</a></li>
-            <li><a href="/?kategori=Hasil%20Laut%20%26%20Olahan" class="hover:text-emerald-400 transition">Hasil Laut, Ikan & Petis</a></li>
-            <li><a href="/?kategori=Pertanian%20%26%20Perkebunan" class="hover:text-emerald-400 transition">Pertanian & Siwalan Nira</a></li>
-            <li><a href="/?kategori=Fashion%20Muslim" class="hover:text-emerald-400 transition">Fashion & Busana Muslim</a></li>
-            <li><a href="/?kategori=Herbal%20%26%20Jamu" class="hover:text-emerald-400 transition">Herbal & Ramuan Jamu</a></li>
+          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Kategori Iklan</h3>
+          <ul class="space-y-1.5 text-xs text-slate-600">
+            <li><a href="/?kategori=Makanan%20%26%20Minuman" class="hover:text-emerald-700 transition">Makanan & Minuman Khas</a></li>
+            <li><a href="/?kategori=Batik%20%26%20Kerajinan" class="hover:text-emerald-700 transition">Batik & Kerajinan Madura</a></li>
+            <li><a href="/?kategori=Hasil%20Laut%20%26%20Olahan" class="hover:text-emerald-700 transition">Hasil Laut, Ikan & Petis</a></li>
+            <li><a href="/?kategori=Pertanian%20%26%20Perkebunan" class="hover:text-emerald-700 transition">Pertanian & Siwalan Nira</a></li>
+            <li><a href="/?kategori=Fashion%20Muslim" class="hover:text-emerald-700 transition">Fashion & Busana Muslim</a></li>
+            <li><a href="/?kategori=Herbal%20%26%20Jamu" class="hover:text-emerald-700 transition">Herbal & Ramuan Jamu</a></li>
           </ul>
         </div>
 
         <!-- Col 3: Wilayah MWC NU -->
         <div class="space-y-2.5">
-          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-200">Wilayah MWC NU</h3>
-          <ul class="space-y-1.5 text-xs">
-            <li><a href="/?zona=mwc-kota-sumenep" class="hover:text-emerald-400 transition">MWC Kota Sumenep</a></li>
-            <li><a href="/?zona=mwc-gapura" class="hover:text-emerald-400 transition">MWC Gapura</a></li>
-            <li><a href="/?zona=mwc-kalianget" class="hover:text-emerald-400 transition">MWC Kalianget</a></li>
-            <li><a href="/?zona=mwc-ambunten" class="hover:text-emerald-400 transition">MWC Ambunten</a></li>
-            <li><a href="/?zona=mwc-dungkek" class="hover:text-emerald-400 transition">MWC Dungkek</a></li>
-            <li><a href="/?zona=mwc-saronggi" class="hover:text-emerald-400 transition">MWC Saronggi</a></li>
-            <li><a href="/?zona=mwc-pragaan" class="hover:text-emerald-400 transition">MWC Pragaan</a></li>
+          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Wilayah MWC NU</h3>
+          <ul class="space-y-1.5 text-xs text-slate-600">
+            <li><a href="/?zona=mwc-kota-sumenep" class="hover:text-emerald-700 transition">MWC Kota Sumenep</a></li>
+            <li><a href="/?zona=mwc-gapura" class="hover:text-emerald-700 transition">MWC Gapura</a></li>
+            <li><a href="/?zona=mwc-kalianget" class="hover:text-emerald-700 transition">MWC Kalianget</a></li>
+            <li><a href="/?zona=mwc-ambunten" class="hover:text-emerald-700 transition">MWC Ambunten</a></li>
+            <li><a href="/?zona=mwc-dungkek" class="hover:text-emerald-700 transition">MWC Dungkek</a></li>
+            <li><a href="/?zona=mwc-saronggi" class="hover:text-emerald-700 transition">MWC Saronggi</a></li>
+            <li><a href="/?zona=mwc-pragaan" class="hover:text-emerald-700 transition">MWC Pragaan</a></li>
           </ul>
         </div>
 
         <!-- Col 4: Informasi & Bantuan -->
         <div class="space-y-2.5">
-          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-200">Informasi & Bantuan</h3>
-          <p class="text-xs text-slate-400 leading-relaxed">
+          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Informasi & Bantuan</h3>
+          <p class="text-xs text-slate-600 leading-relaxed">
             Pendataan dilakukan secara jemput bola oleh kader MWC NU untuk menjamin keaslian pelaku usaha nahdliyin.
           </p>
           <div class="pt-2">
             <a
               href="/agen"
-              class="inline-block text-xs font-bold text-emerald-400 hover:text-emerald-300 underline"
+              class="inline-block text-xs font-bold text-emerald-700 hover:text-emerald-800 underline"
             >
               Masuk Portal Agen Lapangan (PIN: 1926) ➔
             </a>
           </div>
           <div class="pt-2">
-            <span class="inline-block bg-[#162132] text-slate-300 px-2.5 py-1 rounded text-[11px] border border-slate-700">
+            <span class="inline-block bg-slate-100 text-slate-700 px-2.5 py-1 rounded text-[11px] border border-slate-200">
               Kabupaten Sumenep, Madura
             </span>
           </div>
@@ -304,24 +304,24 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 
       </div>
 
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-400 text-[11px]">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
         <p>© 2026 Pasar Digital Warga NU Kabupaten Sumenep. Seluruh hak cipta dilindungi.</p>
         <div class="flex items-center gap-4">
-          <a href="/sitemap.xml" target="_blank" class="hover:text-slate-300">Sitemap XML</a>
+          <a href="/sitemap.xml" target="_blank" class="hover:text-slate-800">Sitemap XML</a>
           <span>•</span>
-          <a href="/robots.txt" target="_blank" class="hover:text-slate-300">Robots.txt</a>
+          <a href="/robots.txt" target="_blank" class="hover:text-slate-800">Robots.txt</a>
         </div>
       </div>
     </footer>
 
-    <!-- Mobile Bottom Navigation Bar (OsClass 5-Button Signature with Elevated Center Plus) -->
+    <!-- Mobile Bottom Navigation Bar (OsClass 5-Button Light Theme) -->
     {!hideMobileNav && (
-      <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-[#090e17]/95 backdrop-blur-md border-t border-slate-800 shadow-xl px-2 py-1 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around">
-        <a href="/" class="flex flex-col items-center gap-0.5 text-emerald-400 font-bold text-[10px] py-1">
+      <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-xl px-2 py-1 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around">
+        <a href="/" class="flex flex-col items-center gap-0.5 text-emerald-700 font-bold text-[10px] py-1">
           <span class="text-base leading-none">🏠</span>
           <span>Beranda</span>
         </a>
-        <a href="/?zona=semua" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-emerald-400 font-bold text-[10px] py-1">
+        <a href="/?zona=semua" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-emerald-700 font-bold text-[10px] py-1">
           <span class="text-base leading-none">📍</span>
           <span>Wilayah</span>
         </a>
@@ -330,16 +330,16 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
         <a
           href="/agen"
           aria-label="Pasang Iklan Produk"
-          class="w-12 h-12 -mt-5 rounded-full bg-[#4f46e5] text-white flex items-center justify-center text-2xl font-black shadow-lg border-4 border-[#090e17] active:scale-95 transition"
+          class="w-12 h-12 -mt-5 rounded-full bg-[#4f46e5] text-white flex items-center justify-center text-2xl font-black shadow-lg border-4 border-white active:scale-95 transition"
         >
           +
         </a>
 
-        <a href="/#toko-warga" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-emerald-400 font-bold text-[10px] py-1">
+        <a href="/#toko-warga" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-emerald-700 font-bold text-[10px] py-1">
           <span class="text-base leading-none">🏪</span>
           <span>Toko</span>
         </a>
-        <a href="/#panduan" class="flex flex-col items-center gap-0.5 text-slate-400 hover:text-emerald-400 font-bold text-[10px] py-1">
+        <a href="/#panduan" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-emerald-700 font-bold text-[10px] py-1">
           <span class="text-base leading-none">📖</span>
           <span>Panduan</span>
         </a>
