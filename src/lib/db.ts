@@ -303,18 +303,89 @@ export function getAllZones(): (Zone & { count?: number })[] {
   }));
 }
 
-export function getAllUMKM(): (UMKM & { product_count: number })[] {
-  return db.prepare(`
+export function getAllUMKM(options?: {
+  zoneSlug?: string;
+  search?: string;
+}): (UMKM & { product_count: number; zone_slug: string; sample_images: string[] })[] {
+  let query = `
     SELECT 
       u.*, 
       z.name as zone_name,
+      z.slug as zone_slug,
+      count(p.id) as product_count,
+      GROUP_CONCAT(p.image_url) as sample_images_str
+    FROM umkm u
+    JOIN zones z ON u.zone_id = z.id
+    LEFT JOIN products p ON p.umkm_id = u.id
+    WHERE 1=1
+  `;
+  const params: any[] = [];
+
+  if (options?.zoneSlug && options.zoneSlug !== 'semua') {
+    query += ` AND z.slug = ?`;
+    params.push(options.zoneSlug);
+  }
+
+  if (options?.search && options.search.trim() !== '') {
+    query += ` AND (u.name LIKE ? OR u.address LIKE ? OR z.name LIKE ?)`;
+    const searchParam = `%${options.search.trim()}%`;
+    params.push(searchParam, searchParam, searchParam);
+  }
+
+  query += ` GROUP BY u.id ORDER BY product_count DESC, u.id ASC`;
+
+  const rows = db.prepare(query).all(...params) as any[];
+
+  return rows.map((r) => ({
+    ...r,
+    sample_images: r.sample_images_str ? r.sample_images_str.split(',').filter(Boolean) : [],
+  }));
+}
+
+export function getUMKMById(id: number | string): (UMKM & {
+  zone_name: string;
+  zone_slug: string;
+  product_count: number;
+  products: Product[];
+}) | undefined {
+  const numId = Number(id);
+  if (isNaN(numId)) return undefined;
+
+  const umkm = db.prepare(`
+    SELECT 
+      u.*,
+      z.name as zone_name,
+      z.slug as zone_slug,
       count(p.id) as product_count
     FROM umkm u
     JOIN zones z ON u.zone_id = z.id
     LEFT JOIN products p ON p.umkm_id = u.id
+    WHERE u.id = ?
     GROUP BY u.id
-    ORDER BY product_count DESC, u.id ASC
-  `).all() as (UMKM & { product_count: number })[];
+  `).get(numId) as any;
+
+  if (!umkm) return undefined;
+
+  const products = db.prepare(`
+    SELECT 
+      p.*,
+      u.name as umkm_name,
+      u.phone as umkm_phone,
+      u.address as umkm_address,
+      u.is_verified as is_verified,
+      z.name as zone_name,
+      z.slug as zone_slug
+    FROM products p
+    JOIN umkm u ON p.umkm_id = u.id
+    JOIN zones z ON u.zone_id = z.id
+    WHERE p.umkm_id = ?
+    ORDER BY p.id DESC
+  `).all(numId) as Product[];
+
+  return {
+    ...umkm,
+    products,
+  };
 }
 
 export function getProducts(options?: {

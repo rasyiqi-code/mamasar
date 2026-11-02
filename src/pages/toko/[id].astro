@@ -1,0 +1,357 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import { getUMKMById } from '../../lib/db';
+import { formatPhoneForWhatsApp } from '../../lib/utils';
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/toko');
+}
+
+const store = getUMKMById(id);
+
+if (!store) {
+  return Astro.redirect('/toko');
+}
+
+const cleanPhone = formatPhoneForWhatsApp(store.phone);
+const currentUrl = Astro.url.href;
+const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+  `Assalamu'alaikum ${store.name}, saya melihat etalase toko Anda di Pasar Warga NU Sumenep. Saya ingin bertanya mengenai ketersediaan produk Anda.`
+)}`;
+
+const initials = store.name.slice(0, 2).toUpperCase();
+
+// Structured Schema.org Organization/LocalBusiness for SEO
+const storeSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  name: store.name,
+  telephone: `+${cleanPhone}`,
+  address: {
+    '@type': 'PostalAddress',
+    streetAddress: store.address || 'Kabupaten Sumenep',
+    addressLocality: store.zone_name,
+    addressRegion: 'Jawa Timur',
+    addressCountry: 'ID',
+  },
+  url: currentUrl,
+};
+---
+
+<Layout
+  title={`${store.name} - Toko UMKM Warga NU ${store.zone_name} Sumenep`}
+  description={`Profil dan etalase produk resmi ${store.name} di ${store.zone_name}, Sumenep. Belanja langsung dari pengrajin warga Nahdliyin.`}
+  schema={storeSchema}
+>
+  <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
+    
+    <!-- Top Breadcrumb -->
+    <div class="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
+      <nav aria-label="Breadcrumb" class="flex items-center gap-2 truncate">
+        <a href="/" class="hover:text-emerald-700">Beranda</a>
+        <span>›</span>
+        <a href="/toko" class="hover:text-emerald-700">Direktori Toko</a>
+        <span>›</span>
+        <a href={`/toko?zona=${store.zone_slug}`} class="hover:text-emerald-700 truncate">{store.zone_name}</a>
+        <span>›</span>
+        <span class="text-slate-900 font-bold truncate">{store.name}</span>
+      </nav>
+
+      <a
+        href="/toko"
+        class="hidden sm:inline-flex text-xs font-semibold text-slate-500 hover:text-slate-900 transition items-center gap-1.5"
+      >
+        <span>← Semua Toko</span>
+      </a>
+    </div>
+
+    <!-- Store Hero Master Card (Classified Store Header) -->
+    <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl shadow-xs overflow-hidden">
+      
+      <!-- Decorative Banner Cover -->
+      <div class="h-28 sm:h-36 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 relative overflow-hidden">
+        <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        <div class="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-2">
+          <span class="bg-white/20 backdrop-blur-md text-white border border-white/30 text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-xs">
+            📍 Wilayah {store.zone_name}
+          </span>
+        </div>
+      </div>
+
+      <!-- Store Profile Bar -->
+      <div class="p-4 sm:p-6 sm:pt-0 relative">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 -mt-12 sm:-mt-14 mb-4">
+          
+          <!-- Avatar + Store Name -->
+          <div class="flex items-end gap-3.5 sm:gap-4">
+            <div class="relative shrink-0">
+              <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white text-emerald-800 border-4 border-white shadow-md flex items-center justify-center font-black text-2xl sm:text-3xl bg-gradient-to-br from-emerald-50 to-emerald-100">
+                {initials}
+              </div>
+              <span class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
+                PRO
+              </span>
+            </div>
+
+            <div class="space-y-1 min-w-0 pt-2">
+              <div class="flex flex-wrap items-center gap-2">
+                <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                  {store.name}
+                </h1>
+                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md shadow-2xs">
+                  <span>✓</span>
+                  <span>Terverifikasi Kader NU</span>
+                </span>
+              </div>
+              <p class="text-xs sm:text-sm text-slate-600 flex items-center gap-1.5 truncate">
+                <span>📍 {store.address || `${store.zone_name}, Sumenep`}</span>
+                <span>•</span>
+                <span class="text-amber-500 font-bold">★★★★★ 5.0</span>
+              </p>
+            </div>
+          </div>
+
+          <!-- Direct CTA Buttons -->
+          <div class="flex items-center gap-2.5 shrink-0 pt-2 sm:pt-0">
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="flex-1 sm:flex-initial py-2.5 sm:py-3 px-5 sm:px-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs sm:text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+            >
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+              </svg>
+              <span>Kirim Pesan WhatsApp</span>
+            </a>
+
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`Kunjungi Toko ${store.name} di Pasar Warga NU Sumenep: ${currentUrl}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Bagikan Toko"
+              class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-700 flex items-center justify-center text-sm transition shadow-2xs shrink-0 cursor-pointer"
+              title="Bagikan Profil Toko"
+            >
+              📤
+            </a>
+          </div>
+
+        </div>
+
+        <!-- Store Attributes Stats Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-slate-100 text-xs">
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 block text-[10px] uppercase font-bold">Produk Terdaftar</span>
+            <span class="font-extrabold text-slate-900 text-sm">{store.products.length} Produk Aktif</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 block text-[10px] uppercase font-bold">Wilayah MWC</span>
+            <span class="font-extrabold text-slate-900 text-sm">{store.zone_name}</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 block text-[10px] uppercase font-bold">Status Binaan</span>
+            <span class="font-extrabold text-emerald-700 text-sm">Kader NU Sumenep</span>
+          </div>
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-slate-500 block text-[10px] uppercase font-bold">Layanan Transaksi</span>
+            <span class="font-extrabold text-indigo-700 text-sm">COD / Kirim Paket</span>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Main Content 2-Column Grid -->
+    <div class="md:grid md:grid-cols-12 md:gap-8 items-start">
+      
+      <!-- LEFT COLUMN: Product Catalog of this Store (8 cols) -->
+      <div class="md:col-span-7 lg:col-span-8 space-y-6">
+        
+        <!-- Section Header with Count -->
+        <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span>📦</span>
+                <span>Etalase Produk {store.name}</span>
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Semua iklan produk asli dari produsen/pengrajin ini di Sumenep
+              </p>
+            </div>
+            <span class="text-xs bg-emerald-50 text-emerald-800 font-bold px-2.5 py-1 rounded-lg border border-emerald-200">
+              {store.products.length} Iklan Tayang
+            </span>
+          </div>
+
+          <!-- Product Grid -->
+          {store.products.length > 0 ? (
+            <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {store.products.map((p) => (
+                <ProductCard product={p} photoCount={2} views={p.views || 150} />
+              ))}
+            </div>
+          ) : (
+            <div class="py-12 text-center space-y-3">
+              <span class="text-4xl">📦</span>
+              <p class="text-xs sm:text-sm text-slate-500 font-medium">
+                Belum ada produk aktif yang terdaftar untuk toko ini.
+              </p>
+            </div>
+          )}
+        </div>
+
+        <!-- About Store Profile Card -->
+        <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
+          <h2 class="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+            <span>🏪</span>
+            <span>Tentang Usaha & Komitmen Kualitas</span>
+          </h2>
+
+          <div class="text-xs sm:text-sm text-slate-700 leading-relaxed space-y-3">
+            <p>
+              <strong>{store.name}</strong> adalah unit usaha UMKM yang berlokasi di <strong>{store.address || store.zone_name}</strong>, Kabupaten Sumenep. Dikelola langsung oleh warga Nahdliyin dengan komitmen menjaga keaslian mutu, proses produksi yang halal, bersih, dan thayyib.
+            </p>
+            <p class="text-slate-500 text-xs">
+              Dengan berbelanja langsung dari toko ini melalui Pasar Warga NU Sumenep, Anda turut memutar roda ekonomi umat di tingkat akar rumput dan mendukung kemandirian pengrajin lokal tanpa potongan komisi perantara.
+            </p>
+          </div>
+
+          <!-- Verification Checklist -->
+          <div class="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="flex items-center gap-2 text-slate-700">
+              <span class="text-emerald-600 font-bold">✓</span>
+              <span>100% Produk Asli Lokal</span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-700">
+              <span class="text-emerald-600 font-bold">✓</span>
+              <span>Terdata di MWC NU Setempat</span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-700">
+              <span class="text-emerald-600 font-bold">✓</span>
+              <span>Dukungan Pembelian COD</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Sticky Store Sidebar (4 cols) -->
+      <aside class="md:col-span-5 lg:col-span-4 md:sticky md:top-20 self-start space-y-4 px-3 sm:px-0">
+        
+        <!-- Unified Store Sidebar Card -->
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
+          
+          <!-- CTA Header Strip -->
+          <div class="p-4 sm:p-5 bg-gradient-to-b from-indigo-50/80 via-indigo-50/30 to-white border-b border-slate-100">
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full py-3.5 px-4 bg-[#4f46e5] hover:bg-[#4338ca] active:bg-[#3730a3] text-white rounded-xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer"
+            >
+              <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+              </svg>
+              <span>Hubungi Pemilik Toko</span>
+            </a>
+          </div>
+
+          <!-- Store Location & Contact Info -->
+          <div class="p-4 sm:p-5 space-y-4">
+            <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">
+              Informasi Kontak & Lokasi
+            </h3>
+
+            <div class="space-y-2.5 text-xs text-slate-600">
+              <div class="flex items-start gap-2">
+                <span class="text-emerald-700 text-sm shrink-0">📍</span>
+                <div>
+                  <strong class="text-slate-800 block">Alamat Usaha:</strong>
+                  <p class="text-[11px] leading-relaxed">{store.address || 'Kabupaten Sumenep, Madura'}</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2">
+                <span class="text-emerald-700 text-sm shrink-0">🏛️</span>
+                <div>
+                  <strong class="text-slate-800 block">Wilayah MWC NU:</strong>
+                  <p class="text-[11px]">{store.zone_name}</p>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-2">
+                <span class="text-emerald-700 text-sm shrink-0">📱</span>
+                <div>
+                  <strong class="text-slate-800 block">Nomor WhatsApp:</strong>
+                  <p class="text-[11px] font-mono text-slate-800 font-bold">+62 {store.phone.slice(2, 6)}•••• (Aktif)</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Direction Link -->
+            <a
+              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${store.name} ${store.zone_name} Sumenep`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+            >
+              <span>🗺️</span>
+              <span>Buka Petunjuk Arah Google Maps</span>
+            </a>
+          </div>
+
+          <!-- Safety Tips Box (Integrated) -->
+          <div class="p-4 sm:p-5 bg-amber-50/80 border-t border-amber-200/80 space-y-3">
+            <h4 class="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
+              <span>⚠️</span> Belanja Aman & Berkah
+            </h4>
+            
+            <ul class="text-[11px] text-amber-950 space-y-2 leading-relaxed">
+              <li class="flex items-start gap-2">
+                <span class="text-indigo-600 text-xs shrink-0">🛡️</span>
+                <span>Sepakati metode pembayaran aman (COD / transfer saat barang siap kirim).</span>
+              </li>
+              <li class="flex items-start gap-2">
+                <span class="text-indigo-600 text-xs shrink-0">📍</span>
+                <span>Untuk pesanan jumlah banyak (grosir/hajatan), Anda dapat berkunjung langsung ke alamat UMKM di atas.</span>
+              </li>
+            </ul>
+          </div>
+
+        </div>
+
+      </aside>
+
+    </div>
+
+    <!-- Mobile Sticky Bottom WhatsApp Bar -->
+    <div class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-2xl">
+      <div class="flex items-center gap-3">
+        <div class="shrink-0 pl-1">
+          <span class="text-[10px] text-slate-500 block leading-tight">Toko Warga NU</span>
+          <span class="text-xs font-black text-slate-900 block truncate max-w-[130px]">
+            {store.name}
+          </span>
+        </div>
+        <a
+          href={waLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 py-3 px-4 bg-emerald-600 active:bg-emerald-700 text-white rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-md transition active:scale-98"
+        >
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
+          </svg>
+          <span>Chat WhatsApp Toko</span>
+        </a>
+      </div>
+    </div>
+
+  </div>
+</Layout>

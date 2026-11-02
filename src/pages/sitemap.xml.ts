@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getProducts, getAllZones } from '../lib/db';
+import { getProducts, getAllZones, getAllUMKM } from '../lib/db';
 
 export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
@@ -7,6 +7,7 @@ export const GET: APIRoute = async ({ request }) => {
 
   const products = getProducts();
   const zones = getAllZones();
+  const stores = getAllUMKM();
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -16,6 +17,25 @@ export const GET: APIRoute = async ({ request }) => {
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
+
+  <!-- Direktori Toko -->
+  <url>
+    <loc>${siteUrl}/toko</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Profil Toko Warga NU -->
+  ${stores
+    .map(
+      (s) => `
+  <url>
+    <loc>${siteUrl}/toko/${s.id}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+    )
+    .join('')}
 
   <!-- Filter Zona MWC -->
   ${zones

@@ -130,7 +130,13 @@ const badgeStyles: Record<string, string> = {
 
       <!-- Seller Identity Strip -->
       <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
-        <span class="text-slate-600 font-medium truncate text-[11px]">{product.umkm_name}</span>
+        <a
+          href={`/toko/${product.umkm_id}`}
+          class="text-slate-600 hover:text-emerald-700 font-medium truncate text-[11px] hover:underline transition cursor-pointer"
+          title={`Lihat Profil Toko ${product.umkm_name}`}
+        >
+          🏪 {product.umkm_name}
+        </a>
         <span class="text-emerald-600 text-xs shrink-0 font-bold" title="Terverifikasi Nahdliyin">✓</span>
       </div>
     </div>

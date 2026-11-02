@@ -438,18 +438,22 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
           <div class="p-4 sm:p-5 space-y-4">
             
             <div class="flex items-start gap-3">
-              <div class="relative shrink-0">
-                <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-800 border-2 border-emerald-300 flex items-center justify-center font-black text-lg shadow-inner">
+              <a href={`/toko/${product.umkm_id}`} class="relative shrink-0 block group">
+                <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-800 border-2 border-emerald-300 flex items-center justify-center font-black text-lg shadow-inner group-hover:border-emerald-500 transition">
                   {product.umkm_name.slice(0, 2).toUpperCase()}
                 </div>
                 <span class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider shadow-xs">
                   PRO
                 </span>
-              </div>
+              </a>
               <div class="space-y-0.5 min-w-0">
-                <h3 class="font-extrabold text-sm sm:text-base text-slate-900 truncate">
+                <a
+                  href={`/toko/${product.umkm_id}`}
+                  class="font-extrabold text-sm sm:text-base text-slate-900 hover:text-emerald-700 transition truncate block"
+                  title={`Kunjungi Toko ${product.umkm_name}`}
+                >
                   {product.umkm_name}
-                </h3>
+                </a>
                 <p class="text-xs text-slate-500 truncate">
                   Penjual Terdaftar di {product.zone_name}
                 </p>
@@ -486,6 +490,14 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
               >
                 <span>📞</span>
                 <span>+62 {product.umkm_phone.slice(2, 6)}•••• (Hubungi WA)</span>
+              </a>
+
+              <a
+                href={`/toko/${product.umkm_id}`}
+                class="w-full py-2 px-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-700 hover:text-indigo-900 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <span>🏪</span>
+                <span>Kunjungi Profil Toko Ini →</span>
               </a>
 
               <a
