@@ -1,0 +1,666 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getUserFromSession, getUMKMByUserId, getAllZones } from '../../lib/db';
+import { PRODUCT_CATEGORIES, CATEGORY_ICONS } from '../../lib/constants';
+import { formatRupiah } from '../../lib/utils';
+
+const sessionId = Astro.request.headers
+  .get('cookie')
+  ?.split(';')
+  .find((c) => c.trim().startsWith('mamasar_session='))
+  ?.split('=')[1];
+
+const user = sessionId ? getUserFromSession(sessionId) : null;
+const store = user ? getUMKMByUserId(user.id) : null;
+const zones = getAllZones();
+
+const currentUrl = Astro.url.href;
+---
+
+<Layout
+  title={user ? `Dashboard Usaha: ${store?.name || user.name} | Pasar Warga NU` : 'Masuk ke Dashboard UMKM | Pasar Warga NU Sumenep'}
+  description="Portal swalayan pemilik UMKM Nahdliyin untuk mengunggah produk, mengubah harga, memperbarui status stok, dan menyundul iklan secara mandiri."
+>
+  <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
+    
+    <!-- Top Breadcrumb -->
+    <div class="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
+      <nav aria-label="Breadcrumb" class="flex items-center gap-2">
+        <a href="/" class="hover:text-emerald-700">Beranda</a>
+        <span>›</span>
+        <span class="text-slate-900 font-bold">Dashboard Pemilik UMKM</span>
+      </nav>
+
+      {user && (
+        <a
+          href="/api/auth/logout"
+          class="text-xs font-semibold text-rose-600 hover:text-rose-800 transition flex items-center gap-1"
+        >
+          <span>Keluar ({user.name.split(' ')[0]})</span>
+          <span>➔</span>
+        </a>
+      )}
+    </div>
+
+    <!-- STATE 1: Pengguna Belum Login -->
+    {!user && (
+      <div class="max-w-xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 shadow-sm text-center space-y-6 my-6 sm:my-12">
+        <div class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-700 border-2 border-emerald-200 flex items-center justify-center text-3xl mx-auto shadow-inner">
+          🏪
+        </div>
+
+        <div class="space-y-2">
+          <span class="text-[10px] font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-200 px-3 py-1 rounded-full">
+            Portal Mandiri Pelaku Usaha
+          </span>
+          <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+            Kelola Produk Toko Anda Sendiri
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md mx-auto">
+            Khusus warga Nahdliyin Kabupaten Sumenep yang memiliki produk olahan pangan, kerajinan batik, atau hasil bumi. Unggah produk, edit harga, dan pantau pembeli langsung dari HP Anda.
+          </p>
+        </div>
+
+        <!-- Benefits List -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-left text-xs bg-slate-50 border border-slate-200 rounded-2xl p-4">
+          <div class="space-y-1">
+            <span class="text-base">⚡</span>
+            <h4 class="font-bold text-slate-900 text-[11px]">Unggah Mandiri</h4>
+            <p class="text-[10px] text-slate-500">Foto dari kamera HP langsung terkompresi otomatis.</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-base">🚀</span>
+            <h4 class="font-bold text-slate-900 text-[11px]">Fitur Sundul Iklan</h4>
+            <p class="text-[10px] text-slate-500">Naikkan produk ke urutan #1 beranda kapan saja.</p>
+          </div>
+          <div class="space-y-1">
+            <span class="text-base">💬</span>
+            <h4 class="font-bold text-slate-900 text-[11px]">Direct WhatsApp</h4>
+            <p class="text-[10px] text-slate-500">Pesanan pembeli langsung masuk ke nomor WA pribadi.</p>
+          </div>
+        </div>
+
+        <!-- Google Login Action -->
+        <div class="space-y-3 pt-2">
+          <a
+            href="/api/auth/login"
+            class="w-full py-3.5 px-6 bg-white hover:bg-slate-50 border-2 border-slate-300 hover:border-slate-400 text-slate-800 font-black text-xs sm:text-sm rounded-2xl flex items-center justify-center gap-3 shadow-xs transition active:scale-98 cursor-pointer"
+          >
+            <!-- Google SVG Icon -->
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+            </svg>
+            <span>Masuk dengan Akun Google</span>
+          </a>
+
+          <a
+            href="/api/auth/login?demo=1"
+            class="inline-block text-[11px] text-slate-500 hover:text-emerald-700 font-semibold underline"
+          >
+            Atau masuk mode uji coba cepat (Demo Santri) ➔
+          </a>
+        </div>
+
+        <p class="text-[10px] text-slate-400">
+          Data akun Anda aman dan terlindungi di bawah naungan ekosistem digital PCNU Kabupaten Sumenep.
+        </p>
+      </div>
+    )}
+
+    <!-- STATE 2: Sudah Login Google, Namun Belum Mengisi Profil Usaha -->
+    {user && !store && (
+      <div class="max-w-xl mx-auto bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+        <div class="flex items-center gap-3 pb-4 border-b border-slate-100">
+          {user.avatar_url ? (
+            <img src={user.avatar_url} alt={user.name} class="w-12 h-12 rounded-full border border-slate-200" />
+          ) : (
+            <div class="w-12 h-12 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center">
+              {user.name.slice(0, 2).toUpperCase()}
+            </div>
+          )}
+          <div>
+            <h2 class="text-sm sm:text-base font-black text-slate-900">Ahlan wa Sahlan, {user.name}!</h2>
+            <p class="text-xs text-slate-500">{user.email}</p>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <span class="text-[10px] font-black uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+            Langkah Terakhir (1 Menit)
+          </span>
+          <h3 class="text-lg font-black text-slate-900">Buka Profil Toko UMKM Anda</h3>
+          <p class="text-xs text-slate-600">
+            Lengkapi nama usaha dan nomor WhatsApp penjual agar pembeli dapat langsung memesan produk Anda.
+          </p>
+        </div>
+
+        <div id="setup-status" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
+        <form id="store-setup-form" class="space-y-4">
+          <div class="space-y-1">
+            <label for="storeName" class="block text-xs font-bold text-slate-700">
+              Nama Usaha / Toko UMKM <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="storeName"
+              name="name"
+              placeholder="Contoh: Dapur Barokah Bu Fatimah / Pengrajin Batik Canteng"
+              required
+              class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-900 focus:outline-none focus:bg-white focus:border-emerald-600"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label for="storePhone" class="block text-xs font-bold text-slate-700">
+              Nomor WhatsApp Penjual <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="tel"
+              id="storePhone"
+              name="phone"
+              placeholder="Contoh: 081234567890"
+              required
+              class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-900 font-mono focus:outline-none focus:bg-white focus:border-emerald-600"
+            />
+            <p class="text-[10px] text-slate-500">Tombol 'Chat WhatsApp' pembeli akan langsung diarahkan ke nomor ini.</p>
+          </div>
+
+          <div class="space-y-1">
+            <label for="storeZone" class="block text-xs font-bold text-slate-700">
+              Wilayah MWC NU (Kecamatan) <span class="text-rose-500">*</span>
+            </label>
+            <select
+              id="storeZone"
+              name="zoneId"
+              required
+              class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-emerald-600 cursor-pointer"
+            >
+              <option value="" disabled selected>Pilih Wilayah MWC Anda</option>
+              {zones.map((z) => (
+                <option value={z.id}>{z.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label for="storeAddress" class="block text-xs font-bold text-slate-700">
+              Alamat Lengkap / Dusun (Opsional)
+            </label>
+            <textarea
+              id="storeAddress"
+              name="address"
+              rows="2"
+              placeholder="Contoh: Dusun Karang Anyar, RT 02/01, Desa Gapura Timur"
+              class="w-full bg-slate-50 border border-slate-300 rounded-xl p-3 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-emerald-600"
+            ></textarea>
+          </div>
+
+          <button
+            type="submit"
+            id="btn-save-store"
+            class="w-full py-3 px-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs sm:text-sm rounded-xl transition shadow-sm cursor-pointer"
+          >
+            Buka Toko & Mulai Jualan ➔
+          </button>
+        </form>
+      </div>
+    )}
+
+    <!-- STATE 3: Sudah Login & Toko Sudah Siap (Master Dashboard) -->
+    {user && store && (
+      <div class="space-y-6">
+        
+        <!-- Store Identity Master Header -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-800 border-2 border-emerald-300 flex items-center justify-center font-black text-xl shadow-inner shrink-0">
+              {store.name.slice(0, 2).toUpperCase()}
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h1 class="text-base sm:text-xl font-black text-slate-900">{store.name}</h1>
+                <span class="text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full">
+                  Warga NU Terverifikasi
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">
+                📍 {store.zone_name} • 📞 +{store.phone}
+              </p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2.5 w-full sm:w-auto">
+            <a
+              href={`/toko/${store.id}`}
+              target="_blank"
+              class="flex-1 sm:flex-none text-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs px-4 py-2.5 rounded-xl border border-slate-200 transition"
+            >
+              Lihat Etalase Publik ➔
+            </a>
+            <button
+              type="button"
+              id="btn-toggle-add-product"
+              class="flex-1 sm:flex-none bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-xs px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer"
+            >
+              + Tambah Produk
+            </button>
+          </div>
+        </div>
+
+        <!-- Feedback Alert Box -->
+        <div id="action-status" class="hidden p-4 rounded-xl text-xs font-bold"></div>
+
+        <!-- Accordion / Form Tambah Produk Baru (Collapsible) -->
+        <div id="add-product-container" class="hidden bg-white border-2 border-indigo-500/40 rounded-2xl p-5 sm:p-6 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div class="flex items-center gap-2">
+              <span class="text-lg">📦</span>
+              <h3 class="font-black text-sm sm:text-base text-slate-900">Tambah Produk Baru ke Toko</h3>
+            </div>
+            <button
+              type="button"
+              id="btn-close-add-product"
+              class="text-xs font-bold text-slate-400 hover:text-slate-800 cursor-pointer p-1"
+            >
+              Tutup ✕
+            </button>
+          </div>
+
+          <form id="add-product-form" class="space-y-4">
+            <input type="hidden" id="dashImageBase64" name="imageBase64" />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1">
+                <label for="prodName" class="block text-xs font-bold text-slate-700">
+                  Nama Barang / Produk <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="prodName"
+                  name="name"
+                  placeholder="Contoh: Rengginang Lorjuk Spesial Renyah"
+                  required
+                  class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-indigo-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="prodCategory" class="block text-xs font-bold text-slate-700">
+                  Kategori <span class="text-rose-500">*</span>
+                </label>
+                <select
+                  id="prodCategory"
+                  name="category"
+                  required
+                  class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:bg-white focus:border-indigo-600 cursor-pointer"
+                >
+                  {PRODUCT_CATEGORIES.map((cat) => (
+                    <option value={cat}>
+                      {CATEGORY_ICONS[cat] || '📦'} {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1">
+                <label for="prodPrice" class="block text-xs font-bold text-slate-700">
+                  Harga Jual Satuan (IDR) <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="number"
+                  id="prodPrice"
+                  name="price"
+                  placeholder="Contoh: 25000"
+                  required
+                  min="500"
+                  class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 font-mono focus:outline-none focus:bg-white focus:border-indigo-600"
+                />
+              </div>
+
+              <!-- Camera / Photo Picker with Auto Compress -->
+              <div class="space-y-1">
+                <label class="block text-xs font-bold text-slate-700">
+                  Foto Produk (Dari Kamera HP / Galeri) <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="file"
+                  id="dash-camera-input"
+                  accept="image/*"
+                  class="w-full text-xs text-slate-500 file:mr-2 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer"
+                />
+                <p id="dash-compress-info" class="text-[10px] text-slate-400 font-semibold"></p>
+              </div>
+            </div>
+
+            <div class="space-y-1">
+              <label for="prodDesc" class="block text-xs font-bold text-slate-700">
+                Deskripsi Produk
+              </label>
+              <textarea
+                id="prodDesc"
+                name="description"
+                rows="2"
+                placeholder="Jelaskan rasa, berat kemasan, atau pilihan motif..."
+                class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-indigo-600"
+              ></textarea>
+            </div>
+
+            <button
+              type="submit"
+              id="btn-submit-product"
+              class="w-full py-3 bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-xs sm:text-sm rounded-xl transition shadow-xs cursor-pointer active:scale-98"
+            >
+              Terbitkan Iklan Produk ➔
+            </button>
+          </form>
+        </div>
+
+        <!-- Products Management Table / Cards -->
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-3">
+          <div class="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
+            <div>
+              <h2 class="text-sm sm:text-base font-black text-slate-900 flex items-center gap-2">
+                <span>📋</span> Daftar Produk Toko Anda ({store.products.length})
+              </h2>
+              <p class="text-xs text-slate-500">Kelola status ketersediaan dan sundul produk agar selalu tampil paling atas.</p>
+            </div>
+          </div>
+
+          {store.products.length > 0 ? (
+            <div class="divide-y divide-slate-100">
+              {store.products.map((prod) => (
+                <div class="p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-slate-50/70 transition">
+                  <div class="flex items-center gap-3.5 min-w-0">
+                    <img
+                      src={prod.image_url}
+                      alt={prod.name}
+                      class={`w-14 h-14 sm:w-16 sm:h-16 rounded-xl object-cover border border-slate-200 shrink-0 ${
+                        prod.is_sold_out ? 'grayscale-50 opacity-80' : ''
+                      }`}
+                    />
+                    <div class="space-y-0.5 min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{prod.category}</span>
+                        {prod.is_sold_out ? (
+                          <span class="text-[9px] font-black bg-rose-100 text-rose-800 border border-rose-300 px-1.5 py-0.2 rounded">
+                            Habis Terjual
+                          </span>
+                        ) : (
+                          <span class="text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 px-1.5 py-0.2 rounded">
+                            Tersedia
+                          </span>
+                        )}
+                      </div>
+                      <h3 class="font-bold text-xs sm:text-sm text-slate-900 truncate">{prod.name}</h3>
+                      <p class="text-xs font-black text-emerald-700">{formatRupiah(prod.price)}</p>
+                    </div>
+                  </div>
+
+                  <!-- Quick Action Buttons -->
+                  <div class="flex items-center gap-2 w-full sm:w-auto shrink-0 flex-wrap sm:flex-nowrap">
+                    <!-- Button Sundul Iklan -->
+                    <button
+                      type="button"
+                      data-action="bump"
+                      data-id={prod.id}
+                      title="Naikkan produk ke posisi teratas katalog hari ini"
+                      class="flex-1 sm:flex-none px-3 py-1.5 bg-amber-50 hover:bg-amber-100 border border-amber-300 text-amber-900 font-bold text-xs rounded-xl flex items-center justify-center gap-1 transition cursor-pointer"
+                    >
+                      <span>⚡</span>
+                      <span>Sundul</span>
+                    </button>
+
+                    <!-- Button Toggle Stock -->
+                    <button
+                      type="button"
+                      data-action="toggle-stock"
+                      data-id={prod.id}
+                      class={`flex-1 sm:flex-none px-3 py-1.5 border font-bold text-xs rounded-xl transition cursor-pointer ${
+                        prod.is_sold_out
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                          : 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200'
+                      }`}
+                    >
+                      {prod.is_sold_out ? 'Tandai Tersedia' : 'Tandai Habis'}
+                    </button>
+
+                    <!-- View link -->
+                    <a
+                      href={`/p/${prod.slug}`}
+                      target="_blank"
+                      class="px-2.5 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 rounded-xl text-xs font-semibold"
+                    >
+                      Lihat ➔
+                    </a>
+
+                    <!-- Button Delete -->
+                    <button
+                      type="button"
+                      data-action="delete"
+                      data-id={prod.id}
+                      data-name={prod.name}
+                      class="p-1.5 text-slate-400 hover:text-rose-600 transition cursor-pointer"
+                      title="Hapus Iklan"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div class="p-8 text-center space-y-2">
+              <span class="text-3xl">📦</span>
+              <h4 class="font-bold text-slate-800 text-sm">Belum Ada Produk yang Didaftarkan</h4>
+              <p class="text-xs text-slate-500 max-w-sm mx-auto">
+                Klik tombol "+ Tambah Produk" di atas untuk mulai memajang barang dagangan toko Anda.
+              </p>
+            </div>
+          )}
+        </div>
+
+      </div>
+    )}
+
+  </div>
+
+  <!-- Client-side Interactive Script for Dashboard -->
+  <script>
+    // 1. Store Setup Submission
+    const storeSetupForm = document.getElementById('store-setup-form') as HTMLFormElement;
+    const setupStatus = document.getElementById('setup-status');
+
+    storeSetupForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-save-store') as HTMLButtonElement;
+      if (btn) btn.disabled = true;
+
+      try {
+        const formData = new FormData(storeSetupForm);
+        const res = await fetch('/api/umkm/setup', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          window.location.reload();
+        } else {
+          if (setupStatus) {
+            setupStatus.className = 'p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200';
+            setupStatus.textContent = data.message || 'Gagal menyimpan profil toko.';
+            setupStatus.classList.remove('hidden');
+          }
+        }
+      } catch (err: any) {
+        alert('Gagal menghubungi server: ' + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+
+    // 2. Toggle Add Product Accordion
+    const btnToggleAdd = document.getElementById('btn-toggle-add-product');
+    const btnCloseAdd = document.getElementById('btn-close-add-product');
+    const addProductContainer = document.getElementById('add-product-container');
+
+    btnToggleAdd?.addEventListener('click', () => {
+      addProductContainer?.classList.toggle('hidden');
+      if (!addProductContainer?.classList.contains('hidden')) {
+        document.getElementById('prodName')?.focus();
+      }
+    });
+    btnCloseAdd?.addEventListener('click', () => {
+      addProductContainer?.classList.add('hidden');
+    });
+
+    // 3. Client Canvas Auto-Compression for Dashboard Uploads
+    const dashCameraInput = document.getElementById('dash-camera-input') as HTMLInputElement;
+    const dashImageBase64 = document.getElementById('dashImageBase64') as HTMLInputElement;
+    const dashCompressInfo = document.getElementById('dash-compress-info');
+
+    dashCameraInput?.addEventListener('change', () => {
+      const file = dashCameraInput.files?.[0];
+      if (!file) return;
+
+      const originalSizeKB = Math.round(file.size / 1024);
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+          const maxDim = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxDim) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            }
+          } else {
+            if (height > maxDim) {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+          if (dashImageBase64) dashImageBase64.value = compressedBase64;
+
+          const compressedSizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
+          if (dashCompressInfo) {
+            dashCompressInfo.textContent = `✓ Foto dikompres: ${originalSizeKB} KB ➔ ~${compressedSizeKB} KB (Hemat data)`;
+            dashCompressInfo.className = 'text-[10px] font-bold text-emerald-600';
+          }
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // 4. Add Product Submission
+    const addProductForm = document.getElementById('add-product-form') as HTMLFormElement;
+    addProductForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit-product') as HTMLButtonElement;
+      if (btn) btn.disabled = true;
+
+      try {
+        const formData = new FormData(addProductForm);
+        const res = await fetch('/api/umkm/add-product', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          window.location.reload();
+        } else {
+          alert('Gagal menambah produk: ' + (data.message || 'Terjadi kesalahan sistem.'));
+        }
+      } catch (err: any) {
+        alert('Gagal mengirim ke server: ' + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+
+    // 5. Quick Actions: Bump, Toggle Stock, Delete
+    const actionStatus = document.getElementById('action-status');
+
+    function showStatus(msg: string, isError = false) {
+      if (!actionStatus) return;
+      actionStatus.className = isError
+        ? 'p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200'
+        : 'p-3 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200';
+      actionStatus.textContent = msg;
+      actionStatus.classList.remove('hidden');
+      setTimeout(() => actionStatus.classList.add('hidden'), 4000);
+    }
+
+    document.querySelectorAll('[data-action="bump"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const formData = new FormData();
+        formData.append('productId', id || '');
+
+        const res = await fetch('/api/products/bump', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showStatus('⚡ Berhasil! Iklan disundul ke posisi teratas.');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          showStatus(data.message || 'Gagal menyundul produk.', true);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-action="toggle-stock"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const formData = new FormData();
+        formData.append('productId', id || '');
+
+        const res = await fetch('/api/products/toggle-stock', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.reload();
+        } else {
+          showStatus(data.message || 'Gagal mengubah status stok.', true);
+        }
+      });
+    });
+
+    document.querySelectorAll('[data-action="delete"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const name = btn.getAttribute('data-name');
+        if (!confirm(`Hapus produk "${name}" dari katalog toko Anda?`)) return;
+
+        const formData = new FormData();
+        formData.append('productId', id || '');
+
+        const res = await fetch('/api/products/delete', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.reload();
+        } else {
+          showStatus(data.message || 'Gagal menghapus produk.', true);
+        }
+      });
+    });
+  </script>
+</Layout>

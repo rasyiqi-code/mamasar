@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import { SITE_CONFIG } from '../lib/constants';
+import { getAllZones } from '../lib/db';
 
 interface Props {
   title: string;
@@ -22,6 +23,8 @@ const {
 
 const siteName = SITE_CONFIG.name;
 const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
+const zones = getAllZones();
+const currentYear = new Date().getFullYear();
 ---
 
 <!doctype html>
@@ -36,6 +39,13 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="robots" content="index, follow" />
+
+    <!-- PWA & Mobile Meta Tags -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#059669" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Pasar NU" />
 
     <!-- Open Graph / WhatsApp / Facebook -->
     <meta property="og:type" content="website" />
@@ -91,36 +101,41 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
         </div>
 
         <!-- Desktop Navigation Links (OsClass Header Style with Icons) -->
-        <nav aria-label="Navigasi Utama" class="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-600">
+        <nav aria-label="Navigasi Utama" class="hidden lg:flex items-center gap-5 text-xs font-semibold text-slate-600">
           <a href="/" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>📋</span>
-            <span>Katalog Iklan</span>
+            <span>Katalog</span>
           </a>
           <a href="/toko" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>🏪</span>
             <span>Toko Warga</span>
           </a>
-          <a href="/#panduan" class="hover:text-emerald-700 transition flex items-center gap-1.5">
+          <a href="/kegiatan" class="hover:text-emerald-700 transition flex items-center gap-1.5">
+            <span>🎪</span>
+            <span>Kegiatan NU</span>
+          </a>
+          <a href="/edukasi" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>📖</span>
-            <span>Panduan & Info</span>
+            <span>Panduan</span>
+          </a>
+          <a href="/favorit" class="hover:text-emerald-700 transition flex items-center gap-1.5">
+            <span>⭐</span>
+            <span>Favorit</span>
           </a>
           <a href="/?zona=mwc-kota-sumenep" class="hover:text-emerald-700 transition flex items-center gap-1.5">
             <span>📍</span>
             <span>MWC Kota</span>
-          </a>
-          <a href="/?zona=mwc-gapura" class="hover:text-emerald-700 transition flex items-center gap-1.5">
-            <span>📍</span>
-            <span>MWC Gapura</span>
           </a>
         </nav>
 
         <!-- Right Side: Post Ad Button (OsClass "+ Place an ad" Button) -->
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
           <a
-            href="/agen"
-            class="hidden sm:inline-flex text-xs text-slate-600 hover:text-slate-900 font-semibold transition px-2 py-1"
+            href="/dashboard"
+            class="hidden sm:inline-flex items-center gap-1 text-xs text-slate-700 hover:text-emerald-700 font-bold transition px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100"
           >
-            Portal Agen
+            <span>🏪</span>
+            <span>Dashboard UMKM</span>
           </a>
           <a
             href="/agen"
@@ -158,9 +173,13 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 
       <!-- Drawer Nav Links -->
       <div class="p-3.5 space-y-1.5 flex-1 overflow-y-auto text-xs font-semibold text-slate-700">
+        <a href="/dashboard" class="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold hover:bg-emerald-100 transition shadow-2xs">
+          <span>🏪</span>
+          <span>Dashboard Toko Saya (Login)</span>
+        </a>
         <a href="/agen" class="flex items-center gap-2.5 p-2.5 rounded-xl bg-indigo-600 text-white font-black shadow-sm">
           <span class="text-base leading-none font-black">+</span>
-          <span>Pasang Iklan Produk</span>
+          <span>Pasang Iklan Cepat (Agen)</span>
         </a>
         <a href="/" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
           <span>📋</span>
@@ -170,41 +189,33 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
           <span>🏪</span>
           <span>Toko & Pengrajin Warga NU</span>
         </a>
-        <a href="/#panduan" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
+        <a href="/kegiatan" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
+          <span>🎪</span>
+          <span>Pasar Kegiatan & Konsumsi NU</span>
+        </a>
+        <a href="/favorit" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
+          <span>⭐</span>
+          <span>Iklan Favorit Tersimpan</span>
+        </a>
+        <a href="/edukasi" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
           <span>📖</span>
-          <span>Panduan & Info Transaksi</span>
+          <span>Panduan & Edukasi Santri</span>
         </a>
 
         <div class="pt-3 pb-1 text-[10px] uppercase font-bold text-slate-400 tracking-wider">
-          Wilayah MWC NU Sumenep
+          Wilayah MWC NU Sumenep ({zones.length} Zona)
         </div>
-        <a href="/?zona=mwc-kota-sumenep" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
-          <span>📍</span> MWC Kota Sumenep
-        </a>
-        <a href="/?zona=mwc-gapura" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
-          <span>📍</span> MWC Gapura
-        </a>
-        <a href="/?zona=mwc-kalianget" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
-          <span>📍</span> MWC Kalianget
-        </a>
-        <a href="/?zona=mwc-ambunten" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
-          <span>📍</span> MWC Ambunten
-        </a>
-        <a href="/?zona=mwc-dungkek" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
-          <span>📍</span> MWC Dungkek
-        </a>
-        <a href="/?zona=mwc-saronggi" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
-          <span>📍</span> MWC Saronggi
-        </a>
-        <a href="/?zona=mwc-pragaan" class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
-          <span>📍</span> MWC Pragaan
-        </a>
+        {zones.map((z) => (
+          <a href={`/?zona=${z.slug}`} class="flex items-center gap-2.5 p-2 rounded-lg hover:bg-slate-100 text-slate-700">
+            <span>📍</span> {z.name}
+          </a>
+        ))}
       </div>
 
       <!-- Drawer Footer -->
       <div class="p-3.5 border-t border-slate-200 bg-slate-50 text-xs">
         <a href="/agen" class="flex items-center justify-between text-emerald-700 font-bold hover:text-emerald-800">
-          <span>Masuk Portal Agen (PIN: 1926)</span>
+          <span>Masuk Portal Agen Lapangan</span>
           <span>➔</span>
         </a>
       </div>
@@ -271,13 +282,20 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
         <div class="space-y-2.5">
           <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Wilayah MWC NU</h3>
           <ul class="space-y-1.5 text-xs text-slate-600">
-            <li><a href="/?zona=mwc-kota-sumenep" class="hover:text-emerald-700 transition">MWC Kota Sumenep</a></li>
-            <li><a href="/?zona=mwc-gapura" class="hover:text-emerald-700 transition">MWC Gapura</a></li>
-            <li><a href="/?zona=mwc-kalianget" class="hover:text-emerald-700 transition">MWC Kalianget</a></li>
-            <li><a href="/?zona=mwc-ambunten" class="hover:text-emerald-700 transition">MWC Ambunten</a></li>
-            <li><a href="/?zona=mwc-dungkek" class="hover:text-emerald-700 transition">MWC Dungkek</a></li>
-            <li><a href="/?zona=mwc-saronggi" class="hover:text-emerald-700 transition">MWC Saronggi</a></li>
-            <li><a href="/?zona=mwc-pragaan" class="hover:text-emerald-700 transition">MWC Pragaan</a></li>
+            {zones.slice(0, 8).map((z) => (
+              <li>
+                <a href={`/?zona=${z.slug}`} class="hover:text-emerald-700 transition">
+                  {z.name}
+                </a>
+              </li>
+            ))}
+            {zones.length > 8 && (
+              <li>
+                <a href="/?zona=semua" class="text-emerald-700 font-bold hover:underline">
+                  Lihat Semua {zones.length} MWC ➔
+                </a>
+              </li>
+            )}
           </ul>
         </div>
 
@@ -292,7 +310,7 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
               href="/agen"
               class="inline-block text-xs font-bold text-emerald-700 hover:text-emerald-800 underline"
             >
-              Masuk Portal Agen Lapangan (PIN: 1926) ➔
+              Masuk Portal Agen Lapangan ➔
             </a>
           </div>
           <div class="pt-2">
@@ -305,7 +323,7 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
       </div>
 
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-500 text-[11px]">
-        <p>© 2026 Pasar Digital Warga NU Kabupaten Sumenep. Seluruh hak cipta dilindungi.</p>
+        <p>© {currentYear} Pasar Digital Warga NU Kabupaten Sumenep. Seluruh hak cipta dilindungi.</p>
         <div class="flex items-center gap-4">
           <a href="/sitemap.xml" target="_blank" class="hover:text-slate-800">Sitemap XML</a>
           <span>•</span>
@@ -317,13 +335,13 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
     <!-- Mobile Bottom Navigation Bar (OsClass 5-Button Light Theme) -->
     {!hideMobileNav && (
       <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-xl px-2 py-1 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around">
-        <a href="/" class="flex flex-col items-center gap-0.5 text-emerald-700 font-bold text-[10px] py-1">
+        <a href="/" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
           <span class="text-base leading-none">🏠</span>
           <span>Beranda</span>
         </a>
-        <a href="/?zona=semua" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-emerald-700 font-bold text-[10px] py-1">
-          <span class="text-base leading-none">📍</span>
-          <span>Wilayah</span>
+        <a href="/kegiatan" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
+          <span class="text-base leading-none">🎪</span>
+          <span>Kegiatan</span>
         </a>
         
         <!-- Elevated Center Plus Button (OsClass Blue Center CTA) -->
@@ -335,19 +353,30 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
           +
         </a>
 
-        <a href="/toko" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-emerald-700 font-bold text-[10px] py-1">
+        <a href="/toko" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
           <span class="text-base leading-none">🏪</span>
           <span>Toko</span>
         </a>
-        <a href="/#panduan" class="flex flex-col items-center gap-0.5 text-slate-500 hover:text-emerald-700 font-bold text-[10px] py-1">
-          <span class="text-base leading-none">📖</span>
-          <span>Panduan</span>
+        <a href="/favorit" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
+          <span class="text-base leading-none">⭐</span>
+          <span>Favorit</span>
         </a>
       </nav>
     )}
 
-    <!-- Drawer Script -->
+    <!-- Global Toast Feedback Container -->
+    <div
+      id="mamasar-toast"
+      class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-2 backdrop-blur-sm flex items-center gap-2 border border-slate-800"
+      role="status"
+      aria-live="polite"
+    >
+      <span id="mamasar-toast-msg">Notifikasi</span>
+    </div>
+
+    <!-- Favorite Syncer & Drawer Script -->
     <script>
+      // Drawer Logic
       const openDrawerBtn = document.getElementById('open-mobile-drawer');
       const closeDrawerBtn = document.getElementById('close-mobile-drawer');
       const drawer = document.getElementById('mobile-drawer');
@@ -374,6 +403,89 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
       openDrawerBtn?.addEventListener('click', openDrawer);
       closeDrawerBtn?.addEventListener('click', closeDrawer);
       backdrop?.addEventListener('click', closeDrawer);
+
+      // Global Favorite Sync & Toast System
+      function initMamasarFavorites() {
+        const toast = document.getElementById('mamasar-toast');
+        const toastMsg = document.getElementById('mamasar-toast-msg');
+        let toastTimeout: any;
+
+        function showToast(msg: string) {
+          if (!toast || !toastMsg) return;
+          toastMsg.textContent = msg;
+          toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+          toast.classList.add('opacity-100', 'translate-y-0');
+          clearTimeout(toastTimeout);
+          toastTimeout = setTimeout(() => {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+          }, 2000);
+        }
+
+        function getFavorites(): number[] {
+          try {
+            return JSON.parse(localStorage.getItem('mamasar_favorites') || '[]');
+          } catch {
+            return [];
+          }
+        }
+
+        function saveFavorites(favs: number[]) {
+          localStorage.setItem('mamasar_favorites', JSON.stringify(favs));
+        }
+
+        function syncButtonStyles() {
+          const favs = getFavorites();
+          document.querySelectorAll<HTMLElement>('[data-fav-btn]').forEach((btn) => {
+            const id = Number(btn.getAttribute('data-id'));
+            if (!id) return;
+            const isFav = favs.includes(id);
+            if (isFav) {
+              btn.classList.add('text-amber-500', 'bg-amber-50', 'border-amber-300');
+              btn.classList.remove('text-slate-400');
+            } else {
+              btn.classList.remove('text-amber-500', 'bg-amber-50', 'border-amber-300');
+              btn.classList.add('text-slate-400');
+            }
+          });
+        }
+
+        // Handle button clicks delegation
+        document.addEventListener('click', (e) => {
+          const target = (e.target as HTMLElement)?.closest('[data-fav-btn]') as HTMLElement | null;
+          if (!target) return;
+
+          e.preventDefault();
+          e.stopPropagation();
+
+          const id = Number(target.getAttribute('data-id'));
+          if (!id) return;
+
+          const favs = getFavorites();
+          const idx = favs.indexOf(id);
+          let isNowFav = false;
+
+          if (idx > -1) {
+            favs.splice(idx, 1);
+            isNowFav = false;
+          } else {
+            favs.push(id);
+            isNowFav = true;
+          }
+
+          saveFavorites(favs);
+          syncButtonStyles();
+          showToast(isNowFav ? '⭐ Disimpan ke Favorit' : 'Dihapus dari Favorit');
+        });
+
+        syncButtonStyles();
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initMamasarFavorites);
+      } else {
+        initMamasarFavorites();
+      }
     </script>
   </body>
 </html>

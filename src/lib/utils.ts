@@ -23,6 +23,40 @@ export function formatPhoneForWhatsApp(phone: string): string {
 }
 
 /**
+ * Validate whether a given string is a valid Indonesian mobile / WhatsApp phone number.
+ * Valid numbers must:
+ * - Start with 08, 628, +628, or 8 (followed by 1-9)
+ * - Contain 10 to 14 digits in total
+ */
+export function isValidIndonesianPhone(phone: string): boolean {
+  if (!phone || typeof phone !== 'string') return false;
+  const digitsOnly = phone.replace(/\D/g, '');
+  
+  // Indonesian mobile numbers are between 10 and 14 digits
+  if (digitsOnly.length < 10 || digitsOnly.length > 14) {
+    return false;
+  }
+
+  // Check prefix: 08xxx (10-13 digits) or 628xxx (11-14 digits) or 8xxx (9-12 digits)
+  return /^(08[1-9]\d{7,11}|628[1-9]\d{7,11}|8[1-9]\d{7,11})$/.test(digitsOnly);
+}
+
+/**
+ * Format phone number into human-friendly format (e.g., +62 812-3456-7890)
+ */
+export function formatPhoneDisplay(phone: string): string {
+  const normalized = formatPhoneForWhatsApp(phone);
+  if (normalized.length >= 11) {
+    const country = normalized.slice(0, 2);
+    const prefix = normalized.slice(2, 5);
+    const middle = normalized.slice(5, 9);
+    const rest = normalized.slice(9);
+    return `+${country} ${prefix}-${middle}-${rest}`;
+  }
+  return phone;
+}
+
+/**
  * Generate a friendly WhatsApp direct-chat URL with pre-filled product context
  */
 export function createProductWhatsAppUrl(params: {

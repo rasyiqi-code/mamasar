@@ -18,6 +18,23 @@ db.pragma('journal_mode = WAL');
 
 // Ensure schema
 db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    google_id TEXT NOT NULL UNIQUE,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    avatar_url TEXT,
+    role TEXT DEFAULT 'umkm',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    expires_at DATETIME NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
   CREATE TABLE IF NOT EXISTS zones (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -26,6 +43,7 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS umkm (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES users(id),
     name TEXT NOT NULL,
     phone TEXT NOT NULL,
     zone_id INTEGER NOT NULL REFERENCES zones(id),
@@ -45,6 +63,8 @@ db.exec(`
     description TEXT,
     views INTEGER DEFAULT 50,
     is_sold_out INTEGER DEFAULT 0,
+    is_featured INTEGER DEFAULT 0,
+    bumped_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -58,7 +78,44 @@ db.exec(`
     content TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    zone_id INTEGER NOT NULL REFERENCES zones(id),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    organizer TEXT NOT NULL,
+    event_date DATETIME NOT NULL,
+    time_description TEXT NOT NULL,
+    location_name TEXT NOT NULL,
+    location_address TEXT,
+    estimated_attendance INTEGER DEFAULT 0,
+    consumption_needed TEXT,
+    allow_stalls INTEGER DEFAULT 1,
+    coordinator_name TEXT,
+    coordinator_phone TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+try {
+  db.exec('ALTER TABLE products ADD COLUMN views INTEGER DEFAULT 50;');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE products ADD COLUMN is_sold_out INTEGER DEFAULT 0;');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE products ADD COLUMN is_featured INTEGER DEFAULT 0;');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE products ADD COLUMN bumped_at DATETIME;');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE umkm ADD COLUMN user_id INTEGER REFERENCES users(id);');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE articles ADD COLUMN content TEXT;');
+} catch (_) {}
 
 // Import seed definitions
 const { seedDatabase } = await import('../src/lib/seeds.js').catch(async () => {

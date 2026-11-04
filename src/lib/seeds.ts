@@ -31,6 +31,23 @@ export interface SeedArticle {
   category: string;
   image_url: string;
   summary: string;
+  content: string;
+}
+
+export interface SeedEvent {
+  zone_slug: string;
+  title: string;
+  slug: string;
+  organizer: string;
+  event_date: string;
+  time_description: string;
+  location_name: string;
+  location_address?: string;
+  estimated_attendance: number;
+  consumption_needed?: string;
+  allow_stalls: number;
+  coordinator_name?: string;
+  coordinator_phone: string;
 }
 
 export const SEED_ZONES: SeedZone[] = [
@@ -271,25 +288,161 @@ export const SEED_PRODUCTS: SeedProduct[] = [
 
 export const SEED_ARTICLES: SeedArticle[] = [
   {
+    title: 'Ekonomi Pekarangan: Maksimalkan Lahan Rumah Menjadi Lumbung Rezeki Santri',
+    slug: 'ekonomi-pekarangan-santri-sumenep',
+    category: 'Ekonomi Pekarangan',
+    image_url: 'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?auto=format&fit=crop&w=800&q=80',
+    summary: 'Bagaimana warga Nahdliyin Sumenep memanfaatkan pekarangan sempit untuk menanam cabai jamu, budidaya kelor, dan lele kolam terpal.',
+    content: `Gerakan Ekonomi Pekarangan merupakan salah satu pilar ketahanan ekonomi nahdliyin yang sangat relevan untuk karakteristik geografis Kabupaten Sumenep. Dengan memanfaatkan pekarangan rumah berukuran 3x4 meter sekalipun, keluarga warga NU dapat menghasilkan komoditas bernilai jual tinggi.
+
+### 1. Komoditas Unggulan Pekarangan Madura
+- **Cabai Jamu (Cabe Jawa):** Tanaman rambat khas Sumenep yang tumbuh subur di iklim tropis pesisir. Harganya stabil di tingkat pengepul jamu dan permintaannya tidak pernah surut.
+- **Kelor Organik:** Daun kelor Sumenep terkenal memiliki kualitas ekspor. Selain untuk sayur gizi harian keluarga, daun kering kelor dicari pabrik herbal dan industri teh santri.
+- **Budidaya Ikan Lele Kolam Terpal Bioflok:** Dengan modal kurang dari Rp 500.000 untuk terpal bulat diameter 2 meter, panen lele dapat mensuplai warung makan tetangga secara konsisten setiap 2,5 bulan.
+
+### 2. Sinergi dengan Pasar Warga NU
+Hasil panen pekarangan yang berlebih tidak perlu bingung mencari tengkulak. Daftarkan panen Anda ke direktori Pasar Warga NU melalui kader MWC setempat. Tetangga satu desa atau kecamatan yang membutuhkan bahan pangan segar dapat langsung mengontak Anda via WhatsApp tanpa potongan tengkulak.`,
+  },
+  {
+    title: 'Panduan Memulai Usaha Santri Nahdliyin Tanpa Modal Besar',
+    slug: 'panduan-memulai-usaha-santri-modal-kecil',
+    category: 'Panduan Usaha',
+    image_url: 'https://images.unsplash.com/photo-1531497865144-0464ef8fb9a9?auto=format&fit=crop&w=800&q=80',
+    summary: 'Langkah taktis bagi alumni pesantren dan kader muda NU untuk merintis usaha berbasis keahlian lokal dan jejaring jamaah.',
+    content: `Banyak santri mengira memulai usaha membutuhkan modal puluhan juta rupiah. Padahal, modal terkuat seorang santri Nahdliyin adalah **integritas (*amanah*)** dan **jejaring jamaah yang solid**.
+
+### 1. Mulai dari Produk yang Dibutuhkan Jamaah Sendiri
+Jangan mencari produk yang asing. Perhatikan apa yang dibeli jamaah pengajian, tahlilan, dan madrasah setiap minggu:
+- Camilan kering (rengginang, keripik singkong, kacang lorjuk).
+- Kebutuhan santri (kopyah, sarung, minyak wangi non-alkohol, siwak).
+- Jasa boga/katering konsumsi pengajian dan majelis shalawat.
+
+### 2. Manfaatkan Skema Reseller & Konsinyasi
+Jika belum memiliki dapur produksi sendiri, temui pengrajin atau produsen UMKM warga NU di MWC Anda. Ambil produk mereka dengan sistem bagi hasil atau harga grosir, lalu bantu pasarkan secara digital melalui katalog Pasar Warga NU Sumenep.
+
+### 3. Jaga Amanah & Kecepatan Komunikasi WhatsApp
+Karena platform ini menghubungkan langsung ke WhatsApp Anda, pastikan:
+- Membalas pesan pembeli dengan ramah dan salam islami.
+- Menjelaskan kondisi produk secara jujur (tidak mengurangi timbangan atau menyembunyikan cacat).
+- Tepat waktu saat janji kirim barang atau ketemuan COD.`,
+  },
+  {
+    title: 'Panduan Sertifikasi Halal Gratis (SEHATI) untuk UMKM Sumenep',
+    slug: 'sertifikasi-halal-gratis-sehati-umkm-sumenep',
+    category: 'Legalitas & Halal',
+    image_url: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80',
+    summary: 'Tata cara mendaftarkan sertifikasi halal gratis jalur self-declare melalui Pendamping PPH dari LPOM NU / ISNU Sumenep.',
+    content: `Bagi pelaku usaha kuliner dan olahan pangan Nahdliyin di Sumenep, sertifikat halal resmi BPJPH kini dapat diurus **100% GRATIS** melalui program Sehati (Sertifikasi Halal Gratis).
+
+### Syarat Utama Jalur Self-Declare:
+1. Produk tidak berisiko (bahan baku dipastikan halal, tidak menggunakan daging sembelihan yang meragukan).
+2. Memiliki Nomor Induk Berusaha (NIB) berbasis risiko (bisa dibantu cetak di kantor kecamatan atau agen MWC).
+3. Menggunakan bahan yang sudah bersertifikat halal atau bahan alami tanpa proses kimiawi.
+
+### Langkah Pengurusan:
+- Hubungi Pendamping Proses Produk Halal (P3H) yang ada di PC ISNU atau Lembaga Perekonomian NU (LPNU) Kabupaten Sumenep.
+- Pendamping akan datang meninjau dapur produksi Anda, memverifikasi bahan baku, dan mengunggah berkas ke sistem SiHalal Kementerian Agama.
+- Setelah terbit, sertifikat halal akan meningkatkan kepercayaan pembeli berkali-kali lipat di katalog digital Pasar Warga NU!`,
+  },
+  {
     title: 'Panduan Transaksi COD Aman di Sumenep',
     slug: 'panduan-transaksi-cod-aman-di-sumenep',
     category: 'Tips Transaksi',
-    image_url: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=300&q=80',
-    summary: 'Tips ketemuan langsung dengan penjual warga NU, cek fisik barang, dan bayar di tempat.',
+    image_url: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=800&q=80',
+    summary: 'Tips ketemuan langsung dengan penjual warga NU, cek fisik barang, dan bayar di tempat tanpa risiko penipuan.',
+    content: `Transaksi di Pasar Warga NU Sumenep menggunakan sistem komunikasi langsung via WhatsApp tanpa perantara (*direct to seller*). Untuk menjaga kenyamanan bersama, ikuti panduan berikut:
+
+### 1. Sepakati Titik Ketemu yang Ramai
+Pilihlah lokasi pertemuan yang mudah diakses dan aman, seperti:
+- Depan kantor MWC NU kecamatan setempat.
+- Halaman masjid jami' atau balai desa.
+- Toko / rumah produksi penjual langsung.
+
+### 2. Periksa Kualitas Fisik Barang Terlebih Dahulu
+Sebelum menyerahkan uang pembayaran:
+- Buka kemasan dan periksa tanggal kedaluwarsa jika produk makanan.
+- Periksa motif dan kehalusan kain jika membeli batik Madura.
+- Pastikan jumlah barang sesuai pesanan yang disepakati di WhatsApp.
+
+### 3. Utamakan Silaturahim
+Transaksi antar-warga Nahdliyin tidak semata-mata transaksi jual-beli materiil, melainkan menyambung tali silaturahim dan ukhuwah nahdliyyah sesama warga Sumenep.`,
   },
   {
-    title: 'Gerakan Belanja Produk Tetangga Nahdliyin',
+    title: 'Gerakan Belanja Produk Tetangga Nahdliyin: Uang Berputar di Warga Sendiri',
     slug: 'gerakan-belanja-produk-tetangga-nahdliyin',
     category: 'Gerakan Warga',
-    image_url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=300&q=80',
-    summary: 'Memperkuat ekonomi lokal Sumenep dengan memprioritaskan belanja dari warung tetangga sendiri.',
+    image_url: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80',
+    summary: 'Memperkuat kemandirian ekonomi umat dengan mengutamakan membeli dari pedagang dan pengrajin tetangga sendiri.',
+    content: `Gerakan *Beli Produk Tetangga Sendiri* adalah fondasi kebangkitan ekonomi warga. Ketika kita membeli rengginang, beras, batik, atau kopi dari sesama warga NU Sumenep:
+
+1. **Keuntungan 100% Masuk ke Dapur Keluarga Warga:** Tidak ada potongan komisi aplikasi asing (0% admin fee).
+2. **Dana Zakat & Infaq Tetap di Daerah:** Pedagang lokal berinfaq dan berzakat ke LAZISNU di desanya masing-masing.
+3. **Menciptakan Lapangan Kerja Lokal:** Anak-anak muda dan santri di desa dapat bekerja di sentra produksi keripik dan batik tetangganya tanpa harus merantau ke luar pulau.
+
+Mari dukung produk UMKM Nahdliyin Kabupaten Sumenep dengan mengutamakan membeli produk warga sendiri!`,
+  },
+];
+
+export const SEED_EVENTS: SeedEvent[] = [
+  {
+    zone_slug: 'mwc-gapura',
+    title: "Lailatul Ijtima' Rutin & Istighotsah Kubro MWC NU Gapura",
+    slug: 'lailatul-ijtima-rutin-mwc-gapura',
+    organizer: 'MWC NU Gapura & LDNU',
+    event_date: '2026-11-20T19:30:00Z',
+    time_description: '19.30 WIB (Ba’da Isya) - Selesai',
+    location_name: 'Gedung Graha MWC NU Gapura',
+    location_address: 'Jl. Raya Gapura, Dusun Karang Anyar, Gapura',
+    estimated_attendance: 250,
+    consumption_needed: 'Dibutuhkan 200 snack box kue basah tradisional dan 50 porsi nasi kotak jamuan ustadz & pengurus.',
+    allow_stalls: 1,
+    coordinator_name: 'Ustadz Kholilurrahman (Seksi Konsumsi)',
+    coordinator_phone: '6281234567890',
   },
   {
-    title: 'Cara Mendaftarkan Produk via Agen MWC',
-    slug: 'cara-mendaftarkan-produk-via-agen-mwc',
-    category: 'Pemberdayaan',
-    image_url: 'https://images.unsplash.com/photo-1531497865144-0464ef8fb9a9?auto=format&fit=crop&w=300&q=80',
-    summary: 'Hanya 90 detik melalui agen lapangan NU kecamatan, produk toko langsung tampil online.',
+    zone_slug: 'mwc-kota-sumenep',
+    title: 'Peringatan Harlah Fatayat NU & Pameran UMKM Nahdliyin',
+    slug: 'harlah-fatayat-nu-sumenep-pasar-rakyat',
+    organizer: 'PC Fatayat NU Kabupaten Sumenep',
+    event_date: '2026-11-28T08:00:00Z',
+    time_description: '08.00 - 16.00 WIB',
+    location_name: 'Halaman Gedung PCNU Kabupaten Sumenep',
+    location_address: 'Jl. Trunojoyo No. 45, Kota Sumenep',
+    estimated_attendance: 400,
+    consumption_needed: 'Dibutuhkan 300 porsi nasi bungkus barokah dan 10 karton air mineral kemasan warga.',
+    allow_stalls: 1,
+    coordinator_name: 'Ning Siti Maryam (Koordinator Bazar)',
+    coordinator_phone: '6287812345678',
+  },
+  {
+    zone_slug: 'mwc-kalianget',
+    title: "Majelis Diba' & Dzikir Rijalul Ansor Pesisir Kalianget",
+    slug: 'majelis-diba-shalawat-ansor-kalianget',
+    organizer: 'PAC GP Ansor Kalianget',
+    event_date: '2026-12-05T19:30:00Z',
+    time_description: '19.30 WIB - Selesai',
+    location_name: "Masjid Jami' Pesisir Kalianget",
+    location_address: 'Desa Marengan Laok, Kalianget',
+    estimated_attendance: 180,
+    consumption_needed: 'Dibutuhkan 150 porsi bubur/kolak hangat dan air minum kemasan untuk jamaah shalawat.',
+    allow_stalls: 1,
+    coordinator_name: 'Sahabat Fauzi (Wakil Ketua Rijalul Ansor)',
+    coordinator_phone: '6285298765432',
+  },
+  {
+    zone_slug: 'mwc-ambunten',
+    title: 'Bazar Produk Pekarangan & Pengajian Akbar MWC Ambunten',
+    slug: 'bazar-pekarangan-pengajian-ambunten',
+    organizer: 'MWC NU Ambunten & Muslimat NU',
+    event_date: '2026-12-12T13:00:00Z',
+    time_description: '13.00 WIB - Menjelang Maghrib',
+    location_name: "Halaman Madrasah Miftahul Ulum Ambunten",
+    location_address: 'Dusun Pandan, Ambunten',
+    estimated_attendance: 300,
+    consumption_needed: 'Dibutuhkan 200 snack box hasil olahan ubi/singkong lokal dan minuman sari siwalan nira.',
+    allow_stalls: 1,
+    coordinator_name: 'Ibu Nyai Hj. Aminah',
+    coordinator_phone: '6282334455667',
   },
 ];
 
@@ -302,10 +455,11 @@ export function seedDatabase(db: Database.Database, options?: { force?: boolean 
     if (options?.force) {
       db.exec(`
         DELETE FROM products;
+        DELETE FROM events;
         DELETE FROM umkm;
         DELETE FROM zones;
         DELETE FROM articles;
-        DELETE FROM sqlite_sequence WHERE name IN ('products', 'umkm', 'zones', 'articles');
+        DELETE FROM sqlite_sequence WHERE name IN ('products', 'events', 'umkm', 'zones', 'articles');
       `);
     }
 
@@ -363,14 +517,43 @@ export function seedDatabase(db: Database.Database, options?: { force?: boolean 
       }
     }
 
-    // 4. Seed Articles
+    // 4. Seed Articles (with full content)
     const insertArticle = db.prepare(`
-      INSERT OR REPLACE INTO articles (title, slug, category, image_url, summary)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO articles (title, slug, category, image_url, summary, content)
+      VALUES (?, ?, ?, ?, ?, ?)
     `);
 
     for (const art of SEED_ARTICLES) {
-      insertArticle.run(art.title, art.slug, art.category, art.image_url, art.summary);
+      insertArticle.run(art.title, art.slug, art.category, art.image_url, art.summary, art.content);
+    }
+
+    // 5. Seed Events (Direktori Kegiatan NU & Pasar Konsumsi)
+    const insertEvent = db.prepare(`
+      INSERT OR REPLACE INTO events (
+        zone_id, title, slug, organizer, event_date, time_description,
+        location_name, location_address, estimated_attendance,
+        consumption_needed, allow_stalls, coordinator_name, coordinator_phone
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `);
+
+    for (const ev of SEED_EVENTS) {
+      const zoneId = zoneMap.get(ev.zone_slug) || 1;
+      insertEvent.run(
+        zoneId,
+        ev.title,
+        ev.slug,
+        ev.organizer,
+        ev.event_date,
+        ev.time_description,
+        ev.location_name,
+        ev.location_address || '',
+        ev.estimated_attendance,
+        ev.consumption_needed || '',
+        ev.allow_stalls,
+        ev.coordinator_name || '',
+        ev.coordinator_phone
+      );
     }
   });
 

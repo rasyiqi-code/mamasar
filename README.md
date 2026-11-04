@@ -50,3 +50,30 @@ Proses ini akan menghasilkan folder `dist/` dengan entry point server di `dist/s
 - **Application URL:** Domain / subdomain Anda (misal: `umkm.nusumenep.or.id`).
 
 Klik **Create / Restart**, dan aplikasi langsung aktif!
+
+---
+
+## Dokumentasi & Roadmap Pengembangan
+
+Untuk panduan teknis mendalam dan spesifikasi modul, rujuk dokumen berikut:
+
+- 🗺️ **[ROADMAP.md](./ROADMAP.md)**: Rencana kerja bertahap (Fase 1 hingga Fase 5) menuju aplikasi utuh.
+- ☁️ **[DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md](./DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md)**: Arsitektur Cloud (Vercel + Neon Postgres + ImageKit + Google Auth - Rp 0/bln).
+- 📱 **[DOCS/ANDROID_CAPACITOR.md](./DOCS/ANDROID_CAPACITOR.md)**: Panduan rilis aplikasi Android (.apk/.aab) via Capacitor & PWA.
+- 🗄️ **[DOCS/DATABASE.md](./DOCS/DATABASE.md)**: Skema tabel Neon PostgreSQL & SQLite (`users`, `umkm`, `products`, `articles`, `events`).
+- 🍲 **[DOCS/PASAR_KEGIATAN_NU.md](./DOCS/PASAR_KEGIATAN_NU.md)**: Konsep bisnis & alur *Pasar Kegiatan NU* (Pusat Konsumsi Acara Panitia & Lapak Warga).
+- ⚙️ **[.env.example](./.env.example)**: Template variabel lingkungan untuk konfigurasi server & keamanan agen.
+
+---
+
+## Agenda Fitur Selanjutnya (Work in Progress)
+
+Berdasarkan rencana kerja di [ROADMAP.md](./ROADMAP.md):
+
+1. **Validasi Nomor WhatsApp Otomatis** (Regex Indonesia di form agen dan API).
+2. **Menu Edukasi Lengkap** (`/edukasi`): Panduan Ekonomi Pekarangan, Usaha Santri, dan Sertifikasi Halal.
+3. **Banner Slider Interaktif** di beranda untuk promosi agenda warga & produk unggulan.
+4. **Fitur Naikkan Iklan (*Sundul / Bump*)** agar produk kembali ke posisi teratas katalog.
+5. **Direktori Kegiatan NU & Banom** sebagai pasar konsumsi (katering/snack acara) dan lapak bazar jamaah.
+6. **Portal Manajemen Agen Lapangan** (`/agen/kelola`) untuk menandai produk habis atau mengedit harga.
+7. **Rilis Aplikasi Android (.apk/.aab)** via Capacitor & PWA untuk kemudahan warga.

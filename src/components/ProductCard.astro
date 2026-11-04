@@ -47,18 +47,31 @@ const badgeStyles: Record<string, string> = {
   <!-- Card Top Media & Details -->
   <div>
     <!-- Image with Aspect Ratio & Overlays (OsClass Classified Signature) -->
-    <a
-      href={`/p/${product.slug}`}
-      class="block relative aspect-4/3 sm:aspect-16/10 bg-slate-100 overflow-hidden"
-    >
-      <img
-        src={product.image_url}
-        alt={product.name}
-        loading="lazy"
-        class={`w-full h-full object-cover group-hover:scale-105 transition duration-300 ${
-          isSoldOut ? 'grayscale-40' : ''
-        }`}
-      />
+    <div class="relative aspect-4/3 sm:aspect-16/10 bg-slate-100 overflow-hidden">
+      <a
+        href={`/p/${product.slug}`}
+        class="block w-full h-full"
+        title={product.name}
+      >
+        <img
+          src={product.image_url}
+          alt={product.name}
+          loading="lazy"
+          class={`w-full h-full object-cover group-hover:scale-105 transition duration-300 ${
+            isSoldOut ? 'grayscale-40' : ''
+          }`}
+        />
+
+        <!-- Price Overlay Bar at Bottom of Image (OsClass Epsilon Signature) -->
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-6 pb-2 px-2.5 sm:px-3 flex items-end justify-between pointer-events-none">
+          <span class="text-sm sm:text-base font-black text-white drop-shadow-sm tracking-tight">
+            {formatRupiah(product.price)}
+          </span>
+          <span class="text-[10px] text-white font-bold bg-black/50 px-1.5 py-0.5 rounded flex items-center gap-1 shadow-xs">
+            📷 {photoCount}
+          </span>
+        </div>
+      </a>
 
       <!-- Diagonal "HABIS / SOLD" Ribbon (OsClass Style) -->
       {isSoldOut && (
@@ -87,23 +100,23 @@ const badgeStyles: Record<string, string> = {
         </div>
       )}
 
-      <!-- Warga NU Badge Top-Right -->
-      <div class="absolute top-2 right-2 z-10">
+      <!-- Warga NU Badge & Favorite Button Top-Right -->
+      <div class="absolute top-2 right-2 z-20 flex items-center gap-1.5">
         <span class="bg-white/95 backdrop-blur-xs text-emerald-800 border border-emerald-300 text-[9px] font-bold px-1.5 py-0.5 rounded shadow-xs">
           Warga NU
         </span>
+        <button
+          type="button"
+          data-fav-btn
+          data-id={product.id}
+          data-name={product.name}
+          aria-label={`Simpan ${product.name} ke Favorit`}
+          class="w-7 h-7 rounded-full bg-white/95 hover:bg-white border border-slate-200 text-slate-400 hover:text-amber-500 flex items-center justify-center text-xs shadow-xs transition cursor-pointer select-none"
+        >
+          ★
+        </button>
       </div>
-
-      <!-- Price Overlay Bar at Bottom of Image (OsClass Epsilon Signature) -->
-      <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-6 pb-2 px-2.5 sm:px-3 flex items-end justify-between">
-        <span class="text-sm sm:text-base font-black text-white drop-shadow-sm tracking-tight">
-          {formatRupiah(product.price)}
-        </span>
-        <span class="text-[10px] text-white font-bold bg-black/50 px-1.5 py-0.5 rounded flex items-center gap-1 shadow-xs">
-          📷 {photoCount}
-        </span>
-      </div>
-    </a>
+    </div>
 
     <!-- Card Body: Classified Meta, Title, Seller -->
     <div class="p-2.5 sm:p-3 space-y-1">

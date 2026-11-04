@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getProducts, getAllZones, getAllUMKM } from '../lib/db';
+import { getProducts, getAllZones, getAllUMKM, getArticles, getEvents } from '../lib/db';
 
 export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
@@ -8,6 +8,8 @@ export const GET: APIRoute = async ({ request }) => {
   const products = getProducts();
   const zones = getAllZones();
   const stores = getAllUMKM();
+  const articles = getArticles();
+  const events = getEvents();
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
@@ -24,6 +26,46 @@ export const GET: APIRoute = async ({ request }) => {
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <!-- Direktori Pasar Kegiatan NU -->
+  <url>
+    <loc>${siteUrl}/kegiatan</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Pusat Edukasi & Panduan -->
+  <url>
+    <loc>${siteUrl}/edukasi</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Jadwal Kegiatan & Pasar NU -->
+  ${events
+    .map(
+      (e) => `
+  <url>
+    <loc>${siteUrl}/kegiatan/${e.slug}</loc>
+    <lastmod>${e.created_at ? new Date(e.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+    )
+    .join('')}
+
+  <!-- Artikel Edukasi Warga -->
+  ${articles
+    .map(
+      (a) => `
+  <url>
+    <loc>${siteUrl}/edukasi/${a.slug}</loc>
+    <lastmod>${a.created_at ? new Date(a.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>`
+    )
+    .join('')}
 
   <!-- Profil Toko Warga NU -->
   ${stores

@@ -1,0 +1,28 @@
+{
+  "appId": "id.or.nusumenep.mamasar",
+  "appName": "Pasar Warga NU",
+  "webDir": "dist/client",
+  "bundledWebRuntime": false,
+  "server": {
+    "url": "https://umkm.nusumenep.or.id",
+    "cleartext": false,
+    "allowNavigation": [
+      "umkm.nusumenep.or.id",
+      "*.whatsapp.com",
+      "wa.me"
+    ]
+  },
+  "android": {
+    "allowMixedContent": true,
+    "captureInput": true,
+    "webContentsDebuggingEnabled": false
+  },
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 2000,
+      "backgroundColor": "#059669",
+      "showSpinner": false,
+      "androidSplashResourceName": "splash"
+    }
+  }
+}

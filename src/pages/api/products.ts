@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { createUMKMAndProduct } from '../../lib/db';
 import { DEFAULT_AGENT_PIN } from '../../lib/constants';
 import { saveUploadedImage } from '../../lib/storage';
+import { isValidIndonesianPhone } from '../../lib/utils';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -35,6 +36,17 @@ export const POST: APIRoute = async ({ request }) => {
         JSON.stringify({
           success: false,
           message: 'Semua kolom wajib diisi (Nama Usaha, WA, Wilayah, Nama Produk, Harga).',
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Strict Indonesian phone number validation for WhatsApp direct-link integrity
+    if (!isValidIndonesianPhone(phone)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Nomor WhatsApp tidak valid. Masukkan nomor HP Indonesia yang aktif (contoh: 08123456789 atau 628123456789).',
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );

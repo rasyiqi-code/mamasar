@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Halaman Tidak Ditemukan (404) | Pasar Warga NU Sumenep"
+  description="Maaf, halaman atau iklan yang Anda tuju tidak ditemukan atau sudah dipindahkan."
+>
+  <div class="min-h-[65vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-lg w-full text-center space-y-6 bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs">
+      
+      <!-- Icon Graphic -->
+      <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-3xl font-black shadow-xs">
+        404
+      </div>
+
+      <!-- Heading & Description -->
+      <div class="space-y-2">
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          Halaman Tidak Ditemukan
+        </h1>
+        <p class="text-sm text-slate-500 leading-relaxed">
+          Mohon maaf, tautan atau produk yang Anda cari mungkin telah laku terjual, kedaluwarsa, atau alamat URL telah dipindahkan.
+        </p>
+      </div>
+
+      <!-- Quick Helpful Links -->
+      <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
+        <a
+          href="/"
+          class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl shadow-xs transition"
+        >
+          📋 Kembali ke Katalog
+        </a>
+        <a
+          href="/toko"
+          class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+        >
+          🏪 Daftar Toko Warga
+        </a>
+        <a
+          href="/kegiatan"
+          class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+        >
+          🎪 Pasar Kegiatan NU
+        </a>
+      </div>
+
+      <!-- Help Note -->
+      <div class="pt-4 border-t border-slate-100 text-[11px] text-slate-400">
+        Butuh bantuan menemukan pengrajin atau produk tertentu di Sumenep? Hubungi kami via WhatsApp pengurus MWC NU setempat.
+      </div>
+    </div>
+  </div>
+</Layout>

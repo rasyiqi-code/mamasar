@@ -1,8 +1,9 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
-import { getProductBySlug, getProducts } from '../../lib/db';
+import { getProductBySlug, getProducts, incrementProductViews } from '../../lib/db';
 import { formatRupiah, createProductWhatsAppUrl } from '../../lib/utils';
+import { SITE_CONFIG } from '../../lib/constants';
 
 const { slug } = Astro.params;
 
@@ -16,6 +17,21 @@ if (!product) {
   return new Response(null, {
     status: 404,
     statusText: 'Produk Tidak Ditemukan',
+  });
+}
+
+// View counter with cookie debounce (1 hour per device per product)
+const viewCookieKey = `mamasar_v_${product.id}`;
+let currentViews = product.views || 0;
+
+if (!Astro.cookies.has(viewCookieKey)) {
+  incrementProductViews(product.slug);
+  currentViews += 1;
+  Astro.cookies.set(viewCookieKey, '1', {
+    maxAge: 3600,
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
   });
 }
 
@@ -213,7 +229,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
                 <div class="text-[11px] text-slate-500 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
                   <span>📍 {product.zone_name}, Sumenep</span>
                   <span>•</span>
-                  <span>👁️ {product.views || 350} orang melihat iklan ini</span>
+                  <span>👁️ {currentViews} orang melihat iklan ini</span>
                   <span>•</span>
                   <span>ID Iklan: #{product.id + 1926}</span>
                 </div>
@@ -222,10 +238,13 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
               <!-- Favorite Star Button (OsClass Icon) -->
               <button
                 type="button"
+                data-fav-btn
+                data-id={product.id}
+                data-name={product.name}
                 aria-label="Simpan Iklan Favorit"
-                class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-amber-500 flex items-center justify-center text-lg transition shrink-0 shadow-2xs cursor-pointer"
+                class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-400 hover:text-amber-500 flex items-center justify-center text-lg transition shrink-0 shadow-2xs cursor-pointer select-none"
               >
-                ⭐
+                ★
               </button>
             </div>
 
@@ -533,7 +552,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
 
             <div class="pt-2 border-t border-amber-200/70">
               <a
-                href={`https://wa.me/6281234567890?text=${encodeURIComponent(`Halo Pengurus PCNU, saya ingin melaporkan iklan mencurigakan: ${currentUrl}`)}`}
+                href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent(`Halo Pengurus PCNU, saya ingin melaporkan iklan mencurigakan: ${currentUrl}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-[11px] font-bold text-slate-500 hover:text-rose-600 flex items-center gap-1 transition cursor-pointer"

@@ -1,0 +1,207 @@
+---
+interface Slide {
+  id: number;
+  tag: string;
+  tagColor: string;
+  title: string;
+  description: string;
+  ctaText: string;
+  ctaUrl: string;
+  icon: string;
+  bgGradient: string;
+}
+
+const slides: Slide[] = [
+  {
+    id: 1,
+    tag: 'Gerakan Warga',
+    tagColor: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30',
+    title: 'Belanja Produk Tetangga Warga Nahdliyin',
+    description: '100% Nol Biaya Admin. Transaksi langsung disepakati dengan pengrajin & warung lokal se-Sumenep via WhatsApp.',
+    ctaText: 'Belanja Sekarang ➔',
+    ctaUrl: '/#katalog-terbaru',
+    icon: '🤝',
+    bgGradient: 'from-emerald-900 via-emerald-800 to-teal-900',
+  },
+  {
+    id: 2,
+    tag: 'Batik & Kerajinan',
+    tagColor: 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30',
+    title: 'Batik Tulis Asli & Kerajinan Santri Sumenep',
+    description: 'Karya tangan perajin dari MWC Gapura, Kalianget, dan Kota. Motif khas Madura bergaransi kualitas otentik.',
+    ctaText: 'Lihat Batik & Kerajinan ➔',
+    ctaUrl: '/?kategori=Batik%20%26%20Kerajinan',
+    icon: '🧵',
+    bgGradient: 'from-indigo-950 via-indigo-900 to-slate-900',
+  },
+  {
+    id: 3,
+    tag: 'Pasar Acara & Konsumsi',
+    tagColor: 'bg-amber-500/20 text-amber-200 border-amber-400/30',
+    title: 'Pusat Pesan Konsumsi Pengajian & Acara NU',
+    description: 'Panitia Lailatul Ijtima & majelis: Pesan snack box, nasi kotak, dan katering berkat langsung dari warga MWC terdekat.',
+    ctaText: 'Cari Katering & Snack ➔',
+    ctaUrl: '/?kategori=Makanan%20%26%20Minuman',
+    icon: '🍲',
+    bgGradient: 'from-amber-950 via-amber-900 to-stone-900',
+  },
+];
+---
+
+<div class="relative max-w-7xl mx-auto px-3 sm:px-0 group" id="promo-slider-root">
+  <!-- Slides Container with CSS Scroll Snap -->
+  <div
+    id="promo-slider-track"
+    class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar rounded-2xl border border-slate-200/80 shadow-sm"
+    style="scroll-snap-type: x mandatory;"
+  >
+    {slides.map((s, idx) => (
+      <div
+        class={`w-full shrink-0 snap-center bg-gradient-to-r ${s.bgGradient} p-5 sm:p-8 text-white relative overflow-hidden flex flex-col justify-between min-h-[200px] sm:min-h-[220px]`}
+        data-slide-index={idx}
+      >
+        <!-- Background subtle pattern -->
+        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+
+        <!-- Top Badges & Numbering -->
+        <div class="flex items-center justify-between z-10">
+          <div class="flex items-center gap-2">
+            <span class={`text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${s.tagColor}`}>
+              {s.tag}
+            </span>
+            <span class="text-[10px] text-white/70 font-semibold hidden sm:inline">
+              Kabupaten Sumenep
+            </span>
+          </div>
+          <span class="text-xs font-bold text-white/60">
+            {idx + 1} / {slides.length}
+          </span>
+        </div>
+
+        <!-- Middle Content Area -->
+        <div class="py-3 sm:py-4 max-w-2xl space-y-1.5 z-10">
+          <h2 class="text-lg sm:text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight flex items-center gap-2">
+            <span class="text-xl sm:text-2xl">{s.icon}</span>
+            <span>{s.title}</span>
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-200 leading-relaxed line-clamp-2">
+            {s.description}
+          </p>
+        </div>
+
+        <!-- Bottom Action CTA -->
+        <div class="z-10 flex items-center justify-between pt-1">
+          <a
+            href={s.ctaUrl}
+            class="bg-white hover:bg-slate-100 text-slate-900 font-black text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5 active:scale-98"
+          >
+            <span>{s.ctaText}</span>
+          </a>
+
+          <div class="hidden sm:flex items-center gap-2 text-[11px] text-white/70">
+            <span>Geser untuk info lainnya</span>
+            <span>➔</span>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Arrow Navigation Buttons -->
+  <button
+    id="slider-prev-btn"
+    type="button"
+    aria-label="Slide sebelumnya"
+    class="absolute left-4 sm:left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-xs text-white border border-white/20 flex items-center justify-center text-sm shadow-md transition cursor-pointer opacity-80 group-hover:opacity-100 z-20"
+  >
+    ‹
+  </button>
+  <button
+    id="slider-next-btn"
+    type="button"
+    aria-label="Slide selanjutnya"
+    class="absolute right-4 sm:right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-xs text-white border border-white/20 flex items-center justify-center text-sm shadow-md transition cursor-pointer opacity-80 group-hover:opacity-100 z-20"
+  >
+    ›
+  </button>
+
+  <!-- Slider Indicator Dots -->
+  <div class="flex items-center justify-center gap-1.5 pt-2.5" id="slider-dots-container">
+    {slides.map((_, i) => (
+      <button
+        type="button"
+        aria-label={`Ke slide ${i + 1}`}
+        class={`w-2 h-2 rounded-full transition-all cursor-pointer ${
+          i === 0 ? 'bg-emerald-600 w-6' : 'bg-slate-300 hover:bg-slate-400'
+        }`}
+        data-dot-index={i}
+      />
+    ))}
+  </div>
+</div>
+
+<script>
+  const track = document.getElementById('promo-slider-track');
+  const prevBtn = document.getElementById('slider-prev-btn');
+  const nextBtn = document.getElementById('slider-next-btn');
+  const dots = document.querySelectorAll('#slider-dots-container button');
+
+  let currentIndex = 0;
+  const totalSlides = dots.length;
+
+  function updateDots(idx: number) {
+    dots.forEach((dot, i) => {
+      if (i === idx) {
+        dot.className = 'w-6 h-2 rounded-full bg-emerald-600 transition-all cursor-pointer';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-slate-300 hover:bg-slate-400 transition-all cursor-pointer';
+      }
+    });
+  }
+
+  function scrollToSlide(index: number) {
+    if (!track) return;
+    const width = track.clientWidth;
+    track.scrollTo({ left: width * index, behavior: 'smooth' });
+    currentIndex = index;
+    updateDots(index);
+  }
+
+  prevBtn?.addEventListener('click', () => {
+    const prev = currentIndex > 0 ? currentIndex - 1 : totalSlides - 1;
+    scrollToSlide(prev);
+  });
+
+  nextBtn?.addEventListener('click', () => {
+    const next = currentIndex < totalSlides - 1 ? currentIndex + 1 : 0;
+    scrollToSlide(next);
+  });
+
+  dots.forEach((dot) => {
+    dot.addEventListener('click', () => {
+      const idx = Number(dot.getAttribute('data-dot-index'));
+      scrollToSlide(idx);
+    });
+  });
+
+  // Track scroll position for manual touch swipes
+  track?.addEventListener('scroll', () => {
+    const width = track.clientWidth;
+    const scrollLeft = track.scrollLeft;
+    const newIdx = Math.round(scrollLeft / width);
+    if (newIdx !== currentIndex && newIdx >= 0 && newIdx < totalSlides) {
+      currentIndex = newIdx;
+      updateDots(newIdx);
+    }
+  });
+
+  // Autoplay rotation every 6 seconds (pauses on user interaction)
+  let autoplayInterval = setInterval(() => {
+    const next = (currentIndex + 1) % totalSlides;
+    scrollToSlide(next);
+  }, 6000);
+
+  const root = document.getElementById('promo-slider-root');
+  root?.addEventListener('mouseenter', () => clearInterval(autoplayInterval));
+  root?.addEventListener('touchstart', () => clearInterval(autoplayInterval), { passive: true });
+</script>

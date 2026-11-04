@@ -16,6 +16,22 @@ db.pragma('journal_mode = WAL');
 
 // Initialize schema
 db.exec(`
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    google_id TEXT UNIQUE NOT NULL,
+    email TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    avatar_url TEXT,
+    role TEXT DEFAULT 'umkm',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at DATETIME NOT NULL
+  );
+
   CREATE TABLE IF NOT EXISTS zones (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -24,6 +40,7 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS umkm (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES users(id),
     name TEXT NOT NULL,
     phone TEXT NOT NULL,
     zone_id INTEGER NOT NULL REFERENCES zones(id),
@@ -43,6 +60,8 @@ db.exec(`
     description TEXT,
     views INTEGER DEFAULT 50,
     is_sold_out INTEGER DEFAULT 0,
+    is_featured INTEGER DEFAULT 0,
+    bumped_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -53,16 +72,47 @@ db.exec(`
     category TEXT NOT NULL,
     image_url TEXT NOT NULL,
     summary TEXT NOT NULL,
+    content TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
+
+  CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    zone_id INTEGER NOT NULL REFERENCES zones(id),
+    title TEXT NOT NULL,
+    slug TEXT NOT NULL UNIQUE,
+    organizer TEXT NOT NULL,
+    event_date DATETIME NOT NULL,
+    time_description TEXT NOT NULL,
+    location_name TEXT NOT NULL,
+    location_address TEXT,
+    estimated_attendance INTEGER DEFAULT 0,
+    consumption_needed TEXT,
+    allow_stalls INTEGER DEFAULT 1,
+    coordinator_name TEXT,
+    coordinator_phone TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 `);
 
-// Ensure migration for views & is_sold_out if table already existed
+// Ensure migration for views & is_sold_out & bumped_at & user_id if table already existed
 try {
   db.exec('ALTER TABLE products ADD COLUMN views INTEGER DEFAULT 50;');
 } catch (_) {}
 try {
   db.exec('ALTER TABLE products ADD COLUMN is_sold_out INTEGER DEFAULT 0;');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE products ADD COLUMN is_featured INTEGER DEFAULT 0;');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE products ADD COLUMN bumped_at DATETIME;');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE umkm ADD COLUMN user_id INTEGER REFERENCES users(id);');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE articles ADD COLUMN content TEXT;');
 } catch (_) {}
 
 // Import and run seed if tables are empty
@@ -82,11 +132,74 @@ export interface Article {
   category: string;
   image_url: string;
   summary: string;
+  content?: string;
   created_at: string;
 }
 
 export function getArticles(): Article[] {
   return db.prepare('SELECT * FROM articles ORDER BY id ASC').all() as Article[];
+}
+
+export function getArticleBySlug(slug: string): Article | undefined {
+  return db.prepare('SELECT * FROM articles WHERE slug = ?').get(slug) as Article | undefined;
+}
+
+export interface EventItem {
+  id: number;
+  zone_id: number;
+  zone_name: string;
+  zone_slug: string;
+  title: string;
+  slug: string;
+  organizer: string;
+  event_date: string;
+  time_description: string;
+  location_name: string;
+  location_address?: string;
+  estimated_attendance: number;
+  consumption_needed?: string;
+  allow_stalls: number;
+  coordinator_name?: string;
+  coordinator_phone: string;
+  created_at: string;
+}
+
+export function getEvents(options?: { zoneSlug?: string }): EventItem[] {
+  let query = `
+    SELECT e.*, z.name as zone_name, z.slug as zone_slug
+    FROM events e
+    JOIN zones z ON e.zone_id = z.id
+    WHERE 1=1
+  `;
+  const params: any[] = [];
+
+  if (options?.zoneSlug && options.zoneSlug !== 'semua') {
+    query += ' AND z.slug = ?';
+    params.push(options.zoneSlug);
+  }
+
+  query += ' ORDER BY e.event_date ASC, e.id ASC';
+  return db.prepare(query).all(...params) as EventItem[];
+}
+
+export function getEventBySlug(slug: string): EventItem | undefined {
+  const query = `
+    SELECT e.*, z.name as zone_name, z.slug as zone_slug
+    FROM events e
+    JOIN zones z ON e.zone_id = z.id
+    WHERE e.slug = ?
+  `;
+  return db.prepare(query).get(slug) as EventItem | undefined;
+}
+
+export interface User {
+  id: number;
+  google_id: string;
+  email: string;
+  name: string;
+  avatar_url?: string;
+  role: string;
+  created_at: string;
 }
 
 export interface Zone {
@@ -97,6 +210,7 @@ export interface Zone {
 
 export interface UMKM {
   id: number;
+  user_id?: number;
   name: string;
   phone: string;
   zone_id: number;
@@ -123,6 +237,8 @@ export interface Product {
   description: string;
   views?: number;
   is_sold_out?: number;
+  is_featured?: number;
+  bumped_at?: string;
   created_at: string;
 }
 
@@ -283,7 +399,7 @@ export function getProducts(options?: {
   } else if (options?.sort === 'price_desc') {
     query += ` ORDER BY p.price DESC, p.id DESC`;
   } else {
-    query += ` ORDER BY p.id DESC`;
+    query += ` ORDER BY COALESCE(p.bumped_at, p.created_at) DESC, p.id DESC`;
   }
 
   return db.prepare(query).all(...params) as Product[];
@@ -343,6 +459,274 @@ export function createUMKMAndProduct(data: {
 
   return {
     productId: Number(productResult.lastInsertRowid),
+    slug: uniqueSlug,
+  };
+}
+
+/**
+ * Increment view count for a product
+ */
+export function incrementProductViews(slug: string): void {
+  try {
+    db.prepare('UPDATE products SET views = COALESCE(views, 0) + 1 WHERE slug = ?').run(slug);
+  } catch (err) {
+    console.error('Error incrementing views:', err);
+  }
+}
+
+/**
+ * Bump / Naikkan produk to the top of catalog listings
+ */
+export function bumpProduct(productId: number, umkmId?: number): boolean {
+  let query = 'UPDATE products SET bumped_at = CURRENT_TIMESTAMP WHERE id = ?';
+  const params: any[] = [productId];
+
+  if (umkmId) {
+    query += ' AND umkm_id = ?';
+    params.push(umkmId);
+  }
+
+  const result = db.prepare(query).run(...params);
+  return result.changes > 0;
+}
+
+/**
+ * Toggle product stock status (Available vs Sold Out)
+ */
+export function toggleProductStock(productId: number, umkmId?: number): { success: boolean; is_sold_out?: number } {
+  let findQuery = 'SELECT is_sold_out FROM products WHERE id = ?';
+  const params: any[] = [productId];
+  if (umkmId) {
+    findQuery += ' AND umkm_id = ?';
+    params.push(umkmId);
+  }
+
+  const current = db.prepare(findQuery).get(...params) as { is_sold_out: number } | undefined;
+  if (!current) return { success: false };
+
+  const newStatus = current.is_sold_out === 1 ? 0 : 1;
+  let updateQuery = 'UPDATE products SET is_sold_out = ? WHERE id = ?';
+  const updateParams: any[] = [newStatus, productId];
+  if (umkmId) {
+    updateQuery += ' AND umkm_id = ?';
+    updateParams.push(umkmId);
+  }
+
+  const result = db.prepare(updateQuery).run(...updateParams);
+  return { success: result.changes > 0, is_sold_out: newStatus };
+}
+
+/**
+ * Delete product from catalog
+ */
+export function deleteProduct(productId: number, umkmId?: number): boolean {
+  let query = 'DELETE FROM products WHERE id = ?';
+  const params: any[] = [productId];
+  if (umkmId) {
+    query += ' AND umkm_id = ?';
+    params.push(umkmId);
+  }
+
+  const result = db.prepare(query).run(...params);
+  return result.changes > 0;
+}
+
+/**
+ * Find or create user via Google OAuth profile
+ */
+export function findOrCreateUserByGoogle(data: {
+  googleId: string;
+  email: string;
+  name: string;
+  avatarUrl?: string;
+}): User {
+  const existing = db.prepare('SELECT * FROM users WHERE google_id = ? OR email = ?').get(data.googleId, data.email) as User | undefined;
+  if (existing) {
+    // Update name / avatar if changed
+    db.prepare('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?').run(data.name, data.avatarUrl || existing.avatar_url, existing.id);
+    return { ...existing, name: data.name, avatar_url: data.avatarUrl || existing.avatar_url };
+  }
+
+  const res = db.prepare(`
+    INSERT INTO users (google_id, email, name, avatar_url, role)
+    VALUES (?, ?, ?, ?, 'umkm')
+  `).run(data.googleId, data.email, data.name, data.avatarUrl || '');
+
+  return {
+    id: Number(res.lastInsertRowid),
+    google_id: data.googleId,
+    email: data.email,
+    name: data.name,
+    avatar_url: data.avatarUrl,
+    role: 'umkm',
+    created_at: new Date().toISOString(),
+  };
+}
+
+/**
+ * Create a secure session token for user
+ */
+export function createSession(userId: number): string {
+  const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
+  // 30 days expiration
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+
+  db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)').run(sessionId, userId, expiresAt);
+  return sessionId;
+}
+
+/**
+ * Get user and their UMKM store from session token
+ */
+export function getUserFromSession(sessionId: string): (User & { umkm?: UMKM & { zone_name: string; zone_slug: string } }) | null {
+  if (!sessionId) return null;
+
+  const row = db.prepare(`
+    SELECT 
+      u.*,
+      s.expires_at,
+      m.id as umkm_id,
+      m.name as umkm_name,
+      m.phone as umkm_phone,
+      m.zone_id as umkm_zone_id,
+      m.is_verified as umkm_is_verified,
+      m.address as umkm_address,
+      z.name as zone_name,
+      z.slug as zone_slug
+    FROM sessions s
+    JOIN users u ON s.user_id = u.id
+    LEFT JOIN umkm m ON m.user_id = u.id
+    LEFT JOIN zones z ON m.zone_id = z.id
+    WHERE s.id = ?
+  `).get(sessionId) as any;
+
+  if (!row) return null;
+
+  // Check expiration
+  if (new Date(row.expires_at).getTime() < Date.now()) {
+    deleteSession(sessionId);
+    return null;
+  }
+
+  const user: User & { umkm?: any } = {
+    id: row.id,
+    google_id: row.google_id,
+    email: row.email,
+    name: row.name,
+    avatar_url: row.avatar_url,
+    role: row.role,
+    created_at: row.created_at,
+  };
+
+  if (row.umkm_id) {
+    user.umkm = {
+      id: row.umkm_id,
+      user_id: row.id,
+      name: row.umkm_name,
+      phone: row.umkm_phone,
+      zone_id: row.umkm_zone_id,
+      zone_name: row.zone_name,
+      zone_slug: row.zone_slug,
+      is_verified: row.umkm_is_verified,
+      address: row.umkm_address,
+    };
+  }
+
+  return user;
+}
+
+/**
+ * Delete a session on logout
+ */
+export function deleteSession(sessionId: string): void {
+  try {
+    db.prepare('DELETE FROM sessions WHERE id = ?').run(sessionId);
+  } catch (_) {}
+}
+
+/**
+ * Get UMKM store owned by a user
+ */
+export function getUMKMByUserId(userId: number): (UMKM & { zone_name: string; zone_slug: string; products: Product[] }) | undefined {
+  const store = db.prepare(`
+    SELECT m.*, z.name as zone_name, z.slug as zone_slug
+    FROM umkm m
+    JOIN zones z ON m.zone_id = z.id
+    WHERE m.user_id = ?
+  `).get(userId) as any;
+
+  if (!store) return undefined;
+
+  const products = db.prepare(`
+    SELECT p.*, m.name as umkm_name, m.phone as umkm_phone, m.address as umkm_address, m.is_verified, z.name as zone_name, z.slug as zone_slug
+    FROM products p
+    JOIN umkm m ON p.umkm_id = m.id
+    JOIN zones z ON m.zone_id = z.id
+    WHERE p.umkm_id = ?
+    ORDER BY COALESCE(p.bumped_at, p.created_at) DESC, p.id DESC
+  `).all(store.id) as Product[];
+
+  return {
+    ...store,
+    products,
+  };
+}
+
+/**
+ * Create UMKM store profile linked to an authenticated user
+ */
+export function createUMKMForUser(userId: number, data: {
+  name: string;
+  phone: string;
+  zoneId: number;
+  address?: string;
+}) {
+  const cleanPhone = formatPhoneForWhatsApp(data.phone);
+
+  const existing = db.prepare('SELECT id FROM umkm WHERE user_id = ?').get(userId) as { id: number } | undefined;
+  if (existing) {
+    db.prepare('UPDATE umkm SET name = ?, phone = ?, zone_id = ?, address = ? WHERE id = ?')
+      .run(data.name, cleanPhone, data.zoneId, data.address || '', existing.id);
+    return existing.id;
+  }
+
+  const res = db.prepare(`
+    INSERT INTO umkm (user_id, name, phone, zone_id, is_verified, address)
+    VALUES (?, ?, ?, ?, 1, ?)
+  `).run(userId, data.name, cleanPhone, data.zoneId, data.address || '');
+
+  return Number(res.lastInsertRowid);
+}
+
+/**
+ * Add product directly to an existing UMKM store
+ */
+export function addProductToUMKM(umkmId: number, data: {
+  name: string;
+  price: number;
+  category: string;
+  imageUrl: string;
+  description?: string;
+}) {
+  const uniqueSlug = `${slugify(data.name)}-${Date.now().toString(36)}`;
+  const store = db.prepare('SELECT name FROM umkm WHERE id = ?').get(umkmId) as { name: string } | undefined;
+  const storeName = store ? store.name : 'UMKM NU';
+
+  const res = db.prepare(`
+    INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, bumped_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+  `).run(
+    umkmId,
+    data.name,
+    uniqueSlug,
+    data.price,
+    data.category,
+    data.imageUrl,
+    data.description || `${data.name} dari ${storeName}, Sumenep.`
+  );
+
+  return {
+    productId: Number(res.lastInsertRowid),
     slug: uniqueSlug,
   };
 }

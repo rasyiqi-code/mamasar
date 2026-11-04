@@ -55,6 +55,6 @@ export const SITE_CONFIG = {
     'Direktori Resmi Produk UMKM Nahdliyin Kabupaten Sumenep. Temukan produk lokal tetangga, transaksi langsung via WhatsApp tanpa perantara.',
   defaultOgImage: '/og-image.jpg',
   organization: 'PCNU Kabupaten Sumenep',
-  whatsappHelp: '6281234567890',
+  whatsappHelp: process.env.WHATSAPP_HELP || '6282334455667',
   address: 'Jl. Trunojoyo No. 45, Gedung PCNU Kabupaten Sumenep, Jawa Timur',
 };

@@ -205,6 +205,9 @@ const recentProducts = allProducts.slice(0, 5);
                   required
                   class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 font-mono shadow-2xs"
                 />
+                <p id="phone-feedback" class="text-[11px] font-semibold text-slate-500 pt-0.5">
+                  Nomor HP/WA aktif penjual (otomatis dibuatkan link chat pembeli)
+                </p>
                 <div class="flex items-center gap-1.5 pt-1">
                   <input type="checkbox" id="phoneVisible" checked disabled class="accent-indigo-600 rounded cursor-not-allowed" />
                   <label for="phoneVisible" class="text-[11px] text-slate-600">Phone visible on ad</label>
@@ -419,7 +422,7 @@ const recentProducts = allProducts.slice(0, 5);
               <h2 class="text-xs font-black uppercase tracking-wider text-slate-800">
                 Verifikasi Petugas / Agen Lapangan
               </h2>
-              <span class="text-[11px] text-emerald-700 font-medium">Default: <strong>{DEFAULT_AGENT_PIN}</strong></span>
+              <span class="text-[11px] text-slate-500 font-medium">Khusus Kader MWC NU</span>
             </div>
 
             <div class="space-y-1">
@@ -430,10 +433,11 @@ const recentProducts = allProducts.slice(0, 5);
                 type="password"
                 id="agentPin"
                 name="agentPin"
-                placeholder={`Masukkan PIN Akses (Default: ${DEFAULT_AGENT_PIN})`}
+                placeholder="Masukkan 4 digit PIN Petugas Lapangan MWC"
                 required
                 class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-mono tracking-widest text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 shadow-2xs"
               />
+              <p class="text-[10px] text-slate-400 pt-0.5">Diberikan khusus oleh koordinator MWC NU kepada kader pendata.</p>
             </div>
           </div>
 
@@ -557,12 +561,10 @@ const recentProducts = allProducts.slice(0, 5);
     const btnSubmit = document.getElementById('btn-submit') as HTMLButtonElement;
     const btnSubmitAnother = document.getElementById('btn-submit-another') as HTMLButtonElement;
 
-    // Load saved PIN from localStorage if available
+    // Load saved PIN from localStorage if available (for returning agents)
     const savedPin = localStorage.getItem('mamasar_agent_pin');
     if (savedPin && agentPinInput) {
       agentPinInput.value = savedPin;
-    } else if (agentPinInput && !agentPinInput.value) {
-      agentPinInput.value = '1926';
     }
 
     let keepStoreInfo = false;
@@ -572,8 +574,46 @@ const recentProducts = allProducts.slice(0, 5);
       form.requestSubmit();
     });
 
+    const phoneInput = document.getElementById('phone') as HTMLInputElement;
+    const phoneFeedback = document.getElementById('phone-feedback');
+
+    function validatePhone(phone: string): boolean {
+      const clean = phone.replace(/\D/g, '');
+      return clean.length >= 10 && clean.length <= 14 && /^(08[1-9]\d{7,11}|628[1-9]\d{7,11}|8[1-9]\d{7,11})$/.test(clean);
+    }
+
+    phoneInput?.addEventListener('input', () => {
+      const val = phoneInput.value.trim();
+      if (!val) {
+        if (phoneFeedback) {
+          phoneFeedback.textContent = 'Nomor HP/WA aktif penjual (otomatis dibuatkan link chat pembeli)';
+          phoneFeedback.className = 'text-[11px] font-semibold text-slate-500 pt-0.5';
+        }
+        return;
+      }
+
+      if (validatePhone(val)) {
+        if (phoneFeedback) {
+          phoneFeedback.textContent = '✓ Nomor WhatsApp valid untuk transaksi langsung.';
+          phoneFeedback.className = 'text-[11px] font-bold text-emerald-600 pt-0.5';
+        }
+      } else {
+        if (phoneFeedback) {
+          phoneFeedback.textContent = '⚠ Format nomor tidak valid. Masukkan 10-14 digit diawali 08/628 (contoh: 081234567890).';
+          phoneFeedback.className = 'text-[11px] font-bold text-rose-600 pt-0.5';
+        }
+      }
+    });
+
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
+
+      const phoneVal = phoneInput?.value.trim() || '';
+      if (!validatePhone(phoneVal)) {
+        showStatus('Peringatan: Nomor WhatsApp tidak valid! Periksa kembali nomor yang Anda masukkan.', 'warning');
+        phoneInput?.focus();
+        return;
+      }
 
       if (!imageBase64Input.value) {
         showStatus('Peringatan: Silakan pilih atau ambil foto produk terlebih dahulu!', 'warning');
@@ -609,8 +649,8 @@ const recentProducts = allProducts.slice(0, 5);
             keepStoreInfo = false;
           } else {
             form.reset();
-            if (savedPin) agentPinInput.value = savedPin;
-            else agentPinInput.value = '1926';
+            const currentSavedPin = localStorage.getItem('mamasar_agent_pin');
+            if (currentSavedPin) agentPinInput.value = currentSavedPin;
             resetImage();
           }
         } else {

@@ -21,6 +21,12 @@ pnpm-debug.log*
 data/uploads/*
 !data/uploads/.gitkeep
 
+# sqlite temporary & backup files
+*.db-wal
+*.db-shm
+data/backups/*
+!data/backups/.gitkeep
+
 # macOS / Windows
 .DS_Store
 Thumbs.db

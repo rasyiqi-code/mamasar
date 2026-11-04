@@ -1,6 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
 import ProductCard from '../components/ProductCard.astro';
+import PromoSlider from '../components/PromoSlider.astro';
 import { getAllZones, getProducts, getAllUMKM, getArticles } from '../lib/db';
 import {
   PRODUCT_CATEGORIES,
@@ -188,6 +189,13 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
 
     </section>
 
+    <!-- 1.5. HERO INTERACTIVE PROMO SLIDER -->
+    {!isFiltered && (
+      <section class="py-1">
+        <PromoSlider />
+      </section>
+    )}
+
     <!-- 2. "TODAY'S PREMIUM SELECTION" (4-Column OsClass Premium Box with Cyan/Teal Border Accent) -->
     {premiumProducts.length > 0 && !isFiltered && (
       <section class="px-3 sm:px-0">
@@ -232,36 +240,39 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
             <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
               <span>📰</span> Kabar & Panduan UMKM Sumenep
             </h2>
-            <p class="text-xs text-slate-500 mt-0.5">Edukasi digital & panduan transaksi warga Nahdliyin</p>
+            <p class="text-xs text-slate-500 mt-0.5">Edukasi ekonomi pekarangan, legalitas halal & panduan usaha nahdliyin</p>
           </div>
           <a
-            href="/agen"
-            class="text-xs font-bold text-slate-700 hover:text-slate-900 border border-slate-300 hover:border-slate-400 px-3 py-1.5 rounded-full transition hidden sm:inline-flex items-center gap-1 bg-white shadow-2xs"
+            href="/edukasi"
+            class="text-xs font-bold text-emerald-700 hover:text-emerald-800 border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 px-3.5 py-1.5 rounded-full transition inline-flex items-center gap-1.5 shadow-2xs"
           >
-            <span>📖 Panduan Agen Lapangan</span>
+            <span>Semua Panduan ({articles.length})</span>
             <span>➔</span>
           </a>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4">
-          {articles.map((art) => (
-            <div class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex gap-3 hover:border-slate-300 hover:shadow-sm transition">
+          {articles.slice(0, 3).map((art) => (
+            <a
+              href={`/edukasi/${art.slug}`}
+              class="bg-white border border-slate-200 rounded-xl p-3 sm:p-4 flex gap-3 hover:border-emerald-500 hover:shadow-sm transition group cursor-pointer"
+            >
               <img
                 src={art.image_url}
                 alt={art.title}
-                class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0"
+                class="w-20 h-20 sm:w-24 sm:h-24 rounded-lg object-cover shrink-0 group-hover:scale-102 transition"
                 loading="lazy"
               />
-              <div class="space-y-1">
-                <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">{art.category}</span>
-                <h3 class="font-extrabold text-xs sm:text-sm text-slate-900 hover:text-emerald-700 line-clamp-2">
+              <div class="space-y-1 min-w-0">
+                <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">{art.category}</span>
+                <h3 class="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-snug">
                   {art.title}
                 </h3>
                 <p class="text-[11px] text-slate-600 line-clamp-2">
                   {art.summary}
                 </p>
               </div>
-            </div>
+            </a>
           ))}
         </div>
       </section>
@@ -370,7 +381,7 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
     )}
 
     <!-- 7. "LATEST LISTINGS" (OsClass 5-Column Grid with Filter Bar & Sold Badges) -->
-    <section class="space-y-4 px-3 sm:px-0 pt-2">
+    <section id="katalog-terbaru" class="space-y-4 px-3 sm:px-0 pt-2">
       
       <!-- Section Header & Filter Controls -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">

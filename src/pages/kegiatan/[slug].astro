@@ -1,0 +1,291 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getEventBySlug, getProducts, getUMKMById } from '../../lib/db';
+import ProductCard from '../../components/ProductCard.astro';
+import { formatPhoneForWhatsApp } from '../../lib/utils';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/kegiatan');
+}
+
+const event = getEventBySlug(slug);
+
+if (!event) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Kegiatan Tidak Ditemukan',
+  });
+}
+
+const currentUrl = Astro.url.href;
+const coordinatorWaLink = `https://wa.me/${formatPhoneForWhatsApp(event.coordinator_phone)}?text=${encodeURIComponent(
+  `Assalamu'alaikum ${event.coordinator_name || 'Panitia'}, saya ingin bertanya mengenai partisipasi buka lapak bazar atau kebutuhan konsumsi untuk acara: *${event.title}* di ${event.location_name}.`
+)}`;
+
+// Fetch local food & beverage products from the same MWC zone
+const localFoodProducts = getProducts({
+  zoneSlug: event.zone_slug,
+  category: 'Makanan & Minuman',
+}).slice(0, 4);
+
+// Fallback all food products if zone is empty
+const foodVendors = localFoodProducts.length > 0 ? localFoodProducts : getProducts({ category: 'Makanan & Minuman' }).slice(0, 4);
+
+// Schema.org Event Structured Data for SEO
+const eventSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'Event',
+  name: event.title,
+  startDate: event.event_date,
+  eventStatus: 'https://schema.org/EventScheduled',
+  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+  location: {
+    '@type': 'Place',
+    name: event.location_name,
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: event.location_address || event.location_name,
+      addressLocality: event.zone_name,
+      addressRegion: 'Sumenep, Jawa Timur',
+      addressCountry: 'ID',
+    },
+  },
+  organizer: {
+    '@type': 'Organization',
+    name: event.organizer,
+    url: currentUrl,
+  },
+  description: event.consumption_needed || `Kegiatan ${event.title} diselenggarakan oleh ${event.organizer} di ${event.location_name}, Sumenep.`,
+};
+
+const evDate = new Date(event.event_date);
+const formattedDate = evDate.toLocaleDateString('id-ID', {
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+});
+---
+
+<Layout
+  title={`${event.title} | Kegiatan NU & Pasar Warga Sumenep`}
+  description={`Agenda ${event.title} oleh ${event.organizer} di ${event.location_name}, ${event.zone_name}, Sumenep. Pusat pesanan konsumsi berkat dan info lapak bazar warga.`}
+  canonicalUrl={currentUrl}
+  schema={eventSchema}
+>
+  <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
+    
+    <!-- Top Breadcrumb -->
+    <div class="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
+      <nav aria-label="Breadcrumb" class="flex items-center gap-2 truncate">
+        <a href="/" class="hover:text-emerald-700">Beranda</a>
+        <span>›</span>
+        <a href="/kegiatan" class="hover:text-emerald-700">Kegiatan NU</a>
+        <span>›</span>
+        <a href={`/kegiatan?zona=${event.zone_slug}`} class="hover:text-emerald-700 truncate">{event.zone_name}</a>
+        <span>›</span>
+        <span class="text-slate-900 font-bold truncate max-w-xs">{event.title}</span>
+      </nav>
+
+      <a
+        href="/kegiatan"
+        class="hidden sm:inline-flex text-xs font-semibold text-slate-500 hover:text-slate-900 transition items-center gap-1"
+      >
+        <span>← Semua Kegiatan</span>
+      </a>
+    </div>
+
+    <!-- Event Hero Card -->
+    <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
+      <div class="flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full">
+            📍 Wilayah {event.zone_name}
+          </span>
+          <span class="text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-full">
+            Penyelenggara: {event.organizer}
+          </span>
+        </div>
+
+        {Boolean(event.allow_stalls) && (
+          <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5">
+            <span>✓</span>
+            <span>Warga Boleh Buka Lapak Jualan</span>
+          </span>
+        )}
+      </div>
+
+      <div class="space-y-2">
+        <h1 class="text-xl sm:text-3xl lg:text-4xl font-black text-slate-900 leading-tight">
+          {event.title}
+        </h1>
+        <p class="text-xs sm:text-sm text-slate-500">
+          Setiap kegiatan jam'iyyah adalah kesempatan berputar rezeki bagi tetangga dan UMKM nahdliyin sekitar.
+        </p>
+      </div>
+
+      <!-- Schedule & Location Spec Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs">
+        <div class="space-y-0.5">
+          <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Hari & Tanggal</span>
+          <p class="font-extrabold text-slate-900 text-sm">{formattedDate}</p>
+          <p class="text-slate-500 text-[11px]">⏰ {event.time_description}</p>
+        </div>
+
+        <div class="space-y-0.5">
+          <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Lokasi Acara</span>
+          <p class="font-extrabold text-slate-900 text-sm">{event.location_name}</p>
+          <p class="text-slate-500 text-[11px] truncate">{event.location_address || event.zone_name}</p>
+        </div>
+
+        <div class="space-y-0.5">
+          <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Estimasi Jamaah</span>
+          <p class="font-extrabold text-emerald-700 text-sm">~{event.estimated_attendance} Orang</p>
+          <p class="text-slate-500 text-[11px]">Potensi pasar konsumsi & kerumunan pembeli</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2 Column Section: Consumption Hub on Left, Stall Coordinator on Right -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      
+      <!-- LEFT COLUMN: Consumption Hub (7-8 cols) -->
+      <div class="lg:col-span-8 space-y-6">
+        
+        <!-- Consumption Callout Card -->
+        <div class="bg-amber-50/80 border-2 border-amber-300/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-12 h-12 rounded-xl bg-amber-200/60 text-amber-900 flex items-center justify-center text-2xl shrink-0">
+              🍲
+            </div>
+            <div class="space-y-1 flex-1">
+              <span class="text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-950 px-2 py-0.5 rounded">
+                Kebutuhan Konsumsi Acara Panitia
+              </span>
+              <h2 class="text-base sm:text-lg font-black text-amber-950">
+                Pesan Konsumsi dari UMKM MWC {event.zone_name}
+              </h2>
+              <p class="text-xs text-amber-900 leading-relaxed">
+                {event.consumption_needed || 'Panitia membutuhkan snack box kue basah tradisional dan paket nasi berkat jamuan jamaah.'}
+              </p>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-amber-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+            <span class="text-amber-900 font-semibold text-[11px]">
+              Daftar toko kuliner terverifikasi di bawah siap menerima pesanan acara ini:
+            </span>
+            <a
+              href={`/?zona=${event.zone_slug}&kategori=Makanan%20%26%20Minuman`}
+              class="bg-amber-900 hover:bg-amber-950 text-white font-black px-4 py-2 rounded-xl transition shadow-xs text-xs shrink-0"
+            >
+              Lihat Semua Kuliner di MWC Ini ➔
+            </a>
+          </div>
+        </div>
+
+        <!-- Local Food & Beverage Vendors Grid -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-black text-sm sm:text-base text-slate-900 flex items-center gap-2">
+              <span>🍱</span> Rekomendasi Katering & Snack Box Warga NU Terdekat
+            </h3>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
+            {foodVendors.map((p) => {
+              const orderWaLink = `https://wa.me/${p.umkm_phone}?text=${encodeURIComponent(
+                `Assalamu'alaikum ${p.umkm_name}, kami dari panitia kegiatan *${event.title}* di ${event.zone_name} ingin bertanya mengenai pesanan konsumsi produk *${p.name}* untuk acara tanggal ${formattedDate}. Apakah melayani pesanan jumlah banyak?`
+              )}`;
+
+              return (
+                <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-xs space-y-2 flex flex-col justify-between">
+                  <div class="space-y-2">
+                    <img src={p.image_url} alt={p.name} class="w-full aspect-16/10 rounded-lg object-cover" />
+                    <div>
+                      <span class="text-[10px] text-slate-500 font-medium">🏪 {p.umkm_name}</span>
+                      <h4 class="font-bold text-xs sm:text-sm text-slate-900 line-clamp-1">{p.name}</h4>
+                      <p class="text-xs font-black text-emerald-700">Rp {p.price.toLocaleString('id-ID')}</p>
+                    </div>
+                  </div>
+                  <a
+                    href={orderWaLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-98"
+                  >
+                    <span>💬 Pesan Konsumsi</span>
+                  </a>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN: Stall / Bazar Coordinator Sidebar (4-5 cols) -->
+      <aside class="lg:col-span-4 space-y-5 lg:sticky lg:top-20">
+        
+        <!-- Stall Registration Box -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
+          <div class="space-y-1">
+            <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
+              Peluang Jualan Santri & Warga
+            </span>
+            <h3 class="text-base font-black text-slate-900">Buka Lapak Dagang di Lokasi Acara</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Jika Anda menjual camilan, kopi seduh, kopyah, batik, minyak wangi, atau buku santri, manfaatkan keramaian ~{event.estimated_attendance} jamaah di lokasi ini.
+            </p>
+          </div>
+
+          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500">Izin Lapak Bazar:</span>
+              <span class="font-bold text-emerald-700">Diizinkan Panitia</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500">Biaya Lapak:</span>
+              <span class="font-bold text-slate-800">Gratis / Infaq Sukarela</span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-slate-500">Koordinator:</span>
+              <span class="font-bold text-slate-800">{event.coordinator_name || 'Seksi Acara'}</span>
+            </div>
+          </div>
+
+          <a
+            href={coordinatorWaLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-full py-3 px-4 bg-[#4f46e5] hover:bg-[#4338ca] text-white rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-98 cursor-pointer"
+          >
+            <span>💬 Hubungi Koordinator Acara via WA</span>
+          </a>
+
+          <p class="text-[10px] text-slate-400 text-center">
+            Hubungi panitia terlebih dahulu sebelum hari-H untuk alokasi tempat lapak jualan.
+          </p>
+        </div>
+
+        <!-- Share Event Box -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs text-xs space-y-2.5">
+          <span class="font-bold text-slate-800 block">Sebarkan agenda ini ke grup WhatsApp warga:</span>
+          <a
+            href={`https://wa.me/?text=${encodeURIComponent(`*${event.title}*\n📅 ${formattedDate} (${event.time_description})\n📍 ${event.location_name}\n\nInfo lengkap & peluang pesanan konsumsi/lapak:\n${currentUrl}`)}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-xl flex items-center justify-center gap-2 transition"
+          >
+            <span>Bagikan ke WhatsApp ➔</span>
+          </a>
+        </div>
+
+      </aside>
+
+    </div>
+
+  </div>
+</Layout>
