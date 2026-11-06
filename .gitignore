@@ -32,3 +32,6 @@ data/backups/*
 Thumbs.db
 .idea/
 .vscode/
+.neon
+.vercel
+.env*

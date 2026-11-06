@@ -3,7 +3,9 @@ import path from 'node:path';
 import fs from 'node:fs';
 import { formatPhoneForWhatsApp, slugify } from './utils';
 
-const dataDir = path.resolve(process.cwd(), 'data');
+const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
+const baseDir = isServerless ? '/tmp' : process.cwd();
+const dataDir = path.resolve(baseDir, 'data');
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
@@ -561,6 +563,16 @@ export function findOrCreateUserByGoogle(data: {
     role: 'umkm',
     created_at: new Date().toISOString(),
   };
+}
+
+export function updateUserProfile(userId: number, data: { name?: string; avatarUrl?: string }): void {
+  const existing = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as User | undefined;
+  if (!existing) return;
+  db.prepare('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?').run(
+    data.name || existing.name,
+    data.avatarUrl || existing.avatar_url,
+    userId
+  );
 }
 
 /**
