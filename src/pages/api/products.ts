@@ -55,6 +55,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Process image storage via shared storage module
     const imageFile = formData.get('image') as File | null;
     const imageBase64 = formData.get('imageBase64')?.toString();
+    const shopeeUrl = formData.get('shopeeUrl')?.toString()?.trim() || undefined;
     const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
 
     const result = createUMKMAndProduct({
@@ -67,6 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
       category,
       imageUrl,
       description,
+      shopeeUrl,
     });
 
     return new Response(

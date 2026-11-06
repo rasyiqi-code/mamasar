@@ -23,6 +23,7 @@ export interface SeedProduct {
   description: string;
   views: number;
   is_sold_out: number;
+  shopee_url?: string;
 }
 
 export interface SeedArticle {
@@ -51,17 +52,36 @@ export interface SeedEvent {
 }
 
 export const SEED_ZONES: SeedZone[] = [
+  // 18 MWC Daratan
   { name: 'MWC Kota Sumenep', slug: 'mwc-kota-sumenep' },
-  { name: 'MWC Gapura', slug: 'mwc-gapura' },
+  { name: 'MWC Batuan', slug: 'mwc-batuan' },
   { name: 'MWC Kalianget', slug: 'mwc-kalianget' },
-  { name: 'MWC Ambunten', slug: 'mwc-ambunten' },
-  { name: 'MWC Batang-Batang', slug: 'mwc-batang-batang' },
   { name: 'MWC Manding', slug: 'mwc-manding' },
-  { name: 'MWC Dungkek', slug: 'mwc-dungkek' },
+  { name: 'MWC Gapura', slug: 'mwc-gapura' },
+  { name: 'MWC Bluto', slug: 'mwc-bluto' },
   { name: 'MWC Saronggi', slug: 'mwc-saronggi' },
   { name: 'MWC Lenteng', slug: 'mwc-lenteng' },
-  { name: 'MWC Bluto', slug: 'mwc-bluto' },
+  { name: 'MWC Guluk-Guluk', slug: 'mwc-guluk-guluk' },
+  { name: 'MWC Ganding', slug: 'mwc-ganding' },
   { name: 'MWC Pragaan', slug: 'mwc-pragaan' },
+  { name: 'MWC Ambunten', slug: 'mwc-ambunten' },
+  { name: 'MWC Pasongsongan', slug: 'mwc-pasongsongan' },
+  { name: 'MWC Rubaru', slug: 'mwc-rubaru' },
+  { name: 'MWC Dasuk', slug: 'mwc-dasuk' },
+  { name: 'MWC Dungkek', slug: 'mwc-dungkek' },
+  { name: 'MWC Batang-Batang', slug: 'mwc-batang-batang' },
+  { name: 'MWC Batuputih', slug: 'mwc-batuputih' },
+
+  // 9 MWC Kepulauan
+  { name: 'MWC Talango', slug: 'mwc-talango' },
+  { name: 'MWC Giligenting', slug: 'mwc-giligenting' },
+  { name: 'MWC Gayam (Sapudi)', slug: 'mwc-gayam' },
+  { name: 'MWC Nonggunong (Sapudi)', slug: 'mwc-nonggunong' },
+  { name: 'MWC Raas', slug: 'mwc-raas' },
+  { name: 'MWC Arjasa (Kangean)', slug: 'mwc-arjasa' },
+  { name: 'MWC Kangayan (Kangean)', slug: 'mwc-kangayan' },
+  { name: 'MWC Sapeken', slug: 'mwc-sapeken' },
+  { name: 'MWC Masalembu', slug: 'mwc-masalembu' },
 ];
 
 export const SEED_UMKM: SeedUMKM[] = [

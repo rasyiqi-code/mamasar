@@ -64,6 +64,7 @@ db.exec(`
     is_sold_out INTEGER DEFAULT 0,
     is_featured INTEGER DEFAULT 0,
     bumped_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    shopee_url TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
 
@@ -95,6 +96,19 @@ db.exec(`
     coordinator_phone TEXT NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
   );
+
+  -- Buku Kas Penjualan Santri (Slide 4 LPNU)
+  CREATE TABLE IF NOT EXISTS cashbook (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    amount INTEGER NOT NULL,
+    type TEXT NOT NULL DEFAULT 'income',
+    category TEXT DEFAULT 'Penjualan',
+    notes TEXT,
+    transaction_date DATE DEFAULT (DATE('now')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
 
 // Ensure migration for views & is_sold_out & bumped_at & user_id if table already existed
@@ -109,6 +123,9 @@ try {
 } catch (_) {}
 try {
   db.exec('ALTER TABLE products ADD COLUMN bumped_at DATETIME;');
+} catch (_) {}
+try {
+  db.exec('ALTER TABLE products ADD COLUMN shopee_url TEXT;');
 } catch (_) {}
 try {
   db.exec('ALTER TABLE umkm ADD COLUMN user_id INTEGER REFERENCES users(id);');
@@ -241,6 +258,19 @@ export interface Product {
   is_sold_out?: number;
   is_featured?: number;
   bumped_at?: string;
+  shopee_url?: string;
+  created_at: string;
+}
+
+export interface CashbookEntry {
+  id: number;
+  user_id: number;
+  title: string;
+  amount: number;
+  type: 'income' | 'expense';
+  category?: string;
+  notes?: string;
+  transaction_date: string;
   created_at: string;
 }
 
@@ -435,6 +465,7 @@ export function createUMKMAndProduct(data: {
   category: string;
   imageUrl: string;
   description?: string;
+  shopeeUrl?: string;
 }) {
   const cleanPhone = formatPhoneForWhatsApp(data.phone);
   const uniqueSlug = `${slugify(data.productName)}-${Date.now().toString(36)}`;
@@ -445,8 +476,8 @@ export function createUMKMAndProduct(data: {
   const umkmResult = insertUMKM.run(data.umkmName, cleanPhone, data.zoneId, data.address || '');
 
   const insertProduct = db.prepare(`
-    INSERT INTO products (umkm_id, name, slug, price, category, image_url, description)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, shopee_url)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   const productResult = insertProduct.run(
@@ -456,7 +487,8 @@ export function createUMKMAndProduct(data: {
     data.price,
     data.category,
     data.imageUrl,
-    data.description || `${data.productName} dari ${data.umkmName}, Sumenep.`
+    data.description || `${data.productName} dari ${data.umkmName}, Sumenep.`,
+    data.shopeeUrl || null
   );
 
   return {
@@ -719,14 +751,15 @@ export function addProductToUMKM(umkmId: number, data: {
   category: string;
   imageUrl: string;
   description?: string;
+  shopeeUrl?: string;
 }) {
   const uniqueSlug = `${slugify(data.name)}-${Date.now().toString(36)}`;
   const store = db.prepare('SELECT name FROM umkm WHERE id = ?').get(umkmId) as { name: string } | undefined;
   const storeName = store ? store.name : 'UMKM NU';
 
   const res = db.prepare(`
-    INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, bumped_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, shopee_url, bumped_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
   `).run(
     umkmId,
     data.name,
@@ -734,13 +767,75 @@ export function addProductToUMKM(umkmId: number, data: {
     data.price,
     data.category,
     data.imageUrl,
-    data.description || `${data.name} dari ${storeName}, Sumenep.`
+    data.description || `${data.name} dari ${storeName}, Sumenep.`,
+    data.shopeeUrl || null
   );
 
   return {
     productId: Number(res.lastInsertRowid),
     slug: uniqueSlug,
   };
+}
+
+/**
+ * Mini Buku Kas Penjualan Santri (Slide 4 LPNU: Buku Kas Penjualan Santri)
+ */
+export function getCashbookEntries(userId: number, limit: number = 30): CashbookEntry[] {
+  return db.prepare(`
+    SELECT * FROM cashbook WHERE user_id = ? ORDER BY transaction_date DESC, id DESC LIMIT ?
+  `).all(userId, limit) as CashbookEntry[];
+}
+
+export function getCashbookSummary(userId: number): { totalIncome: number; totalExpense: number; balance: number } {
+  const row = db.prepare(`
+    SELECT 
+      COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income,
+      COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense
+    FROM cashbook WHERE user_id = ?
+  `).get(userId) as any;
+
+  const totalIncome = Number(row?.total_income || 0);
+  const totalExpense = Number(row?.total_expense || 0);
+  return {
+    totalIncome,
+    totalExpense,
+    balance: totalIncome - totalExpense,
+  };
+}
+
+export function addCashbookEntry(userId: number, data: {
+  title: string;
+  amount: number;
+  type?: 'income' | 'expense';
+  category?: string;
+  notes?: string;
+  transactionDate?: string;
+}): CashbookEntry {
+  const type = data.type || 'income';
+  const category = data.category || 'Penjualan';
+  const transactionDate = data.transactionDate || new Date().toISOString().split('T')[0];
+
+  const res = db.prepare(`
+    INSERT INTO cashbook (user_id, title, amount, type, category, notes, transaction_date)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).run(userId, data.title, data.amount, type, category, data.notes || '', transactionDate);
+
+  return {
+    id: Number(res.lastInsertRowid),
+    user_id: userId,
+    title: data.title,
+    amount: data.amount,
+    type,
+    category,
+    notes: data.notes || '',
+    transaction_date: transactionDate,
+    created_at: new Date().toISOString(),
+  };
+}
+
+export function deleteCashbookEntry(id: number, userId: number): boolean {
+  const res = db.prepare('DELETE FROM cashbook WHERE id = ? AND user_id = ?').run(id, userId);
+  return res.changes > 0;
 }
 
 export default db;

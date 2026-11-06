@@ -1,6 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getUserFromSession, getUMKMByUserId, getAllZones } from '../../lib/db';
+import { getUserFromSession, getUMKMByUserId, getAllZones, getCashbookSummary, getCashbookEntries } from '../../lib/db';
 import { PRODUCT_CATEGORIES, CATEGORY_ICONS } from '../../lib/constants';
 import { formatRupiah } from '../../lib/utils';
 
@@ -13,6 +13,9 @@ const sessionId = Astro.request.headers
 const user = sessionId ? getUserFromSession(sessionId) : null;
 const store = user ? getUMKMByUserId(user.id) : null;
 const zones = getAllZones();
+
+const cashbookSummary = user ? getCashbookSummary(user.id) : { totalIncome: 0, totalExpense: 0, balance: 0 };
+const cashbookEntries = user ? getCashbookEntries(user.id, 10) : [];
 
 const currentUrl = Astro.url.href;
 ---
@@ -351,6 +354,22 @@ const currentUrl = Astro.url.href;
               ></textarea>
             </div>
 
+            <!-- Shopee Store Link (Optional - per Slide 9 LPNU) -->
+            <div class="space-y-1">
+              <label for="prodShopee" class="block text-xs font-bold text-slate-700 flex items-center justify-between">
+                <span>Tautan Produk Shopee (Opsional)</span>
+                <span class="text-[10px] text-slate-400 font-normal">Integrasi Slide 9 LPNU</span>
+              </label>
+              <input
+                type="url"
+                id="prodShopee"
+                name="shopeeUrl"
+                placeholder="Contoh: https://shopee.co.id/product/12345/67890"
+                class="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs text-slate-900 focus:outline-none focus:bg-white focus:border-indigo-600"
+              />
+              <p class="text-[10px] text-slate-400">Jika diisi, tombol "Checkout via Shopee" berwarna oranye akan otomatis tampil berdampingan dengan WhatsApp.</p>
+            </div>
+
             <button
               type="submit"
               id="btn-submit-product"
@@ -463,6 +482,252 @@ const currentUrl = Astro.url.href;
               </p>
             </div>
           )}
+        </div>
+
+        <!-- FITUR LPNU SLIDE 4: BUKU KAS PENJUALAN SANTRI -->
+        <div class="bg-white border border-slate-200 rounded-2xl overflow-hidden shadow-xs space-y-4 p-5 sm:p-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xl">📖</span>
+                <h2 class="text-sm sm:text-base font-black text-slate-900">Buku Kas Penjualan Santri</h2>
+                <span class="text-[9px] font-bold bg-amber-100 text-amber-900 border border-amber-300 px-2 py-0.5 rounded-full">
+                  Slide 4 LPNU
+                </span>
+              </div>
+              <p class="text-xs text-slate-500 mt-0.5">Catatan omzet dan arus kas mandiri untuk saudagar Nahdliyin.</p>
+            </div>
+            
+            <button
+              type="button"
+              id="btn-toggle-cashbook-form"
+              class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition shadow-xs cursor-pointer"
+            >
+              + Catat Transaksi Baru
+            </button>
+          </div>
+
+          <!-- Summary Balance Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div class="p-3.5 bg-emerald-50/70 border border-emerald-200 rounded-xl space-y-1">
+              <span class="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">Total Pemasukan</span>
+              <span class="text-base sm:text-lg font-black text-emerald-700 block font-mono" id="cash-income-display">
+                {formatRupiah(cashbookSummary.totalIncome)}
+              </span>
+            </div>
+            <div class="p-3.5 bg-rose-50/70 border border-rose-200 rounded-xl space-y-1">
+              <span class="text-[10px] font-bold text-rose-800 uppercase tracking-wider block">Total Pengeluaran</span>
+              <span class="text-base sm:text-lg font-black text-rose-700 block font-mono" id="cash-expense-display">
+                {formatRupiah(cashbookSummary.totalExpense)}
+              </span>
+            </div>
+            <div class="p-3.5 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-1">
+              <span class="text-[10px] font-bold text-indigo-800 uppercase tracking-wider block">Saldo Kas Bersih</span>
+              <span class="text-base sm:text-lg font-black text-indigo-700 block font-mono" id="cash-balance-display">
+                {formatRupiah(cashbookSummary.balance)}
+              </span>
+            </div>
+          </div>
+
+          <!-- Quick Cashbook Form (Collapsible) -->
+          <div id="cashbook-form-container" class="hidden p-4 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
+            <h4 class="text-xs font-black text-slate-900">Tambah Catatan Arus Kas</h4>
+            <form id="cashbook-entry-form" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <div class="sm:col-span-2 space-y-1">
+                <label for="cashTitle" class="block text-[11px] font-bold text-slate-700">Nama Transaksi / Barang <span class="text-rose-500">*</span></label>
+                <input
+                  type="text"
+                  id="cashTitle"
+                  name="title"
+                  placeholder="Contoh: Penjualan 3 Kripik Singkong via WA"
+                  required
+                  class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="cashAmount" class="block text-[11px] font-bold text-slate-700">Nominal (Rp) <span class="text-rose-500">*</span></label>
+                <input
+                  type="number"
+                  id="cashAmount"
+                  name="amount"
+                  placeholder="45000"
+                  required
+                  min="100"
+                  class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-mono focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="cashType" class="block text-[11px] font-bold text-slate-700">Jenis</label>
+                <select
+                  id="cashType"
+                  name="type"
+                  class="w-full bg-white border border-slate-300 rounded-xl p-2 text-xs font-semibold focus:outline-none focus:border-emerald-600"
+                >
+                  <option value="income">Pemasukan (Omzet)</option>
+                  <option value="expense">Pengeluaran (Bahan/Modal)</option>
+                </select>
+              </div>
+
+              <div class="sm:col-span-4 flex items-center justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  id="btn-cancel-cashbook"
+                  class="px-3 py-1.5 text-xs text-slate-600 hover:text-slate-900 font-semibold cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-xs cursor-pointer"
+                >
+                  Simpan ke Buku Kas ➔
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Cashbook Table / List -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider text-[10px]">
+                  <th class="py-2 px-3">Tanggal</th>
+                  <th class="py-2 px-3">Keterangan</th>
+                  <th class="py-2 px-3">Jenis</th>
+                  <th class="py-2 px-3 text-right">Nominal</th>
+                  <th class="py-2 px-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="cashbook-rows" class="divide-y divide-slate-100 font-medium">
+                {cashbookEntries.length > 0 ? (
+                  cashbookEntries.map((c) => (
+                    <tr class="hover:bg-slate-50/60 transition" id={`cash-row-${c.id}`}>
+                      <td class="py-2.5 px-3 text-slate-500 font-mono text-[11px]">{c.transaction_date}</td>
+                      <td class="py-2.5 px-3 text-slate-800 font-semibold">{c.title}</td>
+                      <td class="py-2.5 px-3">
+                        <span class={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                          c.type === 'income' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                        }`}>
+                          {c.type === 'income' ? 'Pemasukan' : 'Pengeluaran'}
+                        </span>
+                      </td>
+                      <td class={`py-2.5 px-3 text-right font-black font-mono ${c.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                        {c.type === 'income' ? '+' : '-'} {formatRupiah(c.amount)}
+                      </td>
+                      <td class="py-2.5 px-3 text-center">
+                        <button
+                          type="button"
+                          class="btn-delete-cash text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
+                          data-id={c.id}
+                          title="Hapus baris"
+                        >
+                          ✕
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colspan="5" class="py-6 text-center text-slate-400 text-xs">
+                      Belum ada catatan buku kas. Klik "+ Catat Transaksi Baru" untuk mulai membukukan omzet Anda.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- FITUR LPNU SLIDE 4 & 5: LAYANAN TERPADU PERMODALAN & LEGALITAS USAHA -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Card 1: Akses Permodalan Syariah -->
+          <div class="bg-gradient-to-br from-white to-emerald-50/40 border border-emerald-200/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-lg font-black shrink-0">
+                🏛️
+              </div>
+              <div>
+                <span class="text-[9px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Slide 5 LPNU • Permodalan
+                </span>
+                <h3 class="text-sm sm:text-base font-black text-slate-900 mt-1">Akses Permodalan Syariah (BMTNU & Lazisnu)</h3>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Dukungan modal bergulir bagi saudagar Nahdliyin melalui sinergi <strong>BMTNU Sumenep</strong> dan program produktif <strong>Lazisnu</strong> untuk menumbuhkan usaha warga dari mustahiq menjadi muzakki berdaya.
+            </p>
+
+            <div class="space-y-2 text-xs text-slate-700 pt-1">
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span>Pembiayaan murabahah & mudharabah syariah BMTNU</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-emerald-600 font-bold">✓</span>
+                <span>Bantuan modal peralatan & bergulir Lazisnu Produktif</span>
+              </div>
+            </div>
+
+            <a
+              href="https://wa.me/6282334455667?text=Assalamu%27alaikum%20LPNU%20PCNU%20Sumenep,%20saya%20pemilik%20UMKM%20warga%20NU%20ingin%20konsultasi%20akses%20permodalan%20BMTNU%20/%20Lazisnu"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl shadow-xs transition"
+            >
+              <span>💬 Hubungi Admin Permodalan LPNU</span>
+              <span>➔</span>
+            </a>
+          </div>
+
+          <!-- Card 2: Akses Pendampingan Legalitas Usaha -->
+          <div class="bg-gradient-to-br from-white to-indigo-50/40 border border-indigo-200/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-800 flex items-center justify-center text-lg font-black shrink-0">
+                📜
+              </div>
+              <div>
+                <span class="text-[9px] font-bold bg-indigo-100 text-indigo-800 border border-indigo-300 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  Slide 4 LPNU • Legalitas Usaha
+                </span>
+                <h3 class="text-sm sm:text-base font-black text-slate-900 mt-1">Pendampingan NIB & Sertifikasi Halal Gratis</h3>
+              </div>
+            </div>
+
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Pastikan produk Anda memiliki kepastian legalitas usaha dan sertifikat halal resmi BPJPH melalui program <strong>SEHATI (Sertifikasi Halal Gratis)</strong> difasilitasi oleh pengurus LPNU Sumenep.
+            </p>
+
+            <div class="space-y-2 text-xs text-slate-700 pt-1">
+              <div class="flex items-center gap-2">
+                <span class="text-indigo-600 font-bold">✓</span>
+                <span>Pendampingan penerbitan NIB 100% online & gratis</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-indigo-600 font-bold">✓</span>
+                <span>Verifikasi Syariah & kurasi mutu produk berjenjang MWC</span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 pt-1">
+              <a
+                href="/edukasi/sertifikasi-halal-gratis-sehati-umkm-sumenep"
+                class="flex-1 text-center py-2.5 px-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 text-indigo-900 font-bold text-xs rounded-xl transition"
+              >
+                Baca Panduan Halal ➔
+              </a>
+              <a
+                href="https://wa.me/6282334455667?text=Assalamu%27alaikum%20LPNU%20Sumenep,%20saya%20butuh%20bantuan%20pendampingan%20NIB%20dan%20Sertifikasi%20Halal"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="flex-1 text-center py-2.5 px-3 bg-[#4f46e5] hover:bg-[#4338ca] text-white font-bold text-xs rounded-xl shadow-xs transition"
+              >
+                Dampingi NIB / Halal ➔
+              </a>
+            </div>
+          </div>
         </div>
 
       </div>
@@ -659,6 +924,70 @@ const currentUrl = Astro.url.href;
           window.location.reload();
         } else {
           showStatus(data.message || 'Gagal menghapus produk.', true);
+        }
+      });
+    });
+
+    // 5. Cashbook Form & Interactivity (Slide 4 LPNU)
+    const btnToggleCash = document.getElementById('btn-toggle-cashbook-form');
+    const btnCancelCash = document.getElementById('btn-cancel-cashbook');
+    const cashContainer = document.getElementById('cashbook-form-container');
+    const cashForm = document.getElementById('cashbook-entry-form') as HTMLFormElement;
+
+    btnToggleCash?.addEventListener('click', () => {
+      cashContainer?.classList.toggle('hidden');
+      if (!cashContainer?.classList.contains('hidden')) {
+        document.getElementById('cashTitle')?.focus();
+      }
+    });
+
+    btnCancelCash?.addEventListener('click', () => {
+      cashContainer?.classList.add('hidden');
+    });
+
+    cashForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = (document.getElementById('cashTitle') as HTMLInputElement).value;
+      const amount = Number((document.getElementById('cashAmount') as HTMLInputElement).value);
+      const type = (document.getElementById('cashType') as HTMLSelectElement).value;
+
+      try {
+        const res = await fetch('/api/user/cashbook', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, amount, type }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          window.location.reload();
+        } else {
+          alert(data.message || 'Gagal menyimpan catatan kas.');
+        }
+      } catch (err: any) {
+        alert('Gagal menghubungi server: ' + err.message);
+      }
+    });
+
+    document.querySelectorAll('.btn-delete-cash').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        if (!confirm('Hapus baris catatan buku kas ini?')) return;
+
+        try {
+          const res = await fetch('/api/user/cashbook', {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            const row = document.getElementById(`cash-row-${id}`);
+            row?.remove();
+          } else {
+            alert(data.message || 'Gagal menghapus baris kas.');
+          }
+        } catch (err: any) {
+          alert('Gagal menghubungi server: ' + err.message);
         }
       });
     });
