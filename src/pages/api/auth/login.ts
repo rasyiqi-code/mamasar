@@ -1,16 +1,13 @@
 import type { APIRoute } from 'astro';
+import { getNeonAuthBaseUrl } from '../../../lib/neon-auth';
 import { findOrCreateUserByGoogle, createSession } from '../../../lib/db';
 
 export const GET: APIRoute = async ({ request, redirect }) => {
   const url = new URL(request.url);
   const isDemo = url.searchParams.get('demo') === '1';
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${url.origin}/api/auth/callback/google`;
-
-  // Dev / Demo Mode: if no client ID configured or explicitly requested via ?demo=1
-  if (!clientId || isDemo) {
-    // Create or login as demo UMKM user
+  // Demo Santri Mode: 1-Click test login
+  if (isDemo) {
     const demoUser = findOrCreateUserByGoogle({
       googleId: 'google_demo_1926',
       email: 'warga.santri@sumenep.nu.or.id',
@@ -32,12 +29,49 @@ export const GET: APIRoute = async ({ request, redirect }) => {
     });
   }
 
-  // Production Google OAuth 2.0 Authorization Flow
-  const state = Math.random().toString(36).substring(2);
-  const scope = encodeURIComponent('openid email profile');
-  const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${clientId}&redirect_uri=${encodeURIComponent(
-    redirectUri
-  )}&response_type=code&scope=${scope}&state=${state}&access_type=offline&prompt=consent`;
+  // Neon Auth Google Social Login Flow
+  try {
+    const baseUrl = getNeonAuthBaseUrl();
+    const origin = url.origin;
+    const callbackURL = `${origin}/api/auth/callback/neon`;
 
-  return redirect(googleAuthUrl);
+    const neonRes = await fetch(`${baseUrl}/sign-in/social`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: origin,
+        Cookie: request.headers.get('cookie') || '',
+        'User-Agent': request.headers.get('user-agent') || 'MamasarApp',
+      },
+      body: JSON.stringify({
+        provider: 'google',
+        callbackURL,
+      }),
+    });
+
+    const data = await neonRes.json();
+
+    if (neonRes.ok && data.url) {
+      const headers = new Headers();
+      const setCookies = typeof neonRes.headers.getSetCookie === 'function'
+        ? neonRes.headers.getSetCookie()
+        : [neonRes.headers.get('set-cookie')].filter(Boolean) as string[];
+
+      for (const sc of setCookies) {
+        headers.append('Set-Cookie', sc);
+      }
+      headers.set('Location', data.url);
+
+      return new Response(null, {
+        status: 302,
+        headers,
+      });
+    }
+
+    console.error('Neon Auth sign-in social failed:', neonRes.status, data);
+    return redirect('/dashboard?error=neon_auth_init_failed');
+  } catch (err: any) {
+    console.error('Neon Auth Login Exception:', err);
+    return redirect('/dashboard?error=neon_auth_error');
+  }
 };
