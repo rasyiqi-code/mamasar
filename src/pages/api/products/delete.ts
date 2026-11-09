@@ -18,7 +18,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const correctPin = process.env.AGENT_PIN || DEFAULT_AGENT_PIN;
     const isAgent = agentPin === correctPin;
-    const user = sessionId ? getUserFromSession(sessionId) : null;
+    const user = sessionId ? await getUserFromSession(sessionId) : null;
 
     if (!isAgent && !user?.umkm) {
       return new Response(JSON.stringify({ success: false, message: 'Tidak memiliki izin untuk menghapus produk ini.' }), {
@@ -28,7 +28,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const umkmId = isAgent ? undefined : user?.umkm?.id;
-    const success = deleteProduct(productId, umkmId);
+    const success = await deleteProduct(productId, umkmId);
 
     if (success) {
       return new Response(

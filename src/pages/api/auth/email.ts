@@ -23,6 +23,12 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const baseUrl = getNeonAuthBaseUrl();
+  if (!baseUrl) {
+    return new Response(JSON.stringify({ ok: false, error: 'Server autentikasi belum dikonfigurasi. Hubungi pengurus.' }), {
+      status: 503,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
   const origin = new URL(request.url).origin;
   const endpoint = action === 'signup' ? `${baseUrl}/sign-up/email` : `${baseUrl}/sign-in/email`;
 
@@ -62,14 +68,14 @@ export const POST: APIRoute = async ({ request }) => {
       : [res.headers.get('set-cookie')].filter(Boolean) as string[];
 
     const user = data.user;
-    const appUser = findOrCreateUserByGoogle({
+    const appUser = await findOrCreateUserByGoogle({
       googleId: `neon_${user.id}`,
       email: user.email,
       name: user.name || email.split('@')[0],
       avatarUrl: user.image || '',
     });
 
-    const sessionId = createSession(appUser.id);
+    const sessionId = await createSession(appUser.id);
 
     const responseHeaders = new Headers({
       'Content-Type': 'application/json',

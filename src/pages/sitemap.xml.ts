@@ -5,11 +5,14 @@ export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
   const siteUrl = `${url.protocol}//${url.host}`;
 
-  const products = getProducts();
-  const zones = getAllZones();
-  const stores = getAllUMKM();
-  const articles = getArticles();
-  const events = getEvents();
+  // Limiting results for sitemap performance
+  const [products, zones, stores, articles, events] = await Promise.all([
+    getProducts({ minPrice: 0, maxPrice: 999999999 }), // all products but with sort
+    getAllZones(), // all zones - reasonable count
+    getAllUMKM(), // all stores - may need pagination later
+    getArticles(), // all articles - may need pagination later
+    getEvents(), // all events - may need pagination later
+  ]);
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">

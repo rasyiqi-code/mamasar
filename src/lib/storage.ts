@@ -122,6 +122,9 @@ export async function saveAccountAvatar(options: {
       const base64Data = imageBase64.substring(commaIndex + 1);
       buffer = Buffer.from(base64Data, 'base64');
       fileName = `avatars/${userPrefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.jpg`;
+      // Detect content type from base64 header if possible
+      if (base64Data.startsWith('data:image/png')) contentType = 'image/png';
+      if (base64Data.startsWith('data:image/webp')) contentType = 'image/webp';
     }
   }
 

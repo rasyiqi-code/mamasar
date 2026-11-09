@@ -1,147 +1,60 @@
-import Database from 'better-sqlite3';
-import path from 'node:path';
-import fs from 'node:fs';
+import { getNeonSql } from './neon';
 import { formatPhoneForWhatsApp, slugify } from './utils';
 
-const isServerless = Boolean(process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME);
-const baseDir = isServerless ? '/tmp' : process.cwd();
-const dataDir = path.resolve(baseDir, 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+/**
+ * Data layer for Neon PostgreSQL.
+ *
+ * All functions are async: queries run over the Neon serverless HTTP driver
+ * instead of a local SQLite file, so state survives across serverless
+ * instances (Vercel) and is shared by every request.
+ *
+ * The query helpers below accept SQLite-style `?` placeholders and convert
+ * them to Postgres `$n` placeholders, keeping the SQL close to the original
+ * SQLite implementation.
+ */
+
+type NeonSql = ReturnType<typeof getNeonSql>;
+
+let sqlClient: NeonSql | null = null;
+
+function getSql(): NeonSql {
+  // Lazy init so importing this module never crashes environments without
+  // DATABASE_URL (build time, unit tests); the error surfaces on first query.
+  if (!sqlClient) {
+    sqlClient = getNeonSql();
+  }
+  return sqlClient;
 }
 
-const dbPath = path.join(dataDir, 'mamasar.db');
-const db = new Database(dbPath);
+function toPgPlaceholders(text: string): string {
+  let i = 0;
+  return text.replace(/\?/g, () => `$${++i}`);
+}
 
-// Enable WAL mode for better concurrency performance
-db.pragma('journal_mode = WAL');
+/**
+ * neon() returns TIMESTAMP WITH TIME ZONE columns as JS Date objects.
+ * Normalize them to ISO strings so row shapes stay identical to the previous
+ * SQLite layer (interfaces declare created_at / event_date as string).
+ */
+function normalizeRow<T>(row: any): T {
+  if (row && typeof row === 'object') {
+    for (const key of Object.keys(row)) {
+      if (row[key] instanceof Date) {
+        row[key] = row[key].toISOString();
+      }
+    }
+  }
+  return row as T;
+}
 
-// Initialize schema
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    google_id TEXT UNIQUE NOT NULL,
-    email TEXT NOT NULL UNIQUE,
-    name TEXT NOT NULL,
-    avatar_url TEXT,
-    role TEXT DEFAULT 'umkm',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
+async function all<T = any>(text: string, params: any[] = []): Promise<T[]> {
+  const rows = await getSql().query(toPgPlaceholders(text), params);
+  return rows.map(normalizeRow) as T[];
+}
 
-  CREATE TABLE IF NOT EXISTS sessions (
-    id TEXT PRIMARY KEY,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    expires_at DATETIME NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS zones (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE
-  );
-
-  CREATE TABLE IF NOT EXISTS umkm (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER REFERENCES users(id),
-    name TEXT NOT NULL,
-    phone TEXT NOT NULL,
-    zone_id INTEGER NOT NULL REFERENCES zones(id),
-    is_verified INTEGER DEFAULT 1,
-    address TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS products (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    umkm_id INTEGER NOT NULL REFERENCES umkm(id),
-    name TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    price INTEGER NOT NULL,
-    category TEXT NOT NULL,
-    image_url TEXT NOT NULL,
-    description TEXT,
-    views INTEGER DEFAULT 50,
-    is_sold_out INTEGER DEFAULT 0,
-    is_featured INTEGER DEFAULT 0,
-    bumped_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    shopee_url TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS articles (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    category TEXT NOT NULL,
-    image_url TEXT NOT NULL,
-    summary TEXT NOT NULL,
-    content TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  CREATE TABLE IF NOT EXISTS events (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    zone_id INTEGER NOT NULL REFERENCES zones(id),
-    title TEXT NOT NULL,
-    slug TEXT NOT NULL UNIQUE,
-    organizer TEXT NOT NULL,
-    event_date DATETIME NOT NULL,
-    time_description TEXT NOT NULL,
-    location_name TEXT NOT NULL,
-    location_address TEXT,
-    estimated_attendance INTEGER DEFAULT 0,
-    consumption_needed TEXT,
-    allow_stalls INTEGER DEFAULT 1,
-    coordinator_name TEXT,
-    coordinator_phone TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-
-  -- Buku Kas Penjualan Santri (Slide 4 LPNU)
-  CREATE TABLE IF NOT EXISTS cashbook (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    title TEXT NOT NULL,
-    amount INTEGER NOT NULL,
-    type TEXT NOT NULL DEFAULT 'income',
-    category TEXT DEFAULT 'Penjualan',
-    notes TEXT,
-    transaction_date DATE DEFAULT (DATE('now')),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  );
-`);
-
-// Ensure migration for views & is_sold_out & bumped_at & user_id if table already existed
-try {
-  db.exec('ALTER TABLE products ADD COLUMN views INTEGER DEFAULT 50;');
-} catch (_) {}
-try {
-  db.exec('ALTER TABLE products ADD COLUMN is_sold_out INTEGER DEFAULT 0;');
-} catch (_) {}
-try {
-  db.exec('ALTER TABLE products ADD COLUMN is_featured INTEGER DEFAULT 0;');
-} catch (_) {}
-try {
-  db.exec('ALTER TABLE products ADD COLUMN bumped_at DATETIME;');
-} catch (_) {}
-try {
-  db.exec('ALTER TABLE products ADD COLUMN shopee_url TEXT;');
-} catch (_) {}
-try {
-  db.exec('ALTER TABLE umkm ADD COLUMN user_id INTEGER REFERENCES users(id);');
-} catch (_) {}
-try {
-  db.exec('ALTER TABLE articles ADD COLUMN content TEXT;');
-} catch (_) {}
-
-// Import and run seed if tables are empty
-import { seedDatabase } from './seeds';
-
-const zoneCount = db.prepare('SELECT count(*) as count FROM zones').get() as { count: number };
-const productCount = db.prepare('SELECT count(*) as count FROM products').get() as { count: number };
-
-if (zoneCount.count === 0 || productCount.count === 0) {
-  seedDatabase(db);
+async function one<T = any>(text: string, params: any[] = []): Promise<T | undefined> {
+  const rows = await all<T>(text, params);
+  return rows[0];
 }
 
 export interface Article {
@@ -155,12 +68,12 @@ export interface Article {
   created_at: string;
 }
 
-export function getArticles(): Article[] {
-  return db.prepare('SELECT * FROM articles ORDER BY id ASC').all() as Article[];
+export async function getArticles(): Promise<Article[]> {
+  return all<Article>('SELECT * FROM articles ORDER BY id ASC');
 }
 
-export function getArticleBySlug(slug: string): Article | undefined {
-  return db.prepare('SELECT * FROM articles WHERE slug = ?').get(slug) as Article | undefined;
+export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
+  return one<Article>('SELECT * FROM articles WHERE slug = ?', [slug]);
 }
 
 export interface EventItem {
@@ -183,7 +96,7 @@ export interface EventItem {
   created_at: string;
 }
 
-export function getEvents(options?: { zoneSlug?: string }): EventItem[] {
+export async function getEvents(options?: { zoneSlug?: string }): Promise<EventItem[]> {
   let query = `
     SELECT e.*, z.name as zone_name, z.slug as zone_slug
     FROM events e
@@ -198,17 +111,17 @@ export function getEvents(options?: { zoneSlug?: string }): EventItem[] {
   }
 
   query += ' ORDER BY e.event_date ASC, e.id ASC';
-  return db.prepare(query).all(...params) as EventItem[];
+  return all<EventItem>(query, params);
 }
 
-export function getEventBySlug(slug: string): EventItem | undefined {
+export async function getEventBySlug(slug: string): Promise<EventItem | undefined> {
   const query = `
     SELECT e.*, z.name as zone_name, z.slug as zone_slug
     FROM events e
     JOIN zones z ON e.zone_id = z.id
     WHERE e.slug = ?
   `;
-  return db.prepare(query).get(slug) as EventItem | undefined;
+  return one<EventItem>(query, [slug]);
 }
 
 export interface User {
@@ -274,34 +187,34 @@ export interface CashbookEntry {
   created_at: string;
 }
 
-export function getAllZones(): (Zone & { count?: number })[] {
-  const zones = db.prepare('SELECT * FROM zones ORDER BY name ASC').all() as Zone[];
-  const counts = db.prepare(`
-    SELECT u.zone_id, count(p.id) as count 
-    FROM products p 
-    JOIN umkm u ON p.umkm_id = u.id 
+export async function getAllZones(): Promise<(Zone & { count?: number })[]> {
+  const zones = await all<Zone>('SELECT * FROM zones ORDER BY name ASC');
+  const counts = await all<{ zone_id: number; count: number }>(`
+    SELECT u.zone_id, count(p.id)::int as count
+    FROM products p
+    JOIN umkm u ON p.umkm_id = u.id
     GROUP BY u.zone_id
-  `).all() as { zone_id: number; count: number }[];
+  `);
 
-  const countMap = new Map(counts.map(c => [c.zone_id, c.count]));
+  const countMap = new Map(counts.map((c) => [c.zone_id, c.count]));
 
-  return zones.map(z => ({
+  return zones.map((z) => ({
     ...z,
-    count: countMap.get(z.id) || 0
+    count: countMap.get(z.id) || 0,
   }));
 }
 
-export function getAllUMKM(options?: {
+export async function getAllUMKM(options?: {
   zoneSlug?: string;
   search?: string;
-}): (UMKM & { product_count: number; zone_slug: string; sample_images: string[] })[] {
+}): Promise<(UMKM & { product_count: number; zone_slug: string; sample_images: string[] })[]> {
   let query = `
-    SELECT 
-      u.*, 
+    SELECT
+      u.*,
       z.name as zone_name,
       z.slug as zone_slug,
-      count(p.id) as product_count,
-      GROUP_CONCAT(p.image_url) as sample_images_str
+      count(p.id)::int as product_count,
+      string_agg(p.image_url, ',') as sample_images_str
     FROM umkm u
     JOIN zones z ON u.zone_id = z.id
     LEFT JOIN products p ON p.umkm_id = u.id
@@ -315,47 +228,48 @@ export function getAllUMKM(options?: {
   }
 
   if (options?.search && options.search.trim() !== '') {
-    query += ` AND (u.name LIKE ? OR u.address LIKE ? OR z.name LIKE ?)`;
+    // ILIKE keeps the previous SQLite behavior where LIKE was case-insensitive.
+    query += ` AND (u.name ILIKE ? OR u.address ILIKE ? OR z.name ILIKE ?)`;
     const searchParam = `%${options.search.trim()}%`;
     params.push(searchParam, searchParam, searchParam);
   }
 
-  query += ` GROUP BY u.id ORDER BY product_count DESC, u.id ASC`;
+  query += ` GROUP BY u.id, z.name, z.slug ORDER BY product_count DESC, u.id ASC`;
 
-  const rows = db.prepare(query).all(...params) as any[];
+  const rows = await all<any>(query, params);
 
   return rows.map((r) => ({
     ...r,
-    sample_images: r.sample_images_str ? r.sample_images_str.split(',').filter(Boolean) : [],
+    sample_images: r.sample_images_str ? String(r.sample_images_str).split(',').filter(Boolean) : [],
   }));
 }
 
-export function getUMKMById(id: number | string): (UMKM & {
+export async function getUMKMById(id: number | string): Promise<(UMKM & {
   zone_name: string;
   zone_slug: string;
   product_count: number;
   products: Product[];
-}) | undefined {
+}) | undefined> {
   const numId = Number(id);
   if (isNaN(numId)) return undefined;
 
-  const umkm = db.prepare(`
-    SELECT 
+  const umkm = await one<any>(`
+    SELECT
       u.*,
       z.name as zone_name,
       z.slug as zone_slug,
-      count(p.id) as product_count
+      count(p.id)::int as product_count
     FROM umkm u
     JOIN zones z ON u.zone_id = z.id
     LEFT JOIN products p ON p.umkm_id = u.id
     WHERE u.id = ?
-    GROUP BY u.id
-  `).get(numId) as any;
+    GROUP BY u.id, z.name, z.slug
+  `, [numId]);
 
   if (!umkm) return undefined;
 
-  const products = db.prepare(`
-    SELECT 
+  const products = await all<Product>(`
+    SELECT
       p.*,
       u.name as umkm_name,
       u.phone as umkm_phone,
@@ -368,7 +282,7 @@ export function getUMKMById(id: number | string): (UMKM & {
     JOIN zones z ON u.zone_id = z.id
     WHERE p.umkm_id = ?
     ORDER BY p.id DESC
-  `).all(numId) as Product[];
+  `, [numId]);
 
   return {
     ...umkm,
@@ -376,16 +290,16 @@ export function getUMKMById(id: number | string): (UMKM & {
   };
 }
 
-export function getProducts(options?: {
+export async function getProducts(options?: {
   zoneSlug?: string;
   category?: string;
   search?: string;
   minPrice?: number;
   maxPrice?: number;
   sort?: string;
-}): Product[] {
+}): Promise<Product[]> {
   let query = `
-    SELECT 
+    SELECT
       p.*,
       u.name as umkm_name,
       u.phone as umkm_phone,
@@ -411,7 +325,7 @@ export function getProducts(options?: {
   }
 
   if (options?.search && options.search.trim() !== '') {
-    query += ` AND (p.name LIKE ? OR p.description LIKE ? OR u.name LIKE ?)`;
+    query += ` AND (p.name ILIKE ? OR p.description ILIKE ? OR u.name ILIKE ?)`;
     const searchParam = `%${options.search.trim()}%`;
     params.push(searchParam, searchParam, searchParam);
   }
@@ -434,12 +348,12 @@ export function getProducts(options?: {
     query += ` ORDER BY COALESCE(p.bumped_at, p.created_at) DESC, p.id DESC`;
   }
 
-  return db.prepare(query).all(...params) as Product[];
+  return all<Product>(query, params);
 }
 
-export function getProductBySlug(slug: string): Product | undefined {
+export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   const query = `
-    SELECT 
+    SELECT
       p.*,
       u.name as umkm_name,
       u.phone as umkm_phone,
@@ -452,10 +366,10 @@ export function getProductBySlug(slug: string): Product | undefined {
     JOIN zones z ON u.zone_id = z.id
     WHERE p.slug = ?
   `;
-  return db.prepare(query).get(slug) as Product | undefined;
+  return one<Product>(query, [slug]);
 }
 
-export function createUMKMAndProduct(data: {
+export async function createUMKMAndProduct(data: {
   umkmName: string;
   phone: string;
   zoneId: number;
@@ -466,33 +380,36 @@ export function createUMKMAndProduct(data: {
   imageUrl: string;
   description?: string;
   shopeeUrl?: string;
-}) {
+}): Promise<{ productId: number; slug: string }> {
   const cleanPhone = formatPhoneForWhatsApp(data.phone);
   const uniqueSlug = `${slugify(data.productName)}-${Date.now().toString(36)}`;
 
-  const insertUMKM = db.prepare(
-    'INSERT INTO umkm (name, phone, zone_id, is_verified, address) VALUES (?, ?, ?, 1, ?)'
+  const umkmRows = await getSql().query(
+    toPgPlaceholders('INSERT INTO umkm (name, phone, zone_id, is_verified, address) VALUES (?, ?, ?, 1, ?) RETURNING id'),
+    [data.umkmName, cleanPhone, data.zoneId, data.address || '']
   );
-  const umkmResult = insertUMKM.run(data.umkmName, cleanPhone, data.zoneId, data.address || '');
+  const umkmId = (umkmRows[0] as any).id;
 
-  const insertProduct = db.prepare(`
-    INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, shopee_url)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-  `);
-
-  const productResult = insertProduct.run(
-    Number(umkmResult.lastInsertRowid),
-    data.productName,
-    uniqueSlug,
-    data.price,
-    data.category,
-    data.imageUrl,
-    data.description || `${data.productName} dari ${data.umkmName}, Sumenep.`,
-    data.shopeeUrl || null
+  const productRows = await getSql().query(
+    toPgPlaceholders(`
+      INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, shopee_url)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      RETURNING id
+    `),
+    [
+      umkmId,
+      data.productName,
+      uniqueSlug,
+      data.price,
+      data.category,
+      data.imageUrl,
+      data.description || `${data.productName} dari ${data.umkmName}, Sumenep.`,
+      data.shopeeUrl || null,
+    ]
   );
 
   return {
-    productId: Number(productResult.lastInsertRowid),
+    productId: Number((productRows[0] as any).id),
     slug: uniqueSlug,
   };
 }
@@ -500,18 +417,23 @@ export function createUMKMAndProduct(data: {
 /**
  * Increment view count for a product
  */
-export function incrementProductViews(slug: string): void {
+export async function incrementProductViews(slug: string): Promise<{ success: boolean }> {
   try {
-    db.prepare('UPDATE products SET views = COALESCE(views, 0) + 1 WHERE slug = ?').run(slug);
+    const rows = await getSql().query(
+      toPgPlaceholders('UPDATE products SET views = COALESCE(views, 0) + 1 WHERE slug = ? RETURNING id'),
+      [slug]
+    );
+    return { success: rows.length > 0 };
   } catch (err) {
     console.error('Error incrementing views:', err);
+    return { success: false };
   }
 }
 
 /**
  * Bump / Naikkan produk to the top of catalog listings
  */
-export function bumpProduct(productId: number, umkmId?: number): boolean {
+export async function bumpProduct(productId: number, umkmId?: number): Promise<boolean> {
   let query = 'UPDATE products SET bumped_at = CURRENT_TIMESTAMP WHERE id = ?';
   const params: any[] = [productId];
 
@@ -520,74 +442,98 @@ export function bumpProduct(productId: number, umkmId?: number): boolean {
     params.push(umkmId);
   }
 
-  const result = db.prepare(query).run(...params);
-  return result.changes > 0;
+  query += ' RETURNING id';
+  const rows = await getSql().query(toPgPlaceholders(query), params);
+  return rows.length > 0;
 }
 
 /**
- * Toggle product stock status (Available vs Sold Out)
+ * Toggle product stock status (Available vs Sold Out).
+ * Single atomic UPDATE, so concurrent toggles cannot overwrite each other.
  */
-export function toggleProductStock(productId: number, umkmId?: number): { success: boolean; is_sold_out?: number } {
-  let findQuery = 'SELECT is_sold_out FROM products WHERE id = ?';
+export async function toggleProductStock(productId: number, umkmId?: number): Promise<{ success: boolean; is_sold_out: number }> {
+  let query = 'UPDATE products SET is_sold_out = CASE WHEN is_sold_out = 1 THEN 0 ELSE 1 END WHERE id = ?';
   const params: any[] = [productId];
-  if (umkmId) {
-    findQuery += ' AND umkm_id = ?';
-    params.push(umkmId);
-  }
 
-  const current = db.prepare(findQuery).get(...params) as { is_sold_out: number } | undefined;
-  if (!current) return { success: false };
-
-  const newStatus = current.is_sold_out === 1 ? 0 : 1;
-  let updateQuery = 'UPDATE products SET is_sold_out = ? WHERE id = ?';
-  const updateParams: any[] = [newStatus, productId];
-  if (umkmId) {
-    updateQuery += ' AND umkm_id = ?';
-    updateParams.push(umkmId);
-  }
-
-  const result = db.prepare(updateQuery).run(...updateParams);
-  return { success: result.changes > 0, is_sold_out: newStatus };
-}
-
-/**
- * Delete product from catalog
- */
-export function deleteProduct(productId: number, umkmId?: number): boolean {
-  let query = 'DELETE FROM products WHERE id = ?';
-  const params: any[] = [productId];
   if (umkmId) {
     query += ' AND umkm_id = ?';
     params.push(umkmId);
   }
 
-  const result = db.prepare(query).run(...params);
-  return result.changes > 0;
+  query += ' RETURNING is_sold_out';
+
+  const rows = await getSql().query(toPgPlaceholders(query), params);
+  if (rows.length === 0) return { success: false, is_sold_out: 0 };
+
+  return { success: true, is_sold_out: Number((rows[0] as any).is_sold_out) };
+}
+
+/**
+ * Delete product from catalog
+ */
+export async function deleteProduct(productId: number, umkmId?: number): Promise<boolean> {
+  let query = 'DELETE FROM products WHERE id = ?';
+  const params: any[] = [productId];
+
+  if (umkmId) {
+    query += ' AND umkm_id = ?';
+    params.push(umkmId);
+  }
+
+  query += ' RETURNING id';
+  const rows = await getSql().query(toPgPlaceholders(query), params);
+  return rows.length > 0;
 }
 
 /**
  * Find or create user via Google OAuth profile
  */
-export function findOrCreateUserByGoogle(data: {
+export async function findOrCreateUserByGoogle(data: {
   googleId: string;
   email: string;
   name: string;
   avatarUrl?: string;
-}): User {
-  const existing = db.prepare('SELECT * FROM users WHERE google_id = ? OR email = ?').get(data.googleId, data.email) as User | undefined;
-  if (existing) {
-    // Update name / avatar if changed
-    db.prepare('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?').run(data.name, data.avatarUrl || existing.avatar_url, existing.id);
-    return { ...existing, name: data.name, avatar_url: data.avatarUrl || existing.avatar_url };
+}): Promise<User> {
+  // First try to find by google_id (most reliable)
+  const existingByGoogle = await one<User>('SELECT * FROM users WHERE google_id = ?', [data.googleId]);
+  if (existingByGoogle) {
+    const nextName = data.name || existingByGoogle.name;
+    const nextAvatar = data.avatarUrl || existingByGoogle.avatar_url;
+    if (nextName !== existingByGoogle.name || nextAvatar !== existingByGoogle.avatar_url) {
+      await getSql().query(
+        toPgPlaceholders('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?'),
+        [nextName, nextAvatar, existingByGoogle.id]
+      );
+    }
+    return { ...existingByGoogle, name: nextName, avatar_url: nextAvatar };
   }
 
-  const res = db.prepare(`
-    INSERT INTO users (google_id, email, name, avatar_url, role)
-    VALUES (?, ?, ?, ?, 'umkm')
-  `).run(data.googleId, data.email, data.name, data.avatarUrl || '');
+  // Only check email if no google_id match found
+  const existingByEmail = await one<User>('SELECT * FROM users WHERE email = ?', [data.email]);
+  if (existingByEmail) {
+    const nextName = data.name || existingByEmail.name;
+    const nextAvatar = data.avatarUrl || existingByEmail.avatar_url;
+    if (nextName !== existingByEmail.name || nextAvatar !== existingByEmail.avatar_url) {
+      await getSql().query(
+        toPgPlaceholders('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?'),
+        [nextName, nextAvatar, existingByEmail.id]
+      );
+    }
+    return { ...existingByEmail, name: nextName, avatar_url: nextAvatar };
+  }
+
+  // Create new user
+  const rows = await getSql().query(
+    toPgPlaceholders(`
+      INSERT INTO users (google_id, email, name, avatar_url, role)
+      VALUES (?, ?, ?, ?, 'umkm')
+      RETURNING id
+    `),
+    [data.googleId, data.email, data.name, data.avatarUrl || '']
+  );
 
   return {
-    id: Number(res.lastInsertRowid),
+    id: Number((rows[0] as any).id),
     google_id: data.googleId,
     email: data.email,
     name: data.name,
@@ -597,36 +543,68 @@ export function findOrCreateUserByGoogle(data: {
   };
 }
 
-export function updateUserProfile(userId: number, data: { name?: string; avatarUrl?: string }): void {
-  const existing = db.prepare('SELECT * FROM users WHERE id = ?').get(userId) as User | undefined;
+export async function updateUserProfile(userId: number, data: { name?: string; avatarUrl?: string }): Promise<void> {
+  const existing = await one<User>('SELECT * FROM users WHERE id = ?', [userId]);
   if (!existing) return;
-  db.prepare('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?').run(
-    data.name || existing.name,
-    data.avatarUrl || existing.avatar_url,
-    userId
+  await getSql().query(
+    toPgPlaceholders('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?'),
+    [data.name || existing.name, data.avatarUrl || existing.avatar_url, userId]
   );
 }
 
 /**
  * Create a secure session token for user
  */
-export function createSession(userId: number): string {
+export async function createSession(userId: number): Promise<string> {
   const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
   // 30 days expiration
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  db.prepare('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)').run(sessionId, userId, expiresAt);
+  await getSql().query(
+    toPgPlaceholders('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'),
+    [sessionId, userId, expiresAt]
+  );
+
+  // Opportunistic janitor: expired sessions are purged on ~1/20th of logins,
+  // keeping the sessions table from growing forever without a cron job.
+  if (Math.random() < 0.05) {
+    purgeExpiredSessions().catch(() => {});
+  }
+
   return sessionId;
+}
+
+/**
+ * Reuse the newest still-valid session for a user, or create a new one.
+ * Prevents Neon Auth page loads from inserting one session row per request.
+ */
+export async function getOrCreateSessionForUser(userId: number): Promise<string> {
+  const existing = await one<{ id: string }>(
+    'SELECT id FROM sessions WHERE user_id = ? AND expires_at > CURRENT_TIMESTAMP ORDER BY expires_at DESC LIMIT 1',
+    [userId]
+  );
+  if (existing) return existing.id;
+  return createSession(userId);
+}
+
+/**
+ * Delete sessions that are past their expiration date.
+ */
+export async function purgeExpiredSessions(): Promise<number> {
+  const rows = await getSql().query(
+    'DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING id'
+  );
+  return rows.length;
 }
 
 /**
  * Get user and their UMKM store from session token
  */
-export function getUserFromSession(sessionId: string): (User & { umkm?: UMKM & { zone_name: string; zone_slug: string } }) | null {
+export async function getUserFromSession(sessionId: string): Promise<(User & { umkm?: UMKM & { zone_name: string; zone_slug: string } }) | null> {
   if (!sessionId) return null;
 
-  const row = db.prepare(`
-    SELECT 
+  const row = await one<any>(`
+    SELECT
       u.*,
       s.expires_at,
       m.id as umkm_id,
@@ -642,13 +620,13 @@ export function getUserFromSession(sessionId: string): (User & { umkm?: UMKM & {
     LEFT JOIN umkm m ON m.user_id = u.id
     LEFT JOIN zones z ON m.zone_id = z.id
     WHERE s.id = ?
-  `).get(sessionId) as any;
+  `, [sessionId]);
 
   if (!row) return null;
 
   // Check expiration
   if (new Date(row.expires_at).getTime() < Date.now()) {
-    deleteSession(sessionId);
+    await deleteSession(sessionId);
     return null;
   }
 
@@ -682,33 +660,33 @@ export function getUserFromSession(sessionId: string): (User & { umkm?: UMKM & {
 /**
  * Delete a session on logout
  */
-export function deleteSession(sessionId: string): void {
+export async function deleteSession(sessionId: string): Promise<void> {
   try {
-    db.prepare('DELETE FROM sessions WHERE id = ?').run(sessionId);
+    await getSql().query(toPgPlaceholders('DELETE FROM sessions WHERE id = ?'), [sessionId]);
   } catch (_) {}
 }
 
 /**
  * Get UMKM store owned by a user
  */
-export function getUMKMByUserId(userId: number): (UMKM & { zone_name: string; zone_slug: string; products: Product[] }) | undefined {
-  const store = db.prepare(`
+export async function getUMKMByUserId(userId: number): Promise<(UMKM & { zone_name: string; zone_slug: string; products: Product[] }) | undefined> {
+  const store = await one<any>(`
     SELECT m.*, z.name as zone_name, z.slug as zone_slug
     FROM umkm m
     JOIN zones z ON m.zone_id = z.id
     WHERE m.user_id = ?
-  `).get(userId) as any;
+  `, [userId]);
 
   if (!store) return undefined;
 
-  const products = db.prepare(`
+  const products = await all<Product>(`
     SELECT p.*, m.name as umkm_name, m.phone as umkm_phone, m.address as umkm_address, m.is_verified, z.name as zone_name, z.slug as zone_slug
     FROM products p
     JOIN umkm m ON p.umkm_id = m.id
     JOIN zones z ON m.zone_id = z.id
     WHERE p.umkm_id = ?
     ORDER BY COALESCE(p.bumped_at, p.created_at) DESC, p.id DESC
-  `).all(store.id) as Product[];
+  `, [store.id]);
 
   return {
     ...store,
@@ -719,60 +697,70 @@ export function getUMKMByUserId(userId: number): (UMKM & { zone_name: string; zo
 /**
  * Create UMKM store profile linked to an authenticated user
  */
-export function createUMKMForUser(userId: number, data: {
+export async function createUMKMForUser(userId: number, data: {
   name: string;
   phone: string;
   zoneId: number;
   address?: string;
-}) {
+}): Promise<number> {
   const cleanPhone = formatPhoneForWhatsApp(data.phone);
 
-  const existing = db.prepare('SELECT id FROM umkm WHERE user_id = ?').get(userId) as { id: number } | undefined;
+  const existing = await one<{ id: number }>('SELECT id FROM umkm WHERE user_id = ?', [userId]);
   if (existing) {
-    db.prepare('UPDATE umkm SET name = ?, phone = ?, zone_id = ?, address = ? WHERE id = ?')
-      .run(data.name, cleanPhone, data.zoneId, data.address || '', existing.id);
+    await getSql().query(
+      toPgPlaceholders('UPDATE umkm SET name = ?, phone = ?, zone_id = ?, address = ? WHERE id = ?'),
+      [data.name, cleanPhone, data.zoneId, data.address || '', existing.id]
+    );
     return existing.id;
   }
 
-  const res = db.prepare(`
-    INSERT INTO umkm (user_id, name, phone, zone_id, is_verified, address)
-    VALUES (?, ?, ?, ?, 1, ?)
-  `).run(userId, data.name, cleanPhone, data.zoneId, data.address || '');
+  const rows = await getSql().query(
+    toPgPlaceholders(`
+      INSERT INTO umkm (user_id, name, phone, zone_id, is_verified, address)
+      VALUES (?, ?, ?, ?, 1, ?)
+      RETURNING id
+    `),
+    [userId, data.name, cleanPhone, data.zoneId, data.address || '']
+  );
 
-  return Number(res.lastInsertRowid);
+  return Number((rows[0] as any).id);
 }
 
 /**
  * Add product directly to an existing UMKM store
  */
-export function addProductToUMKM(umkmId: number, data: {
+export async function addProductToUMKM(umkmId: number, data: {
   name: string;
   price: number;
   category: string;
   imageUrl: string;
   description?: string;
   shopeeUrl?: string;
-}) {
+}): Promise<{ productId: number; slug: string }> {
   const uniqueSlug = `${slugify(data.name)}-${Date.now().toString(36)}`;
-  const store = db.prepare('SELECT name FROM umkm WHERE id = ?').get(umkmId) as { name: string } | undefined;
+  const store = await one<{ name: string }>('SELECT name FROM umkm WHERE id = ?', [umkmId]);
   const storeName = store ? store.name : 'UMKM NU';
 
-  const res = db.prepare(`
-    INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, shopee_url, bumped_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-  `).run(
-    umkmId,
-    data.name,
-    uniqueSlug,
-    data.price,
-    data.category,
-    data.imageUrl,
-    data.description || `${data.name} dari ${storeName}, Sumenep.`,
-    data.shopeeUrl || null
+  const rows = await getSql().query(
+    toPgPlaceholders(`
+      INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, shopee_url, bumped_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      RETURNING id
+    `),
+    [
+      umkmId,
+      data.name,
+      uniqueSlug,
+      data.price,
+      data.category,
+      data.imageUrl,
+      data.description || `${data.name} dari ${storeName}, Sumenep.`,
+      data.shopeeUrl || null,
+    ]
   );
 
   return {
-    productId: Number(res.lastInsertRowid),
+    productId: Number((rows[0] as any).id),
     slug: uniqueSlug,
   };
 }
@@ -780,19 +768,19 @@ export function addProductToUMKM(umkmId: number, data: {
 /**
  * Mini Buku Kas Penjualan Santri (Slide 4 LPNU: Buku Kas Penjualan Santri)
  */
-export function getCashbookEntries(userId: number, limit: number = 30): CashbookEntry[] {
-  return db.prepare(`
+export async function getCashbookEntries(userId: number, limit: number = 30): Promise<CashbookEntry[]> {
+  return all<CashbookEntry>(`
     SELECT * FROM cashbook WHERE user_id = ? ORDER BY transaction_date DESC, id DESC LIMIT ?
-  `).all(userId, limit) as CashbookEntry[];
+  `, [userId, limit]);
 }
 
-export function getCashbookSummary(userId: number): { totalIncome: number; totalExpense: number; balance: number } {
-  const row = db.prepare(`
-    SELECT 
+export async function getCashbookSummary(userId: number): Promise<{ totalIncome: number; totalExpense: number; balance: number }> {
+  const row = await one<any>(`
+    SELECT
       COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income,
       COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense
     FROM cashbook WHERE user_id = ?
-  `).get(userId) as any;
+  `, [userId]);
 
   const totalIncome = Number(row?.total_income || 0);
   const totalExpense = Number(row?.total_expense || 0);
@@ -803,25 +791,29 @@ export function getCashbookSummary(userId: number): { totalIncome: number; total
   };
 }
 
-export function addCashbookEntry(userId: number, data: {
+export async function addCashbookEntry(userId: number, data: {
   title: string;
   amount: number;
   type?: 'income' | 'expense';
   category?: string;
   notes?: string;
   transactionDate?: string;
-}): CashbookEntry {
+}): Promise<CashbookEntry> {
   const type = data.type || 'income';
   const category = data.category || 'Penjualan';
   const transactionDate = data.transactionDate || new Date().toISOString().split('T')[0];
 
-  const res = db.prepare(`
-    INSERT INTO cashbook (user_id, title, amount, type, category, notes, transaction_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?)
-  `).run(userId, data.title, data.amount, type, category, data.notes || '', transactionDate);
+  const rows = await getSql().query(
+    toPgPlaceholders(`
+      INSERT INTO cashbook (user_id, title, amount, type, category, notes, transaction_date)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      RETURNING id
+    `),
+    [userId, data.title, data.amount, type, category, data.notes || '', transactionDate]
+  );
 
   return {
-    id: Number(res.lastInsertRowid),
+    id: Number((rows[0] as any).id),
     user_id: userId,
     title: data.title,
     amount: data.amount,
@@ -833,9 +825,10 @@ export function addCashbookEntry(userId: number, data: {
   };
 }
 
-export function deleteCashbookEntry(id: number, userId: number): boolean {
-  const res = db.prepare('DELETE FROM cashbook WHERE id = ? AND user_id = ?').run(id, userId);
-  return res.changes > 0;
+export async function deleteCashbookEntry(id: number, userId: number): Promise<boolean> {
+  const rows = await getSql().query(
+    toPgPlaceholders('DELETE FROM cashbook WHERE id = ? AND user_id = ? RETURNING id'),
+    [id, userId]
+  );
+  return rows.length > 0;
 }
-
-export default db;

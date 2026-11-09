@@ -1,79 +1,113 @@
 # Direktori Digital UMKM NU Sumenep (Pasar Warga NU)
 
-Aplikasi direktori UMKM Nahdliyin Kabupaten Sumenep berbasis **Astro All-in-One** (Frontend + Backend API + Database SQLite). Didesain **Mobile-First**, 100% ramah SEO Google, dan siap dideploy langsung di hosting Node.js.
+Aplikasi direktori UMKM Nahdliyin Kabupaten Sumenep. Dibangun dengan Astro (SSR), Tailwind CSS 4, dan `better-sqlite3` untuk data lokal. Integrasi Neon (Postgres, Auth, Object Storage) dan ImageKit tersedia untuk deployment cloud. Tampilan mobile-first, halaman produk ramah SEO, dan konversi langsung ke WhatsApp.
 
-## Fitur Utama MVP
-1. **Katalog Publik (Mobile-First):**
-   - Filter wilayah teritorial MWC NU (MWC Kota, Gapura, Kalianget, Ambunten, dll.).
-   - Sentimen *"Beli Produk Tetangga Warga Nahdliyin"*.
-   - Grid produk 2 kolom responsif dengan badge status verifikasi NU.
-2. **Halaman Detail Produk (100% SEO):**
-   - High-priority LCP Hero Image (`fetchpriority="high"`).
-   - Metadata Open Graph lengkap untuk tampilan tautan preview di WhatsApp & media sosial.
-   - Schema.org Structured Data (`Product` & `LocalBusiness`) untuk Google Search rich snippets.
-   - **Sticky Bottom WhatsApp CTA:** Satu klik langsung membuka pesan WhatsApp terstruktur ke pemilik UMKM dengan tautan produk.
-3. **Form Entri Cepat Agen Lapangan (`/agen`):**
-   - Kompresi foto otomatis di sisi klien (Canvas) dari foto kamera HP (8MB ➔ ~150KB) sebelum dikirim, hemat kuota di pelosok.
-   - Form ringkas (<90 detik per produk).
-   - Opsi *Simpan & Tambah Varian Produk Toko Ini* untuk input multi-produk toko tanpa mengulang identitas usaha.
-4. **Database & API Terintegrasi:**
-   - Database SQLite lokal (`data/mamasar.db`) via `better-sqlite3`.
-   - Endpoint REST API (`/api/products`) langsung ditangani oleh Astro di server Node.js.
+## Fitur yang berjalan
+
+### Halaman publik
+- **Beranda `/`**: katalog produk dengan filter zona MWC (`zona`), kategori (`kategori`), pencarian (`q`), dan urutan (`sort`: `newest`, `price_asc`, `price_desc`). Empat produk teratas tampil di blok "Pilihan Premium".
+- **Detail produk `/p/[slug]`**: metadata Open Graph, Schema.org `Product`, penghitung tampilan dengan cookie debounce, status stok, tautan Shopee (jika diisi), dan tombol WhatsApp berisi nama produk, harga, wilayah, serta tautan halaman.
+- **Direktori toko `/toko` dan `/toko/[id]`**: daftar toko per zona dengan jumlah produk dan sampel foto.
+- **Kegiatan NU `/kegiatan` dan `/kegiatan/[slug]`**: agenda kegiatan, kebutuhan konsumsi, status lapak bazar, kontak koordinator via WhatsApp, dan rekomendasi kuliner dari MWC yang sama.
+- **Edukasi `/edukasi` dan `/edukasi/[slug]`**: artikel panduan usaha dan tautan referensi video.
+- **Favorit `/favorit`**: daftar produk yang disimpan di `localStorage`.
+- **Halaman 404**, `sitemap.xml`, dan `robots.txt`.
+
+### Manajemen
+- **Portal agen `/agen`**: entri produk cepat dengan PIN agen. Foto dikompresi di browser memakai Canvas sebelum dikirim.
+- **Dashboard UMKM `/dashboard`**: login Neon Auth (Google atau email/password) atau mode demo, penyiapan profil toko, unggah/edit/hapus produk, ubah status stok, sundul iklan, dan buku kas penjualan.
+- **API internal**: lihat [DOCS/API.md](./DOCS/API.md).
+
+### Platform
+- Adapter Vercel otomatis saat `VERCEL` terdeteksi, fallback ke adapter Node standalone untuk hosting biasa.
+- PWA (`public/manifest.webmanifest`) dan konfigurasi Capacitor Android (`capacitor.config.json`).
+- Endpoint health check layanan Neon di `/api/neon/services`.
+- Penyimpanan foto produk ke ImageKit dengan fallback ke disk lokal. Foto profil ke Neon Object Storage dengan fallback ke disk lokal.
 
 ---
 
-## Menjalankan di Komputer Lokal
+## Menjalankan di komputer lokal
 
 ```bash
-# 1. Install dependensi
 npm install
-
-# 2. Jalankan mode development
+cp .env.example .env
 npm run dev
-# Akses di: http://localhost:4321
 ```
 
----
+Akses `http://localhost:4321`. `src/lib/db.ts` membuat `data/mamasar.db` dan menjalankan seed otomatis saat tabel `zones` atau `products` masih kosong.
 
-## Panduan Deploy ke Hosting Node.js (cPanel / Server)
+## Perintah npm
 
-### 1. Build Proyek
+| Perintah | Fungsi |
+| :--- | :--- |
+| `npm run dev` | Jalankan Astro dev server |
+| `npm run build` | Build ke `dist/` (entry server: `dist/server/entry.mjs`) |
+| `npm run preview` | Pratinjau hasil build |
+| `npm start` | Jalankan server hasil build |
+| `npm run seed` | Seed SQLite tanpa menghapus data yang ada |
+| `npm run seed:reset` | Reset dan seed ulang SQLite |
+| `npm run backup` | Backup atomik `data/mamasar.db` ke `data/backups/`, simpan 7 arsip terakhir |
+| `npx astro dev --background` | Jalankan dev server di latar belakang, kelola dengan `astro dev stop`, `astro dev status`, `astro dev logs` |
+
+Migrasi skema dan seed Neon Postgres:
+
 ```bash
-npm run build
+DATABASE_URL="postgresql://..." node scripts/migrate-neon.js
 ```
-Proses ini akan menghasilkan folder `dist/` dengan entry point server di `dist/server/entry.mjs`.
 
-### 2. Konfigurasi di cPanel ("Setup Node.js App")
-- **Node.js version:** Pilih versi Node.js yang tersedia (disarankan 20.x atau 22.x).
-- **Application root:** Direktori folder aplikasi Anda (misal: `/public_html` atau `/umkm`).
-- **Application startup file:** `dist/server/entry.mjs`
-- **Application URL:** Domain / subdomain Anda (misal: `umkm.nusumenep.or.id`).
+`scripts/migrate-neon.js` dan `scripts/seed.js` mengimpor `src/lib/seeds.ts` secara langsung. Gunakan Node 22.18+ atau Node 24 yang mendukung type stripping TypeScript bawaan.
 
-Klik **Create / Restart**, dan aplikasi langsung aktif!
+## Variabel lingkungan
 
----
+Semua variabel ada di [.env.example](./.env.example). Kelompok utamanya:
 
-## Dokumentasi & Roadmap Pengembangan
+- **Server**: `HOST`, `PORT`, `SITE_URL`
+- **Database**: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `DATABASE_DIR`, `DATABASE_NAME`
+- **Media**: `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT`
+- **Google OAuth langsung (legacy)**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
+- **Neon Auth**: `NEON_AUTH_BASE_URL`, `NEON_AUTH_JWKS_URL`
+- **Neon Object Storage**: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
+- **Neon Functions/Realtime (opsional)**: `NEON_BRANCH_ID`, `NEON_FUNCTION_HOST_SUFFIX`, `NEON_REALTIME_SECRET`, `NEON_REALTIME_URL`
+- **Sesi dan operasional**: `SESSION_SECRET`, `AGENT_PIN`, `WHATSAPP_HELP`
 
-Untuk panduan teknis mendalam dan spesifikasi modul, rujuk dokumen berikut:
+Catatan: `DATABASE_DIR`, `DATABASE_NAME`, `DATABASE_URL_UNPOOLED`, `SITE_URL`, dan `SESSION_SECRET` belum dibaca langsung oleh kode aplikasi saat ini. Penjelasan status tiap variabel ada di [DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md](./DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md).
 
-- 🗺️ **[ROADMAP.md](./ROADMAP.md)**: Rencana kerja bertahap (Fase 1 hingga Fase 5) menuju aplikasi utuh.
-- ☁️ **[DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md](./DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md)**: Arsitektur Cloud (Vercel + Neon Postgres + ImageKit + Google Auth - Rp 0/bln).
-- 📱 **[DOCS/ANDROID_CAPACITOR.md](./DOCS/ANDROID_CAPACITOR.md)**: Panduan rilis aplikasi Android (.apk/.aab) via Capacitor & PWA.
-- 🗄️ **[DOCS/DATABASE.md](./DOCS/DATABASE.md)**: Skema tabel Neon PostgreSQL & SQLite (`users`, `umkm`, `products`, `articles`, `events`).
-- 🍲 **[DOCS/PASAR_KEGIATAN_NU.md](./DOCS/PASAR_KEGIATAN_NU.md)**: Konsep bisnis & alur *Pasar Kegiatan NU* (Pusat Konsumsi Acara Panitia & Lapak Warga).
-- ⚙️ **[.env.example](./.env.example)**: Template variabel lingkungan untuk konfigurasi server & keamanan agen.
+## Deploy
 
----
+### Hosting Node.js (cPanel atau VPS)
+1. Jalankan `npm run build`.
+2. Arahkan startup file ke `dist/server/entry.mjs`.
+3. Isi variabel lingkungan dari `.env.example`.
 
-## Agenda Fitur Selanjutnya (Work in Progress)
+### Vercel
+1. Import repositori ke Vercel.
+2. Tambahkan environment variables produksi.
+3. Adapter Vercel dipilih otomatis karena `process.env.VERCEL` terisi saat build.
 
-Berdasarkan rencana kerja di [ROADMAP.md](./ROADMAP.md):
+Penting: semua operasi baca/tulis aplikasi masih memakai SQLite. Di Vercel, `src/lib/db.ts` menaruh database di `/tmp`, sehingga data dapat hilang saat instance serverless didaur ulang. Untuk data persisten, pindahkan lapisan CRUD ke Neon Postgres. Rincian ada di dokumen infrastruktur.
 
-1. **Validasi Nomor WhatsApp Otomatis** (Regex Indonesia di form agen dan API).
-2. **Menu Edukasi Lengkap** (`/edukasi`): Panduan Ekonomi Pekarangan, Usaha Santri, dan Sertifikasi Halal.
-3. **Banner Slider Interaktif** di beranda untuk promosi agenda warga & produk unggulan.
-4. **Fitur Naikkan Iklan (*Sundul / Bump*)** agar produk kembali ke posisi teratas katalog.
-5. **Direktori Kegiatan NU & Banom** sebagai pasar konsumsi (katering/snack acara) dan lapak bazar jamaah.
-6. **Portal Manajemen Agen Lapangan** (`/agen/kelola`) untuk menandai produk habis atau mengedit harga.
-7. **Rilis Aplikasi Android (.apk/.aab)** via Capacitor & PWA untuk kemudahan warga.
+## Struktur proyek
+
+```
+src/
+  components/     Komponen UI (ProductCard, filter, slider)
+  layouts/        Layout global, meta SEO, PWA
+  lib/            Database, seed, auth, storage, konstanta, util
+  pages/          Rute halaman dan endpoint API
+  styles/         Tailwind dan gaya global
+scripts/          seed.js, migrate-neon.js, backup.js
+data/             SQLite, upload lokal, arsip backup
+DOCS/             Dokumentasi teknis
+public/           Manifest PWA, ikon, aset statis
+```
+
+## Dokumentasi
+
+- [ROADMAP.md](./ROADMAP.md): rencana dan status per fase.
+- [Plan.md](./Plan.md): PRD MVP dan batasan lingkup.
+- [DOCS/API.md](./DOCS/API.md): referensi endpoint API.
+- [DOCS/DATABASE.md](./DOCS/DATABASE.md): skema SQLite dan Neon Postgres.
+- [DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md](./DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md): arsitektur cloud dan status integrasi.
+- [DOCS/ANDROID_CAPACITOR.md](./DOCS/ANDROID_CAPACITOR.md): rilis Android dan PWA.
+- [DOCS/PASAR_KEGIATAN_NU.md](./DOCS/PASAR_KEGIATAN_NU.md): konsep dan implementasi Pasar Kegiatan NU.
+- [.env.example](./.env.example): template variabel lingkungan.

@@ -180,7 +180,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Makanan & Minuman',
     image_url: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80',
     description: 'Rengginang lorjuk khas Gapura Sumenep dengan taburan lorjuk melimpah dan rempah gurih asli. Renyah, tanpa pengawet buatan, cocok untuk camilan keluarga dan oleh-oleh khas Madura.',
-    views: 1191,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -191,7 +191,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Batik & Kerajinan',
     image_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
     description: 'Batik tulis asli pengrajin nahdliyin Sumenep. Menggunakan pewarna berkualitas dengan motif klasik Sumenep yang elegan, kain katun primissima dingin dan nyaman dipakai.',
-    views: 1806,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -202,7 +202,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Hasil Laut & Olahan',
     image_url: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=600&q=80',
     description: 'Petis ikan cakalang murni tanpa campuran tepung berlebih. Rasa gurih alami sangat cocok untuk rujak Madura, cocolan tahu, krupuk, dan bumbu dapur khas.',
-    views: 983,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -213,7 +213,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Makanan & Minuman',
     image_url: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=600&q=80',
     description: 'Camilan kripik singkong gurih khas pesisir Ambunten Sumenep, potongan tipis renyah dibumbui bawang dan cabai asli tanpa pewarna buatan.',
-    views: 1053,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -224,7 +224,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Pertanian & Perkebunan',
     image_url: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80',
     description: 'Gula merah cetak alami asli dari nira pohon siwalan segar Dungkek Sumenep. Manis legit alami tanpa bahan pengawet.',
-    views: 342,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -235,7 +235,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Hasil Laut & Olahan',
     image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
     description: 'Terasi rebon asli nelayan Saronggi kualitas pilihan, wangi gurih sedap untuk sambal terasi mentah khas Madura.',
-    views: 528,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -246,7 +246,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Hasil Laut & Olahan',
     image_url: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80',
     description: 'Kerupuk ikan tongkol segar racikan warga nahdliyin Batang-Batang. Ikan terasa pekat, mekar renyah gurih.',
-    views: 412,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -257,7 +257,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Herbal & Jamu',
     image_url: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=600&q=80',
     description: 'Madu murni hasil panen lebah liar perbukitan Manding. Murni tanpa campuran gula, bagus untuk daya tahan tubuh.',
-    views: 675,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -268,7 +268,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Herbal & Jamu',
     image_url: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80',
     description: 'Ramuan herbal tradisional Madura olahan Fatayat NU Lenteng. Rempah alami temulawak, jahe merah, dan kunyit.',
-    views: 289,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -279,7 +279,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Batik & Kerajinan',
     image_url: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=600&q=80',
     description: 'Tas etnik ramah lingkungan dari anyaman daun lontar siwalan pilihan pengrajin Pragaan Sumenep. Kuat dan artistik.',
-    views: 198,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -290,7 +290,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Fashion Muslim',
     image_url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80',
     description: 'Songkok bludru premium berkualitas dengan bordir logo lambang NU halus dan presisi. Nyaman dipakai santri.',
-    views: 814,
+    views: 0,
     is_sold_out: 0,
   },
   {
@@ -301,7 +301,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     category: 'Makanan & Minuman',
     image_url: 'https://images.unsplash.com/photo-1528751014936-863e6e7a319c?auto=format&fit=crop&w=600&q=80',
     description: 'Keripik pisang pilihan diiris tipis dengan balutan karamel madu asli khas Bluto Sumenep. Renyah gurih manis.',
-    views: 375,
+    views: 0,
     is_sold_out: 1,
   },
 ];

@@ -65,13 +65,18 @@ async function runMigration() {
       image_url TEXT NOT NULL,
       gallery_images TEXT,
       description TEXT,
-      views INTEGER DEFAULT 50,
+      views INTEGER DEFAULT 0,
       is_sold_out INTEGER DEFAULT 0,
       is_featured INTEGER DEFAULT 0,
+      shopee_url TEXT,
       bumped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `;
+
+  // Kolom tambahan untuk database Neon yang sudah dibuat sebelumnya
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS shopee_url TEXT;`;
+  await sql`ALTER TABLE products ALTER COLUMN views SET DEFAULT 0;`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS articles (
@@ -104,6 +109,25 @@ async function runMigration() {
       coordinator_phone VARCHAR(50) NOT NULL,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
+  `;
+
+  // Buku Kas Penjualan Santri (Slide 4 LPNU)
+  await sql`
+    CREATE TABLE IF NOT EXISTS cashbook (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title VARCHAR(255) NOT NULL,
+      amount INTEGER NOT NULL,
+      type VARCHAR(20) NOT NULL DEFAULT 'income',
+      category VARCHAR(100) DEFAULT 'Penjualan',
+      notes TEXT,
+      transaction_date DATE DEFAULT CURRENT_DATE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_cashbook_user ON cashbook(user_id, transaction_date DESC);
   `;
 
   console.log('✅ Skema tabel berhasil dibuat di Neon PostgreSQL!');
@@ -143,8 +167,8 @@ async function runMigration() {
     for (const p of SEED_PRODUCTS) {
       const umkmId = umkmMap.get(p.umkm_name) || 1;
       await sql`
-        INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, views, is_sold_out, is_featured, bumped_at)
-        VALUES (${umkmId}, ${p.name}, ${p.slug}, ${p.price}, ${p.category}, ${p.image_url}, ${p.description}, ${p.views || 50}, ${p.is_sold_out || 0}, ${p.is_featured || 0}, CURRENT_TIMESTAMP)
+        INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, views, is_sold_out, is_featured, shopee_url, bumped_at)
+        VALUES (${umkmId}, ${p.name}, ${p.slug}, ${p.price}, ${p.category}, ${p.image_url}, ${p.description}, ${p.views || 0}, ${p.is_sold_out || 0}, ${p.is_featured || 0}, ${p.shopee_url || null}, CURRENT_TIMESTAMP)
         ON CONFLICT (slug) DO NOTHING;
       `;
     }

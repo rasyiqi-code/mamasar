@@ -1,8 +1,23 @@
 import type { APIRoute } from 'astro';
-import { getNeonSql, getNeonS3Client, invokeNeonFunction, sealRealtimeQuery, getNeonAuthInfo, getEnv } from '../../../lib/neon';
+import { getNeonSql, getNeonS3Client, invokeNeonFunction, sealRealtimeQuery, getNeonAuthInfo } from '../../../lib/neon';
+import { DEFAULT_AGENT_PIN } from '../../../lib/constants';
 import { ListObjectsV2Command } from '@aws-sdk/client-s3';
 
-export const GET: APIRoute = async () => {
+export const GET: APIRoute = async ({ request }) => {
+  // Diagnostic endpoint: only reachable with the admin/agent PIN.
+  // Public exposure leaks infrastructure topology (versions, endpoints, keys).
+  const url = new URL(request.url);
+  const providedPin =
+    request.headers.get('x-admin-pin') || url.searchParams.get('pin') || '';
+  const correctPin = process.env.AGENT_PIN || DEFAULT_AGENT_PIN;
+
+  if (providedPin !== correctPin) {
+    return new Response(JSON.stringify({ error: 'Akses ditolak. PIN admin diperlukan.' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+
   const report: Record<string, any> = {
     timestamp: new Date().toISOString(),
     services: {},
@@ -45,9 +60,7 @@ export const GET: APIRoute = async () => {
       report.services.object_storage = {
         status: 'connected',
         bucket: 'assets',
-        endpoint: getEnv('AWS_ENDPOINT_URL_S3'),
         objectCount: listRes.KeyCount || 0,
-        sampleKeys: (listRes.Contents || []).map((c) => c.Key),
       };
     }
   } catch (err: any) {
@@ -76,8 +89,6 @@ export const GET: APIRoute = async () => {
       const jwksData = await jwksRes.json();
       report.services.auth = {
         status: jwksRes.ok ? 'healthy' : 'failed',
-        baseUrl: authInfo.baseUrl,
-        jwksUrl: authInfo.jwksUrl,
         keyCount: jwksData.keys?.length || 0,
       };
     }
@@ -90,7 +101,6 @@ export const GET: APIRoute = async () => {
     const sealed = await sealRealtimeQuery('SELECT id, name, price FROM products LIMIT 3');
     report.services.realtime = {
       status: 'healthy',
-      endpoint: getEnv('NEON_REALTIME_URL'),
       sealedQueryFingerprint: sealed.queryFingerprint,
       expiresAt: new Date(sealed.expiresAt).toISOString(),
     };

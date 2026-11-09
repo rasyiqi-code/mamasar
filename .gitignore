@@ -24,6 +24,7 @@ data/uploads/*
 # sqlite temporary & backup files
 *.db-wal
 *.db-shm
+*.db
 data/backups/*
 !data/backups/.gitkeep
 

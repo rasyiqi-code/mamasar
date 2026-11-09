@@ -1,116 +1,214 @@
-# Arsitektur Cloud & Infrastruktur: Vercel + Neon + ImageKit + Google Auth
+# Arsitektur Cloud & Infrastruktur: Vercel + Neon + ImageKit
 
-Dokumen ini mendefinisikan spesifikasi arsitektur produksi modern untuk **Pasar Warga NU Sumenep** agar memiliki ketahanan data 100% (*anti-data loss saat redeploy*), performa tinggi, dan biaya operasional **Rp 0 (100% Free Tier Permanen)**.
+Dokumen ini menjelaskan arsitektur produksi **Pasar Warga NU Sumenep**, layanan yang sudah terhubung ke kode, dan batasan yang perlu diketahui sebelum deploy.
 
 ---
 
-## 🏗️ Diagram Arsitektur Cloud
+## Status integrasi di codebase
+
+| Komponen | Status | Bukti di repositori |
+| :--- | :--- | :--- |
+| Vercel adapter | Aktif otomatis saat `VERCEL` terisi | `astro.config.mjs` memilih `@astrojs/vercel`; fallback ke `@astrojs/node` |
+| Neon Postgres | Skema, seed, dan health check tersedia. CRUD aplikasi masih SQLite | `scripts/migrate-neon.js`, `src/lib/neon.ts`, `/api/neon/services` |
+| Neon Auth | Aktif untuk Google dan email/password | `src/lib/neon-auth.ts`, `/api/auth/login`, `/api/auth/email`, `/api/auth/callback/neon` |
+| ImageKit | Aktif untuk foto produk, fallback ke disk lokal | `src/lib/storage.ts` (`saveProductImage`) |
+| Neon Object Storage (S3) | Aktif untuk foto profil, fallback ke disk lokal | `src/lib/storage.ts` (`saveAccountAvatar`), bucket `assets` |
+| Neon Functions | Hanya dipanggil endpoint health check | `invokeNeonFunction()` di `src/lib/neon.ts` |
+| Neon Realtime | Hanya diuji endpoint health check | `sealRealtimeQuery()` di `src/lib/neon.ts` |
+| Google OAuth langsung | Endpoint legacy, tidak dipakai alur login utama | `/api/auth/callback/google` |
+| PWA dan Capacitor | Aktif | `public/manifest.webmanifest`, `capacitor.config.json` |
+
+---
+
+## Diagram arsitektur
 
 ```mermaid
 flowchart TD
-    User["📱 Pengunjung / Pembeli / Agen (HP & Desktop)"] --> Vercel["⚡ Vercel Edge Network & Serverless\n(Hosting Astro SSR)\n- 100 GB Bandwidth\n- 1.000.000 Invocations\n- Domain: umkm.nusumenep.or.id"]
-    
-    subgraph CloudServices ["Layanan Cloud Terdistribusi (Rp 0 / Bulan)"]
-        Neon["🐘 Neon Serverless PostgreSQL\n(Database Utama)\n- Skema Relasional (Toko, Produk, User, Event)\n- Scale-to-Zero & Auto Wake-up (<1s)\n- TIDAK PERNAH DI-PAUSE"]
-        ImageKit["🖼️ ImageKit.io\n(Storage & CDN Foto Produk)\n- 3 GB Media Storage (~20.000 Foto)\n- 20 GB CDN Bandwidth\n- Transformasi WebP Realtime Gratis"]
-        Google["🔐 Google Cloud OAuth 2.0\n(Login Mandiri UMKM)\n- 1-Klik Masuk dengan Google\n- Profil Terverifikasi Warga"]
+    User["Pengunjung, pembeli, agen, pemilik UMKM"] --> Vercel["Vercel Edge Network & Serverless\nAstro SSR\nDomain: umkm.nusumenep.or.id"]
+
+    subgraph Cloud["Layanan cloud"]
+        NeonDB["Neon Postgres\nSkema, seed, health check"]
+        NeonAuth["Neon Auth\nGoogle dan email/password"]
+        ImageKit["ImageKit.io\nFoto produk dan CDN"]
+        NeonS3["Neon Object Storage\nBucket assets untuk avatar"]
+        NeonFn["Neon Functions dan Realtime\nProbe opsional"]
     end
 
-    Vercel -->|Query Data SQL| Neon
-    Vercel -->|Upload & Fetch Foto| ImageKit
-    Vercel -->|Verifikasi Token Sesi| Google
+    SQLite["SQLite runtime\nbetter-sqlite3\ndata/mamasar.db atau /tmp di Vercel"]
+
+    Vercel -->|CRUD aplikasi| SQLite
+    Vercel -->|Migrasi dan health check| NeonDB
+    Vercel -->|Login dan sesi| NeonAuth
+    Vercel -->|Upload foto produk| ImageKit
+    Vercel -->|Upload avatar| NeonS3
+    Vercel -->|Probe| NeonFn
 ```
 
 ---
 
-## 📊 Matriks Alokasi & Batasan Kuota Free Tier
+## 1. Vercel Hosting
 
-| Layanan | Peran Sistem | Kapasitas Gratis per Bulan | Toleransi Beban Pasar Warga NU |
+- Adapter dipilih otomatis: `@astrojs/vercel` saat `process.env.VERCEL` ada, selain itu `@astrojs/node` mode standalone.
+- Semua halaman dan API dirender server-side (`output: 'server'`).
+- Aset statis dilayani dari `public/` dan hasil build Vercel.
+- Domain kustom dan SSL diatur di dashboard Vercel.
+
+---
+
+## 2. Lapisan database
+
+### Yang dipakai aplikasi saat ini
+
+`src/lib/db.ts` memakai `better-sqlite3`. Lokasi file:
+
+- Lokal: `data/mamasar.db`
+- Vercel atau Lambda: `/tmp/data/mamasar.db`
+
+Di lingkungan serverless, `/tmp` bersifat sementara. Data dapat hilang saat instance didaur ulang atau saat deploy baru. Ini berlaku untuk produk, toko, akun, sesi, artikel, kegiatan, dan buku kas.
+
+### Yang tersedia untuk Neon
+
+- `scripts/migrate-neon.js` membuat skema dan melakukan seed ke Neon Postgres.
+- `/api/neon/services` mengecek koneksi Postgres, object storage, functions, auth, dan realtime.
+- `src/lib/neon.ts` menyediakan client `neon()` dan helper lain.
+
+### Rekomendasi produksi
+
+Untuk data yang harus bertahan di Vercel, pindahkan operasi CRUD dari `db.ts` ke Neon Postgres, atau jalankan aplikasi di hosting Node dengan volume persisten. Tanpa salah satu langkah itu, aplikasi tetap berjalan tetapi data tidak permanen di Vercel.
+
+---
+
+## 3. Neon Auth
+
+Alur yang dipakai dashboard:
+
+1. **Google**: pengguna membuka `/api/auth/login`. Endpoint memanggil Neon Auth `/sign-in/social` dengan provider `google` dan `callbackURL` ke `/api/auth/callback/neon`.
+2. **Email/password**: form dashboard mengirim `POST /api/auth/email` dengan `action` bernilai `signin` atau `signup`. Endpoint meneruskan ke Neon Auth `/sign-in/email` atau `/sign-up/email`.
+3. **Callback**: `/api/auth/callback/neon` memverifikasi sesi lewat `/get-session`, menyinkronkan pengguna ke tabel `users` dengan `google_id = neon_<id>`, lalu membuat baris `sessions` lokal dan cookie `mamasar_session`.
+4. **Resolusi sesi**: `resolveUser()` di `src/lib/neon-auth.ts` memeriksa cookie `mamasar_session` lebih dulu, lalu cookie Neon Auth (`__Secure-neon-auth.session_token`, `neon_auth.session_token`, atau `better-auth.session_token`).
+5. **Logout**: `/api/auth/logout` menghapus sesi lokal, memanggil `/sign-out` Neon Auth, dan menghapus cookie terkait.
+6. **Mode demo**: `/api/auth/login?demo=1` membuat sesi pengguna demo tanpa Neon Auth. Jangan aktifkan di produksi publik.
+
+Endpoint Google OAuth langsung di `/api/auth/callback/google` masih ada untuk kompatibilitas. Endpoint ini memerlukan `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, dan `GOOGLE_REDIRECT_URI`, tetapi alur login utama sekarang lewat Neon Auth.
+
+---
+
+## 4. ImageKit.io untuk foto produk
+
+Alur unggah:
+
+1. Pengguna memilih atau memotret foto. Form agen dan dashboard mengompresi gambar di browser dengan Canvas.
+2. Form mengirim `image` atau `imageBase64` ke `/api/products` atau `/api/umkm/add-product`.
+3. `saveProductImage()` mengunggah buffer ke ImageKit folder `/products` bila kredensial tersedia.
+4. Bila ImageKit gagal atau belum dikonfigurasi, file ditulis ke `data/uploads/` dan disajikan lewat `/uploads/[...path]`.
+5. URL hasil disimpan di `products.image_url`.
+
+Transformasi gambar dapat ditambahkan pada URL ImageKit, misalnya `?tr=w-400,h-300,fo-auto,q-80,f-webp`.
+
+---
+
+## 5. Neon Object Storage untuk foto profil
+
+- `saveAccountAvatar()` mengunggah ke bucket `assets` dengan prefix `avatars/`.
+- URL yang dikembalikan berupa presigned GET URL (default 7 hari) dari `getNeonPresignedUrl()`.
+- Bila kredensial S3 belum diisi, file disimpan ke `data/uploads/avatars/`.
+- Endpoint: `POST /api/user/avatar`.
+
+Catatan: presigned URL kedaluwarsa. Untuk avatar yang dipakai jangka panjang, simpan URL publik atau perpanjang masa berlaku sesuai kebutuhan.
+
+---
+
+## 6. Neon Functions dan Realtime
+
+Keduanya belum dipakai untuk fitur aplikasi. `/api/neon/services` hanya memanggil:
+
+- `invokeNeonFunction('hello')`
+- `sealRealtimeQuery('SELECT id, name, price FROM products LIMIT 3')`
+
+Gunakan endpoint ini untuk memverifikasi konfigurasi setelah deploy.
+
+---
+
+## 7. Variabel lingkungan
+
+Isi variabel di dashboard Vercel atau file `.env` lokal.
+
+| Variabel | Wajib | Dibaca oleh | Keterangan |
 | :--- | :--- | :--- | :--- |
-| **Vercel** | Hosting & SSR App | • 100 GB Bandwidth<br>• 1.000.000 Panggilan Fungsi<br>• 100 Deploy/hari | Sanggup melayani **~33.000 kunjungan per hari** tanpa biaya. |
-| **Neon** | Database PostgreSQL | • 0.5 GiB Storage Data<br>• Autoscaling Compute<br>• Branching DB | Menampung **50.000+ produk & profil toko**. Auto wake-up instan, tidak pernah mati/pause. |
-| **ImageKit.io** | Storage & CDN Foto | • 3 GB Media Storage<br>• 20 GB CDN Bandwidth<br>• **Unlimited Transformasi** | Menampung **~20.000 foto produk HP terkompresi** dan 600.000+ view gambar per bulan. |
-| **Google Cloud** | Autentikasi Pengguna | • Kuota OAuth Standar Google | Tidak terbatas untuk skala login pengguna umum. |
+| `HOST` | Tidak | Runtime Astro Node | Alamat bind server |
+| `PORT` | Tidak | Runtime Astro Node | Port server lokal |
+| `SITE_URL` | Tidak | Belum dibaca kode | URL canonical dihitung dari request |
+| `DATABASE_URL` | Untuk Neon | `src/lib/neon.ts`, `scripts/migrate-neon.js` | Connection string pooler Neon |
+| `DATABASE_URL_UNPOOLED` | Tidak | Belum dibaca kode | Disiapkan untuk migrasi langsung |
+| `DATABASE_DIR` | Tidak | Belum dibaca kode | Lokasi SQLite masih tetap `data/` |
+| `DATABASE_NAME` | Tidak | Belum dibaca kode | Nama file masih tetap `mamasar.db` |
+| `IMAGEKIT_PUBLIC_KEY` | Untuk ImageKit | `src/lib/storage.ts` | Public key ImageKit |
+| `IMAGEKIT_PRIVATE_KEY` | Untuk ImageKit | `src/lib/storage.ts` | Private key ImageKit |
+| `IMAGEKIT_URL_ENDPOINT` | Untuk ImageKit | `src/lib/storage.ts` | Endpoint CDN ImageKit |
+| `GOOGLE_CLIENT_ID` | Untuk OAuth legacy | `/api/auth/callback/google` | Client ID Google |
+| `GOOGLE_CLIENT_SECRET` | Untuk OAuth legacy | `/api/auth/callback/google` | Client secret Google |
+| `GOOGLE_REDIRECT_URI` | Untuk OAuth legacy | `/api/auth/callback/google` | Redirect URI |
+| `NEON_AUTH_BASE_URL` | Untuk Neon Auth | `src/lib/neon-auth.ts` | Base URL Neon Auth |
+| `NEON_AUTH_JWKS_URL` | Tidak | `/api/neon/services` | Dicek di health report |
+| `AWS_ENDPOINT_URL_S3` | Untuk avatar S3 | `src/lib/neon.ts` | Endpoint S3 Neon |
+| `AWS_ACCESS_KEY_ID` | Untuk avatar S3 | `src/lib/neon.ts` | Access key |
+| `AWS_SECRET_ACCESS_KEY` | Untuk avatar S3 | `src/lib/neon.ts` | Secret key |
+| `AWS_REGION` | Tidak | `src/lib/neon.ts` | Default `ap-southeast-1` |
+| `NEON_BRANCH_ID` | Tidak | `src/lib/neon.ts` | Default branch untuk functions |
+| `NEON_FUNCTION_HOST_SUFFIX` | Tidak | `src/lib/neon.ts` | Suffix host functions |
+| `NEON_REALTIME_SECRET` | Untuk Realtime | `src/lib/neon.ts` | Secret seal query |
+| `NEON_REALTIME_URL` | Tidak | `/api/neon/services` | Hanya dilaporkan |
+| `SESSION_SECRET` | Tidak | Belum dibaca kode | Sesi memakai token acak |
+| `AGENT_PIN` | Ya untuk produksi | `/api/products`, endpoint produk lain | PIN agen lapangan |
+| `WHATSAPP_HELP` | Tidak | `src/lib/constants.ts` | Nomor helpdesk PCNU |
 
----
-
-## ⚙️ Rincian Komponen & Integrasi Teknis
-
-### 1. Vercel Hosting (Astro Adapter)
-* **Paket Adapter:** `@astrojs/vercel`
-* **Strategi Efisiensi:**
-  * File HTML dan JSON API dirender oleh Vercel Serverless Function.
-  * Semua aset gambar produk **tidak disimpan di Vercel**, melainkan langsung dialirkan dari ImageKit CDN. Ini menjaga penggunaan bandwidth Vercel tetap sangat kecil (~15–20 KB per request).
-* **Domain & Keamanan:**
-  * Domain kustom: `umkm.nusumenep.or.id` (otomatis gratis SSL Let's Encrypt dari Vercel).
-  * Proteksi DDoS bawaan Vercel Edge Network.
-
-### 2. Neon Serverless PostgreSQL
-* **Alasan Pemilihan:** Mengatasi kelemahan Supabase (yang mem-pause database jika tidak ada traffic 7 hari). Neon **selalu aktif**, otomatis tidur saat sepi dan otomatis bangun dalam ~500 milidetik saat ada request masuk.
-* **Driver Penghubung:** `@neondatabase/serverless` atau `postgres` (porsgres-js).
-* **Koneksi:** Menggunakan connection pooling URL untuk menjamin performa serverless tanpa kehabisan batas koneksi (*connection exhaustion*).
-
-### 3. ImageKit.io (Media Delivery & Storage)
-* **Alasan Pemilihan:**
-  * Berbeda dari Cloudinary yang menggunakan sistem kredit gabungan (storage memakan kuota bandwidth) dan upgrade berbayar mahal ($89/bln), ImageKit memisahkan kuota secara transparan (3 GB Storage + 20 GB Bandwidth) dan memiliki opsi upgrade terjangkau ($9/bln).
-  * **Transformasi URL Real-time Gratis Tanpa Batas:**
-    ```html
-    <!-- Contoh pemanggilan foto di template: otomatis resize & format WebP super cepat -->
-    <img src="https://ik.imagekit.io/mamasar/prod-123.jpg?tr=w-400,h-300,fo-auto,q-80,f-webp" />
-    ```
-* **Alur Unggah:**
-  1. Pengguna memilih/memotret foto di HP.
-  2. Kompresi otomatis di sisi browser (HTML5 Canvas) mereduksi ukuran dari ~8 MB menjadi ~120 KB.
-  3. Form mengirim base64/file ke endpoint `/api/upload` Astro.
-  4. Server Astro mengunggah file ke ImageKit via REST API / SDK ImageKit dan menyimpan URL CDN ke database Neon.
-
-### 4. Google OAuth 2.0 (Login Mandiri UMKM)
-* **Alur Login:**
-  1. Pemilik UMKM mengklik tombol *"Masuk dengan Google"*.
-  2. Pengguna dialihkan ke halaman izin akun Google: `https://accounts.google.com/o/oauth2/v2/auth`.
-  3. Google mengembalikan kode otorisasi ke endpoint `/api/auth/callback/google`.
-  4. Server Astro menukar kode dengan profil Google pengguna (`google_id`, `email`, `name`, `avatar_url`).
-  5. Sistem mencari atau membuat baris data di tabel `users` Neon, lalu menerbitkan cookie sesi (*HTTP-Only, Secure, SameSite*).
-  6. Pengguna diarahkan ke `/dashboard` untuk mulai mengunggah atau mengedit produk mereka.
-
----
-
-## 🔒 Variabel Lingkungan Produksi (Vercel Environment Variables)
-
-Seluruh kunci rahasia disimpan di Vercel Dashboard (*Project Settings > Environment Variables*):
+Contoh blok `.env` produksi:
 
 ```env
-# URL Publik
 SITE_URL=https://umkm.nusumenep.or.id
 
-# Database Neon (PostgreSQL)
-DATABASE_URL=postgresql://user:password@ep-sample-pooler.us-east-2.aws.neon.tech/mamasar?sslmode=require
-DATABASE_URL_UNPOOLED=postgresql://user:password@ep-sample.us-east-2.aws.neon.tech/mamasar?sslmode=require
+DATABASE_URL=postgresql://user:password@ep-sample-pooler.us-east-2.aws.neon.tech/neondb?sslmode=require
+DATABASE_URL_UNPOOLED=postgresql://user:password@ep-sample.us-east-2.aws.neon.tech/neondb?sslmode=require
 
-# ImageKit.io
 IMAGEKIT_PUBLIC_KEY=public_xxxxxx
 IMAGEKIT_PRIVATE_KEY=private_xxxxxx
 IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/mamasar
 
-# Google OAuth 2.0
-GOOGLE_CLIENT_ID=xxxxxx.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-xxxxxx
-GOOGLE_REDIRECT_URI=https://umkm.nusumenep.or.id/api/auth/callback/google
+NEON_AUTH_BASE_URL=https://ep-sample.neonauth.ap-southeast-1.aws.neon.tech/neondb/auth
+NEON_AUTH_JWKS_URL=https://ep-sample.neonauth.ap-southeast-1.aws.neon.tech/neondb/auth/.well-known/jwks.json
 
-# Sesi & Keamanan
-SESSION_SECRET=super_secret_random_string_32_characters
+AWS_ENDPOINT_URL_S3=https://<endpoint-object-storage-neon>
+AWS_ACCESS_KEY_ID=xxxxxx
+AWS_SECRET_ACCESS_KEY=xxxxxx
+AWS_REGION=ap-southeast-1
+
 AGENT_PIN=1926
+WHATSAPP_HELP=6281234567890
 ```
 
 ---
 
-## 💰 Estimasi Biaya Operasional Bulanan
+## 8. Health check
 
-| Layanan | Biaya Bulanan |
+Setelah deploy, buka:
+
+```
+GET /api/neon/services
+```
+
+Respons berisi status `postgres`, `object_storage`, `functions`, `auth`, dan `realtime`. Endpoint ini tidak memerlukan login dan memberi respons JSON tanpa cache.
+
+---
+
+## 9. Estimasi biaya
+
+| Layanan | Biaya bulanan |
 | :--- | :--- |
-| **Hosting Vercel** | **Rp 0** |
-| **Database Neon PostgreSQL** | **Rp 0** |
-| **Storage & CDN Foto ImageKit.io** | **Rp 0** |
-| **Autentikasi Google Cloud** | **Rp 0** |
-| **Sertifikat SSL (HTTPS)** | **Rp 0** |
-| **TOTAL BIAYA INFRASTRUKTUR** | **Rp 0 / Bulan** |
+| Hosting Vercel | Rp 0 pada free tier |
+| Neon Postgres | Rp 0 pada free tier |
+| Neon Auth | Rp 0 pada free tier |
+| Neon Object Storage | Sesuai kuota paket Neon |
+| ImageKit.io | Rp 0 pada free tier |
+| Sertifikat SSL | Rp 0 |
+
+Kuota free tier berubah dari waktu ke waktu. Periksa dashboard masing-masing layanan sebelum mengandalkan angka kapasitas tertentu.

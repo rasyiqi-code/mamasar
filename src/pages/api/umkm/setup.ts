@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const user = getUserFromSession(sessionId);
+    const user = await getUserFromSession(sessionId);
     if (!user) {
       return new Response(JSON.stringify({ success: false, message: 'Sesi login telah berakhir.' }), {
         status: 401,
@@ -45,7 +45,7 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const storeId = createUMKMForUser(user.id, {
+    const storeId = await createUMKMForUser(user.id, {
       name,
       phone,
       zoneId,

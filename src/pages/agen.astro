@@ -5,12 +5,11 @@ import {
   PRODUCT_CATEGORIES,
   CATEGORY_ICONS,
   TARGET_MVP_PRODUCTS,
-  DEFAULT_AGENT_PIN,
 } from '../lib/constants';
 import { formatRupiah } from '../lib/utils';
 
-const zones = getAllZones();
-const allProducts = getProducts();
+const zones = await getAllZones();
+const allProducts = await getProducts();
 const totalCount = allProducts.length;
 const progressPercent = Math.min(
   Math.round((totalCount / TARGET_MVP_PRODUCTS) * 100),
@@ -549,6 +548,8 @@ const recentProducts = allProducts.slice(0, 5);
 
   <!-- Client Side Script: Canvas Auto-Compression & Fetch -->
   <script>
+    import { isValidIndonesianPhone } from '../lib/utils';
+
     const form = document.getElementById('agent-form') as HTMLFormElement;
     const cameraInput = document.getElementById('camera-input') as HTMLInputElement;
     const imageBase64Input = document.getElementById('imageBase64') as HTMLInputElement;
@@ -577,9 +578,9 @@ const recentProducts = allProducts.slice(0, 5);
     const phoneInput = document.getElementById('phone') as HTMLInputElement;
     const phoneFeedback = document.getElementById('phone-feedback');
 
+    // Single source of truth: same validator the API endpoint uses.
     function validatePhone(phone: string): boolean {
-      const clean = phone.replace(/\D/g, '');
-      return clean.length >= 10 && clean.length <= 14 && /^(08[1-9]\d{7,11}|628[1-9]\d{7,11}|8[1-9]\d{7,11})$/.test(clean);
+      return isValidIndonesianPhone(phone);
     }
 
     phoneInput?.addEventListener('input', () => {

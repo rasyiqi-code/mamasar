@@ -5,8 +5,8 @@ import { getEvents, getAllZones } from '../../lib/db';
 const url = new URL(Astro.request.url);
 const currentZone = url.searchParams.get('zona') || 'semua';
 
-const zones = getAllZones();
-const events = getEvents({ zoneSlug: currentZone });
+const zones = await getAllZones();
+const events = await getEvents({ zoneSlug: currentZone });
 const activeZone = zones.find((z) => z.slug === currentZone);
 ---
 
@@ -114,7 +114,6 @@ const activeZone = zones.find((z) => z.slug === currentZone);
             const evDate = new Date(ev.event_date);
             const dayNum = evDate.toLocaleDateString('id-ID', { day: 'numeric' });
             const monthStr = evDate.toLocaleDateString('id-ID', { month: 'short' }).toUpperCase();
-            const yearStr = evDate.toLocaleDateString('id-ID', { year: 'numeric' });
 
             return (
               <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:border-emerald-500 hover:shadow-md transition flex flex-col justify-between group space-y-4">

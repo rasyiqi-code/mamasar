@@ -37,8 +37,15 @@ export function isValidIndonesianPhone(phone: string): boolean {
     return false;
   }
 
-  // Check prefix: 08xxx (10-13 digits) or 628xxx (11-14 digits) or 8xxx (9-12 digits)
-  return /^(08[1-9]\d{7,11}|628[1-9]\d{7,11}|8[1-9]\d{7,11})$/.test(digitsOnly);
+  // Check prefix: 08xxx (9-13 digits after 08 = total 10-14), 628xxx (9-13 digits after 628 = total 11-14), 8xxx (9-12 digits = total 10-13)
+  // Normalize: strip leading + if present, ensure starts with 62 or 0 for consistency
+  const normalized = digitsOnly.replace(/^\+/, '');
+  
+  // Valid prefixes after normalization:
+  // - 08 followed by 8-13 more digits (total 10-14)  
+  // - 628 followed by 8-13 more digits (total 11-14)
+  // - 8 followed by 9-12 more digits (total 10-13)
+  return /^(08[1-9]\d{8,13}|628[1-9]\d{8,13}|8[1-9]\d{9,12})$/.test(normalized);
 }
 
 /**

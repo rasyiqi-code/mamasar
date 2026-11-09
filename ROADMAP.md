@@ -38,6 +38,9 @@ gantt
     section Fase 5: Android & PWA
     Setup Web App Manifest (PWA) :done, f5_1, 2026-11-04, 1d
     Konfigurasi Capacitor Android :done, f5_2, 2026-11-04, 1d
+    section Fase 6: Cloud & LPNU
+    Neon Auth (Google & Email) :done, f6_1, 2026-11-06, 1d
+    ImageKit, S3 Avatar, 27 MWC :done, f6_2, 2026-11-07, 1d
 ```
 
 ---
@@ -115,3 +118,32 @@ gantt
   - [x] Buat file konfigurasi `capacitor.config.json` mengarah ke URL produksi domain resmi (`https://umkm.nusumenep.or.id`).
   - [x] Spesifikasi izin `AndroidManifest.xml` (Kamera HP untuk agen & intent query WhatsApp).
   - [x] Panduan instalasi dan kompilasi APK / AAB teruji di `DOCS/ANDROID_CAPACITOR.md`.
+
+---
+
+### Fase 6: Integrasi Cloud Neon & Fitur LPNU (Target: Setelah Deploy Web) - [SELESAI ✅]
+
+- [x] **6.1. Neon Auth (Google dan Email/Password)**
+  - [x] Endpoint `/api/auth/login` memakai Neon Auth `/sign-in/social` provider Google, plus mode demo `?demo=1`.
+  - [x] Endpoint `/api/auth/email` untuk sign in dan sign up email/password.
+  - [x] Callback `/api/auth/callback/neon`, sinkronisasi user ke tabel `users`, dan cookie `mamasar_session`.
+  - [x] Resolver `resolveUser()` menerima sesi lokal atau cookie Neon Auth.
+  - [x] Endpoint logout menghapus sesi lokal dan sesi Neon Auth.
+  - [x] Endpoint `/api/auth/callback/google` dipertahankan untuk alur OAuth langsung (legacy).
+- [x] **6.2. Media dan Object Storage**
+  - [x] Foto produk ke ImageKit folder `/products` dengan fallback disk lokal dan route `/uploads/[...path]`.
+  - [x] Foto profil ke Neon Object Storage bucket `assets` prefix `avatars/` dengan fallback disk lokal.
+  - [x] Health check `/api/neon/services` untuk Postgres, object storage, functions, auth, dan realtime.
+- [x] **6.3. Penyelarasan Data LPNU**
+  - [x] 27 zona MWC: 18 daratan dan 9 kepulauan di `SEED_ZONES`.
+  - [x] Kolom `shopee_url` pada produk dan input di dashboard.
+  - [x] Tabel `cashbook` dan endpoint `/api/user/cashbook` untuk buku kas penjualan.
+  - [x] Tautan referensi video lapangan di halaman edukasi.
+- [x] **6.4. Deployment Vercel**
+  - [x] Adapter Vercel otomatis saat `VERCEL` terisi, fallback ke adapter Node.
+  - [x] Dokumentasi arsitektur dan variabel lingkungan diperbarui di `DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md`.
+- [ ] **6.5. Migrasi CRUD ke Neon Postgres**
+  - [ ] Pindahkan operasi baca/tulis dari `src/lib/db.ts` (SQLite) ke Neon Postgres agar data persisten di Vercel.
+  - [ ] Sinkronkan `scripts/migrate-neon.js` dengan kolom `shopee_url` dan tabel `cashbook`.
+
+Catatan cakupan: buku kas, manajemen stok, dan tautan Shopee berada di luar batas MVP yang ditulis di `Plan.md`. Fitur ini tetap dibangun karena mengikuti roadmap LPNU, dan statusnya dicatat di sini agar tidak dianggap bagian dari MVP awal.

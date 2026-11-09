@@ -17,7 +17,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    const user = getUserFromSession(sessionId);
+    const user = await getUserFromSession(sessionId);
     if (!user || !user.umkm) {
       return new Response(
         JSON.stringify({ success: false, message: 'Lengkapi profil toko Anda terlebih dahulu sebelum mengunggah produk.' }),
@@ -43,7 +43,7 @@ export const POST: APIRoute = async ({ request }) => {
     const shopeeUrl = formData.get('shopeeUrl')?.toString()?.trim() || undefined;
     const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
 
-    const result = addProductToUMKM(user.umkm.id, {
+    const result = await addProductToUMKM(user.umkm.id, {
       name,
       price,
       category,

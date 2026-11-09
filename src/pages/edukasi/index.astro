@@ -2,7 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { getArticles } from '../../lib/db';
 
-const allArticles = getArticles();
+const allArticles = await getArticles();
 const url = new URL(Astro.request.url);
 const currentCategory = url.searchParams.get('kategori') || 'semua';
 

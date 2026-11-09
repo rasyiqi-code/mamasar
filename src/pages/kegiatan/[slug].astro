@@ -1,7 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import { getEventBySlug, getProducts, getUMKMById } from '../../lib/db';
-import ProductCard from '../../components/ProductCard.astro';
+import { getEventBySlug, getProducts } from '../../lib/db';
 import { formatPhoneForWhatsApp } from '../../lib/utils';
 
 const { slug } = Astro.params;
@@ -10,7 +9,7 @@ if (!slug) {
   return Astro.redirect('/kegiatan');
 }
 
-const event = getEventBySlug(slug);
+const event = await getEventBySlug(slug);
 
 if (!event) {
   return new Response(null, {
@@ -25,13 +24,15 @@ const coordinatorWaLink = `https://wa.me/${formatPhoneForWhatsApp(event.coordina
 )}`;
 
 // Fetch local food & beverage products from the same MWC zone
-const localFoodProducts = getProducts({
+const localFoodProducts = (await getProducts({
   zoneSlug: event.zone_slug,
   category: 'Makanan & Minuman',
-}).slice(0, 4);
+})).slice(0, 4);
 
 // Fallback all food products if zone is empty
-const foodVendors = localFoodProducts.length > 0 ? localFoodProducts : getProducts({ category: 'Makanan & Minuman' }).slice(0, 4);
+const foodVendors = localFoodProducts.length > 0
+  ? localFoodProducts
+  : (await getProducts({ category: 'Makanan & Minuman' })).slice(0, 4);
 
 // Schema.org Event Structured Data for SEO
 const eventSchema = {

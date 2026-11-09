@@ -7,8 +7,8 @@ import { formatPhoneForWhatsApp } from '../../lib/utils';
 const currentZone = Astro.url.searchParams.get('zona') || 'semua';
 const searchQuery = Astro.url.searchParams.get('q') || '';
 
-const zones = getAllZones();
-const stores = getAllUMKM({
+const zones = await getAllZones();
+const stores = await getAllUMKM({
   zoneSlug: currentZone,
   search: searchQuery,
 });

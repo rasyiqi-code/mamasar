@@ -1,11 +1,12 @@
-import { findOrCreateUserByGoogle, createSession, getUserFromSession, getUMKMByUserId } from './db';
-import type { User, UMKM } from './types';
+import { findOrCreateUserByGoogle, getOrCreateSessionForUser, getUserFromSession, getUMKMByUserId } from './db';
+import type { User, UMKM } from './db';
 
-export function getNeonAuthBaseUrl(): string {
+export function getNeonAuthBaseUrl(): string | null {
   if (typeof process !== 'undefined' && process.env.NEON_AUTH_BASE_URL) {
     return process.env.NEON_AUTH_BASE_URL;
   }
-  return 'https://ep-patient-water-a1v24o66.neonauth.ap-southeast-1.aws.neon.tech/neondb/auth';
+  // No hardcoded fallback: pointing at a stale endpoint silently breaks auth.
+  return null;
 }
 
 /**
@@ -16,9 +17,13 @@ export function parseCookieString(cookieHeader: string | null): Record<string, s
   if (!cookieHeader) return cookies;
 
   cookieHeader.split(';').forEach((part) => {
-    const [key, ...val] = part.trim().split('=');
-    if (key) {
-      cookies[key.trim()] = decodeURIComponent(val.join('='));
+    try {
+      const [key, ...val] = part.trim().split('=');
+      if (key) {
+        cookies[key.trim()] = decodeURIComponent(val.join('='));
+      }
+    } catch (_) {
+      // Skip malformed cookie parts
     }
   });
 
@@ -44,6 +49,7 @@ export async function getNeonAuthUser(cookieHeader: string | null): Promise<{
   if (!neonToken) return null;
 
   const baseUrl = getNeonAuthBaseUrl();
+  if (!baseUrl) return null;
 
   try {
     const res = await fetch(`${baseUrl}/get-session`, {
@@ -60,15 +66,15 @@ export async function getNeonAuthUser(cookieHeader: string | null): Promise<{
     if (!data || !data.user || !data.session) return null;
 
     // Sync Neon Auth user into our app users table
-    const appUser = findOrCreateUserByGoogle({
+    const appUser = await findOrCreateUserByGoogle({
       googleId: `neon_${data.user.id}`,
       email: data.user.email,
       name: data.user.name || data.user.email.split('@')[0],
       avatarUrl: data.user.image || '',
     });
 
-    // Ensure session is mapped
-    const sessionId = createSession(appUser.id);
+    // Reuse the existing valid session instead of inserting a new row per request
+    const sessionId = await getOrCreateSessionForUser(appUser.id);
 
     return {
       user: appUser,
@@ -101,14 +107,14 @@ export async function resolveUser(
   const mamasarSessionId = cookies['mamasar_session'];
 
   if (mamasarSessionId) {
-    const user = getUserFromSession(mamasarSessionId);
+    const user = await getUserFromSession(mamasarSessionId);
     if (user) return user;
   }
 
   // 2. Try Neon Auth session token
   const neonResult = await getNeonAuthUser(cookieHeader);
   if (neonResult) {
-    const store = getUMKMByUserId(neonResult.user.id);
+    const store = await getUMKMByUserId(neonResult.user.id);
     return {
       ...neonResult.user,
       umkm: store || undefined,

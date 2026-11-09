@@ -12,6 +12,9 @@ export const GET: APIRoute = async ({ request, redirect }) => {
   }
 
   const baseUrl = getNeonAuthBaseUrl();
+  if (!baseUrl) {
+    return redirect('/dashboard?error=neon_auth_unconfigured');
+  }
   const cookieHeader = request.headers.get('cookie') || '';
 
   try {
@@ -42,7 +45,7 @@ export const GET: APIRoute = async ({ request, redirect }) => {
     }
 
     // Sync user with local/Postgres database
-    const appUser = findOrCreateUserByGoogle({
+    const appUser = await findOrCreateUserByGoogle({
       googleId: `neon_${data.user.id}`,
       email: data.user.email,
       name: data.user.name || data.user.email.split('@')[0],
@@ -50,7 +53,7 @@ export const GET: APIRoute = async ({ request, redirect }) => {
     });
 
     // Create session token
-    const sessionId = createSession(appUser.id);
+    const sessionId = await createSession(appUser.id);
 
     const headers = new Headers();
     // Forward Neon Auth set-cookie headers

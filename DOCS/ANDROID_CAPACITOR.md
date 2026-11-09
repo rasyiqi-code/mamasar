@@ -2,11 +2,20 @@
 
 Dokumen ini menjelaskan arsitektur, strategi implementasi, dan langkah teknis untuk mengemas aplikasi web **Pasar Warga NU Sumenep** menjadi aplikasi native Android (`.apk` / `.aab`) menggunakan **Capacitor**, serta opsi distribusi instan berbasis **Progressive Web App (PWA)**.
 
+## Status di repositori
+
+- `capacitor.config.json` sudah ada di root dengan `appId` `id.or.nusumenep.mamasar`, `webDir` `dist/client`, dan URL produksi `https://umkm.nusumenep.or.id`.
+- `public/manifest.webmanifest` dan `public/icon.svg` sudah tersedia.
+- Direktori `android/` belum di-commit. Langkah `npx cap add android` di bawah akan membuatnya.
+- Dependensi Capacitor belum tercantum di `package.json`. Pasang lewat perintah di Langkah 1 sebelum build native.
+
 ---
 
 ## 🎯 Strategi Arsitektur: Hosted App Pattern
 
 Aplikasi Pasar Warga NU menggunakan arsitektur **Astro Server-Side Rendering (SSR)** dan database terpusat **SQLite (`better-sqlite3`)** di server Node.js.
+
+Catatan deployment: di Vercel, SQLite disimpan di `/tmp` dan tidak persisten. Untuk data yang bertahan, gunakan hosting Node dengan volume persisten atau pindahkan CRUD ke Neon Postgres. Lihat `DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md`.
 
 Oleh karena itu, strategi Android yang digunakan adalah **Hosted App Mode (Remote Server URL)**:
 * Aplikasi Android native membungkus URL produksi resmi (contoh: `https://umkm.nusumenep.or.id`) ke dalam runtime WebView Android berkecepatan tinggi.
@@ -69,18 +78,27 @@ npm install @capacitor/core @capacitor/cli @capacitor/android
 npm install @capacitor/camera @capacitor/splash-screen @capacitor/app
 ```
 
-### Langkah 2: Inisialisasi Proyek Capacitor
+### Langkah 2: Build Web
+Kapasitor menyalin isi `webDir` saat `cap sync`, jadi build dulu:
+
+```bash
+npm run build
+```
+
+Hasil build Astro berada di `dist/`. Folder `dist/client` dipakai sebagai `webDir` sesuai `capacitor.config.json`.
+
+### Langkah 3: Inisialisasi Proyek Capacitor
 ```bash
 npx cap init "Pasar Warga NU" "id.or.nusumenep.mamasar" --web-dir dist/client
 ```
 
-### Langkah 3: Tambahkan Platform Android
+### Langkah 4: Tambahkan Platform Android
 ```bash
 npx cap add android
 ```
 Perintah ini akan membuat direktori native `android/` yang berisi proyek Gradle lengkap.
 
-### Langkah 4: Konfigurasi Izin Native (`AndroidManifest.xml`)
+### Langkah 5: Konfigurasi Izin Native (`AndroidManifest.xml`)
 Pastikan file `android/app/src/main/AndroidManifest.xml` menyertakan izin akses internet, kamera, dan intent WhatsApp:
 
 ```xml
@@ -107,7 +125,7 @@ Pastikan file `android/app/src/main/AndroidManifest.xml` menyertakan izin akses 
 </manifest>
 ```
 
-### Langkah 5: Buka Android Studio & Build APK
+### Langkah 6: Buka Android Studio & Build APK
 ```bash
 # Sinkronkan konfigurasi web ke direktori android
 npx cap sync android

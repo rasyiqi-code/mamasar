@@ -70,6 +70,18 @@ sequenceDiagram
 
 ---
 
+## Implementasi di codebase
+
+- Halaman daftar: `src/pages/kegiatan/index.astro`. Filter zona lewat query `?zona=<slug>`; nilai default `semua`.
+- Halaman detail: `src/pages/kegiatan/[slug].astro`. Menampilkan kebutuhan konsumsi, status lapak, tombol WhatsApp koordinator, dan sampai empat produk `Makanan & Minuman` dari MWC yang sama. Bila zona tidak punya produk kuliner, halaman memakai produk kuliner dari zona lain.
+- Data: tabel `events` di `src/lib/db.ts`, dibaca lewat `getEvents()` dan `getEventBySlug()`.
+- Seed: `SEED_EVENTS` di `src/lib/seeds.ts`, ikut dimigrasikan oleh `scripts/migrate-neon.js`.
+- SEO: halaman detail menghasilkan Schema.org `Event`.
+- Konversi: semua pesanan dan koordinasi lapak berlangsung lewat tautan WhatsApp. Tidak ada keranjang, checkout, atau pembayaran di aplikasi.
+- Publikasi agenda: belum ada halaman admin atau endpoint API untuk membuat kegiatan. Data masuk lewat seed atau SQL langsung.
+
+---
+
 ## 🎯 Dampak Sosial & Ekonomi
 1. **Uang Jamaah Berputar di Lingkaran Sendiri**: Anggaran konsumsi acara dari infaq warga tidak lari ke katering luar, melainkan kembali menghidupkan dapur keluarga Nahdliyin.
 2. **Kualitas & Kehalalan Terjamin**: Makanan dimasak oleh tangan warga NU sendiri yang memahami adab thoharoh dan kehalalan bahan.

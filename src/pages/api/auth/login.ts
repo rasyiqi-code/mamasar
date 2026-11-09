@@ -1,37 +1,16 @@
 import type { APIRoute } from 'astro';
 import { getNeonAuthBaseUrl } from '../../../lib/neon-auth';
-import { findOrCreateUserByGoogle, createSession } from '../../../lib/db';
 
 export const GET: APIRoute = async ({ request, redirect }) => {
   const url = new URL(request.url);
-  const isDemo = url.searchParams.get('demo') === '1';
-
-  // Demo Santri Mode: 1-Click test login
-  if (isDemo) {
-    const demoUser = findOrCreateUserByGoogle({
-      googleId: 'google_demo_1926',
-      email: 'warga.santri@sumenep.nu.or.id',
-      name: 'Ahmad Fawaid (Warga NU)',
-      avatarUrl: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
-    });
-
-    const sessionId = createSession(demoUser.id);
-    const headers = new Headers();
-    headers.append(
-      'Set-Cookie',
-      `mamasar_session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 24 * 60 * 60}`
-    );
-    headers.set('Location', '/dashboard');
-
-    return new Response(null, {
-      status: 302,
-      headers,
-    });
-  }
 
   // Neon Auth Google Social Login Flow
   try {
     const baseUrl = getNeonAuthBaseUrl();
+    if (!baseUrl) {
+      return redirect('/dashboard?error=neon_auth_unconfigured');
+    }
+
     const origin = url.origin;
     const callbackURL = `${origin}/api/auth/callback/neon`;
 

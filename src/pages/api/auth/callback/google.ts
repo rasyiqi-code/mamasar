@@ -51,7 +51,7 @@ export const GET: APIRoute = async ({ request, redirect }) => {
     }
 
     // 3. Find or register user in local database
-    const user = findOrCreateUserByGoogle({
+    const user = await findOrCreateUserByGoogle({
       googleId: userInfo.sub,
       email: userInfo.email,
       name: userInfo.name || userInfo.email.split('@')[0],
@@ -59,7 +59,7 @@ export const GET: APIRoute = async ({ request, redirect }) => {
     });
 
     // 4. Create session and attach secure cookie
-    const sessionId = createSession(user.id);
+    const sessionId = await createSession(user.id);
     const headers = new Headers();
     headers.append(
       'Set-Cookie',

@@ -10,7 +10,7 @@ if (!id) {
   return Astro.redirect('/toko');
 }
 
-const store = getUMKMById(id);
+const store = await getUMKMById(id);
 
 if (!store) {
   return Astro.redirect('/toko');
@@ -193,7 +193,7 @@ const storeSchema = {
           {store.products.length > 0 ? (
             <div class="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {store.products.map((p) => (
-                <ProductCard product={p} photoCount={2} views={p.views || 150} />
+                <ProductCard product={p} />
               ))}
             </div>
           ) : (

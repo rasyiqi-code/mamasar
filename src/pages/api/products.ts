@@ -58,7 +58,7 @@ export const POST: APIRoute = async ({ request }) => {
     const shopeeUrl = formData.get('shopeeUrl')?.toString()?.trim() || undefined;
     const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
 
-    const result = createUMKMAndProduct({
+    const result = await createUMKMAndProduct({
       umkmName,
       phone,
       zoneId,

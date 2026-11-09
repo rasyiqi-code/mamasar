@@ -94,9 +94,12 @@ export async function uploadToNeonStorage(
  * 3. Neon Functions Invoker
  */
 export async function invokeNeonFunction(name: string = 'hello'): Promise<string> {
-  const branchId = getEnv('NEON_BRANCH_ID') || 'br-icy-frog-a1e5k2ld';
-  const suffix = getEnv('NEON_FUNCTION_HOST_SUFFIX') || '.compute.c-1.ap-southeast-1.aws.neon.tech';
-  
+  const branchId = getEnv('NEON_BRANCH_ID');
+  const suffix = getEnv('NEON_FUNCTION_HOST_SUFFIX');
+  if (!branchId || !suffix) {
+    throw new Error('Neon Functions host is not configured (NEON_BRANCH_ID / NEON_FUNCTION_HOST_SUFFIX).');
+  }
+
   // Clean host URL
   const functionUrl = `https://${branchId}-${name}${suffix.startsWith('.') ? suffix : '.' + suffix}/`;
 

@@ -4,7 +4,7 @@ import { getUserFromSession, addCashbookEntry, deleteCashbookEntry } from '../..
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const sessionCookie = cookies.get('mamasar_session')?.value;
-    const user = sessionCookie ? getUserFromSession(sessionCookie) : null;
+    const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
     if (!user) {
       return new Response(JSON.stringify({ success: false, message: 'Silakan login terlebih dahulu.' }), {
@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    const entry = addCashbookEntry(user.id, {
+    const entry = await addCashbookEntry(user.id, {
       title,
       amount: Math.abs(Number(amount)),
       type: type === 'expense' ? 'expense' : 'income',
@@ -51,7 +51,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 export const DELETE: APIRoute = async ({ request, cookies }) => {
   try {
     const sessionCookie = cookies.get('mamasar_session')?.value;
-    const user = sessionCookie ? getUserFromSession(sessionCookie) : null;
+    const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
     if (!user) {
       return new Response(JSON.stringify({ success: false, message: 'Silakan login terlebih dahulu.' }), {
@@ -70,7 +70,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    const deleted = deleteCashbookEntry(Number(id), user.id);
+    const deleted = await deleteCashbookEntry(Number(id), user.id);
     return new Response(JSON.stringify({ success: deleted }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

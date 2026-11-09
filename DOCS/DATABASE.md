@@ -1,21 +1,25 @@
-# Dokumentasi Skema Database (Neon PostgreSQL & SQLite)
+# Dokumentasi Skema Database (Neon PostgreSQL)
 
-Aplikasi **Pasar Warga NU Sumenep** mendukung dua mode database:
-1. **Produksi (Cloud):** **Neon Serverless PostgreSQL** (Anti data-loss saat redeploy di Vercel, auto-wake up < 1s, tidak pernah di-pause).
-2. **Pengembangan Lokal (Local Dev):** **SQLite** (`data/mamasar.db`) via `better-sqlite3`.
+Aplikasi **Pasar Warga NU Sumenep** memakai **Neon PostgreSQL** sebagai database tunggal:
+
+1. **Neon PostgreSQL (runtime utama)**: `src/lib/db.ts` menjalankan semua operasi baca/tulis halaman dan API melalui driver serverless `@neondatabase/serverless` dengan `DATABASE_URL`. Semua fungsi bersifat async.
+2. **SQLite lokal (legacy, hanya skrip)**: `data/mamasar.db` via `better-sqlite3` kini hanya dipakai `scripts/seed.js` dan `scripts/backup.js`. Runtime aplikasi tidak lagi membacanya.
+
+Skema dan seed cloud dikelola lewat `scripts/migrate-neon.js`. Perbedaan historis dengan SQLite dicatat di bagian [Sinkronisasi skema](#sinkronisasi-skema).
 
 ---
 
-## 🗄️ Diagram Relasi Entitas (ERD)
+## Diagram Relasi Entitas (ERD)
 
 ```mermaid
 erDiagram
     USERS ||--o| UMKM : "mengelola"
     USERS ||--o{ SESSIONS : "memiliki"
+    USERS ||--o{ CASHBOOK : "mencatat"
     ZONES ||--o{ UMKM : "menaungi"
     ZONES ||--o{ EVENTS : "lokasi"
     UMKM ||--o{ PRODUCTS : "memiliki"
-    
+
     USERS {
         INTEGER id PK
         VARCHAR google_id UK
@@ -57,12 +61,12 @@ erDiagram
         INTEGER price
         VARCHAR category
         TEXT image_url
-        TEXT gallery_images
         TEXT description
         INTEGER views
         INTEGER is_sold_out
         INTEGER is_featured
         TIMESTAMP bumped_at
+        TEXT shopee_url
         TIMESTAMP created_at
     }
 
@@ -94,138 +98,166 @@ erDiagram
         VARCHAR coordinator_phone
         TIMESTAMP created_at
     }
+
+    CASHBOOK {
+        INTEGER id PK
+        INTEGER user_id FK
+        VARCHAR title
+        INTEGER amount
+        VARCHAR type
+        VARCHAR category
+        TEXT notes
+        DATE transaction_date
+        TIMESTAMP created_at
+    }
 ```
 
 ---
 
-## 📑 Spesifikasi Tabel Lengkap
+## Spesifikasi Tabel
 
 ### 1. Tabel `zones` (Wilayah MWC NU)
-Menyimpan 11 wilayah administratif Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep.
+
+Menyimpan 27 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC daratan dan 9 MWC kepulauan. Daftar lengkap ada di `SEED_ZONES` pada `src/lib/seeds.ts`.
 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID Unik Zona MWC |
-| `name` | `TEXT` | NOT NULL | Nama MWC (contoh: *MWC Kota Sumenep*, *MWC Gapura*) |
-| `slug` | `TEXT` | NOT NULL UNIQUE | URL Slug (contoh: `mwc-kota-sumenep`) |
+| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID unik zona MWC |
+| `name` | `TEXT` | NOT NULL | Nama MWC (contoh: `MWC Kota Sumenep`, `MWC Gapura`) |
+| `slug` | `TEXT` | NOT NULL UNIQUE | Slug URL (contoh: `mwc-kota-sumenep`) |
 
 ---
 
 ### 2. Tabel `umkm` (Profil Penjual / Toko Warga)
-Menyimpan profil entitas usaha warga Nahdliyin yang terverifikasi.
 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID Toko / Usaha |
-| `name` | `TEXT` | NOT NULL | Nama Usaha / Toko (contoh: *UD Barokah Jaya*) |
-| `phone` | `TEXT` | NOT NULL | Nomor WhatsApp terstandarisasi (awalan `628xx`) |
-| `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Relasi ke MWC NU tempat domisili usaha |
-| `is_verified` | `INTEGER` | DEFAULT 1 | 1 = Terverifikasi kader NU, 0 = Menunggu |
-| `address` | `TEXT` | NULLABLE | Dusun/Desa atau alamat fisik toko |
+| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID toko / usaha |
+| `user_id` | `INTEGER` | NULLABLE REFERENCES users(id) | Akun pemilik toko. `NULL` untuk data hasil pendataan agen |
+| `name` | `TEXT` | NOT NULL | Nama usaha / toko |
+| `phone` | `TEXT` | NOT NULL | Nomor WhatsApp terstandardisasi (`628xx`) |
+| `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Relasi ke MWC tempat domisili usaha |
+| `is_verified` | `INTEGER` | DEFAULT 1 | 1 = terverifikasi kader NU, 0 = menunggu |
+| `address` | `TEXT` | NULLABLE | Dusun/desa atau alamat fisik toko |
 | `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu pendaftaran |
 
 ---
 
 ### 3. Tabel `products` (Katalog Iklan Produk)
-Unit barang/jasa yang diindeks oleh mesin pencari Google dan dipromosikan ke pembeli.
 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID Iklan Produk |
+| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID iklan produk |
 | `umkm_id` | `INTEGER` | NOT NULL REFERENCES umkm(id) | Relasi ke pemilik UMKM |
-| `name` | `TEXT` | NOT NULL | Nama Produk (contoh: *Rengginang Lorjuk Spesial*) |
-| `slug` | `TEXT` | NOT NULL UNIQUE | SEO Slug unik (contoh: `rengginang-lorjuk-spesial-k7x8`) |
+| `name` | `TEXT` | NOT NULL | Nama produk |
+| `slug` | `TEXT` | NOT NULL UNIQUE | Slug SEO unik (contoh: `rengginang-lorjuk-spesial-k7x8`) |
 | `price` | `INTEGER` | NOT NULL | Harga jual satuan dalam Rupiah |
-| `category` | `TEXT` | NOT NULL | Kategori produk dari `PRODUCT_CATEGORIES` |
-| `image_url` | `TEXT` | NOT NULL | Path foto utama (`/uploads/...` atau URL web) |
-| `gallery_images` | `TEXT` | NULLABLE | JSON string daftar URL foto sekunder |
-| `description` | `TEXT` | NULLABLE | Deskripsi detail produk & spesifikasi |
-| `views` | `INTEGER` | DEFAULT 50 | Jumlah klik pembeli melihat iklan ini |
-| `is_sold_out` | `INTEGER` | DEFAULT 0 | 1 = Habis/Terjual, 0 = Tersedia |
-| `is_featured` | `INTEGER` | DEFAULT 0 | 1 = Tampil di pilihan unggulan / banner |
-| `bumped_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Timestamp sundulan terakhir (mengatur urutan teratas) |
+| `category` | `TEXT` | NOT NULL | Salah satu nilai `PRODUCT_CATEGORIES` di `src/lib/constants.ts` |
+| `image_url` | `TEXT` | NOT NULL | URL foto utama (ImageKit, `/uploads/...`, atau URL web) |
+| `description` | `TEXT` | NULLABLE | Deskripsi detail produk |
+| `views` | `INTEGER` | DEFAULT 50 | Jumlah tampilan halaman produk |
+| `is_sold_out` | `INTEGER` | DEFAULT 0 | 1 = habis/terjual, 0 = tersedia |
+| `is_featured` | `INTEGER` | DEFAULT 0 | 1 = ditandai unggulan. Saat ini belum dipakai untuk sorting |
+| `bumped_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu sundulan terakhir. Menentukan urutan katalog |
+| `shopee_url` | `TEXT` | NULLABLE | Tautan produk di Shopee, opsional |
 | `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu pertama terbit |
+
+Kolom `gallery_images` **tidak ada** di skema aplikasi. Kolom itu hanya muncul di `scripts/migrate-neon.js` dan tidak dipakai oleh kode.
 
 ---
 
 ### 4. Tabel `articles` (Menu Edukasi & Panduan Usaha)
-Artikel panduan bisnis santri, ekonomi pekarangan, serta tata cara transaksi warga.
 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID Artikel |
+| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID artikel |
 | `title` | `TEXT` | NOT NULL | Judul artikel |
-| `slug` | `TEXT` | NOT NULL UNIQUE | URL slug artikel |
-| `category` | `TEXT` | NOT NULL | Kategori artikel (*Ekonomi Pekarangan*, *Panduan Usaha*) |
+| `slug` | `TEXT` | NOT NULL UNIQUE | Slug URL artikel |
+| `category` | `TEXT` | NOT NULL | Kategori artikel |
 | `image_url` | `TEXT` | NOT NULL | Gambar banner artikel |
-| `summary` | `TEXT` | NOT NULL | Ringkasan untuk card di homepage |
-| `content` | `TEXT` | NOT NULL | Isi teks lengkap artikel (Markdown / HTML) |
-| `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Tanggal penerbitan |
+| `summary` | `TEXT` | NOT NULL | Ringkasan untuk card di beranda |
+| `content` | `TEXT` | NULLABLE | Isi lengkap artikel |
+| `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Tanggal terbit |
 
 ---
 
 ### 5. Tabel `events` (Direktori Kegiatan NU & Pasar Konsumsi)
-Jadwal pengajian, harlah, dan kegiatan NU yang membuka peluang pesanan katering serta lapak bazar warga.
 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID Kegiatan |
-| `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Lokasi MWC tempat berlangsungnya acara |
-| `title` | `TEXT` | NOT NULL | Nama Kegiatan (contoh: *Lailatul Ijtima' MWC Gapura*) |
-| `slug` | `TEXT` | NOT NULL UNIQUE | URL slug kegiatan |
-| `organizer` | `TEXT` | NOT NULL | Penyelenggara (contoh: *MWC NU Gapura & GP Ansor*) |
+| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID kegiatan |
+| `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Lokasi MWC acara |
+| `title` | `TEXT` | NOT NULL | Nama kegiatan |
+| `slug` | `TEXT` | NOT NULL UNIQUE | Slug URL kegiatan |
+| `organizer` | `TEXT` | NOT NULL | Penyelenggara |
 | `event_date` | `DATETIME` | NOT NULL | Tanggal pelaksanaan |
-| `time_description` | `TEXT` | NOT NULL | Waktu (contoh: *19.30 WIB (Ba'da Isya) - Selesai*) |
-| `location_name` | `TEXT` | NOT NULL | Nama tempat (contoh: *Gedung MWC NU Gapura*) |
-| `location_address` | `TEXT` | NULLABLE | Alamat lengkap lokasi acara |
-| `estimated_attendance` | `INTEGER` | DEFAULT 0 | Estimasi jumlah jamaah/peserta yang hadir |
-| `consumption_needed` | `TEXT` | NULLABLE | Kebutuhan konsumsi panitia (snack box, nasi kotak) |
-| `allow_stalls` | `INTEGER` | DEFAULT 1 | 1 = Warga boleh buka lapak jualan di lokasi |
-| `coordinator_name` | `TEXT` | NULLABLE | Nama koordinator / seksi konsumsi panitia |
-| `coordinator_phone` | `TEXT` | NOT NULL | Nomor WhatsApp koordinator acara |
+| `time_description` | `TEXT` | NOT NULL | Keterangan waktu (contoh: `19.30 WIB (Ba'da Isya) - Selesai`) |
+| `location_name` | `TEXT` | NOT NULL | Nama tempat |
+| `location_address` | `TEXT` | NULLABLE | Alamat lengkap lokasi |
+| `estimated_attendance` | `INTEGER` | DEFAULT 0 | Estimasi jumlah jamaah |
+| `consumption_needed` | `TEXT` | NULLABLE | Kebutuhan konsumsi panitia |
+| `allow_stalls` | `INTEGER` | DEFAULT 1 | 1 = warga boleh membuka lapak |
+| `coordinator_name` | `TEXT` | NULLABLE | Nama koordinator / seksi konsumsi |
+| `coordinator_phone` | `TEXT` | NOT NULL | Nomor WhatsApp koordinator |
 | `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu posting agenda |
 
 ---
 
-### 6. Tabel `users` (Akun Pengguna Google OAuth)
-Menyimpan data identitas pemilik UMKM yang login via Google.
+### 6. Tabel `users` (Akun Pengguna)
 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| `id` | `INTEGER` / `SERIAL` | PRIMARY KEY | ID Pengguna |
-| `google_id` | `VARCHAR(255)` | NOT NULL UNIQUE | Sub ID unik dari Google OAuth |
-| `email` | `VARCHAR(255)` | NOT NULL UNIQUE | Alamat email Google pengguna |
-| `name` | `VARCHAR(255)` | NOT NULL | Nama lengkap pemilik usaha |
-| `avatar_url` | `TEXT` | NULLABLE | Foto profil dari Google |
-| `role` | `VARCHAR(50)` | DEFAULT 'umkm' | Hak akses (`umkm`, `agent`, `admin`) |
-| `created_at` | `TIMESTAMP` | DEFAULT CURRENT_TIMESTAMP | Waktu registrasi pertama |
+| `id` | `INTEGER` | PRIMARY KEY | ID pengguna |
+| `google_id` | `TEXT` | NOT NULL UNIQUE | Identitas eksternal. Untuk Neon Auth diisi `neon_<user_id>` |
+| `email` | `TEXT` | NOT NULL UNIQUE | Alamat email |
+| `name` | `TEXT` | NOT NULL | Nama lengkap |
+| `avatar_url` | `TEXT` | NULLABLE | Foto profil |
+| `role` | `TEXT` | DEFAULT `'umkm'` | Hak akses (`umkm`, `agent`, `admin`) |
+| `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu registrasi pertama |
 
 ---
 
-### 7. Tabel `sessions` (Sesi Login Pengguna)
-Menyimpan token sesi aktif untuk autentikasi browser berbasis cookie aman.
+### 7. Tabel `sessions` (Sesi Login Aplikasi)
+
+Sesi lokal yang dibuat aplikasi setelah login Neon Auth atau OAuth Google. Sesi asli Neon Auth disimpan di luar database aplikasi. Sesi kedaluwarsa dibersihkan otomatis (janitor probabilistik saat `createSession`).
 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
-| `id` | `VARCHAR(255)` | PRIMARY KEY | Token Sesi Acak Unik (UUIDv4) |
-| `user_id` | `INTEGER` | NOT NULL REFERENCES users(id) | Relasi ke pemilik akun |
-| `expires_at` | `TIMESTAMP` | NOT NULL | Waktu kedaluwarsa sesi |
+| `id` | `TEXT` | PRIMARY KEY | Token sesi acak |
+| `user_id` | `INTEGER` | NOT NULL REFERENCES users(id) | Pemilik akun |
+| `expires_at` | `DATETIME` | NOT NULL | Waktu kedaluwarsa (30 hari) |
+
+`scripts/seed.js` menambahkan kolom `created_at` pada tabel ini, sedangkan `src/lib/db.ts` tidak. Aplikasi tidak membaca `created_at`.
 
 ---
 
-## 🐘 DDL Skrip PostgreSQL untuk Neon Cloud (`schema.sql`)
+### 8. Tabel `cashbook` (Buku Kas Penjualan)
 
-Jalankan script ini di **Neon SQL Editor** untuk membuat tabel di cloud secara instan:
+| Kolom | Tipe Data | Modifiers | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID catatan |
+| `user_id` | `INTEGER` | NOT NULL REFERENCES users(id) ON DELETE CASCADE | Pemilik catatan |
+| `title` | `TEXT` | NOT NULL | Judul transaksi |
+| `amount` | `INTEGER` | NOT NULL | Nominal dalam Rupiah, selalu positif |
+| `type` | `TEXT` | NOT NULL DEFAULT `'income'` | `income` atau `expense` |
+| `category` | `TEXT` | DEFAULT `'Penjualan'` | Kategori transaksi |
+| `notes` | `TEXT` | NULLABLE | Catatan tambahan |
+| `transaction_date` | `DATE` | DEFAULT `DATE('now')` | Tanggal transaksi |
+| `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu pencatatan |
+
+---
+
+## DDL PostgreSQL untuk Neon (`schema.sql`)
+
+Jalankan di Neon SQL Editor, atau pakai `scripts/migrate-neon.js` yang membuat tabel sekaligus melakukan seed.
 
 ```sql
--- 1. Tabel Wilayah MWC
 CREATE TABLE IF NOT EXISTS zones (
   id SERIAL PRIMARY KEY,
   name VARCHAR(255) NOT NULL,
   slug VARCHAR(255) NOT NULL UNIQUE
 );
 
--- 2. Tabel Pengguna Google
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   google_id VARCHAR(255) NOT NULL UNIQUE,
@@ -236,14 +268,12 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Tabel Sesi Login
 CREATE TABLE IF NOT EXISTS sessions (
   id VARCHAR(255) PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   expires_at TIMESTAMP WITH TIME ZONE NOT NULL
 );
 
--- 4. Tabel Toko UMKM
 CREATE TABLE IF NOT EXISTS umkm (
   id SERIAL PRIMARY KEY,
   user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -255,7 +285,6 @@ CREATE TABLE IF NOT EXISTS umkm (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. Tabel Produk
 CREATE TABLE IF NOT EXISTS products (
   id SERIAL PRIMARY KEY,
   umkm_id INTEGER NOT NULL REFERENCES umkm(id) ON DELETE CASCADE,
@@ -264,16 +293,15 @@ CREATE TABLE IF NOT EXISTS products (
   price INTEGER NOT NULL,
   category VARCHAR(100) NOT NULL,
   image_url TEXT NOT NULL,
-  gallery_images TEXT,
   description TEXT,
   views INTEGER DEFAULT 50,
   is_sold_out INTEGER DEFAULT 0,
   is_featured INTEGER DEFAULT 0,
   bumped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  shopee_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 6. Tabel Artikel Edukasi
 CREATE TABLE IF NOT EXISTS articles (
   id SERIAL PRIMARY KEY,
   title VARCHAR(255) NOT NULL,
@@ -285,7 +313,6 @@ CREATE TABLE IF NOT EXISTS articles (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- 7. Tabel Kegiatan NU
 CREATE TABLE IF NOT EXISTS events (
   id SERIAL PRIMARY KEY,
   zone_id INTEGER NOT NULL REFERENCES zones(id),
@@ -304,10 +331,46 @@ CREATE TABLE IF NOT EXISTS events (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Indeks Pencarian Cepat
+CREATE TABLE IF NOT EXISTS cashbook (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  amount INTEGER NOT NULL,
+  type VARCHAR(20) NOT NULL DEFAULT 'income',
+  category VARCHAR(100) DEFAULT 'Penjualan',
+  notes TEXT,
+  transaction_date DATE DEFAULT CURRENT_DATE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_bumped ON products(bumped_at DESC);
 CREATE INDEX IF NOT EXISTS idx_umkm_zone ON umkm(zone_id);
+CREATE INDEX IF NOT EXISTS idx_cashbook_user ON cashbook(user_id);
 ```
-} catch (_) {}
+
+---
+
+## Sinkronisasi skema
+
+`src/lib/db.ts` (kini Neon Postgres) dan `scripts/migrate-neon.js` sudah sinkron untuk tabel: `zones`, `umkm`, `products` (termasuk `shopee_url`, `views` default 0), `articles`, `events`, `users`, `sessions`, `cashbook` + index `idx_cashbook_user`.
+
+Catatan historis yang sudah tidak berlaku: `products.gallery_images` hanya ada di skrip migrasi, tidak dipakai aplikasi. `sessions.created_at` tidak dipakai aplikasi. `scripts/seed.js` (SQLite legacy) tidak membuat `cashbook`/`shopee_url` — skrip ini tidak lagi dipakai runtime.
+
+---
+
+## Perintah database
+
+```bash
+# Buat skema dan seed Neon Postgres (jalur utama)
+DATABASE_URL="postgresql://..." node scripts/migrate-neon.js
+
+# Skrip SQLite legacy — hanya untuk pengembangan lokal
+npm run seed
+npm run seed:reset
+npm run backup
 ```
+
+Skrip seed dan migrasi mengimpor `src/lib/seeds.ts` langsung, jadi butuh Node 22.18+ atau Node 24.
+
+Runtime aplikasi WAJIB `DATABASE_URL`; tanpa itu semua query gagal dengan error eksplisit (`getNeonSql()` throw). SQLite `data/mamasar.db` dihapus dari pelacakan git dan masuk `.gitignore`.

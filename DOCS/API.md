@@ -1,0 +1,248 @@
+# Referensi API
+
+Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. Format respons utama adalah JSON. Autentikasi memakai cookie `mamasar_session` (HttpOnly, SameSite=Lax, berlaku 30 hari) yang dibuat setelah login Neon Auth, login Google legacy, atau mode demo.
+
+Nilai `AGENT_PIN` diambil dari environment. Bila kosong, kode memakai `DEFAULT_AGENT_PIN` dari `src/lib/constants.ts` (`1926`). Ganti PIN ini di produksi.
+
+---
+
+## Ringkasan endpoint
+
+| Metode | Path | Autentikasi | Fungsi |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/auth/login` | Publik | Login Google lewat Neon Auth, atau mode demo dengan `?demo=1` |
+| `POST` | `/api/auth/email` | Publik | Sign in atau sign up email/password lewat Neon Auth |
+| `GET` | `/api/auth/callback/neon` | Publik | Callback Neon Auth, sinkronisasi user dan sesi |
+| `GET` | `/api/auth/callback/google` | Publik | Callback Google OAuth langsung (legacy) |
+| `ALL` | `/api/auth/logout` | Cookie | Hapus sesi lokal dan sesi Neon Auth |
+| `POST` | `/api/products` | PIN agen | Buat UMKM baru beserta satu produk |
+| `POST` | `/api/products/bump` | PIN agen atau pemilik toko | Naikkan produk ke urutan teratas |
+| `POST` | `/api/products/delete` | PIN agen atau pemilik toko | Hapus produk |
+| `POST` | `/api/products/toggle-stock` | PIN agen atau pemilik toko | Ubah status habis/tersedia |
+| `POST` | `/api/umkm/setup` | Sesi toko | Simpan atau perbarui profil toko |
+| `POST` | `/api/umkm/add-product` | Sesi toko | Tambah produk ke toko sendiri |
+| `POST` | `/api/user/avatar` | Sesi opsional | Unggah foto profil |
+| `POST` | `/api/user/cashbook` | Sesi | Tambah catatan buku kas |
+| `DELETE` | `/api/user/cashbook` | Sesi | Hapus catatan buku kas |
+| `GET` | `/api/neon/services` | Publik | Health check layanan Neon |
+| `GET` | `/uploads/[...path]` | Publik | Sajikan file lokal dari `data/uploads` |
+| `GET` | `/sitemap.xml` | Publik | Sitemap dinamis |
+| `GET` | `/robots.txt` | Publik | Aturan crawler |
+
+---
+
+## Autentikasi
+
+### `GET /api/auth/login`
+
+Tanpa query: mengarahkan pengguna ke Google melalui Neon Auth.
+
+Dengan `?demo=1`: membuat atau memakai user demo `warga.santri@sumenep.nu.or.id`, membuat sesi, lalu redirect ke `/dashboard`.
+
+Alur Neon Auth:
+
+1. Endpoint memanggil `${NEON_AUTH_BASE_URL}/sign-in/social`.
+2. Body: `{"provider":"google","callbackURL":"<origin>/api/auth/callback/neon"}`.
+3. Respons berupa redirect ke URL Google.
+4. Bila gagal, redirect ke `/dashboard?error=neon_auth_init_failed` atau `?error=neon_auth_error`.
+
+Catatan: mode demo adalah jalan pintas tanpa verifikasi. Nonaktifkan atau batasi di produksi publik.
+
+### `POST /api/auth/email`
+
+Menerima `application/json` atau form.
+
+| Field | Tipe | Wajib | Keterangan |
+| :--- | :--- | :--- | :--- |
+| `action` | string | Tidak | `signin` (default) atau `signup` |
+| `email` | string | Ya | Email pengguna |
+| `password` | string | Ya | Kata sandi. Form dashboard memakai `minlength=8` |
+| `name` | string | Untuk signup | Nama tampilan |
+
+Endpoint meneruskan permintaan ke Neon Auth, lalu menyinkronkan user ke tabel `users`, membuat sesi lokal, dan mengembalikan cookie.
+
+Respons sukses:
+
+```json
+{
+  "ok": true,
+  "user": { "id": 1, "email": "warga@example.com", "name": "Warga NU" },
+  "redirect": "/dashboard"
+}
+```
+
+Respons gagal: `400` dengan `{ "ok": false, "error": "..." }`, atau `500` bila Neon Auth tidak dapat dihubungi.
+
+### `GET /api/auth/callback/neon`
+
+Memverifikasi sesi Neon Auth lewat `/get-session`, menyinkronkan user, membuat sesi lokal, lalu redirect ke `/dashboard`. Bila gagal, redirect ke `/dashboard?error=<kode>`.
+
+### `GET /api/auth/callback/google`
+
+Alur OAuth Google langsung. Memerlukan `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, dan `GOOGLE_REDIRECT_URI`. Menukar `code` menjadi token, mengambil profil dari Google UserInfo, lalu membuat sesi lokal.
+
+Alur login utama tidak memakai endpoint ini.
+
+### `ALL /api/auth/logout`
+
+Menghapus baris sesi lokal, memanggil `/sign-out` Neon Auth (non-blocking), mengosongkan cookie `mamasar_session` dan cookie Neon Auth, lalu redirect ke `/`.
+
+---
+
+## Produk
+
+### `POST /api/products`
+
+Endpoint agen lapangan. Membuat UMKM baru sekaligus produk pertama. Format `multipart/form-data`.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `agentPin` | Ya | Harus sama dengan `AGENT_PIN` |
+| `umkmName` | Ya | Nama toko |
+| `phone` | Ya | Nomor WhatsApp Indonesia yang valid |
+| `zoneId` | Ya | ID zona MWC |
+| `address` | Tidak | Alamat toko |
+| `productName` | Ya | Nama produk |
+| `price` | Ya | Harga dalam Rupiah |
+| `category` | Tidak | Default `Makanan & Minuman` |
+| `description` | Tidak | Deskripsi produk |
+| `image` | Tidak | File gambar |
+| `imageBase64` | Tidak | Alternatif file gambar |
+| `shopeeUrl` | Tidak | Tautan Shopee |
+
+Validasi nomor telepon memakai `isValidIndonesianPhone()`: hanya `08`, `628`, atau `8` diikuti angka 1-9, panjang 10 sampai 14 digit.
+
+Respons `201`:
+
+```json
+{ "success": true, "slug": "nama-produk-k7x8", "productId": 12 }
+```
+
+Kode gagal: `403` PIN salah, `400` field wajib atau nomor tidak valid, `500` error server.
+
+### `POST /api/products/bump`
+
+Format `multipart/form-data`.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `productId` | Ya | ID produk |
+| `agentPin` | Salah satu | PIN agen |
+
+Autentikasi alternatif: cookie `mamasar_session` milik toko yang memiliki produk. Bila memakai PIN agen, produk mana pun dapat disundul. Bila memakai sesi toko, `umkm_id` produk harus cocok.
+
+Respons `200`: `{ "success": true, "message": "..." }`.
+
+### `POST /api/products/delete`
+
+Field dan aturan otorisasi sama dengan bump. Menghapus baris produk secara permanen.
+
+### `POST /api/products/toggle-stock`
+
+Field dan aturan otorisasi sama dengan bump. Membalik nilai `is_sold_out`.
+
+Respons `200`:
+
+```json
+{ "success": true, "is_sold_out": 1, "message": "Status produk berhasil diubah menjadi: Habis Terjual" }
+```
+
+---
+
+## Toko
+
+### `POST /api/umkm/setup`
+
+Memerlukan cookie `mamasar_session`. Format `multipart/form-data` atau form biasa.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `name` | Ya | Nama toko |
+| `phone` | Ya | Nomor WhatsApp valid |
+| `zoneId` | Ya | ID zona MWC |
+| `address` | Tidak | Alamat toko |
+
+Bila user sudah punya toko, data toko diperbarui. Bila belum, toko baru dibuat dan ditautkan ke `user_id`.
+
+Respons `200`: `{ "success": true, "storeId": 5, "message": "..." }`.
+
+### `POST /api/umkm/add-product`
+
+Memerlukan cookie `mamasar_session` dan profil toko. Format `multipart/form-data`.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `name` | Ya | Nama produk |
+| `price` | Ya | Harga |
+| `category` | Tidak | Default `Makanan & Minuman` |
+| `description` | Tidak | Deskripsi |
+| `image` | Tidak | File gambar |
+| `imageBase64` | Tidak | Alternatif file gambar |
+| `shopeeUrl` | Tidak | Tautan Shopee |
+
+Respons `201`: `{ "success": true, "slug": "...", "productId": 13, "message": "..." }`. Bila sesi tidak ada: `401`. Bila toko belum dibuat: `403`.
+
+---
+
+## Pengguna
+
+### `POST /api/user/avatar`
+
+Menerima `multipart/form-data` atau `application/json`.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `imageFile` | Salah satu | File gambar, khusus multipart |
+| `imageBase64` | Salah satu | Data URL atau base64 |
+| `userId` | Tidak | Hanya dipakai untuk nama file; bukan otorisasi |
+
+Bila user login, `users.avatar_url` diperbarui. Respons berisi `avatarUrl` dan `storageProvider`.
+
+Catatan keamanan: field `userId` tidak diverifikasi terhadap sesi. Jangan andalkan endpoint ini untuk otorisasi per pengguna.
+
+### `POST /api/user/cashbook`
+
+Memerlukan cookie `mamasar_session`. Body JSON.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `title` | Ya | Judul transaksi |
+| `amount` | Ya | Nominal, disimpan sebagai nilai absolut |
+| `type` | Tidak | `income` (default) atau `expense` |
+| `category` | Tidak | Default `Penjualan` |
+| `notes` | Tidak | Catatan |
+| `transactionDate` | Tidak | Format `YYYY-MM-DD`, default hari ini |
+
+Respons `201`: `{ "success": true, "message": "...", "entry": { ... } }`.
+
+### `DELETE /api/user/cashbook`
+
+Memerlukan cookie `mamasar_session`. Body JSON: `{ "id": 3 }`.
+
+Respons `200`: `{ "success": true }` atau `{ "success": false }` bila tidak ada baris yang cocok dengan `user_id`.
+
+---
+
+## Utilitas
+
+### `GET /api/neon/services`
+
+Health check tanpa autentikasi. Menjalankan lima probe:
+
+- Postgres: jumlah baris `zones`, `umkm`, `products`, `articles`, `events`, plus versi server.
+- Object Storage: daftar objek pertama di bucket `assets`.
+- Functions: panggil fungsi `hello`.
+- Auth: ambil JWKS dan hitung jumlah key.
+- Realtime: seal query contoh.
+
+Respons berupa objek `{ timestamp, services: { postgres, object_storage, functions, auth, realtime } }`. Status tiap layanan bisa `connected`, `healthy`, `unconfigured`, `failed`, atau `error`.
+
+### `GET /uploads/[...path]`
+
+Menyajikan file dari `data/uploads/`. Route memakai `path.basename()`, sehingga hanya file yang berada langsung di `data/uploads/` yang dapat diakses. File avatar yang disimpan di `data/uploads/avatars/` tidak terjangkau lewat route ini.
+
+Header respons: `Cache-Control: public, max-age=31536000, immutable`.
+
+### `GET /sitemap.xml` dan `GET /robots.txt`
+
+Sitemap dibuat dinamis dari produk, toko, artikel, kegiatan, dan zona. `robots.txt` mengizinkan semua halaman kecuali `/api/` dan mencantumkan lokasi sitemap.

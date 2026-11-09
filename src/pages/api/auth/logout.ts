@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { deleteSession } from '../../../lib/db';
 import { getNeonAuthBaseUrl } from '../../../lib/neon-auth';
 
-export const ALL: APIRoute = async ({ request, redirect }) => {
+export const ALL: APIRoute = async ({ request }) => {
   const cookieHeader = request.headers.get('cookie') || '';
   const sessionId = cookieHeader
     .split(';')
@@ -10,19 +10,21 @@ export const ALL: APIRoute = async ({ request, redirect }) => {
     ?.split('=')[1];
 
   if (sessionId) {
-    deleteSession(sessionId);
+    await deleteSession(sessionId);
   }
 
   // Attempt to notify Neon Auth upstream to revoke session
   try {
     const baseUrl = getNeonAuthBaseUrl();
-    await fetch(`${baseUrl}/sign-out`, {
-      method: 'POST',
-      headers: {
-        Cookie: cookieHeader,
-        Origin: new URL(request.url).origin,
-      },
-    });
+    if (baseUrl) {
+      await fetch(`${baseUrl}/sign-out`, {
+        method: 'POST',
+        headers: {
+          Cookie: cookieHeader,
+          Origin: new URL(request.url).origin,
+        },
+      });
+    }
   } catch (e) {
     // Non-blocking
   }

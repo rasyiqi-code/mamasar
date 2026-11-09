@@ -19,7 +19,7 @@ export const POST: APIRoute = async ({ request }) => {
     // Check authorization: either valid agent PIN OR authenticated store owner
     const correctPin = process.env.AGENT_PIN || DEFAULT_AGENT_PIN;
     const isAgent = agentPin === correctPin;
-    const user = sessionId ? getUserFromSession(sessionId) : null;
+    const user = sessionId ? await getUserFromSession(sessionId) : null;
 
     if (!isAgent && !user?.umkm) {
       return new Response(JSON.stringify({ success: false, message: 'Tidak memiliki izin untuk menyundul produk ini.' }), {
@@ -29,7 +29,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const umkmId = isAgent ? undefined : user?.umkm?.id;
-    const success = bumpProduct(productId, umkmId);
+    const success = await bumpProduct(productId, umkmId);
 
     if (success) {
       return new Response(

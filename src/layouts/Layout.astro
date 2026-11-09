@@ -23,7 +23,7 @@ const {
 
 const siteName = SITE_CONFIG.name;
 const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
-const zones = getAllZones();
+const zones = await getAllZones();
 const currentYear = new Date().getFullYear();
 ---
 
@@ -261,7 +261,14 @@ const currentYear = new Date().getFullYear();
           </p>
           <div class="text-[11px] text-slate-500 space-y-1 pt-1">
             <p>📍 {SITE_CONFIG.address}</p>
-            <p>📞 WhatsApp: +62 812-3456-7890</p>
+            <a
+              href={`https://wa.me/${SITE_CONFIG.whatsappHelp}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="hover:text-emerald-700 transition inline-block"
+            >
+              📞 WhatsApp: {SITE_CONFIG.whatsappHelp.replace(/^62/, '+62 ')}
+            </a>
           </div>
         </div>
 

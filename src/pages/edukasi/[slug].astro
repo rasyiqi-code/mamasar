@@ -9,7 +9,7 @@ if (!slug) {
   return Astro.redirect('/edukasi');
 }
 
-const article = getArticleBySlug(slug);
+const article = await getArticleBySlug(slug);
 
 if (!article) {
   return new Response(null, {
@@ -19,9 +19,9 @@ if (!article) {
 }
 
 const currentUrl = Astro.url.href;
-const allArticles = getArticles();
+const allArticles = await getArticles();
 const relatedArticles = allArticles.filter((a) => a.id !== article.id).slice(0, 3);
-const sampleProducts = getProducts().slice(0, 4);
+const sampleProducts = (await getProducts()).slice(0, 4);
 
 // Schema.org Article Structured Data
 const articleSchema = {
@@ -222,7 +222,7 @@ const renderedContent = formatContent(article.content || article.summary);
 
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           {sampleProducts.map((p) => (
-            <ProductCard product={p} photoCount={2} />
+            <ProductCard product={p} />
           ))}
         </div>
       </section>

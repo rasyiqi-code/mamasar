@@ -1,6 +1,7 @@
 ---
 import type { Product } from '../lib/db';
 import { formatRupiah, createProductWhatsAppUrl } from '../lib/utils';
+import { DEFAULT_PRODUCT_IMAGE } from '../lib/constants';
 
 interface Props {
   product: Product;
@@ -8,9 +9,7 @@ interface Props {
   badgeColor?: 'indigo' | 'amber' | 'emerald' | 'rose';
   isSoldOut?: boolean;
   sellerAvatar?: string;
-  photoCount?: number;
   views?: number;
-  compact?: boolean;
 }
 
 const {
@@ -19,9 +18,7 @@ const {
   badgeColor = 'indigo',
   isSoldOut = Boolean(product.is_sold_out),
   sellerAvatar,
-  photoCount = 2,
-  views = product.views || 85,
-  compact = false,
+  views = product.views ?? 0,
 } = Astro.props;
 
 const waLink = createProductWhatsAppUrl({
@@ -54,7 +51,7 @@ const badgeStyles: Record<string, string> = {
         title={product.name}
       >
         <img
-          src={product.image_url}
+          src={product.image_url || DEFAULT_PRODUCT_IMAGE}
           alt={product.name}
           loading="lazy"
           class={`w-full h-full object-cover group-hover:scale-105 transition duration-300 ${
@@ -66,9 +63,6 @@ const badgeStyles: Record<string, string> = {
         <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-6 pb-2 px-2.5 sm:px-3 flex items-end justify-between pointer-events-none">
           <span class="text-sm sm:text-base font-black text-white drop-shadow-sm tracking-tight">
             {formatRupiah(product.price)}
-          </span>
-          <span class="text-[10px] text-white font-bold bg-black/50 px-1.5 py-0.5 rounded flex items-center gap-1 shadow-xs">
-            📷 {photoCount}
           </span>
         </div>
       </a>
@@ -87,7 +81,7 @@ const badgeStyles: Record<string, string> = {
         </div>
       )}
 
-      <!-- Top Badge (Pilihan, Premium, Offer of the Day) -->
+      <!-- Top Badge (infoal label, e.g. "Baru Dipasang") -->
       {badge && !sellerAvatar && !isSoldOut && (
         <div class="absolute top-2 left-2 z-10">
           <span
@@ -138,7 +132,7 @@ const badgeStyles: Record<string, string> = {
       <!-- Classified Meta: Category & Views -->
       <div class="text-[10px] text-slate-500 flex items-center justify-between pt-0.5 truncate">
         <span class="truncate">{product.category}</span>
-        <span class="shrink-0">{views} dilihat</span>
+        {views > 0 && <span class="shrink-0">{views} dilihat</span>}
       </div>
 
       <!-- Seller Identity Strip -->
