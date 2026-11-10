@@ -1,8 +1,6 @@
 # Referensi API
 
-Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. Format respons utama adalah JSON. Autentikasi memakai cookie `mamasar_session` (HttpOnly, SameSite=Lax, berlaku 30 hari) yang dibuat setelah login Neon Auth, login Google legacy, atau mode demo.
-
-Nilai `AGENT_PIN` diambil dari environment. Bila kosong, kode memakai `DEFAULT_AGENT_PIN` dari `src/lib/constants.ts` (`1926`). Ganti PIN ini di produksi.
+Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. Format respons utama adalah JSON. Autentikasi memakai cookie `mamasar_session` (HttpOnly, SameSite=Lax, berlaku 30 hari) yang dibuat setelah login Neon Auth atau login Google legacy.
 
 ---
 
@@ -10,21 +8,21 @@ Nilai `AGENT_PIN` diambil dari environment. Bila kosong, kode memakai `DEFAULT_A
 
 | Metode | Path | Autentikasi | Fungsi |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/auth/login` | Publik | Login Google lewat Neon Auth, atau mode demo dengan `?demo=1` |
+| `GET` | `/api/auth/login` | Publik | Login Google lewat Neon Auth |
 | `POST` | `/api/auth/email` | Publik | Sign in atau sign up email/password lewat Neon Auth |
 | `GET` | `/api/auth/callback/neon` | Publik | Callback Neon Auth, sinkronisasi user dan sesi |
 | `GET` | `/api/auth/callback/google` | Publik | Callback Google OAuth langsung (legacy) |
 | `ALL` | `/api/auth/logout` | Cookie | Hapus sesi lokal dan sesi Neon Auth |
-| `POST` | `/api/products` | PIN agen | Buat UMKM baru beserta satu produk |
-| `POST` | `/api/products/bump` | PIN agen atau pemilik toko | Naikkan produk ke urutan teratas |
-| `POST` | `/api/products/delete` | PIN agen atau pemilik toko | Hapus produk |
-| `POST` | `/api/products/toggle-stock` | PIN agen atau pemilik toko | Ubah status habis/tersedia |
+| `POST` | `/api/products` | Sesi login | Buat UMKM baru beserta satu produk (petugas pendata) |
+| `POST` | `/api/products/bump` | Pemilik toko | Naikkan produk ke urutan teratas |
+| `POST` | `/api/products/delete` | Pemilik toko | Hapus produk |
+| `POST` | `/api/products/toggle-stock` | Pemilik toko | Ubah status habis/tersedia |
 | `POST` | `/api/umkm/setup` | Sesi toko | Simpan atau perbarui profil toko |
 | `POST` | `/api/umkm/add-product` | Sesi toko | Tambah produk ke toko sendiri |
 | `POST` | `/api/user/avatar` | Sesi opsional | Unggah foto profil |
 | `POST` | `/api/user/cashbook` | Sesi | Tambah catatan buku kas |
 | `DELETE` | `/api/user/cashbook` | Sesi | Hapus catatan buku kas |
-| `GET` | `/api/neon/services` | Publik | Health check layanan Neon |
+| `GET` | `/api/neon/services` | Sesi | Health check layanan Neon |
 | `GET` | `/uploads/[...path]` | Publik | Sajikan file lokal dari `data/uploads` |
 | `GET` | `/sitemap.xml` | Publik | Sitemap dinamis |
 | `GET` | `/robots.txt` | Publik | Aturan crawler |
@@ -35,9 +33,7 @@ Nilai `AGENT_PIN` diambil dari environment. Bila kosong, kode memakai `DEFAULT_A
 
 ### `GET /api/auth/login`
 
-Tanpa query: mengarahkan pengguna ke Google melalui Neon Auth.
-
-Dengan `?demo=1`: membuat atau memakai user demo `warga.santri@sumenep.nu.or.id`, membuat sesi, lalu redirect ke `/dashboard`.
+Mengarahkan pengguna ke Google melalui Neon Auth.
 
 Alur Neon Auth:
 
@@ -45,8 +41,6 @@ Alur Neon Auth:
 2. Body: `{"provider":"google","callbackURL":"<origin>/api/auth/callback/neon"}`.
 3. Respons berupa redirect ke URL Google.
 4. Bila gagal, redirect ke `/dashboard?error=neon_auth_init_failed` atau `?error=neon_auth_error`.
-
-Catatan: mode demo adalah jalan pintas tanpa verifikasi. Nonaktifkan atau batasi di produksi publik.
 
 ### `POST /api/auth/email`
 
@@ -93,11 +87,10 @@ Menghapus baris sesi lokal, memanggil `/sign-out` Neon Auth (non-blocking), meng
 
 ### `POST /api/products`
 
-Endpoint agen lapangan. Membuat UMKM baru sekaligus produk pertama. Format `multipart/form-data`.
+Endpoint petugas pendata di halaman `/agen`. Membuat UMKM baru sekaligus produk pertama. Memerlukan cookie `mamasar_session` (petugas harus sudah login dengan Google); tanpa sesi, respons `401`. Toko yang dibuat lewat endpoint ini selalu berstatus `is_verified: 0` — pengurus MWC yang memverifikasinya — dan **tidak ditautkan ke akun petugas** (petugas mendata untuk penjual lain; penjual dapat mendaftarkan tokonya sendiri lewat dashboard). Format `multipart/form-data`.
 
 | Field | Wajib | Keterangan |
 | :--- | :--- | :--- |
-| `agentPin` | Ya | Harus sama dengan `AGENT_PIN` |
 | `umkmName` | Ya | Nama toko |
 | `phone` | Ya | Nomor WhatsApp Indonesia yang valid |
 | `zoneId` | Ya | ID zona MWC |
@@ -118,7 +111,7 @@ Respons `201`:
 { "success": true, "slug": "nama-produk-k7x8", "productId": 12 }
 ```
 
-Kode gagal: `403` PIN salah, `400` field wajib atau nomor tidak valid, `500` error server.
+Kode gagal: `401` belum login, `400` field wajib atau nomor tidak valid, `500` error server.
 
 ### `POST /api/products/bump`
 
@@ -127,9 +120,8 @@ Format `multipart/form-data`.
 | Field | Wajib | Keterangan |
 | :--- | :--- | :--- |
 | `productId` | Ya | ID produk |
-| `agentPin` | Salah satu | PIN agen |
 
-Autentikasi alternatif: cookie `mamasar_session` milik toko yang memiliki produk. Bila memakai PIN agen, produk mana pun dapat disundul. Bila memakai sesi toko, `umkm_id` produk harus cocok.
+Memerlukan cookie `mamasar_session` milik pemilik toko; `umkm_id` produk harus cocok dengan toko milik user. Respons bila bukan pemilik: `403`.
 
 Respons `200`: `{ "success": true, "message": "..." }`.
 
@@ -227,7 +219,7 @@ Respons `200`: `{ "success": true }` atau `{ "success": false }` bila tidak ada 
 
 ### `GET /api/neon/services`
 
-Health check tanpa autentikasi. Menjalankan lima probe:
+Health check layanan Neon; memerlukan cookie `mamasar_session` (tanpa sesi, respons `401`), karena laporan ini mengekspos topologi infrastruktur. Menjalankan lima probe:
 
 - Postgres: jumlah baris `zones`, `umkm`, `products`, `articles`, `events`, plus versi server.
 - Object Storage: daftar objek pertama di bucket `assets`.

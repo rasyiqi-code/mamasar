@@ -78,7 +78,7 @@ gantt
   - [x] Tombol **⚡ Sundul Iklan** di dashboard UMKM & endpoint `/api/products/bump` untuk mereset urutan tayang teratas.
   - [x] Urutan katalog default: `ORDER BY COALESCE(p.bumped_at, p.created_at) DESC, p.id DESC`.
 - [x] **2.4. Portal Agen Lapangan & Sinkronisasi**
-  - [x] Tetap sediakan form entri cepat jemput bola via PIN agen (`/agen`) untuk UMKM tradisional/sepuh.
+  - [x] Tetap sediakan form entri cepat jemput bola via login akun (`/agen`) untuk UMKM tradisional/sepuh.
   - [x] Integrasi tautan Dashboard UMKM di header desktop dan drawer mobile.
 
 ---

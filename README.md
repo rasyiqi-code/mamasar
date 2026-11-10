@@ -14,8 +14,8 @@ Aplikasi direktori UMKM Nahdliyin Kabupaten Sumenep. Dibangun dengan Astro (SSR)
 - **Halaman 404**, `sitemap.xml`, dan `robots.txt`.
 
 ### Manajemen
-- **Portal agen `/agen`**: entri produk cepat dengan PIN agen. Foto dikompresi di browser memakai Canvas sebelum dikirim.
-- **Dashboard UMKM `/dashboard`**: login Neon Auth (Google atau email/password) atau mode demo, penyiapan profil toko, unggah/edit/hapus produk, ubah status stok, sundul iklan, dan buku kas penjualan.
+- **Portal agen `/agen`**: entri produk cepat untuk petugas pendata (wajib login Google). Foto dikompresi di browser memakai Canvas sebelum dikirim.
+- **Dashboard UMKM `/dashboard`**: login Neon Auth (Google atau email/password), penyiapan profil toko, unggah/edit/hapus produk, ubah status stok, sundul iklan, dan buku kas penjualan.
 - **API internal**: lihat [DOCS/API.md](./DOCS/API.md).
 
 ### Platform
@@ -65,7 +65,7 @@ Semua variabel ada di [.env.example](./.env.example). Kelompok utamanya:
 - **Neon Auth**: `NEON_AUTH_BASE_URL`, `NEON_AUTH_JWKS_URL`
 - **Neon Object Storage**: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
 - **Neon Functions/Realtime (opsional)**: `NEON_BRANCH_ID`, `NEON_FUNCTION_HOST_SUFFIX`, `NEON_REALTIME_SECRET`, `NEON_REALTIME_URL`
-- **Operasional**: `AGENT_PIN`, `WHATSAPP_HELP`
+- **Operasional**: `WHATSAPP_HELP`
 
 Catatan: `DATABASE_URL_UNPOOLED` dan `SITE_URL` belum dibaca langsung oleh kode aplikasi saat ini. Penjelasan status tiap variabel ada di [DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md](./DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md).
 

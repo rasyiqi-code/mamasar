@@ -1,26 +1,26 @@
 import type { APIRoute } from 'astro';
-import { createUMKMAndProduct } from '../../lib/db';
-import { DEFAULT_AGENT_PIN } from '../../lib/constants';
+import { createUMKMAndProduct, getUserFromSession } from '../../lib/db';
 import { saveUploadedImage } from '../../lib/storage';
 import { isValidIndonesianPhone } from '../../lib/utils';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    const formData = await request.formData();
+    // Submissions are tied to a logged-in member (Neon Auth / Google) —
+    // the shared PIN gate was replaced by real accounts.
+    const sessionCookie = cookies.get('mamasar_session')?.value;
+    const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
-    const agentPin = formData.get('agentPin')?.toString().trim();
-    const correctPin = process.env.AGENT_PIN || DEFAULT_AGENT_PIN;
-
-    // Simple security check for field agent submissions
-    if (agentPin !== correctPin) {
+    if (!user) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: 'PIN Agen tidak valid. Silakan hubungi koordinator MWC.',
+          message: 'Silakan masuk dengan akun Google terlebih dahulu untuk mendata produk.',
         }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
       );
     }
+
+    const formData = await request.formData();
 
     const umkmName = formData.get('umkmName')?.toString().trim();
     const phone = formData.get('phone')?.toString().trim();

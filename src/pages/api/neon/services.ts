@@ -1,19 +1,17 @@
 import type { APIRoute } from 'astro';
 import { getNeonSql, getNeonS3Client, invokeNeonFunction, sealRealtimeQuery, getNeonAuthInfo } from '../../../lib/neon';
-import { DEFAULT_AGENT_PIN } from '../../../lib/constants';
+import { getUserFromSession } from '../../../lib/db';
 import { ListObjectsV2Command } from '@aws-sdk/client-s3';
 
-export const GET: APIRoute = async ({ request }) => {
-  // Diagnostic endpoint: only reachable with the admin/agent PIN.
+export const GET: APIRoute = async ({ cookies }) => {
+  // Diagnostic endpoint: only reachable by logged-in members.
   // Public exposure leaks infrastructure topology (versions, endpoints, keys).
-  const url = new URL(request.url);
-  const providedPin =
-    request.headers.get('x-admin-pin') || url.searchParams.get('pin') || '';
-  const correctPin = process.env.AGENT_PIN || DEFAULT_AGENT_PIN;
+  const sessionCookie = cookies.get('mamasar_session')?.value;
+  const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
-  if (providedPin !== correctPin) {
-    return new Response(JSON.stringify({ error: 'Akses ditolak. PIN admin diperlukan.' }), {
-      status: 403,
+  if (!user) {
+    return new Response(JSON.stringify({ error: 'Akses ditolak. Silakan masuk terlebih dahulu.' }), {
+      status: 401,
       headers: { 'Content-Type': 'application/json' },
     });
   }

@@ -148,6 +148,8 @@ check('deleteCashbookEntry wrong user → false', (await db.deleteCashbookEntry(
 
 const cp = await db.createUMKMAndProduct({ umkmName: 'Toko Lepas', phone: '0812000111222', zoneId: zones[2].id, productName: 'Produk Lepas', price: 999, category: 'Lainnya', imageUrl: 'https://example.com/y.jpg' });
 check('createUMKMAndProduct', cp.productId > 0);
+const umkmLepasRow = await raw.select().from(schema.umkm).where(eq(schema.umkm.name, 'Toko Lepas'));
+check('createUMKMAndProduct → is_verified 0 (menunggu)', umkmLepasRow[0]?.is_verified === 0, JSON.stringify(umkmLepasRow[0]?.is_verified));
 check('deleteProduct', await db.deleteProduct(cp.productId));
 
 // ---------- CLEANUP ----------

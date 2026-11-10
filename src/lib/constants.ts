@@ -47,8 +47,6 @@ export const POPULAR_TAGS = [
 
 export const TARGET_MVP_PRODUCTS = 50;
 
-export const DEFAULT_AGENT_PIN = '1926';
-
 export const DEFAULT_PRODUCT_IMAGE =
   'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
 

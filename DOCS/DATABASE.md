@@ -134,7 +134,7 @@ Menyimpan 27 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC 
 | `name` | `TEXT` | NOT NULL | Nama usaha / toko |
 | `phone` | `TEXT` | NOT NULL | Nomor WhatsApp terstandardisasi (`628xx`) |
 | `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Relasi ke MWC tempat domisili usaha |
-| `is_verified` | `INTEGER` | DEFAULT 1 | 1 = terverifikasi (data hasil pendataan agen ber-PIN atau seed LPNU), 0 = menunggu verifikasi pengurus. Pendaftaran mandiri lewat dashboard selalu membuat 0 |
+| `is_verified` | `INTEGER` | DEFAULT 1 | 1 = terverifikasi (seed LPNU, atau diaktifkan pengurus MWC), 0 = menunggu verifikasi pengurus. Semua pendaftaran oleh pengguna — dashboard maupun `/agen` — selalu membuat 0 |
 | `address` | `TEXT` | NULLABLE | Dusun/desa atau alamat fisik toko |
 | `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu pendaftaran |
 

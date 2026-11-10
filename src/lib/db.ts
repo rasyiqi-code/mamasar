@@ -458,7 +458,9 @@ export async function createUMKMAndProduct(data: {
       name: data.umkmName,
       phone: cleanPhone,
       zone_id: data.zoneId,
-      is_verified: 1,
+      // Every user-submitted store (dashboard or /agen) starts unverified;
+      // pengurus MWC flip it to verified after checking the member.
+      is_verified: 0,
       address: data.address || '',
     })
     .returning({ id: schema.umkm.id });
@@ -805,8 +807,8 @@ export async function createUMKMForUser(userId: number, data: {
       name: data.name,
       phone: cleanPhone,
       zone_id: data.zoneId,
-      // Self-registered stores are unverified until an MWC agent or pengurus
-      // confirms them; only agent-collected (PIN-gated) data starts verified.
+      // Self-registered stores are unverified until a pengurus MWC confirms
+      // the member; only LPNU seed data starts verified.
       is_verified: 0,
       address: data.address || '',
     })

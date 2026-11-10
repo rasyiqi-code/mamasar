@@ -63,7 +63,7 @@ flowchart TD
 - Definisi tabel ada di `src/lib/schema.ts` (mirror dari DDL `scripts/migrate-neon.js`).
 - Data persisten di semua lingkungan, termasuk serverless Vercel.
 - `scripts/migrate-neon.js` membuat skema dan melakukan seed ke Neon Postgres.
-- `/api/neon/services` mengecek koneksi Postgres, object storage, functions, auth, dan realtime (digerbang PIN).
+- `/api/neon/services` mengecek koneksi Postgres, object storage, functions, auth, dan realtime (digerbang sesi login).
 - `src/lib/neon.ts` menyediakan client `neon()` dan helper lain.
 
 ---
@@ -145,7 +145,6 @@ Isi variabel di dashboard Vercel atau file `.env` lokal.
 | `NEON_FUNCTION_HOST_SUFFIX` | Tidak | `src/lib/neon.ts` | Suffix host functions |
 | `NEON_REALTIME_SECRET` | Untuk Realtime | `src/lib/neon.ts` | Secret seal query |
 | `NEON_REALTIME_URL` | Tidak | `/api/neon/services` | Hanya dilaporkan |
-| `AGENT_PIN` | Ya untuk produksi | `/api/products`, endpoint produk lain | PIN agen lapangan |
 | `WHATSAPP_HELP` | Tidak | `src/lib/constants.ts` | Nomor helpdesk PCNU |
 
 Contoh blok `.env` produksi:
@@ -168,7 +167,6 @@ AWS_ACCESS_KEY_ID=xxxxxx
 AWS_SECRET_ACCESS_KEY=xxxxxx
 AWS_REGION=ap-southeast-1
 
-AGENT_PIN=1926
 WHATSAPP_HELP=6281234567890
 ```
 
