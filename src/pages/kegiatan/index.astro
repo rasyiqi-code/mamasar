@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { getEvents, getAllZones } from '../../lib/db';
+import { resolveUser } from '../../lib/neon-auth';
 
 const url = new URL(Astro.request.url);
 const currentZone = url.searchParams.get('zona') || 'semua';
@@ -8,6 +9,8 @@ const currentZone = url.searchParams.get('zona') || 'semua';
 const zones = await getAllZones();
 const events = await getEvents({ zoneSlug: currentZone });
 const activeZone = zones.find((z) => z.slug === currentZone);
+const user = await resolveUser(Astro.request);
+const isPengurus = !!user && user.role === 'pengurus';
 ---
 
 <Layout
@@ -99,6 +102,266 @@ const activeZone = zones.find((z) => z.slug === currentZone);
         </div>
       </div>
     </div>
+
+    <!-- Panel Pengurus MWC: publikasi & kelola agenda (hanya role pengurus) -->
+    {isPengurus && (
+      <section id="pengurus-panel" class="bg-white border-2 border-emerald-300 rounded-2xl p-4 sm:p-6 shadow-sm space-y-4">
+        <div class="flex items-center justify-between gap-3">
+          <div>
+            <h2 class="text-sm sm:text-base font-black text-emerald-900 flex items-center gap-2">
+              <span>🕌</span> Panel Pengurus: Kelola Agenda Kegiatan
+            </h2>
+            <p class="text-xs text-emerald-700 mt-0.5">
+              Publikasikan agenda pengajian, harlah, atau bazar agar panitia dan warga dapat menyiapkan konsumsi dan lapak.
+            </p>
+          </div>
+          <button
+            type="button"
+            id="btn-toggle-event-form"
+            class="shrink-0 py-2 px-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs rounded-xl transition shadow-2xs cursor-pointer"
+          >
+            + Agenda Baru
+          </button>
+        </div>
+
+        <!-- Form buat/ubah agenda (collapsible) -->
+        <div id="event-form-container" class="hidden border border-emerald-200 bg-emerald-50/40 rounded-xl p-4 space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 id="event-form-title" class="font-black text-xs sm:text-sm text-slate-900">Publikasikan Agenda Baru</h3>
+            <button
+              type="button"
+              id="btn-cancel-edit"
+              class="hidden text-xs font-bold text-slate-500 hover:text-slate-800 transition cursor-pointer"
+            >
+              Batal mengubah ➔ kembali ke mode baru
+            </button>
+          </div>
+
+          <div id="event-status" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
+
+          <form id="event-form" class="space-y-4">
+            <input type="hidden" id="eventAction" name="action" value="create" />
+            <input type="hidden" id="eventId" name="eventId" value="" />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1 sm:col-span-2">
+                <label for="evTitle" class="block text-xs font-bold text-slate-700">
+                  Judul Acara <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="evTitle"
+                  name="title"
+                  placeholder="Contoh: Lailatul Ijtima' & Istighotsah Kubro MWC NU Gapura"
+                  required
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evOrganizer" class="block text-xs font-bold text-slate-700">
+                  Penyelenggara <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="evOrganizer"
+                  name="organizer"
+                  placeholder="Contoh: MWC NU Gapura & LDNU"
+                  required
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evZone" class="block text-xs font-bold text-slate-700">
+                  Wilayah MWC <span class="text-rose-500">*</span>
+                </label>
+                <select
+                  id="evZone"
+                  name="zoneId"
+                  required
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-600 cursor-pointer"
+                >
+                  <option value="" disabled selected>Pilih Wilayah MWC</option>
+                  {zones.map((z) => (
+                    <option value={z.id}>{z.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label for="evDate" class="block text-xs font-bold text-slate-700">
+                  Tanggal & Jam Acara <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="datetime-local"
+                  id="evDate"
+                  name="eventDate"
+                  required
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evTimeDesc" class="block text-xs font-bold text-slate-700">
+                  Deskripsi Waktu <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="evTimeDesc"
+                  name="timeDescription"
+                  placeholder="Contoh: 19.30 WIB (Ba'da Isya) - Selesai"
+                  required
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evLocationName" class="block text-xs font-bold text-slate-700">
+                  Nama Lokasi <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="evLocationName"
+                  name="locationName"
+                  placeholder="Contoh: Gedung Graha MWC NU Gapura"
+                  required
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evLocationAddress" class="block text-xs font-bold text-slate-700">
+                  Alamat Lokasi (Opsional)
+                </label>
+                <input
+                  type="text"
+                  id="evLocationAddress"
+                  name="locationAddress"
+                  placeholder="Contoh: Jl. Raya Gapura, Dusun Karang Anyar"
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evAttendance" class="block text-xs font-bold text-slate-700">
+                  Estimasi Jamaah (Opsional)
+                </label>
+                <input
+                  type="number"
+                  id="evAttendance"
+                  name="estimatedAttendance"
+                  min="0"
+                  placeholder="Contoh: 250"
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evCoordinatorName" class="block text-xs font-bold text-slate-700">
+                  Nama Koordinator (Opsional)
+                </label>
+                <input
+                  type="text"
+                  id="evCoordinatorName"
+                  name="coordinatorName"
+                  placeholder="Contoh: Ustadz Kholilurrahman (Seksi Konsumsi)"
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 focus:outline-none focus:border-emerald-600"
+                />
+              </div>
+
+              <div class="space-y-1 sm:col-span-2">
+                <label for="evCoordinatorPhone" class="block text-xs font-bold text-slate-700">
+                  Nomor WhatsApp Koordinator <span class="text-rose-500">*</span>
+                </label>
+                <input
+                  type="tel"
+                  id="evCoordinatorPhone"
+                  name="coordinatorPhone"
+                  placeholder="Contoh: 081234567890"
+                  required
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 font-mono focus:outline-none focus:border-emerald-600"
+                />
+                <p class="text-[10px] text-slate-500">Warga yang ingin membuka lapak akan menghubungi nomor ini.</p>
+              </div>
+
+              <div class="space-y-1 sm:col-span-2">
+                <label for="evConsumption" class="block text-xs font-bold text-slate-700">
+                  Kebutuhan Konsumsi Panitia (Opsional)
+                </label>
+                <textarea
+                  id="evConsumption"
+                  name="consumptionNeeded"
+                  rows="2"
+                  placeholder="Contoh: Dibutuhkan 200 snack box kue basah dan 50 porsi nasi kotak jamuan ustadz & pengurus."
+                  class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 resize-none focus:outline-none focus:border-emerald-600"
+                ></textarea>
+              </div>
+
+              <label class="flex items-start gap-2.5 sm:col-span-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  id="evAllowStalls"
+                  name="allowStalls"
+                  checked
+                  class="mt-0.5 w-4 h-4 accent-emerald-600 cursor-pointer"
+                />
+                <span class="text-xs text-slate-700">
+                  <span class="font-bold">Warga & santri diizinkan membuka lapak jualan</span>
+                  <span class="block text-[10px] text-slate-500">Tampilkan badge peluang bazar di halaman agenda.</span>
+                </span>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              id="btn-submit-event"
+              class="w-full py-3 px-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs sm:text-sm rounded-xl transition shadow-sm cursor-pointer"
+            >
+              Publikasikan Agenda ➔
+            </button>
+          </form>
+        </div>
+
+        <!-- Daftar kelola: ubah/hapus agenda existing -->
+        {events.length > 0 && (
+          <div class="border border-slate-200 rounded-xl divide-y divide-slate-100">
+            <p class="px-3.5 py-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-slate-50 rounded-t-xl">
+              Agenda di wilayah ini ({events.length}) — ubah atau hapus
+            </p>
+            {events.map((ev) => (
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-3.5">
+                <div class="min-w-0">
+                  <p class="text-xs font-bold text-slate-900 truncate">{ev.title}</p>
+                  <p class="text-[11px] text-slate-500 mt-0.5">
+                    {new Date(ev.event_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} · {ev.zone_name} · {ev.organizer}
+                  </p>
+                </div>
+                <div class="flex gap-2 shrink-0">
+                  <button
+                    type="button"
+                    data-edit-id={ev.id}
+                    class="py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 font-bold text-[11px] rounded-lg border border-slate-300 transition cursor-pointer"
+                  >
+                    Ubah
+                  </button>
+                  <button
+                    type="button"
+                    data-delete-id={ev.id}
+                    data-delete-title={ev.title}
+                    class="py-1.5 px-3 bg-white hover:bg-rose-50 text-rose-700 font-bold text-[11px] rounded-lg border border-rose-300 transition cursor-pointer"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <script type="application/json" id="kegiatan-data" set:html={JSON.stringify(events).replace(/</g, '\\u003c')} />
+      </section>
+    )}
 
     <!-- Events List Section -->
     <section class="space-y-4">
@@ -210,3 +473,128 @@ const activeZone = zones.find((z) => z.slug === currentZone);
 
   </div>
 </Layout>
+
+<script>
+  // Panel hanya dirender untuk pengurus; pengunjung biasa tidak punya elemen ini.
+  const eventForm = document.getElementById('event-form') as HTMLFormElement;
+  if (eventForm) {
+    const formContainer = document.getElementById('event-form-container')!;
+    const formTitle = document.getElementById('event-form-title')!;
+    const toggleBtn = document.getElementById('btn-toggle-event-form') as HTMLButtonElement;
+    const cancelBtn = document.getElementById('btn-cancel-edit') as HTMLButtonElement;
+    const submitBtn = document.getElementById('btn-submit-event') as HTMLButtonElement;
+    const actionInput = document.getElementById('eventAction') as HTMLInputElement;
+    const eventIdInput = document.getElementById('eventId') as HTMLInputElement;
+    const statusBox = document.getElementById('event-status');
+
+    const EVENTS: Array<any> = JSON.parse(
+      (document.getElementById('kegiatan-data') as HTMLScriptElement).textContent || '[]'
+    );
+
+    function showStatus(ok: boolean, message: string) {
+      if (!statusBox) return;
+      statusBox.className = `p-3 rounded-xl text-xs font-bold ${ok
+        ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+        : 'bg-rose-50 text-rose-800 border border-rose-200'}`;
+      statusBox.textContent = message;
+      statusBox.classList.remove('hidden');
+    }
+
+    function resetToCreateMode() {
+      eventForm.reset();
+      actionInput.value = 'create';
+      eventIdInput.value = '';
+      formTitle.textContent = 'Publikasikan Agenda Baru';
+      submitBtn.textContent = 'Publikasikan Agenda ➔';
+      cancelBtn.classList.add('hidden');
+      (document.getElementById('evAllowStalls') as HTMLInputElement).checked = true;
+      if (statusBox) statusBox.classList.add('hidden');
+    }
+
+    toggleBtn.addEventListener('click', () => {
+      formContainer.classList.toggle('hidden');
+      if (!formContainer.classList.contains('hidden')) {
+        document.getElementById('evTitle')?.focus();
+      }
+    });
+
+    cancelBtn.addEventListener('click', resetToCreateMode);
+
+    eventForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      submitBtn.disabled = true;
+      try {
+        const res = await fetch('/api/events', { method: 'POST', body: new FormData(eventForm) });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showStatus(true, data.message);
+          setTimeout(() => window.location.reload(), 900);
+        } else {
+          showStatus(false, data.message || 'Gagal menyimpan agenda.');
+        }
+      } catch (err: any) {
+        showStatus(false, 'Gagal menghubungi server: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+      }
+    });
+
+    // Prefill form dari data agenda yang sudah dirender server-side.
+    document.querySelectorAll<HTMLButtonElement>('[data-edit-id]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const ev = EVENTS.find((x) => x.id === Number(btn.dataset.editId));
+        if (!ev) return;
+
+        actionInput.value = 'update';
+        eventIdInput.value = String(ev.id);
+        formTitle.textContent = `Ubah Agenda: ${ev.title}`;
+        submitBtn.textContent = 'Simpan Perubahan ➔';
+        cancelBtn.classList.remove('hidden');
+
+        (document.getElementById('evTitle') as HTMLInputElement).value = ev.title;
+        (document.getElementById('evOrganizer') as HTMLInputElement).value = ev.organizer;
+        (document.getElementById('evZone') as HTMLSelectElement).value = String(ev.zone_id);
+        // event_date ISO "YYYY-MM-DDTHH:mm:..." → nilai input datetime-local.
+        (document.getElementById('evDate') as HTMLInputElement).value = ev.event_date.slice(0, 16);
+        (document.getElementById('evTimeDesc') as HTMLInputElement).value = ev.time_description;
+        (document.getElementById('evLocationName') as HTMLInputElement).value = ev.location_name;
+        (document.getElementById('evLocationAddress') as HTMLInputElement).value = ev.location_address || '';
+        (document.getElementById('evAttendance') as HTMLInputElement).value = String(ev.estimated_attendance || '');
+        (document.getElementById('evConsumption') as HTMLTextAreaElement).value = ev.consumption_needed || '';
+        (document.getElementById('evCoordinatorName') as HTMLInputElement).value = ev.coordinator_name || '';
+        (document.getElementById('evCoordinatorPhone') as HTMLInputElement).value = ev.coordinator_phone;
+        (document.getElementById('evAllowStalls') as HTMLInputElement).checked = Boolean(ev.allow_stalls);
+
+        if (statusBox) statusBox.classList.add('hidden');
+        formContainer.classList.remove('hidden');
+        formContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+
+    document.querySelectorAll<HTMLButtonElement>('[data-delete-id]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const title = btn.dataset.deleteTitle || 'agenda ini';
+        if (!confirm(`Hapus agenda "${title}" dari direktori kegiatan?`)) return;
+
+        btn.disabled = true;
+        try {
+          const body = new FormData();
+          body.set('action', 'delete');
+          body.set('eventId', btn.dataset.deleteId || '');
+          const res = await fetch('/api/events', { method: 'POST', body });
+          const data = await res.json();
+          if (res.ok && data.success) {
+            showStatus(true, data.message);
+            setTimeout(() => window.location.reload(), 900);
+          } else {
+            showStatus(false, data.message || 'Gagal menghapus agenda.');
+            btn.disabled = false;
+          }
+        } catch (err: any) {
+          showStatus(false, 'Gagal menghubungi server: ' + err.message);
+          btn.disabled = false;
+        }
+      });
+    });
+  }
+</script>

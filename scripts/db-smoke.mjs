@@ -207,6 +207,34 @@ check('deleteUMKM removes store', (await raw.select().from(schema.umkm).where(eq
 check('deleteUMKM cascades products', (await raw.select().from(schema.products).where(eq(schema.products.umkm_id, freshCId))).length === 0);
 check('deleteUMKM unknown id → false', (await db.deleteUMKM(999999)) === false);
 
+// ---------- CRUD AGENDA KEGIATAN (PENGURUS) ----------
+const evInput = {
+  title: 'Agenda Probe Harlah Banom',
+  organizer: 'PCNU Probe',
+  zoneId: zones[0].id,
+  eventDate: new Date('2026-12-24T08:00:00Z'),
+  timeDescription: '08.00 WIB - Selesai',
+  locationName: 'Gedung Probe PCNU',
+  locationAddress: 'Jl. Probe No. 1',
+  estimatedAttendance: 50,
+  consumptionNeeded: 'Dibutuhkan 50 snack box probe.',
+  allowStalls: true,
+  coordinatorName: 'Kang Probe',
+  coordinatorPhone: '081234567890',
+};
+const createdEvent = await db.createEvent(evInput);
+check('createEvent', createdEvent.id > 0 && createdEvent.slug.includes('agenda-probe-harlah'), JSON.stringify(createdEvent));
+const evBySlug = await db.getEventBySlug(createdEvent.slug);
+check('created event readable + phone normalized', !!evBySlug && evBySlug.coordinator_phone === '6281234567890' && evBySlug.allow_stalls === 1 && evBySlug.zone_slug === zones[0].slug, JSON.stringify({ phone: evBySlug?.coordinator_phone, stalls: evBySlug?.allow_stalls }));
+
+check('updateEvent', await db.updateEvent(createdEvent.id, { ...evInput, title: 'Agenda Probe Dirubah', estimatedAttendance: 99, allowStalls: false }));
+const evUpdated = await db.getEventBySlug(createdEvent.slug);
+check('updateEvent keeps slug + applies fields', !!evUpdated && evUpdated.title === 'Agenda Probe Dirubah' && evUpdated.estimated_attendance === 99 && evUpdated.allow_stalls === 0, JSON.stringify({ title: evUpdated?.title, att: evUpdated?.estimated_attendance, stalls: evUpdated?.allow_stalls }));
+check('updateEvent unknown id → false', (await db.updateEvent(999999, evInput)) === false);
+check('deleteEvent', await db.deleteEvent(createdEvent.id));
+check('deleted event gone', (await db.getEventBySlug(createdEvent.slug)) === undefined);
+check('deleteEvent unknown id → false', (await db.deleteEvent(999999)) === false);
+
 // ---------- CLEANUP ----------
 check('deleteProduct own product', await db.deleteProduct(added.productId, umkmId));
 await db.deleteSession(sid);

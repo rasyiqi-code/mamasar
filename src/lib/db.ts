@@ -138,6 +138,90 @@ export async function getEventBySlug(slug: string): Promise<EventItem | undefine
   return row ? toEventItem(row) : undefined;
 }
 
+export interface EventInput {
+  title: string;
+  organizer: string;
+  zoneId: number;
+  eventDate: Date;
+  timeDescription: string;
+  locationName: string;
+  locationAddress?: string;
+  estimatedAttendance: number;
+  consumptionNeeded?: string;
+  allowStalls: boolean;
+  coordinatorName?: string;
+  coordinatorPhone: string;
+}
+
+/**
+ * Publish a new NU event agenda (pengurus MWC only via /api/events).
+ * Slug gets a timestamp suffix like products so re-used titles stay unique.
+ */
+export async function createEvent(data: EventInput): Promise<{ id: number; slug: string }> {
+  const cleanPhone = formatPhoneForWhatsApp(data.coordinatorPhone);
+  const uniqueSlug = `${slugify(data.title)}-${Date.now().toString(36)}`;
+
+  const [row] = await getDb()
+    .insert(schema.events)
+    .values({
+      zone_id: data.zoneId,
+      title: data.title,
+      slug: uniqueSlug,
+      organizer: data.organizer,
+      event_date: data.eventDate,
+      time_description: data.timeDescription,
+      location_name: data.locationName,
+      location_address: data.locationAddress || '',
+      estimated_attendance: data.estimatedAttendance,
+      consumption_needed: data.consumptionNeeded || '',
+      allow_stalls: data.allowStalls ? 1 : 0,
+      coordinator_name: data.coordinatorName || '',
+      coordinator_phone: cleanPhone,
+    })
+    .returning({ id: schema.events.id });
+
+  return { id: row.id, slug: uniqueSlug };
+}
+
+/**
+ * Edit an existing event. The slug is kept as-is so the public URL and
+ * search-engine entries stay stable across title changes.
+ */
+export async function updateEvent(eventId: number, data: EventInput): Promise<boolean> {
+  const cleanPhone = formatPhoneForWhatsApp(data.coordinatorPhone);
+
+  const rows = await getDb()
+    .update(schema.events)
+    .set({
+      zone_id: data.zoneId,
+      title: data.title,
+      organizer: data.organizer,
+      event_date: data.eventDate,
+      time_description: data.timeDescription,
+      location_name: data.locationName,
+      location_address: data.locationAddress || '',
+      estimated_attendance: data.estimatedAttendance,
+      consumption_needed: data.consumptionNeeded || '',
+      allow_stalls: data.allowStalls ? 1 : 0,
+      coordinator_name: data.coordinatorName || '',
+      coordinator_phone: cleanPhone,
+    })
+    .where(eq(schema.events.id, eventId))
+    .returning({ id: schema.events.id });
+  return rows.length > 0;
+}
+
+/**
+ * Delete an event agenda (pengurus MWC only).
+ */
+export async function deleteEvent(eventId: number): Promise<boolean> {
+  const rows = await getDb()
+    .delete(schema.events)
+    .where(eq(schema.events.id, eventId))
+    .returning({ id: schema.events.id });
+  return rows.length > 0;
+}
+
 export interface User {
   id: number;
   google_id: string;

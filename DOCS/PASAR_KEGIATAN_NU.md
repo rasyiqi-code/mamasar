@@ -78,7 +78,7 @@ sequenceDiagram
 - Seed: `SEED_EVENTS` di `src/lib/seeds.ts`, ikut dimigrasikan oleh `scripts/migrate-neon.js`.
 - SEO: halaman detail menghasilkan Schema.org `Event`.
 - Konversi: semua pesanan dan koordinasi lapak berlangsung lewat tautan WhatsApp. Tidak ada keranjang, checkout, atau pembayaran di aplikasi.
-- Publikasi agenda: belum ada halaman admin atau endpoint API untuk membuat kegiatan. Data masuk lewat seed atau SQL langsung.
+- Publikasi agenda: pengurus MWC (`users.role = 'pengurus'`) mengelola agenda langsung dari panel di halaman `/kegiatan` (buat, ubah, hapus) via `POST /api/events`. Panel muncul hanya bila pengurus login; pengunjung biasa hanya melihat daftar publik. Tautan pintu juga tersedia dari halaman `/pengurus`.
 
 ---
 

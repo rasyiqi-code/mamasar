@@ -92,6 +92,7 @@ gantt
   - [x] Buat halaman detail kegiatan `src/pages/kegiatan/[slug].astro` dengan:
     - [x] Tombol *"Pesan Konsumsi/Snack Acara dari UMKM MWC Ini"* (filter otomatis katering terdekat).
     - [x] Info pendaftaran lapak dagang bagi warga yang ingin jualan di lokasi acara.
+  - [x] Panel pengurus MWC di halaman `/kegiatan` untuk kelola agenda (buat, ubah, hapus) via `POST /api/events`; panel hanya tampil bila pengurus login.
 - [x] **3.2. Fitur Simpan Iklan Favorit (Bookmark)**
   - [x] Handler interaktif tombol bintang ⭐ menyimpan ke `localStorage`.
   - [x] Halaman `src/pages/favorit.astro` untuk melihat daftar produk yang disimpan.

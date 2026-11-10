@@ -21,6 +21,7 @@ Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. For
 | `POST` | `/api/umkm/add-product` | Sesi toko | Tambah produk ke toko sendiri |
 | `POST` | `/api/umkm/verify` | Pengurus MWC | Set/cabut status terverifikasi toko |
 | `POST` | `/api/umkm/delete` | Pengurus MWC | Hapus toko beserta produknya |
+| `POST` | `/api/events` | Pengurus MWC | Buat, ubah, atau hapus agenda kegiatan |
 | `POST` | `/api/user/avatar` | Sesi opsional | Unggah foto profil |
 | `POST` | `/api/user/cashbook` | Sesi | Tambah catatan buku kas |
 | `DELETE` | `/api/user/cashbook` | Sesi | Hapus catatan buku kas |
@@ -204,6 +205,34 @@ Endpoint pengurus MWC di halaman `/pengurus`. Gerbang sesi + role sama seperti `
 | `umkmId` | Ya | ID toko |
 
 Menghapus toko beserta seluruh produknya (FK cascade). Akun pemilik toko (bila ada) tetap utuh — hanya kehilangan tokonya. Respons `200`: `{ "success": true, "message": "..." }`; `401`/`403`/`404` mengikuti `/api/umkm/verify`.
+
+### `POST /api/events`
+
+Endpoint pengurus MWC untuk kelola agenda kegiatan (form di halaman `/kegiatan`). Memerlukan cookie `mamasar_session` milik akun dengan `users.role = 'pengurus'`. Format `multipart/form-data`; field `action` menentukan aksi.
+
+**`action=create`** — buat agenda baru. Respons `201`: `{ "success": true, "eventId": 7, "slug": "...", "message": "..." }`.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `action` | Ya | `create` |
+| `title` | Ya | Judul acara — jadi dasar slug |
+| `organizer` | Ya | Penyelenggara (MWC/Banom) |
+| `zoneId` | Ya | ID zona MWC |
+| `eventDate` | Ya | `YYYY-MM-DDTHH:mm` (wall-clock, disimpan sebagai UTC) |
+| `timeDescription` | Ya | Deskripsi waktu, mis. `19.30 WIB - Selesai` |
+| `locationName` | Ya | Nama lokasi |
+| `locationAddress` | Tidak | Alamat lokasi |
+| `estimatedAttendance` | Tidak | Estimasi jamaah, default `0` |
+| `consumptionNeeded` | Tidak | Kebutuhan konsumsi panitia |
+| `allowStalls` | Tidak | `on` bila warga diizinkan buka lapak |
+| `coordinatorName` | Tidak | Nama koordinator |
+| `coordinatorPhone` | Ya | Nomor WA koordinator (dinormalisasi `62xx`) |
+
+**`action=update`** — ubah agenda. Tambah field `eventId` (wajib); field lain sama seperti `create`. Slug tidak berubah agar URL publik stabil. Respons `200`.
+
+**`action=delete`** — hapus agenda. Hanya butuh `eventId`. Respons `200`.
+
+Tanpa sesi: `401`; bukan pengurus: `403`; agenda tak ada (update/delete): `404`; validasi gagal: `400`.
 
 ---
 
