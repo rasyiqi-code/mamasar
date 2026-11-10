@@ -1,60 +1,33 @@
+import { and, asc, desc, eq, gt, getTableColumns, gte, ilike, lt, lte, or, sql, type SQL } from 'drizzle-orm';
+import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
+import * as schema from './schema';
 import { getNeonSql } from './neon';
 import { formatPhoneForWhatsApp, slugify } from './utils';
 
 /**
- * Data layer for Neon PostgreSQL.
+ * Data layer for Neon PostgreSQL, built on Drizzle ORM.
  *
- * All functions are async: queries run over the Neon serverless HTTP driver
- * instead of a local SQLite file, so state survives across serverless
- * instances (Vercel) and is shared by every request.
+ * All functions are async: queries run over the Neon serverless HTTP
+ * driver, so state survives across serverless instances (Vercel) and is
+ * shared by every request. Table definitions live in ./schema.ts; the DDL
+ * source of truth is scripts/migrate-neon.js.
  *
- * The query helpers below accept SQLite-style `?` placeholders and convert
- * them to Postgres `$n` placeholders, keeping the SQL close to the original
- * SQLite implementation.
+ * TIMESTAMP WITH TIME ZONE columns come back as Date objects; the mappers
+ * below convert them to ISO strings so the exported interfaces keep the
+ * string shapes the rest of the app was built against.
  */
 
-type NeonSql = ReturnType<typeof getNeonSql>;
+type Database = NeonHttpDatabase<typeof schema>;
 
-let sqlClient: NeonSql | null = null;
+let dbInstance: Database | null = null;
 
-function getSql(): NeonSql {
+function getDb(): Database {
   // Lazy init so importing this module never crashes environments without
   // DATABASE_URL (build time, unit tests); the error surfaces on first query.
-  if (!sqlClient) {
-    sqlClient = getNeonSql();
+  if (!dbInstance) {
+    dbInstance = drizzle(getNeonSql(), { schema });
   }
-  return sqlClient;
-}
-
-function toPgPlaceholders(text: string): string {
-  let i = 0;
-  return text.replace(/\?/g, () => `$${++i}`);
-}
-
-/**
- * neon() returns TIMESTAMP WITH TIME ZONE columns as JS Date objects.
- * Normalize them to ISO strings so row shapes stay identical to the previous
- * SQLite layer (interfaces declare created_at / event_date as string).
- */
-function normalizeRow<T>(row: any): T {
-  if (row && typeof row === 'object') {
-    for (const key of Object.keys(row)) {
-      if (row[key] instanceof Date) {
-        row[key] = row[key].toISOString();
-      }
-    }
-  }
-  return row as T;
-}
-
-async function all<T = any>(text: string, params: any[] = []): Promise<T[]> {
-  const rows = await getSql().query(toPgPlaceholders(text), params);
-  return rows.map(normalizeRow) as T[];
-}
-
-async function one<T = any>(text: string, params: any[] = []): Promise<T | undefined> {
-  const rows = await all<T>(text, params);
-  return rows[0];
+  return dbInstance;
 }
 
 export interface Article {
@@ -68,12 +41,28 @@ export interface Article {
   created_at: string;
 }
 
+function toArticle(row: typeof schema.articles.$inferSelect): Article {
+  return {
+    id: row.id,
+    title: row.title,
+    slug: row.slug,
+    category: row.category,
+    image_url: row.image_url,
+    summary: row.summary,
+    content: row.content ?? undefined,
+    // Set by DEFAULT CURRENT_TIMESTAMP on every insert path; never NULL.
+    created_at: row.created_at!.toISOString(),
+  };
+}
+
 export async function getArticles(): Promise<Article[]> {
-  return all<Article>('SELECT * FROM articles ORDER BY id ASC');
+  const rows = await getDb().select().from(schema.articles).orderBy(asc(schema.articles.id));
+  return rows.map(toArticle);
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
-  return one<Article>('SELECT * FROM articles WHERE slug = ?', [slug]);
+  const [row] = await getDb().select().from(schema.articles).where(eq(schema.articles.slug, slug));
+  return row ? toArticle(row) : undefined;
 }
 
 export interface EventItem {
@@ -96,32 +85,57 @@ export interface EventItem {
   created_at: string;
 }
 
+type EventRow = typeof schema.events.$inferSelect & { zone_name: string; zone_slug: string };
+
+function toEventItem(row: EventRow): EventItem {
+  return {
+    id: row.id,
+    zone_id: row.zone_id,
+    zone_name: row.zone_name,
+    zone_slug: row.zone_slug,
+    title: row.title,
+    slug: row.slug,
+    organizer: row.organizer,
+    event_date: row.event_date.toISOString(),
+    time_description: row.time_description,
+    location_name: row.location_name,
+    location_address: row.location_address ?? undefined,
+    estimated_attendance: row.estimated_attendance ?? 0,
+    consumption_needed: row.consumption_needed ?? undefined,
+    allow_stalls: row.allow_stalls ?? 1,
+    coordinator_name: row.coordinator_name ?? undefined,
+    coordinator_phone: row.coordinator_phone,
+    created_at: row.created_at!.toISOString(),
+  };
+}
+
+function eventSelect() {
+  return getDb()
+    .select({
+      ...getTableColumns(schema.events),
+      zone_name: schema.zones.name,
+      zone_slug: schema.zones.slug,
+    })
+    .from(schema.events)
+    .innerJoin(schema.zones, eq(schema.events.zone_id, schema.zones.id));
+}
+
 export async function getEvents(options?: { zoneSlug?: string }): Promise<EventItem[]> {
-  let query = `
-    SELECT e.*, z.name as zone_name, z.slug as zone_slug
-    FROM events e
-    JOIN zones z ON e.zone_id = z.id
-    WHERE 1=1
-  `;
-  const params: any[] = [];
+  const conditions: SQL[] = [];
 
   if (options?.zoneSlug && options.zoneSlug !== 'semua') {
-    query += ' AND z.slug = ?';
-    params.push(options.zoneSlug);
+    conditions.push(eq(schema.zones.slug, options.zoneSlug));
   }
 
-  query += ' ORDER BY e.event_date ASC, e.id ASC';
-  return all<EventItem>(query, params);
+  const rows = await eventSelect()
+    .where(conditions.length ? and(...conditions) : undefined)
+    .orderBy(asc(schema.events.event_date), asc(schema.events.id));
+  return rows.map(toEventItem);
 }
 
 export async function getEventBySlug(slug: string): Promise<EventItem | undefined> {
-  const query = `
-    SELECT e.*, z.name as zone_name, z.slug as zone_slug
-    FROM events e
-    JOIN zones z ON e.zone_id = z.id
-    WHERE e.slug = ?
-  `;
-  return one<EventItem>(query, [slug]);
+  const [row] = await eventSelect().where(eq(schema.events.slug, slug));
+  return row ? toEventItem(row) : undefined;
 }
 
 export interface User {
@@ -132,6 +146,18 @@ export interface User {
   avatar_url?: string;
   role: string;
   created_at: string;
+}
+
+function toUser(row: typeof schema.users.$inferSelect): User {
+  return {
+    id: row.id,
+    google_id: row.google_id,
+    email: row.email,
+    name: row.name,
+    avatar_url: row.avatar_url ?? undefined,
+    role: row.role ?? 'umkm',
+    created_at: row.created_at!.toISOString(),
+  };
 }
 
 export interface Zone {
@@ -187,20 +213,98 @@ export interface CashbookEntry {
   created_at: string;
 }
 
+type UMKMJoinRow = typeof schema.umkm.$inferSelect & { zone_name: string; zone_slug: string };
+
+function toUMKM(row: UMKMJoinRow): UMKM & { zone_name: string; zone_slug: string } {
+  return {
+    id: row.id,
+    user_id: row.user_id ?? undefined,
+    name: row.name,
+    phone: row.phone,
+    zone_id: row.zone_id,
+    zone_name: row.zone_name,
+    zone_slug: row.zone_slug,
+    is_verified: row.is_verified ?? 1,
+    address: row.address ?? undefined,
+  };
+}
+
+type ProductRow = typeof schema.products.$inferSelect & {
+  umkm_name: string;
+  umkm_phone: string;
+  umkm_address: string | null;
+  is_verified: number | null;
+  zone_id: number;
+  zone_name: string;
+  zone_slug: string;
+};
+
+function toProduct(row: ProductRow): Product {
+  return {
+    id: row.id,
+    umkm_id: row.umkm_id,
+    umkm_name: row.umkm_name,
+    umkm_phone: row.umkm_phone,
+    umkm_address: row.umkm_address ?? '',
+    is_verified: row.is_verified ?? 1,
+    zone_id: row.zone_id,
+    zone_name: row.zone_name,
+    zone_slug: row.zone_slug,
+    name: row.name,
+    slug: row.slug,
+    price: row.price,
+    category: row.category,
+    image_url: row.image_url,
+    description: row.description ?? '',
+    views: row.views ?? 0,
+    is_sold_out: row.is_sold_out ?? 0,
+    is_featured: row.is_featured ?? 0,
+    bumped_at: row.bumped_at ? row.bumped_at.toISOString() : undefined,
+    shopee_url: row.shopee_url ?? undefined,
+    created_at: row.created_at!.toISOString(),
+  };
+}
+
+/**
+ * Shared products+umkm+zones join used by every catalog query, mirroring
+ * the previous `SELECT p.*, u.*, z.*` SQL shape.
+ */
+function productSelect() {
+  return getDb()
+    .select({
+      ...getTableColumns(schema.products),
+      umkm_name: schema.umkm.name,
+      umkm_phone: schema.umkm.phone,
+      umkm_address: schema.umkm.address,
+      is_verified: schema.umkm.is_verified,
+      zone_id: schema.zones.id,
+      zone_name: schema.zones.name,
+      zone_slug: schema.zones.slug,
+    })
+    .from(schema.products)
+    .innerJoin(schema.umkm, eq(schema.products.umkm_id, schema.umkm.id))
+    .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id));
+}
+
+const lastBumpedFirst = [
+  desc(sql`COALESCE(${schema.products.bumped_at}, ${schema.products.created_at})`),
+  desc(schema.products.id),
+];
+
 export async function getAllZones(): Promise<(Zone & { count?: number })[]> {
-  const zones = await all<Zone>('SELECT * FROM zones ORDER BY name ASC');
-  const counts = await all<{ zone_id: number; count: number }>(`
-    SELECT u.zone_id, count(p.id)::int as count
-    FROM products p
-    JOIN umkm u ON p.umkm_id = u.id
-    GROUP BY u.zone_id
-  `);
+  const zoneRows = await getDb().select().from(schema.zones).orderBy(asc(schema.zones.name));
 
-  const countMap = new Map(counts.map((c) => [c.zone_id, c.count]));
+  const countRows = await getDb()
+    .select({ zone_id: schema.umkm.zone_id, count: sql<number>`count(${schema.products.id})::int` })
+    .from(schema.products)
+    .innerJoin(schema.umkm, eq(schema.products.umkm_id, schema.umkm.id))
+    .groupBy(schema.umkm.zone_id);
 
-  return zones.map((z) => ({
+  const countMap = new Map(countRows.map((c) => [c.zone_id, c.count]));
+
+  return zoneRows.map((z) => ({
     ...z,
-    count: countMap.get(z.id) || 0,
+    count: countMap.get(z.id) ?? 0,
   }));
 }
 
@@ -208,38 +312,41 @@ export async function getAllUMKM(options?: {
   zoneSlug?: string;
   search?: string;
 }): Promise<(UMKM & { product_count: number; zone_slug: string; sample_images: string[] })[]> {
-  let query = `
-    SELECT
-      u.*,
-      z.name as zone_name,
-      z.slug as zone_slug,
-      count(p.id)::int as product_count,
-      string_agg(p.image_url, ',') as sample_images_str
-    FROM umkm u
-    JOIN zones z ON u.zone_id = z.id
-    LEFT JOIN products p ON p.umkm_id = u.id
-    WHERE 1=1
-  `;
-  const params: any[] = [];
+  const conditions: SQL[] = [];
 
   if (options?.zoneSlug && options.zoneSlug !== 'semua') {
-    query += ` AND z.slug = ?`;
-    params.push(options.zoneSlug);
+    conditions.push(eq(schema.zones.slug, options.zoneSlug));
   }
 
   if (options?.search && options.search.trim() !== '') {
-    // ILIKE keeps the previous SQLite behavior where LIKE was case-insensitive.
-    query += ` AND (u.name ILIKE ? OR u.address ILIKE ? OR z.name ILIKE ?)`;
-    const searchParam = `%${options.search.trim()}%`;
-    params.push(searchParam, searchParam, searchParam);
+    const pattern = `%${options.search.trim()}%`;
+    conditions.push(
+      or(
+        ilike(schema.umkm.name, pattern),
+        ilike(schema.umkm.address, pattern),
+        ilike(schema.zones.name, pattern)
+      )!
+    );
   }
 
-  query += ` GROUP BY u.id, z.name, z.slug ORDER BY product_count DESC, u.id ASC`;
-
-  const rows = await all<any>(query, params);
+  const rows = await getDb()
+    .select({
+      ...getTableColumns(schema.umkm),
+      zone_name: schema.zones.name,
+      zone_slug: schema.zones.slug,
+      product_count: sql<number>`count(${schema.products.id})::int`,
+      sample_images_str: sql<string | null>`string_agg(${schema.products.image_url}, ',')`,
+    })
+    .from(schema.umkm)
+    .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+    .leftJoin(schema.products, eq(schema.products.umkm_id, schema.umkm.id))
+    .where(conditions.length ? and(...conditions) : undefined)
+    .groupBy(schema.umkm.id, schema.zones.name, schema.zones.slug)
+    .orderBy(desc(sql`count(${schema.products.id})`), asc(schema.umkm.id));
 
   return rows.map((r) => ({
-    ...r,
+    ...toUMKM(r),
+    product_count: r.product_count,
     sample_images: r.sample_images_str ? String(r.sample_images_str).split(',').filter(Boolean) : [],
   }));
 }
@@ -253,40 +360,29 @@ export async function getUMKMById(id: number | string): Promise<(UMKM & {
   const numId = Number(id);
   if (isNaN(numId)) return undefined;
 
-  const umkm = await one<any>(`
-    SELECT
-      u.*,
-      z.name as zone_name,
-      z.slug as zone_slug,
-      count(p.id)::int as product_count
-    FROM umkm u
-    JOIN zones z ON u.zone_id = z.id
-    LEFT JOIN products p ON p.umkm_id = u.id
-    WHERE u.id = ?
-    GROUP BY u.id, z.name, z.slug
-  `, [numId]);
+  const [store] = await getDb()
+    .select({
+      ...getTableColumns(schema.umkm),
+      zone_name: schema.zones.name,
+      zone_slug: schema.zones.slug,
+      product_count: sql<number>`count(${schema.products.id})::int`,
+    })
+    .from(schema.umkm)
+    .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+    .leftJoin(schema.products, eq(schema.products.umkm_id, schema.umkm.id))
+    .where(eq(schema.umkm.id, numId))
+    .groupBy(schema.umkm.id, schema.zones.name, schema.zones.slug);
 
-  if (!umkm) return undefined;
+  if (!store) return undefined;
 
-  const products = await all<Product>(`
-    SELECT
-      p.*,
-      u.name as umkm_name,
-      u.phone as umkm_phone,
-      u.address as umkm_address,
-      u.is_verified as is_verified,
-      z.name as zone_name,
-      z.slug as zone_slug
-    FROM products p
-    JOIN umkm u ON p.umkm_id = u.id
-    JOIN zones z ON u.zone_id = z.id
-    WHERE p.umkm_id = ?
-    ORDER BY p.id DESC
-  `, [numId]);
+  const productRows = await productSelect()
+    .where(eq(schema.products.umkm_id, numId))
+    .orderBy(desc(schema.products.id));
 
   return {
-    ...umkm,
-    products,
+    ...toUMKM(store),
+    product_count: store.product_count,
+    products: productRows.map(toProduct),
   };
 }
 
@@ -298,75 +394,51 @@ export async function getProducts(options?: {
   maxPrice?: number;
   sort?: string;
 }): Promise<Product[]> {
-  let query = `
-    SELECT
-      p.*,
-      u.name as umkm_name,
-      u.phone as umkm_phone,
-      u.address as umkm_address,
-      u.is_verified as is_verified,
-      z.name as zone_name,
-      z.slug as zone_slug
-    FROM products p
-    JOIN umkm u ON p.umkm_id = u.id
-    JOIN zones z ON u.zone_id = z.id
-    WHERE 1=1
-  `;
-  const params: any[] = [];
+  const conditions: SQL[] = [];
 
   if (options?.zoneSlug && options.zoneSlug !== 'semua') {
-    query += ` AND z.slug = ?`;
-    params.push(options.zoneSlug);
+    conditions.push(eq(schema.zones.slug, options.zoneSlug));
   }
 
   if (options?.category && options.category !== 'semua') {
-    query += ` AND p.category = ?`;
-    params.push(options.category);
+    conditions.push(eq(schema.products.category, options.category));
   }
 
   if (options?.search && options.search.trim() !== '') {
-    query += ` AND (p.name ILIKE ? OR p.description ILIKE ? OR u.name ILIKE ?)`;
-    const searchParam = `%${options.search.trim()}%`;
-    params.push(searchParam, searchParam, searchParam);
+    const pattern = `%${options.search.trim()}%`;
+    conditions.push(
+      or(
+        ilike(schema.products.name, pattern),
+        ilike(schema.products.description, pattern),
+        ilike(schema.umkm.name, pattern)
+      )!
+    );
   }
 
   if (options?.minPrice && options.minPrice > 0) {
-    query += ` AND p.price >= ?`;
-    params.push(options.minPrice);
+    conditions.push(gte(schema.products.price, options.minPrice));
   }
 
   if (options?.maxPrice && options.maxPrice > 0) {
-    query += ` AND p.price <= ?`;
-    params.push(options.maxPrice);
+    conditions.push(lte(schema.products.price, options.maxPrice));
   }
 
-  if (options?.sort === 'price_asc') {
-    query += ` ORDER BY p.price ASC, p.id DESC`;
-  } else if (options?.sort === 'price_desc') {
-    query += ` ORDER BY p.price DESC, p.id DESC`;
-  } else {
-    query += ` ORDER BY COALESCE(p.bumped_at, p.created_at) DESC, p.id DESC`;
-  }
+  const order =
+    options?.sort === 'price_asc'
+      ? [asc(schema.products.price), desc(schema.products.id)]
+      : options?.sort === 'price_desc'
+        ? [desc(schema.products.price), desc(schema.products.id)]
+        : lastBumpedFirst;
 
-  return all<Product>(query, params);
+  const rows = await productSelect()
+    .where(conditions.length ? and(...conditions) : undefined)
+    .orderBy(...order);
+  return rows.map(toProduct);
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
-  const query = `
-    SELECT
-      p.*,
-      u.name as umkm_name,
-      u.phone as umkm_phone,
-      u.address as umkm_address,
-      u.is_verified as is_verified,
-      z.name as zone_name,
-      z.slug as zone_slug
-    FROM products p
-    JOIN umkm u ON p.umkm_id = u.id
-    JOIN zones z ON u.zone_id = z.id
-    WHERE p.slug = ?
-  `;
-  return one<Product>(query, [slug]);
+  const [row] = await productSelect().where(eq(schema.products.slug, slug));
+  return row ? toProduct(row) : undefined;
 }
 
 export async function createUMKMAndProduct(data: {
@@ -384,32 +456,33 @@ export async function createUMKMAndProduct(data: {
   const cleanPhone = formatPhoneForWhatsApp(data.phone);
   const uniqueSlug = `${slugify(data.productName)}-${Date.now().toString(36)}`;
 
-  const umkmRows = await getSql().query(
-    toPgPlaceholders('INSERT INTO umkm (name, phone, zone_id, is_verified, address) VALUES (?, ?, ?, 1, ?) RETURNING id'),
-    [data.umkmName, cleanPhone, data.zoneId, data.address || '']
-  );
-  const umkmId = (umkmRows[0] as any).id;
+  const [umkmRow] = await getDb()
+    .insert(schema.umkm)
+    .values({
+      name: data.umkmName,
+      phone: cleanPhone,
+      zone_id: data.zoneId,
+      is_verified: 1,
+      address: data.address || '',
+    })
+    .returning({ id: schema.umkm.id });
 
-  const productRows = await getSql().query(
-    toPgPlaceholders(`
-      INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, shopee_url)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-      RETURNING id
-    `),
-    [
-      umkmId,
-      data.productName,
-      uniqueSlug,
-      data.price,
-      data.category,
-      data.imageUrl,
-      data.description || `${data.productName} dari ${data.umkmName}, Sumenep.`,
-      data.shopeeUrl || null,
-    ]
-  );
+  const [productRow] = await getDb()
+    .insert(schema.products)
+    .values({
+      umkm_id: umkmRow.id,
+      name: data.productName,
+      slug: uniqueSlug,
+      price: data.price,
+      category: data.category,
+      image_url: data.imageUrl,
+      description: data.description || `${data.productName} dari ${data.umkmName}, Sumenep.`,
+      shopee_url: data.shopeeUrl || null,
+    })
+    .returning({ id: schema.products.id });
 
   return {
-    productId: Number((productRows[0] as any).id),
+    productId: productRow.id,
     slug: uniqueSlug,
   };
 }
@@ -419,10 +492,11 @@ export async function createUMKMAndProduct(data: {
  */
 export async function incrementProductViews(slug: string): Promise<{ success: boolean }> {
   try {
-    const rows = await getSql().query(
-      toPgPlaceholders('UPDATE products SET views = COALESCE(views, 0) + 1 WHERE slug = ? RETURNING id'),
-      [slug]
-    );
+    const rows = await getDb()
+      .update(schema.products)
+      .set({ views: sql`COALESCE(${schema.products.views}, 0) + 1` })
+      .where(eq(schema.products.slug, slug))
+      .returning({ id: schema.products.id });
     return { success: rows.length > 0 };
   } catch (err) {
     console.error('Error incrementing views:', err);
@@ -434,16 +508,16 @@ export async function incrementProductViews(slug: string): Promise<{ success: bo
  * Bump / Naikkan produk to the top of catalog listings
  */
 export async function bumpProduct(productId: number, umkmId?: number): Promise<boolean> {
-  let query = 'UPDATE products SET bumped_at = CURRENT_TIMESTAMP WHERE id = ?';
-  const params: any[] = [productId];
-
+  const conditions = [eq(schema.products.id, productId)];
   if (umkmId) {
-    query += ' AND umkm_id = ?';
-    params.push(umkmId);
+    conditions.push(eq(schema.products.umkm_id, umkmId));
   }
 
-  query += ' RETURNING id';
-  const rows = await getSql().query(toPgPlaceholders(query), params);
+  const rows = await getDb()
+    .update(schema.products)
+    .set({ bumped_at: new Date() })
+    .where(and(...conditions))
+    .returning({ id: schema.products.id });
   return rows.length > 0;
 }
 
@@ -452,36 +526,35 @@ export async function bumpProduct(productId: number, umkmId?: number): Promise<b
  * Single atomic UPDATE, so concurrent toggles cannot overwrite each other.
  */
 export async function toggleProductStock(productId: number, umkmId?: number): Promise<{ success: boolean; is_sold_out: number }> {
-  let query = 'UPDATE products SET is_sold_out = CASE WHEN is_sold_out = 1 THEN 0 ELSE 1 END WHERE id = ?';
-  const params: any[] = [productId];
-
+  const conditions = [eq(schema.products.id, productId)];
   if (umkmId) {
-    query += ' AND umkm_id = ?';
-    params.push(umkmId);
+    conditions.push(eq(schema.products.umkm_id, umkmId));
   }
 
-  query += ' RETURNING is_sold_out';
+  const rows = await getDb()
+    .update(schema.products)
+    .set({ is_sold_out: sql`CASE WHEN ${schema.products.is_sold_out} = 1 THEN 0 ELSE 1 END` })
+    .where(and(...conditions))
+    .returning({ is_sold_out: schema.products.is_sold_out });
 
-  const rows = await getSql().query(toPgPlaceholders(query), params);
   if (rows.length === 0) return { success: false, is_sold_out: 0 };
 
-  return { success: true, is_sold_out: Number((rows[0] as any).is_sold_out) };
+  return { success: true, is_sold_out: rows[0].is_sold_out ?? 0 };
 }
 
 /**
  * Delete product from catalog
  */
 export async function deleteProduct(productId: number, umkmId?: number): Promise<boolean> {
-  let query = 'DELETE FROM products WHERE id = ?';
-  const params: any[] = [productId];
-
+  const conditions = [eq(schema.products.id, productId)];
   if (umkmId) {
-    query += ' AND umkm_id = ?';
-    params.push(umkmId);
+    conditions.push(eq(schema.products.umkm_id, umkmId));
   }
 
-  query += ' RETURNING id';
-  const rows = await getSql().query(toPgPlaceholders(query), params);
+  const rows = await getDb()
+    .delete(schema.products)
+    .where(and(...conditions))
+    .returning({ id: schema.products.id });
   return rows.length > 0;
 }
 
@@ -495,45 +568,55 @@ export async function findOrCreateUserByGoogle(data: {
   avatarUrl?: string;
 }): Promise<User> {
   // First try to find by google_id (most reliable)
-  const existingByGoogle = await one<User>('SELECT * FROM users WHERE google_id = ?', [data.googleId]);
+  const [existingByGoogle] = await getDb()
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.google_id, data.googleId));
+
   if (existingByGoogle) {
     const nextName = data.name || existingByGoogle.name;
     const nextAvatar = data.avatarUrl || existingByGoogle.avatar_url;
     if (nextName !== existingByGoogle.name || nextAvatar !== existingByGoogle.avatar_url) {
-      await getSql().query(
-        toPgPlaceholders('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?'),
-        [nextName, nextAvatar, existingByGoogle.id]
-      );
+      await getDb()
+        .update(schema.users)
+        .set({ name: nextName, avatar_url: nextAvatar })
+        .where(eq(schema.users.id, existingByGoogle.id));
     }
-    return { ...existingByGoogle, name: nextName, avatar_url: nextAvatar };
+    return { ...toUser(existingByGoogle), name: nextName, avatar_url: nextAvatar ?? undefined };
   }
 
   // Only check email if no google_id match found
-  const existingByEmail = await one<User>('SELECT * FROM users WHERE email = ?', [data.email]);
+  const [existingByEmail] = await getDb()
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, data.email));
+
   if (existingByEmail) {
     const nextName = data.name || existingByEmail.name;
     const nextAvatar = data.avatarUrl || existingByEmail.avatar_url;
     if (nextName !== existingByEmail.name || nextAvatar !== existingByEmail.avatar_url) {
-      await getSql().query(
-        toPgPlaceholders('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?'),
-        [nextName, nextAvatar, existingByEmail.id]
-      );
+      await getDb()
+        .update(schema.users)
+        .set({ name: nextName, avatar_url: nextAvatar })
+        .where(eq(schema.users.id, existingByEmail.id));
     }
-    return { ...existingByEmail, name: nextName, avatar_url: nextAvatar };
+    return { ...toUser(existingByEmail), name: nextName, avatar_url: nextAvatar ?? undefined };
   }
 
   // Create new user
-  const rows = await getSql().query(
-    toPgPlaceholders(`
-      INSERT INTO users (google_id, email, name, avatar_url, role)
-      VALUES (?, ?, ?, ?, 'umkm')
-      RETURNING id
-    `),
-    [data.googleId, data.email, data.name, data.avatarUrl || '']
-  );
+  const [created] = await getDb()
+    .insert(schema.users)
+    .values({
+      google_id: data.googleId,
+      email: data.email,
+      name: data.name,
+      avatar_url: data.avatarUrl || '',
+      role: 'umkm',
+    })
+    .returning({ id: schema.users.id });
 
   return {
-    id: Number((rows[0] as any).id),
+    id: created.id,
     google_id: data.googleId,
     email: data.email,
     name: data.name,
@@ -544,12 +627,12 @@ export async function findOrCreateUserByGoogle(data: {
 }
 
 export async function updateUserProfile(userId: number, data: { name?: string; avatarUrl?: string }): Promise<void> {
-  const existing = await one<User>('SELECT * FROM users WHERE id = ?', [userId]);
+  const [existing] = await getDb().select().from(schema.users).where(eq(schema.users.id, userId));
   if (!existing) return;
-  await getSql().query(
-    toPgPlaceholders('UPDATE users SET name = ?, avatar_url = ? WHERE id = ?'),
-    [data.name || existing.name, data.avatarUrl || existing.avatar_url, userId]
-  );
+  await getDb()
+    .update(schema.users)
+    .set({ name: data.name || existing.name, avatar_url: data.avatarUrl || existing.avatar_url })
+    .where(eq(schema.users.id, userId));
 }
 
 /**
@@ -558,12 +641,13 @@ export async function updateUserProfile(userId: number, data: { name?: string; a
 export async function createSession(userId: number): Promise<string> {
   const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
   // 30 days expiration
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
-  await getSql().query(
-    toPgPlaceholders('INSERT INTO sessions (id, user_id, expires_at) VALUES (?, ?, ?)'),
-    [sessionId, userId, expiresAt]
-  );
+  await getDb().insert(schema.sessions).values({
+    id: sessionId,
+    user_id: userId,
+    expires_at: expiresAt,
+  });
 
   // Opportunistic janitor: expired sessions are purged on ~1/20th of logins,
   // keeping the sessions table from growing forever without a cron job.
@@ -579,10 +663,13 @@ export async function createSession(userId: number): Promise<string> {
  * Prevents Neon Auth page loads from inserting one session row per request.
  */
 export async function getOrCreateSessionForUser(userId: number): Promise<string> {
-  const existing = await one<{ id: string }>(
-    'SELECT id FROM sessions WHERE user_id = ? AND expires_at > CURRENT_TIMESTAMP ORDER BY expires_at DESC LIMIT 1',
-    [userId]
-  );
+  const [existing] = await getDb()
+    .select({ id: schema.sessions.id })
+    .from(schema.sessions)
+    .where(and(eq(schema.sessions.user_id, userId), gt(schema.sessions.expires_at, new Date())))
+    .orderBy(desc(schema.sessions.expires_at))
+    .limit(1);
+
   if (existing) return existing.id;
   return createSession(userId);
 }
@@ -591,9 +678,10 @@ export async function getOrCreateSessionForUser(userId: number): Promise<string>
  * Delete sessions that are past their expiration date.
  */
 export async function purgeExpiredSessions(): Promise<number> {
-  const rows = await getSql().query(
-    'DELETE FROM sessions WHERE expires_at < CURRENT_TIMESTAMP RETURNING id'
-  );
+  const rows = await getDb()
+    .delete(schema.sessions)
+    .where(lt(schema.sessions.expires_at, new Date()))
+    .returning({ id: schema.sessions.id });
   return rows.length;
 }
 
@@ -603,54 +691,55 @@ export async function purgeExpiredSessions(): Promise<number> {
 export async function getUserFromSession(sessionId: string): Promise<(User & { umkm?: UMKM & { zone_name: string; zone_slug: string } }) | null> {
   if (!sessionId) return null;
 
-  const row = await one<any>(`
-    SELECT
-      u.*,
-      s.expires_at,
-      m.id as umkm_id,
-      m.name as umkm_name,
-      m.phone as umkm_phone,
-      m.zone_id as umkm_zone_id,
-      m.is_verified as umkm_is_verified,
-      m.address as umkm_address,
-      z.name as zone_name,
-      z.slug as zone_slug
-    FROM sessions s
-    JOIN users u ON s.user_id = u.id
-    LEFT JOIN umkm m ON m.user_id = u.id
-    LEFT JOIN zones z ON m.zone_id = z.id
-    WHERE s.id = ?
-  `, [sessionId]);
+  const [row] = await getDb()
+    .select({
+      ...getTableColumns(schema.users),
+      expires_at: schema.sessions.expires_at,
+      umkm_id: schema.umkm.id,
+      umkm_name: schema.umkm.name,
+      umkm_phone: schema.umkm.phone,
+      umkm_zone_id: schema.umkm.zone_id,
+      umkm_is_verified: schema.umkm.is_verified,
+      umkm_address: schema.umkm.address,
+      zone_name: schema.zones.name,
+      zone_slug: schema.zones.slug,
+    })
+    .from(schema.sessions)
+    .innerJoin(schema.users, eq(schema.sessions.user_id, schema.users.id))
+    .leftJoin(schema.umkm, eq(schema.umkm.user_id, schema.users.id))
+    .leftJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+    .where(eq(schema.sessions.id, sessionId));
 
   if (!row) return null;
 
   // Check expiration
-  if (new Date(row.expires_at).getTime() < Date.now()) {
+  if (row.expires_at.getTime() < Date.now()) {
     await deleteSession(sessionId);
     return null;
   }
 
-  const user: User & { umkm?: any } = {
+  const user: User & { umkm?: UMKM & { zone_name: string; zone_slug: string } } = {
     id: row.id,
     google_id: row.google_id,
     email: row.email,
     name: row.name,
-    avatar_url: row.avatar_url,
-    role: row.role,
-    created_at: row.created_at,
+    avatar_url: row.avatar_url ?? undefined,
+    role: row.role ?? 'umkm',
+    created_at: row.created_at!.toISOString(),
   };
 
-  if (row.umkm_id) {
+  // The zone join is only nullable when the umkm join is; require both.
+  if (row.umkm_id != null && row.zone_name != null && row.zone_slug != null) {
     user.umkm = {
       id: row.umkm_id,
       user_id: row.id,
-      name: row.umkm_name,
-      phone: row.umkm_phone,
-      zone_id: row.umkm_zone_id,
+      name: row.umkm_name!,
+      phone: row.umkm_phone!,
+      zone_id: row.umkm_zone_id!,
       zone_name: row.zone_name,
       zone_slug: row.zone_slug,
-      is_verified: row.umkm_is_verified,
-      address: row.umkm_address,
+      is_verified: row.umkm_is_verified ?? 1,
+      address: row.umkm_address ?? undefined,
     };
   }
 
@@ -662,7 +751,7 @@ export async function getUserFromSession(sessionId: string): Promise<(User & { u
  */
 export async function deleteSession(sessionId: string): Promise<void> {
   try {
-    await getSql().query(toPgPlaceholders('DELETE FROM sessions WHERE id = ?'), [sessionId]);
+    await getDb().delete(schema.sessions).where(eq(schema.sessions.id, sessionId));
   } catch (_) {}
 }
 
@@ -670,27 +759,25 @@ export async function deleteSession(sessionId: string): Promise<void> {
  * Get UMKM store owned by a user
  */
 export async function getUMKMByUserId(userId: number): Promise<(UMKM & { zone_name: string; zone_slug: string; products: Product[] }) | undefined> {
-  const store = await one<any>(`
-    SELECT m.*, z.name as zone_name, z.slug as zone_slug
-    FROM umkm m
-    JOIN zones z ON m.zone_id = z.id
-    WHERE m.user_id = ?
-  `, [userId]);
+  const [store] = await getDb()
+    .select({
+      ...getTableColumns(schema.umkm),
+      zone_name: schema.zones.name,
+      zone_slug: schema.zones.slug,
+    })
+    .from(schema.umkm)
+    .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+    .where(eq(schema.umkm.user_id, userId));
 
   if (!store) return undefined;
 
-  const products = await all<Product>(`
-    SELECT p.*, m.name as umkm_name, m.phone as umkm_phone, m.address as umkm_address, m.is_verified, z.name as zone_name, z.slug as zone_slug
-    FROM products p
-    JOIN umkm m ON p.umkm_id = m.id
-    JOIN zones z ON m.zone_id = z.id
-    WHERE p.umkm_id = ?
-    ORDER BY COALESCE(p.bumped_at, p.created_at) DESC, p.id DESC
-  `, [store.id]);
+  const productRows = await productSelect()
+    .where(eq(schema.products.umkm_id, store.id))
+    .orderBy(...lastBumpedFirst);
 
   return {
-    ...store,
-    products,
+    ...toUMKM(store),
+    products: productRows.map(toProduct),
   };
 }
 
@@ -705,25 +792,32 @@ export async function createUMKMForUser(userId: number, data: {
 }): Promise<number> {
   const cleanPhone = formatPhoneForWhatsApp(data.phone);
 
-  const existing = await one<{ id: number }>('SELECT id FROM umkm WHERE user_id = ?', [userId]);
+  const [existing] = await getDb()
+    .select({ id: schema.umkm.id })
+    .from(schema.umkm)
+    .where(eq(schema.umkm.user_id, userId));
+
   if (existing) {
-    await getSql().query(
-      toPgPlaceholders('UPDATE umkm SET name = ?, phone = ?, zone_id = ?, address = ? WHERE id = ?'),
-      [data.name, cleanPhone, data.zoneId, data.address || '', existing.id]
-    );
+    await getDb()
+      .update(schema.umkm)
+      .set({ name: data.name, phone: cleanPhone, zone_id: data.zoneId, address: data.address || '' })
+      .where(eq(schema.umkm.id, existing.id));
     return existing.id;
   }
 
-  const rows = await getSql().query(
-    toPgPlaceholders(`
-      INSERT INTO umkm (user_id, name, phone, zone_id, is_verified, address)
-      VALUES (?, ?, ?, ?, 1, ?)
-      RETURNING id
-    `),
-    [userId, data.name, cleanPhone, data.zoneId, data.address || '']
-  );
+  const [created] = await getDb()
+    .insert(schema.umkm)
+    .values({
+      user_id: userId,
+      name: data.name,
+      phone: cleanPhone,
+      zone_id: data.zoneId,
+      is_verified: 1,
+      address: data.address || '',
+    })
+    .returning({ id: schema.umkm.id });
 
-  return Number((rows[0] as any).id);
+  return created.id;
 }
 
 /**
@@ -738,29 +832,29 @@ export async function addProductToUMKM(umkmId: number, data: {
   shopeeUrl?: string;
 }): Promise<{ productId: number; slug: string }> {
   const uniqueSlug = `${slugify(data.name)}-${Date.now().toString(36)}`;
-  const store = await one<{ name: string }>('SELECT name FROM umkm WHERE id = ?', [umkmId]);
+  const [store] = await getDb()
+    .select({ name: schema.umkm.name })
+    .from(schema.umkm)
+    .where(eq(schema.umkm.id, umkmId));
   const storeName = store ? store.name : 'UMKM NU';
 
-  const rows = await getSql().query(
-    toPgPlaceholders(`
-      INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, shopee_url, bumped_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
-      RETURNING id
-    `),
-    [
-      umkmId,
-      data.name,
-      uniqueSlug,
-      data.price,
-      data.category,
-      data.imageUrl,
-      data.description || `${data.name} dari ${storeName}, Sumenep.`,
-      data.shopeeUrl || null,
-    ]
-  );
+  const [created] = await getDb()
+    .insert(schema.products)
+    .values({
+      umkm_id: umkmId,
+      name: data.name,
+      slug: uniqueSlug,
+      price: data.price,
+      category: data.category,
+      image_url: data.imageUrl,
+      description: data.description || `${data.name} dari ${storeName}, Sumenep.`,
+      shopee_url: data.shopeeUrl || null,
+      bumped_at: new Date(),
+    })
+    .returning({ id: schema.products.id });
 
   return {
-    productId: Number((rows[0] as any).id),
+    productId: created.id,
     slug: uniqueSlug,
   };
 }
@@ -769,21 +863,41 @@ export async function addProductToUMKM(umkmId: number, data: {
  * Mini Buku Kas Penjualan Santri (Slide 4 LPNU: Buku Kas Penjualan Santri)
  */
 export async function getCashbookEntries(userId: number, limit: number = 30): Promise<CashbookEntry[]> {
-  return all<CashbookEntry>(`
-    SELECT * FROM cashbook WHERE user_id = ? ORDER BY transaction_date DESC, id DESC LIMIT ?
-  `, [userId, limit]);
+  const rows = await getDb()
+    .select()
+    .from(schema.cashbook)
+    .where(eq(schema.cashbook.user_id, userId))
+    .orderBy(desc(schema.cashbook.transaction_date), desc(schema.cashbook.id))
+    .limit(limit);
+  return rows.map(toCashbookEntry);
+}
+
+function toCashbookEntry(row: typeof schema.cashbook.$inferSelect): CashbookEntry {
+  return {
+    id: row.id,
+    user_id: row.user_id,
+    title: row.title,
+    amount: row.amount,
+    type: row.type,
+    category: row.category ?? 'Penjualan',
+    notes: row.notes ?? undefined,
+    transaction_date: row.transaction_date ?? '',
+    created_at: row.created_at!.toISOString(),
+  };
 }
 
 export async function getCashbookSummary(userId: number): Promise<{ totalIncome: number; totalExpense: number; balance: number }> {
-  const row = await one<any>(`
-    SELECT
-      COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) as total_income,
-      COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) as total_expense
-    FROM cashbook WHERE user_id = ?
-  `, [userId]);
+  const [row] = await getDb()
+    .select({
+      // SUM() over integers is bigint, which the driver returns as string.
+      total_income: sql<string | number>`COALESCE(SUM(CASE WHEN ${schema.cashbook.type} = 'income' THEN ${schema.cashbook.amount} ELSE 0 END), 0)`,
+      total_expense: sql<string | number>`COALESCE(SUM(CASE WHEN ${schema.cashbook.type} = 'expense' THEN ${schema.cashbook.amount} ELSE 0 END), 0)`,
+    })
+    .from(schema.cashbook)
+    .where(eq(schema.cashbook.user_id, userId));
 
-  const totalIncome = Number(row?.total_income || 0);
-  const totalExpense = Number(row?.total_expense || 0);
+  const totalIncome = Number(row?.total_income ?? 0);
+  const totalExpense = Number(row?.total_expense ?? 0);
   return {
     totalIncome,
     totalExpense,
@@ -803,17 +917,21 @@ export async function addCashbookEntry(userId: number, data: {
   const category = data.category || 'Penjualan';
   const transactionDate = data.transactionDate || new Date().toISOString().split('T')[0];
 
-  const rows = await getSql().query(
-    toPgPlaceholders(`
-      INSERT INTO cashbook (user_id, title, amount, type, category, notes, transaction_date)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-      RETURNING id
-    `),
-    [userId, data.title, data.amount, type, category, data.notes || '', transactionDate]
-  );
+  const [created] = await getDb()
+    .insert(schema.cashbook)
+    .values({
+      user_id: userId,
+      title: data.title,
+      amount: data.amount,
+      type,
+      category,
+      notes: data.notes || '',
+      transaction_date: transactionDate,
+    })
+    .returning({ id: schema.cashbook.id });
 
   return {
-    id: Number((rows[0] as any).id),
+    id: created.id,
     user_id: userId,
     title: data.title,
     amount: data.amount,
@@ -826,9 +944,9 @@ export async function addCashbookEntry(userId: number, data: {
 }
 
 export async function deleteCashbookEntry(id: number, userId: number): Promise<boolean> {
-  const rows = await getSql().query(
-    toPgPlaceholders('DELETE FROM cashbook WHERE id = ? AND user_id = ? RETURNING id'),
-    [id, userId]
-  );
+  const rows = await getDb()
+    .delete(schema.cashbook)
+    .where(and(eq(schema.cashbook.id, id), eq(schema.cashbook.user_id, userId)))
+    .returning({ id: schema.cashbook.id });
   return rows.length > 0;
 }

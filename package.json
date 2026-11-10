@@ -25,12 +25,14 @@
     "@tailwindcss/vite": "^4.3.3",
     "astro": "^7.4.4",
     "better-sqlite3": "^13.0.3",
+    "drizzle-orm": "^0.45.4",
     "imagekit": "^6.0.0",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@types/better-sqlite3": "^9.6.0",
+    "drizzle-kit": "^0.31.11",
     "typescript": "^6.0.3"
   }
 }

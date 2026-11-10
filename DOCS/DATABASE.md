@@ -2,7 +2,7 @@
 
 Aplikasi **Pasar Warga NU Sumenep** memakai **Neon PostgreSQL** sebagai database tunggal:
 
-1. **Neon PostgreSQL (runtime utama)**: `src/lib/db.ts` menjalankan semua operasi baca/tulis halaman dan API melalui driver serverless `@neondatabase/serverless` dengan `DATABASE_URL`. Semua fungsi bersifat async.
+1. **Neon PostgreSQL (runtime utama)**: `src/lib/db.ts` menjalankan semua operasi baca/tulis halaman dan API lewat Drizzle ORM (`drizzle-orm/neon-http`) di atas driver serverless `@neondatabase/serverless` dengan `DATABASE_URL`. Semua fungsi bersifat async; definisi tabel ada di `src/lib/schema.ts`.
 2. **SQLite lokal (legacy, hanya skrip)**: `data/mamasar.db` via `better-sqlite3` kini hanya dipakai `scripts/seed.js` dan `scripts/backup.js`. Runtime aplikasi tidak lagi membacanya.
 
 Skema dan seed cloud dikelola lewat `scripts/migrate-neon.js`. Perbedaan historis dengan SQLite dicatat di bagian [Sinkronisasi skema](#sinkronisasi-skema).
@@ -353,9 +353,9 @@ CREATE INDEX IF NOT EXISTS idx_cashbook_user ON cashbook(user_id);
 
 ## Sinkronisasi skema
 
-`src/lib/db.ts` (kini Neon Postgres) dan `scripts/migrate-neon.js` sudah sinkron untuk tabel: `zones`, `umkm`, `products` (termasuk `shopee_url`, `views` default 0), `articles`, `events`, `users`, `sessions`, `cashbook` + index `idx_cashbook_user`.
+`scripts/migrate-neon.js` (DDL), `src/lib/schema.ts` (mirror Drizzle), dan `src/lib/db.ts` (query) sudah sinkron untuk tabel: `zones`, `umkm`, `products` (termasuk `shopee_url`, `views` default 0), `articles`, `events`, `users`, `sessions`, `cashbook` + index `idx_cashbook_user`. Saat mengubah DDL di `migrate-neon.js`, ubah juga `schema.ts` agar tetap sejajar.
 
-Catatan historis yang sudah tidak berlaku: `products.gallery_images` hanya ada di skrip migrasi, tidak dipakai aplikasi. `sessions.created_at` tidak dipakai aplikasi. `scripts/seed.js` (SQLite legacy) tidak membuat `cashbook`/`shopee_url` — skrip ini tidak lagi dipakai runtime.
+Catatan historis yang sudah tidak berlaku: `products.gallery_images` ada di DDL dan `src/lib/schema.ts` tetapi tidak dipakai query aplikasi. `sessions.created_at` tidak dipakai aplikasi. `scripts/seed.js` (SQLite legacy) tidak membuat `cashbook`/`shopee_url` — skrip ini tidak lagi dipakai runtime.
 
 ---
 
@@ -364,6 +364,9 @@ Catatan historis yang sudah tidak berlaku: `products.gallery_images` hanya ada d
 ```bash
 # Buat skema dan seed Neon Postgres (jalur utama)
 DATABASE_URL="postgresql://..." node scripts/migrate-neon.js
+
+# Uji baca/tulis seluruh fungsi db.ts terhadap Neon (membersihkan datanya sendiri)
+set -a && . ./.env && set +a && npx tsx scripts/db-smoke.mjs
 
 # Skrip SQLite legacy — hanya untuk pengembangan lokal
 npm run seed
