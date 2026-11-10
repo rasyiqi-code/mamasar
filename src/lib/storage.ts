@@ -2,7 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import ImageKit from 'imagekit';
 import { DEFAULT_PRODUCT_IMAGE } from './constants';
-import { uploadToNeonStorage, getNeonS3Client, getEnv } from './neon';
+import { uploadToNeonStorage, getNeonS3Client, getEnv, resolveAvatarUrl } from './neon';
+
+export { resolveAvatarUrl };
 
 const UPLOADS_DIR = path.resolve(process.cwd(), 'data/uploads');
 const AVATARS_DIR = path.resolve(process.cwd(), 'data/uploads/avatars');
@@ -121,15 +123,18 @@ export async function saveAccountAvatar(options: {
     if (commaIndex !== -1) {
       const base64Data = imageBase64.substring(commaIndex + 1);
       buffer = Buffer.from(base64Data, 'base64');
-      fileName = `avatars/${userPrefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.jpg`;
-      // Detect content type from base64 header if possible
-      if (base64Data.startsWith('data:image/png')) contentType = 'image/png';
-      if (base64Data.startsWith('data:image/webp')) contentType = 'image/webp';
+      // Detect content type from the data URL header (the part before the comma)
+      const header = imageBase64.slice(0, commaIndex);
+      const ext = header.includes('image/png') ? '.png' : header.includes('image/webp') ? '.webp' : '.jpg';
+      contentType = header.slice(header.indexOf(':') + 1) || 'image/jpeg';
+      fileName = `avatars/${userPrefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
     }
   }
 
   if (!buffer || !fileName) {
-    return 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
+    // No image was provided; return an empty value so the UI falls back to
+    // initials instead of inventing a stock photo as the user's own face.
+    return '';
   }
 
   // Upload to Neon S3 Object Storage

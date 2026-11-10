@@ -144,7 +144,6 @@ export interface User {
   email: string;
   name: string;
   avatar_url?: string;
-  role: string;
   created_at: string;
 }
 
@@ -155,7 +154,6 @@ function toUser(row: typeof schema.users.$inferSelect): User {
     email: row.email,
     name: row.name,
     avatar_url: row.avatar_url ?? undefined,
-    role: row.role ?? 'umkm',
     created_at: row.created_at!.toISOString(),
   };
 }
@@ -195,7 +193,6 @@ export interface Product {
   description: string;
   views?: number;
   is_sold_out?: number;
-  is_featured?: number;
   bumped_at?: string;
   shopee_url?: string;
   created_at: string;
@@ -258,7 +255,6 @@ function toProduct(row: ProductRow): Product {
     description: row.description ?? '',
     views: row.views ?? 0,
     is_sold_out: row.is_sold_out ?? 0,
-    is_featured: row.is_featured ?? 0,
     bumped_at: row.bumped_at ? row.bumped_at.toISOString() : undefined,
     shopee_url: row.shopee_url ?? undefined,
     created_at: row.created_at!.toISOString(),
@@ -611,7 +607,6 @@ export async function findOrCreateUserByGoogle(data: {
       email: data.email,
       name: data.name,
       avatar_url: data.avatarUrl || '',
-      role: 'umkm',
     })
     .returning({ id: schema.users.id });
 
@@ -621,7 +616,6 @@ export async function findOrCreateUserByGoogle(data: {
     email: data.email,
     name: data.name,
     avatar_url: data.avatarUrl,
-    role: 'umkm',
     created_at: new Date().toISOString(),
   };
 }
@@ -724,7 +718,6 @@ export async function getUserFromSession(sessionId: string): Promise<(User & { u
     email: row.email,
     name: row.name,
     avatar_url: row.avatar_url ?? undefined,
-    role: row.role ?? 'umkm',
     created_at: row.created_at!.toISOString(),
   };
 
@@ -812,7 +805,9 @@ export async function createUMKMForUser(userId: number, data: {
       name: data.name,
       phone: cleanPhone,
       zone_id: data.zoneId,
-      is_verified: 1,
+      // Self-registered stores are unverified until an MWC agent or pengurus
+      // confirms them; only agent-collected (PIN-gated) data starts verified.
+      is_verified: 0,
       address: data.address || '',
     })
     .returning({ id: schema.umkm.id });

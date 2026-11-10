@@ -132,9 +132,11 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
                 <span class="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm border border-slate-200">
                   📍 {product.zone_name}
                 </span>
-                <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm">
-                  Warga NU Terverifikasi
-                </span>
+                {Boolean(product.is_verified) && (
+                  <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm">
+                    Verified
+                  </span>
+                )}
               </div>
 
               <!-- Sold Ribbon (if sold out) -->
@@ -384,7 +386,11 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
             <div class="pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
               <div class="flex items-center justify-between">
                 <span>Status Penjual:</span>
-                <span class="text-emerald-700 font-bold">Terverifikasi Kader</span>
+                {product.is_verified ? (
+                  <span class="text-emerald-700 font-bold">Verified</span>
+                ) : (
+                  <span class="text-slate-500 font-bold">Belum terverifikasi</span>
+                )}
               </div>
               <div class="flex items-center justify-between">
                 <span>Wilayah MWC:</span>

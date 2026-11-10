@@ -1,6 +1,6 @@
 # Direktori Digital UMKM NU Sumenep (Pasar Warga NU)
 
-Aplikasi direktori UMKM Nahdliyin Kabupaten Sumenep. Dibangun dengan Astro (SSR), Tailwind CSS 4, dan `better-sqlite3` untuk data lokal. Integrasi Neon (Postgres, Auth, Object Storage) dan ImageKit tersedia untuk deployment cloud. Tampilan mobile-first, halaman produk ramah SEO, dan konversi langsung ke WhatsApp.
+Aplikasi direktori UMKM Nahdliyin Kabupaten Sumenep. Dibangun dengan Astro (SSR), Tailwind CSS 4, dan Drizzle ORM di atas Neon PostgreSQL untuk data. Integrasi Neon (Postgres, Auth, Object Storage) dan ImageKit tersedia untuk deployment cloud. Tampilan mobile-first, halaman produk ramah SEO, dan konversi langsung ke WhatsApp.
 
 ## Fitur yang berjalan
 
@@ -34,7 +34,7 @@ cp .env.example .env
 npm run dev
 ```
 
-Akses `http://localhost:4321`. `src/lib/db.ts` membuat `data/mamasar.db` dan menjalankan seed otomatis saat tabel `zones` atau `products` masih kosong.
+Akses `http://localhost:4321`. Semua baca/tulis data berjalan di Neon PostgreSQL via `DATABASE_URL` (lihat `.env.example`); tanpa itu, query gagal dengan error eksplisit.
 
 ## Perintah npm
 
@@ -44,9 +44,6 @@ Akses `http://localhost:4321`. `src/lib/db.ts` membuat `data/mamasar.db` dan men
 | `npm run build` | Build ke `dist/` (entry server: `dist/server/entry.mjs`) |
 | `npm run preview` | Pratinjau hasil build |
 | `npm start` | Jalankan server hasil build |
-| `npm run seed` | Seed SQLite tanpa menghapus data yang ada |
-| `npm run seed:reset` | Reset dan seed ulang SQLite |
-| `npm run backup` | Backup atomik `data/mamasar.db` ke `data/backups/`, simpan 7 arsip terakhir |
 | `npx astro dev --background` | Jalankan dev server di latar belakang, kelola dengan `astro dev stop`, `astro dev status`, `astro dev logs` |
 
 Migrasi skema dan seed Neon Postgres:
@@ -55,22 +52,22 @@ Migrasi skema dan seed Neon Postgres:
 DATABASE_URL="postgresql://..." node scripts/migrate-neon.js
 ```
 
-`scripts/migrate-neon.js` dan `scripts/seed.js` mengimpor `src/lib/seeds.ts` secara langsung. Gunakan Node 22.18+ atau Node 24 yang mendukung type stripping TypeScript bawaan.
+`scripts/migrate-neon.js` mengimpor `src/lib/seeds.ts` secara langsung. Gunakan Node 22.18+ atau Node 24 yang mendukung type stripping TypeScript bawaan.
 
 ## Variabel lingkungan
 
 Semua variabel ada di [.env.example](./.env.example). Kelompok utamanya:
 
 - **Server**: `HOST`, `PORT`, `SITE_URL`
-- **Database**: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`, `DATABASE_DIR`, `DATABASE_NAME`
+- **Database**: `DATABASE_URL`, `DATABASE_URL_UNPOOLED`
 - **Media**: `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT`
 - **Google OAuth langsung (legacy)**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
 - **Neon Auth**: `NEON_AUTH_BASE_URL`, `NEON_AUTH_JWKS_URL`
 - **Neon Object Storage**: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
 - **Neon Functions/Realtime (opsional)**: `NEON_BRANCH_ID`, `NEON_FUNCTION_HOST_SUFFIX`, `NEON_REALTIME_SECRET`, `NEON_REALTIME_URL`
-- **Sesi dan operasional**: `SESSION_SECRET`, `AGENT_PIN`, `WHATSAPP_HELP`
+- **Operasional**: `AGENT_PIN`, `WHATSAPP_HELP`
 
-Catatan: `DATABASE_DIR`, `DATABASE_NAME`, `DATABASE_URL_UNPOOLED`, `SITE_URL`, dan `SESSION_SECRET` belum dibaca langsung oleh kode aplikasi saat ini. Penjelasan status tiap variabel ada di [DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md](./DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md).
+Catatan: `DATABASE_URL_UNPOOLED` dan `SITE_URL` belum dibaca langsung oleh kode aplikasi saat ini. Penjelasan status tiap variabel ada di [DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md](./DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md).
 
 ## Deploy
 
@@ -84,7 +81,7 @@ Catatan: `DATABASE_DIR`, `DATABASE_NAME`, `DATABASE_URL_UNPOOLED`, `SITE_URL`, d
 2. Tambahkan environment variables produksi.
 3. Adapter Vercel dipilih otomatis karena `process.env.VERCEL` terisi saat build.
 
-Penting: semua operasi baca/tulis aplikasi masih memakai SQLite. Di Vercel, `src/lib/db.ts` menaruh database di `/tmp`, sehingga data dapat hilang saat instance serverless didaur ulang. Untuk data persisten, pindahkan lapisan CRUD ke Neon Postgres. Rincian ada di dokumen infrastruktur.
+Semua operasi baca/tulis aplikasi berjalan di Neon PostgreSQL (Drizzle ORM di atas `@neondatabase/serverless`), jadi data aman dan persisten di serverless seperti Vercel. Rincian ada di dokumen infrastruktur.
 
 ## Struktur proyek
 
@@ -92,11 +89,11 @@ Penting: semua operasi baca/tulis aplikasi masih memakai SQLite. Di Vercel, `src
 src/
   components/     Komponen UI (ProductCard, filter, slider)
   layouts/        Layout global, meta SEO, PWA
-  lib/            Database, seed, auth, storage, konstanta, util
+  lib/            Skema & query database, auth, storage, konstanta, util
   pages/          Rute halaman dan endpoint API
   styles/         Tailwind dan gaya global
-scripts/          seed.js, migrate-neon.js, backup.js
-data/             SQLite, upload lokal, arsip backup
+scripts/          migrate-neon.js (DDL & seed), db-smoke.mjs (uji data layer)
+data/             Upload lokal (fallback tanpa cloud storage)
 DOCS/             Dokumentasi teknis
 public/           Manifest PWA, ikon, aset statis
 ```
@@ -106,7 +103,7 @@ public/           Manifest PWA, ikon, aset statis
 - [ROADMAP.md](./ROADMAP.md): rencana dan status per fase.
 - [Plan.md](./Plan.md): PRD MVP dan batasan lingkup.
 - [DOCS/API.md](./DOCS/API.md): referensi endpoint API.
-- [DOCS/DATABASE.md](./DOCS/DATABASE.md): skema SQLite dan Neon Postgres.
+- [DOCS/DATABASE.md](./DOCS/DATABASE.md): skema Neon PostgreSQL.
 - [DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md](./DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md): arsitektur cloud dan status integrasi.
 - [DOCS/ANDROID_CAPACITOR.md](./DOCS/ANDROID_CAPACITOR.md): rilis Android dan PWA.
 - [DOCS/PASAR_KEGIATAN_NU.md](./DOCS/PASAR_KEGIATAN_NU.md): konsep dan implementasi Pasar Kegiatan NU.

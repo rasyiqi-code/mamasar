@@ -27,16 +27,14 @@ flowchart TD
     User["Pengunjung, pembeli, agen, pemilik UMKM"] --> Vercel["Vercel Edge Network & Serverless\nAstro SSR\nDomain: umkm.nusumenep.or.id"]
 
     subgraph Cloud["Layanan cloud"]
-        NeonDB["Neon Postgres\nSkema, seed, health check"]
-        NeonAuth["Neon Auth\nGoogle dan email/password"]
-        ImageKit["ImageKit.io\nFoto produk dan CDN"]
-        NeonS3["Neon Object Storage\nBucket assets untuk avatar"]
-        NeonFn["Neon Functions dan Realtime\nProbe opsional"]
+    NeonDB["Neon Postgres\nSkema, seed, health check, CRUD aplikasi"]
+    NeonAuth["Neon Auth\nGoogle dan email/password"]
+    ImageKit["ImageKit.io\nFoto produk dan CDN"]
+    NeonS3["Neon Object Storage\nBucket assets untuk avatar"]
+    NeonFn["Neon Functions dan Realtime\nProbe opsional"]
     end
 
-    SQLite["SQLite runtime\nbetter-sqlite3\ndata/mamasar.db atau /tmp di Vercel"]
-
-    Vercel -->|CRUD aplikasi| SQLite
+    Vercel -->|CRUD aplikasi (Drizzle ORM)| NeonDB
     Vercel -->|Migrasi dan health check| NeonDB
     Vercel -->|Login dan sesi| NeonAuth
     Vercel -->|Upload foto produk| ImageKit
@@ -59,22 +57,14 @@ flowchart TD
 
 ### Yang dipakai aplikasi saat ini
 
-`src/lib/db.ts` memakai `better-sqlite3`. Lokasi file:
+`src/lib/db.ts` memakai Drizzle ORM (`drizzle-orm/neon-http`) di atas driver `@neondatabase/serverless` dengan `DATABASE_URL`:
 
-- Lokal: `data/mamasar.db`
-- Vercel atau Lambda: `/tmp/data/mamasar.db`
-
-Di lingkungan serverless, `/tmp` bersifat sementara. Data dapat hilang saat instance didaur ulang atau saat deploy baru. Ini berlaku untuk produk, toko, akun, sesi, artikel, kegiatan, dan buku kas.
-
-### Yang tersedia untuk Neon
-
+- Semua CRUD aplikasi (produk, toko, akun, sesi, artikel, kegiatan, buku kas) berjalan di Neon PostgreSQL.
+- Definisi tabel ada di `src/lib/schema.ts` (mirror dari DDL `scripts/migrate-neon.js`).
+- Data persisten di semua lingkungan, termasuk serverless Vercel.
 - `scripts/migrate-neon.js` membuat skema dan melakukan seed ke Neon Postgres.
-- `/api/neon/services` mengecek koneksi Postgres, object storage, functions, auth, dan realtime.
+- `/api/neon/services` mengecek koneksi Postgres, object storage, functions, auth, dan realtime (digerbang PIN).
 - `src/lib/neon.ts` menyediakan client `neon()` dan helper lain.
-
-### Rekomendasi produksi
-
-Untuk data yang harus bertahan di Vercel, pindahkan operasi CRUD dari `db.ts` ke Neon Postgres, atau jalankan aplikasi di hosting Node dengan volume persisten. Tanpa salah satu langkah itu, aplikasi tetap berjalan tetapi data tidak permanen di Vercel.
 
 ---
 
@@ -87,7 +77,6 @@ Alur yang dipakai dashboard:
 3. **Callback**: `/api/auth/callback/neon` memverifikasi sesi lewat `/get-session`, menyinkronkan pengguna ke tabel `users` dengan `google_id = neon_<id>`, lalu membuat baris `sessions` lokal dan cookie `mamasar_session`.
 4. **Resolusi sesi**: `resolveUser()` di `src/lib/neon-auth.ts` memeriksa cookie `mamasar_session` lebih dulu, lalu cookie Neon Auth (`__Secure-neon-auth.session_token`, `neon_auth.session_token`, atau `better-auth.session_token`).
 5. **Logout**: `/api/auth/logout` menghapus sesi lokal, memanggil `/sign-out` Neon Auth, dan menghapus cookie terkait.
-6. **Mode demo**: `/api/auth/login?demo=1` membuat sesi pengguna demo tanpa Neon Auth. Jangan aktifkan di produksi publik.
 
 Endpoint Google OAuth langsung di `/api/auth/callback/google` masih ada untuk kompatibilitas. Endpoint ini memerlukan `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, dan `GOOGLE_REDIRECT_URI`, tetapi alur login utama sekarang lewat Neon Auth.
 
@@ -140,8 +129,6 @@ Isi variabel di dashboard Vercel atau file `.env` lokal.
 | `SITE_URL` | Tidak | Belum dibaca kode | URL canonical dihitung dari request |
 | `DATABASE_URL` | Untuk Neon | `src/lib/neon.ts`, `scripts/migrate-neon.js` | Connection string pooler Neon |
 | `DATABASE_URL_UNPOOLED` | Tidak | Belum dibaca kode | Disiapkan untuk migrasi langsung |
-| `DATABASE_DIR` | Tidak | Belum dibaca kode | Lokasi SQLite masih tetap `data/` |
-| `DATABASE_NAME` | Tidak | Belum dibaca kode | Nama file masih tetap `mamasar.db` |
 | `IMAGEKIT_PUBLIC_KEY` | Untuk ImageKit | `src/lib/storage.ts` | Public key ImageKit |
 | `IMAGEKIT_PRIVATE_KEY` | Untuk ImageKit | `src/lib/storage.ts` | Private key ImageKit |
 | `IMAGEKIT_URL_ENDPOINT` | Untuk ImageKit | `src/lib/storage.ts` | Endpoint CDN ImageKit |
@@ -158,7 +145,6 @@ Isi variabel di dashboard Vercel atau file `.env` lokal.
 | `NEON_FUNCTION_HOST_SUFFIX` | Tidak | `src/lib/neon.ts` | Suffix host functions |
 | `NEON_REALTIME_SECRET` | Untuk Realtime | `src/lib/neon.ts` | Secret seal query |
 | `NEON_REALTIME_URL` | Tidak | `/api/neon/services` | Hanya dilaporkan |
-| `SESSION_SECRET` | Tidak | Belum dibaca kode | Sesi memakai token acak |
 | `AGENT_PIN` | Ya untuk produksi | `/api/products`, endpoint produk lain | PIN agen lapangan |
 | `WHATSAPP_HELP` | Tidak | `src/lib/constants.ts` | Nomor helpdesk PCNU |
 

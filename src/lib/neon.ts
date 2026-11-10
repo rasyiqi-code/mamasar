@@ -65,7 +65,11 @@ export async function getNeonPresignedUrl(key: string, expiresIn: number = 60480
 
 /**
  * Uploads a buffer or file to Neon Object Storage bucket "assets"
- * Returns a presigned public URL of the object (default 7 days).
+ * and returns the stored object key (e.g. "avatars/user-1-....jpg").
+ *
+ * The key is what gets persisted in the database; renderers turn it into
+ * a short-lived presigned URL via getNeonPresignedUrl(). Storing the URL
+ * itself would break once it expires.
  */
 export async function uploadToNeonStorage(
   buffer: Buffer,
@@ -87,7 +91,28 @@ export async function uploadToNeonStorage(
     })
   );
 
-  return await getNeonPresignedUrl(fileName);
+  return fileName;
+}
+
+/**
+ * Turns a stored avatar value into something an <img> can use:
+ * - full http(s) URLs (Google profile photos, legacy presigned URLs) pass through
+ * - local paths ("/uploads/...") pass through
+ * - object keys ("avatars/...") are presigned on demand; signing is a local
+ *   HMAC computation, so this adds no network round-trip
+ * Returns null when the value is empty or signing fails, so callers can
+ * fall back to initials.
+ */
+export async function resolveAvatarUrl(value?: string | null): Promise<string | null> {
+  if (!value) return null;
+  if (value.startsWith('http://') || value.startsWith('https://') || value.startsWith('/')) {
+    return value;
+  }
+  try {
+    return await getNeonPresignedUrl(value);
+  } catch {
+    return null;
+  }
 }
 
 /**

@@ -101,15 +101,15 @@ const storeSchema = {
                 <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
                   {store.name}
                 </h1>
-                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md shadow-2xs">
-                  <span>✓</span>
-                  <span>Terverifikasi Kader NU</span>
-                </span>
+                {Boolean(store.is_verified) && (
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md shadow-2xs">
+                    <span>✓</span>
+                    <span>Verified</span>
+                  </span>
+                )}
               </div>
               <p class="text-xs sm:text-sm text-slate-600 flex items-center gap-1.5 truncate">
                 <span>📍 {store.address || `${store.zone_name}, Sumenep`}</span>
-                <span>•</span>
-                <span class="text-amber-500 font-bold">★★★★★ 5.0</span>
               </p>
             </div>
           </div>

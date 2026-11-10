@@ -114,13 +114,14 @@ const activeZone = zones.find((z) => z.slug === currentZone);
             const evDate = new Date(ev.event_date);
             const dayNum = evDate.toLocaleDateString('id-ID', { day: 'numeric' });
             const monthStr = evDate.toLocaleDateString('id-ID', { month: 'short' }).toUpperCase();
+            const isPast = evDate.getTime() < Date.now();
 
             return (
-              <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs hover:border-emerald-500 hover:shadow-md transition flex flex-col justify-between group space-y-4">
+              <div class={`bg-white border rounded-2xl p-5 shadow-xs hover:shadow-md transition flex flex-col justify-between group space-y-4 ${isPast ? 'border-slate-200 opacity-75' : 'border-slate-200 hover:border-emerald-500'}`}>
                 <div class="space-y-3">
                   <!-- Date Badge & Organizer -->
                   <div class="flex items-start gap-3.5">
-                    <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-800 border-2 border-emerald-300 flex flex-col items-center justify-center font-black text-center shadow-inner shrink-0">
+                    <div class={`w-14 h-14 rounded-2xl border-2 flex flex-col items-center justify-center font-black text-center shadow-inner shrink-0 ${isPast ? 'bg-slate-100 text-slate-500 border-slate-300' : 'bg-emerald-50 text-emerald-800 border-emerald-300'}`}>
                       <span class="text-base leading-none">{dayNum}</span>
                       <span class="text-[9px] uppercase tracking-wider">{monthStr}</span>
                     </div>
@@ -133,6 +134,11 @@ const activeZone = zones.find((z) => z.slug === currentZone);
                         <span class="text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-full">
                           {ev.organizer}
                         </span>
+                        {isPast && (
+                          <span class="text-[10px] font-bold bg-slate-200 text-slate-600 border border-slate-300 px-2 py-0.5 rounded-full">
+                            Sudah Selesai
+                          </span>
+                        )}
                       </div>
                       <a
                         href={`/kegiatan/${ev.slug}`}

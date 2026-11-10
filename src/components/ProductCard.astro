@@ -144,7 +144,9 @@ const badgeStyles: Record<string, string> = {
         >
           🏪 {product.umkm_name}
         </a>
-        <span class="text-emerald-600 text-xs shrink-0 font-bold" title="Terverifikasi Nahdliyin">✓</span>
+        {Boolean(product.is_verified) && (
+          <span class="text-emerald-600 text-xs shrink-0 font-bold" title="Verified">✓</span>
+        )}
       </div>
     </div>
   </div>

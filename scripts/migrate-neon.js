@@ -28,7 +28,6 @@ async function runMigration() {
       email VARCHAR(255) NOT NULL UNIQUE,
       name VARCHAR(255) NOT NULL,
       avatar_url TEXT,
-      role VARCHAR(50) DEFAULT 'umkm',
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -63,11 +62,9 @@ async function runMigration() {
       price INTEGER NOT NULL,
       category VARCHAR(100) NOT NULL,
       image_url TEXT NOT NULL,
-      gallery_images TEXT,
       description TEXT,
       views INTEGER DEFAULT 0,
       is_sold_out INTEGER DEFAULT 0,
-      is_featured INTEGER DEFAULT 0,
       shopee_url TEXT,
       bumped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -77,6 +74,10 @@ async function runMigration() {
   // Kolom tambahan untuk database Neon yang sudah dibuat sebelumnya
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS shopee_url TEXT;`;
   await sql`ALTER TABLE products ALTER COLUMN views SET DEFAULT 0;`;
+  // Kolom yang pernah dibuat tapi tidak pernah dipakai aplikasi
+  await sql`ALTER TABLE products DROP COLUMN IF EXISTS gallery_images;`;
+  await sql`ALTER TABLE products DROP COLUMN IF EXISTS is_featured;`;
+  await sql`ALTER TABLE users DROP COLUMN IF EXISTS role;`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS articles (
@@ -167,8 +168,8 @@ async function runMigration() {
     for (const p of SEED_PRODUCTS) {
       const umkmId = umkmMap.get(p.umkm_name) || 1;
       await sql`
-        INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, views, is_sold_out, is_featured, shopee_url, bumped_at)
-        VALUES (${umkmId}, ${p.name}, ${p.slug}, ${p.price}, ${p.category}, ${p.image_url}, ${p.description}, ${p.views || 0}, ${p.is_sold_out || 0}, ${p.is_featured || 0}, ${p.shopee_url || null}, CURRENT_TIMESTAMP)
+        INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, views, is_sold_out, shopee_url, bumped_at)
+        VALUES (${umkmId}, ${p.name}, ${p.slug}, ${p.price}, ${p.category}, ${p.image_url}, ${p.description}, ${p.views || 0}, ${p.is_sold_out || 0}, ${p.shopee_url || null}, CURRENT_TIMESTAMP)
         ON CONFLICT (slug) DO NOTHING;
       `;
     }

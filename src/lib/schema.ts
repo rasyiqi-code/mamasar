@@ -20,7 +20,6 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }).notNull(),
   avatar_url: text('avatar_url'),
-  role: varchar('role', { length: 50 }).default('umkm'),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -55,11 +54,9 @@ export const products = pgTable('products', {
   price: integer('price').notNull(),
   category: varchar('category', { length: 100 }).notNull(),
   image_url: text('image_url').notNull(),
-  gallery_images: text('gallery_images'),
   description: text('description'),
   views: integer('views').default(0),
   is_sold_out: integer('is_sold_out').default(0),
-  is_featured: integer('is_featured').default(0),
   shopee_url: text('shopee_url'),
   bumped_at: timestamp('bumped_at', { withTimezone: true }).defaultNow(),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),

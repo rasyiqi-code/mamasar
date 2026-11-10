@@ -198,13 +198,15 @@ const activeZone = zones.find((z) => z.slug === currentZone);
                   </div>
 
                   <!-- Verified Shield -->
-                  <span
-                    class="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md"
-                    title="Terverifikasi Kader PCNU Sumenep"
-                  >
-                    <span>✓</span>
-                    <span class="hidden sm:inline">Kader NU</span>
-                  </span>
+                  {Boolean(store.is_verified) && (
+                    <span
+                      class="shrink-0 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md"
+                      title="Verified"
+                    >
+                      <span>✓</span>
+                      <span class="hidden sm:inline">Verified</span>
+                    </span>
+                  )}
                 </div>
 
                 <!-- Store Address Details -->

@@ -13,7 +13,7 @@ Dokumen ini menjelaskan arsitektur, strategi implementasi, dan langkah teknis un
 
 ## 🎯 Strategi Arsitektur: Hosted App Pattern
 
-Aplikasi Pasar Warga NU menggunakan arsitektur **Astro Server-Side Rendering (SSR)** dan database terpusat **SQLite (`better-sqlite3`)** di server Node.js.
+Aplikasi Pasar Warga NU menggunakan arsitektur **Astro Server-Side Rendering (SSR)** dan database terpusat **Neon PostgreSQL** (Drizzle ORM di atas `@neondatabase/serverless`) di server Node.js.
 
 Catatan deployment: di Vercel, SQLite disimpan di `/tmp` dan tidak persisten. Untuk data yang bertahan, gunakan hosting Node dengan volume persisten atau pindahkan CRUD ke Neon Postgres. Lihat `DOCS/INFRASTRUCTURE_VERCEL_NEON_IMAGEKIT.md`.
 

@@ -81,7 +81,7 @@ check('getEventBySlug', !!(await db.getEventBySlug(events[0].slug)));
 // ---------- WRITE LIFECYCLE ----------
 const stamp = Date.now().toString(36);
 const gUser = await db.findOrCreateUserByGoogle({ googleId: `probe-${stamp}`, email: `probe-${stamp}@example.com`, name: 'Probe User' });
-check('findOrCreateUserByGoogle create', gUser.id > 0 && gUser.role === 'umkm');
+check('findOrCreateUserByGoogle create', gUser.id > 0);
 check('findOrCreateUserByGoogle created_at ISO', typeof gUser.created_at === 'string');
 
 const gUser2 = await db.findOrCreateUserByGoogle({ googleId: `probe-${stamp}`, email: `probe-${stamp}@example.com`, name: 'Probe Renamed' });
@@ -114,6 +114,7 @@ check('createUMKMForUser updates existing', umkmId2 === umkmId);
 
 const store = await db.getUMKMByUserId(gUser.id);
 check('getUMKMByUserId', !!store && store.id === umkmId && store.name === 'Toko Probe 2' && Array.isArray(store.products));
+check('createUMKMForUser → is_verified 0 (menunggu)', store?.is_verified === 0, JSON.stringify(store?.is_verified));
 
 const added = await db.addProductToUMKM(umkmId, { name: 'Produk Probe', price: 12345, category: 'Makanan', imageUrl: 'https://example.com/x.jpg' });
 check('addProductToUMKM', added.productId > 0 && added.slug.includes('produk-probe'));

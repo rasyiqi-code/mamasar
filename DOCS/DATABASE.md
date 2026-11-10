@@ -2,10 +2,9 @@
 
 Aplikasi **Pasar Warga NU Sumenep** memakai **Neon PostgreSQL** sebagai database tunggal:
 
-1. **Neon PostgreSQL (runtime utama)**: `src/lib/db.ts` menjalankan semua operasi baca/tulis halaman dan API lewat Drizzle ORM (`drizzle-orm/neon-http`) di atas driver serverless `@neondatabase/serverless` dengan `DATABASE_URL`. Semua fungsi bersifat async; definisi tabel ada di `src/lib/schema.ts`.
-2. **SQLite lokal (legacy, hanya skrip)**: `data/mamasar.db` via `better-sqlite3` kini hanya dipakai `scripts/seed.js` dan `scripts/backup.js`. Runtime aplikasi tidak lagi membacanya.
+1. **Neon PostgreSQL (satu-satunya database)**: `src/lib/db.ts` menjalankan semua operasi baca/tulis halaman dan API lewat Drizzle ORM (`drizzle-orm/neon-http`) di atas driver serverless `@neondatabase/serverless` dengan `DATABASE_URL`. Semua fungsi bersifat async; definisi tabel ada di `src/lib/schema.ts`.
 
-Skema dan seed cloud dikelola lewat `scripts/migrate-neon.js`. Perbedaan historis dengan SQLite dicatat di bagian [Sinkronisasi skema](#sinkronisasi-skema).
+Skema dan seed cloud dikelola lewat `scripts/migrate-neon.js`. Jalur SQLite era awal (skrip seed/backup, `better-sqlite3`) sudah dihapus.
 
 ---
 
@@ -26,7 +25,6 @@ erDiagram
         VARCHAR email UK
         VARCHAR name
         VARCHAR avatar_url
-        VARCHAR role
         TIMESTAMP created_at
     }
 
@@ -64,7 +62,6 @@ erDiagram
         TEXT description
         INTEGER views
         INTEGER is_sold_out
-        INTEGER is_featured
         TIMESTAMP bumped_at
         TEXT shopee_url
         TIMESTAMP created_at
@@ -137,7 +134,7 @@ Menyimpan 27 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC 
 | `name` | `TEXT` | NOT NULL | Nama usaha / toko |
 | `phone` | `TEXT` | NOT NULL | Nomor WhatsApp terstandardisasi (`628xx`) |
 | `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Relasi ke MWC tempat domisili usaha |
-| `is_verified` | `INTEGER` | DEFAULT 1 | 1 = terverifikasi kader NU, 0 = menunggu |
+| `is_verified` | `INTEGER` | DEFAULT 1 | 1 = terverifikasi (data hasil pendataan agen ber-PIN atau seed LPNU), 0 = menunggu verifikasi pengurus. Pendaftaran mandiri lewat dashboard selalu membuat 0 |
 | `address` | `TEXT` | NULLABLE | Dusun/desa atau alamat fisik toko |
 | `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu pendaftaran |
 
@@ -155,14 +152,13 @@ Menyimpan 27 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC 
 | `category` | `TEXT` | NOT NULL | Salah satu nilai `PRODUCT_CATEGORIES` di `src/lib/constants.ts` |
 | `image_url` | `TEXT` | NOT NULL | URL foto utama (ImageKit, `/uploads/...`, atau URL web) |
 | `description` | `TEXT` | NULLABLE | Deskripsi detail produk |
-| `views` | `INTEGER` | DEFAULT 50 | Jumlah tampilan halaman produk |
+| `views` | `INTEGER` | DEFAULT 0 | Jumlah tampilan halaman produk (increment saat kunjungan unik) |
 | `is_sold_out` | `INTEGER` | DEFAULT 0 | 1 = habis/terjual, 0 = tersedia |
-| `is_featured` | `INTEGER` | DEFAULT 0 | 1 = ditandai unggulan. Saat ini belum dipakai untuk sorting |
 | `bumped_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu sundulan terakhir. Menentukan urutan katalog |
 | `shopee_url` | `TEXT` | NULLABLE | Tautan produk di Shopee, opsional |
 | `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu pertama terbit |
 
-Kolom `gallery_images` **tidak ada** di skema aplikasi. Kolom itu hanya muncul di `scripts/migrate-neon.js` dan tidak dipakai oleh kode.
+Kolom `gallery_images` dan `is_featured` pernah dibuat di DDL awal tetapi tidak pernah dipakai aplikasi; keduanya dihapus dari skema (migrasi menjalankan `ALTER TABLE ... DROP COLUMN IF EXISTS`).
 
 ---
 
@@ -211,9 +207,10 @@ Kolom `gallery_images` **tidak ada** di skema aplikasi. Kolom itu hanya muncul d
 | `google_id` | `TEXT` | NOT NULL UNIQUE | Identitas eksternal. Untuk Neon Auth diisi `neon_<user_id>` |
 | `email` | `TEXT` | NOT NULL UNIQUE | Alamat email |
 | `name` | `TEXT` | NOT NULL | Nama lengkap |
-| `avatar_url` | `TEXT` | NULLABLE | Foto profil |
-| `role` | `TEXT` | DEFAULT `'umkm'` | Hak akses (`umkm`, `agent`, `admin`) |
+| `avatar_url` | `TEXT` | NULLABLE | Foto profil — URL http(s) (mis. foto Google) atau *key* objek Neon Object Storage (`avatars/...`) yang di-presign saat render |
 | `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu registrasi pertama |
+
+Kolom `role` pernah ada (default `'umkm'`) tetapi tidak pernah dibaca aplikasi dan sudah dihapus dari skema.
 
 ---
 
@@ -226,8 +223,6 @@ Sesi lokal yang dibuat aplikasi setelah login Neon Auth atau OAuth Google. Sesi 
 | `id` | `TEXT` | PRIMARY KEY | Token sesi acak |
 | `user_id` | `INTEGER` | NOT NULL REFERENCES users(id) | Pemilik akun |
 | `expires_at` | `DATETIME` | NOT NULL | Waktu kedaluwarsa (30 hari) |
-
-`scripts/seed.js` menambahkan kolom `created_at` pada tabel ini, sedangkan `src/lib/db.ts` tidak. Aplikasi tidak membaca `created_at`.
 
 ---
 
@@ -264,7 +259,6 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL,
   avatar_url TEXT,
-  role VARCHAR(50) DEFAULT 'umkm',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -294,9 +288,8 @@ CREATE TABLE IF NOT EXISTS products (
   category VARCHAR(100) NOT NULL,
   image_url TEXT NOT NULL,
   description TEXT,
-  views INTEGER DEFAULT 50,
+  views INTEGER DEFAULT 0,
   is_sold_out INTEGER DEFAULT 0,
-  is_featured INTEGER DEFAULT 0,
   bumped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
   shopee_url TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
@@ -343,10 +336,7 @@ CREATE TABLE IF NOT EXISTS cashbook (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
-CREATE INDEX IF NOT EXISTS idx_products_bumped ON products(bumped_at DESC);
-CREATE INDEX IF NOT EXISTS idx_umkm_zone ON umkm(zone_id);
-CREATE INDEX IF NOT EXISTS idx_cashbook_user ON cashbook(user_id);
+CREATE INDEX IF NOT EXISTS idx_cashbook_user ON cashbook(user_id, transaction_date DESC);
 ```
 
 ---
@@ -355,7 +345,7 @@ CREATE INDEX IF NOT EXISTS idx_cashbook_user ON cashbook(user_id);
 
 `scripts/migrate-neon.js` (DDL), `src/lib/schema.ts` (mirror Drizzle), dan `src/lib/db.ts` (query) sudah sinkron untuk tabel: `zones`, `umkm`, `products` (termasuk `shopee_url`, `views` default 0), `articles`, `events`, `users`, `sessions`, `cashbook` + index `idx_cashbook_user`. Saat mengubah DDL di `migrate-neon.js`, ubah juga `schema.ts` agar tetap sejajar.
 
-Catatan historis yang sudah tidak berlaku: `products.gallery_images` ada di DDL dan `src/lib/schema.ts` tetapi tidak dipakai query aplikasi. `sessions.created_at` tidak dipakai aplikasi. `scripts/seed.js` (SQLite legacy) tidak membuat `cashbook`/`shopee_url` — skrip ini tidak lagi dipakai runtime.
+Kolom yang pernah dibuat lalu dihapus karena tidak pernah dipakai aplikasi: `products.gallery_images`, `products.is_featured`, `users.role`. Migrasi menjalankan `DROP COLUMN IF EXISTS` untuk membersihkan database lama.
 
 ---
 
@@ -368,12 +358,10 @@ DATABASE_URL="postgresql://..." node scripts/migrate-neon.js
 # Uji baca/tulis seluruh fungsi db.ts terhadap Neon (membersihkan datanya sendiri)
 set -a && . ./.env && set +a && npx tsx scripts/db-smoke.mjs
 
-# Skrip SQLite legacy — hanya untuk pengembangan lokal
-npm run seed
-npm run seed:reset
-npm run backup
+# Uji siklus avatar (upload key → presign render) terhadap Neon Object Storage
+set -a && . ./.env && set +a && npx tsx scripts/avatar-smoke.mjs
 ```
 
-Skrip seed dan migrasi mengimpor `src/lib/seeds.ts` langsung, jadi butuh Node 22.18+ atau Node 24.
+Skrip migrasi mengimpor `src/lib/seeds.ts` langsung, jadi butuh Node 22.18+ atau Node 24.
 
-Runtime aplikasi WAJIB `DATABASE_URL`; tanpa itu semua query gagal dengan error eksplisit (`getNeonSql()` throw). SQLite `data/mamasar.db` dihapus dari pelacakan git dan masuk `.gitignore`.
+Runtime aplikasi WAJIB `DATABASE_URL`; tanpa itu semua query gagal dengan error eksplisit (`getNeonSql()` throw). Skrip SQLite era awal (`seed.js`, `backup.js`, dependency `better-sqlite3`) sudah dihapus.
