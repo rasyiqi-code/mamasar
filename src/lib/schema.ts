@@ -20,6 +20,10 @@ export const users = pgTable('users', {
   email: varchar('email', { length: 255 }).notNull().unique(),
   name: varchar('name', { length: 255 }).notNull(),
   avatar_url: text('avatar_url'),
+  role: varchar('role', { length: 20 })
+    .$type<'warga' | 'pengurus'>()
+    .notNull()
+    .default('warga'),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 

@@ -28,6 +28,7 @@ async function runMigration() {
       email VARCHAR(255) NOT NULL UNIQUE,
       name VARCHAR(255) NOT NULL,
       avatar_url TEXT,
+      role VARCHAR(20) NOT NULL DEFAULT 'warga',
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -77,7 +78,9 @@ async function runMigration() {
   // Kolom yang pernah dibuat tapi tidak pernah dipakai aplikasi
   await sql`ALTER TABLE products DROP COLUMN IF EXISTS gallery_images;`;
   await sql`ALTER TABLE products DROP COLUMN IF EXISTS is_featured;`;
-  await sql`ALTER TABLE users DROP COLUMN IF EXISTS role;`;
+  // role dipakai halaman /pengurus (verifikasi toko); 'warga' = default,
+  // 'pengurus' dipromosi manual lewat SQL console (lihat DOCS/DATABASE.md).
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'warga';`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS articles (

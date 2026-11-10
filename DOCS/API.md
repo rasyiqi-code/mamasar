@@ -19,6 +19,8 @@ Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. For
 | `POST` | `/api/products/toggle-stock` | Pemilik toko | Ubah status habis/tersedia |
 | `POST` | `/api/umkm/setup` | Sesi toko | Simpan atau perbarui profil toko; tawarkan pengambilalihan toko hasil pendataan bila nomor WhatsApp cocok |
 | `POST` | `/api/umkm/add-product` | Sesi toko | Tambah produk ke toko sendiri |
+| `POST` | `/api/umkm/verify` | Pengurus MWC | Set/cabut status terverifikasi toko |
+| `POST` | `/api/umkm/delete` | Pengurus MWC | Hapus toko beserta produknya |
 | `POST` | `/api/user/avatar` | Sesi opsional | Unggah foto profil |
 | `POST` | `/api/user/cashbook` | Sesi | Tambah catatan buku kas |
 | `DELETE` | `/api/user/cashbook` | Sesi | Hapus catatan buku kas |
@@ -181,6 +183,27 @@ Memerlukan cookie `mamasar_session` dan profil toko. Format `multipart/form-data
 | `shopeeUrl` | Tidak | Tautan Shopee |
 
 Respons `201`: `{ "success": true, "slug": "...", "productId": 13, "message": "..." }`. Bila sesi tidak ada: `401`. Bila toko belum dibuat: `403`.
+
+### `POST /api/umkm/verify`
+
+Endpoint pengurus MWC di halaman `/pengurus`. Memerlukan cookie `mamasar_session` milik akun dengan `users.role = 'pengurus'`. Format `multipart/form-data`.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `umkmId` | Ya | ID toko |
+| `verified` | Ya | `1` = verifikasi, `0` = cabut verifikasi |
+
+Status target dikirim eksplisit (bukan flip), sehingga klik ganda tidak membalik hasil. Respons `200`: `{ "success": true, "message": "..." }`. Tanpa sesi: `401`; bukan pengurus: `403`; toko tidak ada: `404`.
+
+### `POST /api/umkm/delete`
+
+Endpoint pengurus MWC di halaman `/pengurus`. Gerbang sesi + role sama seperti `/api/umkm/verify`.
+
+| Field | Wajib | Keterangan |
+| :--- | :--- | :--- |
+| `umkmId` | Ya | ID toko |
+
+Menghapus toko beserta seluruh produknya (FK cascade). Akun pemilik toko (bila ada) tetap utuh — hanya kehilangan tokonya. Respons `200`: `{ "success": true, "message": "..." }`; `401`/`403`/`404` mengikuti `/api/umkm/verify`.
 
 ---
 

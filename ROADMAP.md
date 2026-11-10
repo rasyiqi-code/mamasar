@@ -81,6 +81,7 @@ gantt
   - [x] Tetap sediakan form entri cepat jemput bola via login akun (`/agen`) untuk UMKM tradisional/sepuh.
   - [x] Penjual yang mendaftar via `/dashboard` dengan nomor WhatsApp yang sama ditawari mengambil alih toko hasil pendataan (`user_id` NULL) alih-alih membuat toko duplikat.
   - [x] Integrasi tautan Dashboard UMKM di header desktop dan drawer mobile.
+  - [x] Halaman `/pengurus` untuk verifikasi toko pending: akun dengan `users.role = 'pengurus'` (dipromosi manual via SQL) bisa memberi/mencabut badge Verified dan menghapus toko spam.
 
 ---
 

@@ -144,6 +144,7 @@ export interface User {
   email: string;
   name: string;
   avatar_url?: string;
+  role: 'warga' | 'pengurus';
   created_at: string;
 }
 
@@ -154,6 +155,7 @@ function toUser(row: typeof schema.users.$inferSelect): User {
     email: row.email,
     name: row.name,
     avatar_url: row.avatar_url ?? undefined,
+    role: row.role,
     created_at: row.created_at!.toISOString(),
   };
 }
@@ -619,6 +621,8 @@ export async function findOrCreateUserByGoogle(data: {
     email: data.email,
     name: data.name,
     avatar_url: data.avatarUrl,
+    // Kolom role punya DEFAULT 'warga' di DDL.
+    role: 'warga',
     created_at: new Date().toISOString(),
   };
 }
@@ -721,6 +725,7 @@ export async function getUserFromSession(sessionId: string): Promise<(User & { u
     email: row.email,
     name: row.name,
     avatar_url: row.avatar_url ?? undefined,
+    role: row.role,
     created_at: row.created_at!.toISOString(),
   };
 
@@ -886,6 +891,81 @@ export async function setupUMKMForUser(
     .returning({ id: schema.umkm.id });
 
   return { outcome: 'linked', storeId: created.id, claimed: false };
+}
+
+export interface UMKMVerificationRow {
+  id: number;
+  name: string;
+  phone: string;
+  address?: string;
+  is_verified: number;
+  zone_name: string;
+  zone_slug: string;
+  owner_email?: string;
+  product_count: number;
+  created_at: string;
+}
+
+/**
+ * All stores for the pengurus verification page (/pengurus): pending first
+ * (is_verified 0), oldest first within each group. `owner_email` is null
+ * for orphan stores from the /agen field survey.
+ */
+export async function getUMKMForVerification(): Promise<UMKMVerificationRow[]> {
+  const rows = await getDb()
+    .select({
+      id: schema.umkm.id,
+      name: schema.umkm.name,
+      phone: schema.umkm.phone,
+      address: schema.umkm.address,
+      is_verified: schema.umkm.is_verified,
+      zone_name: schema.zones.name,
+      zone_slug: schema.zones.slug,
+      owner_email: schema.users.email,
+      product_count: sql<number>`(SELECT count(*)::int FROM ${schema.products} WHERE ${schema.products.umkm_id} = ${schema.umkm.id})`,
+      created_at: schema.umkm.created_at,
+    })
+    .from(schema.umkm)
+    .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+    .leftJoin(schema.users, eq(schema.umkm.user_id, schema.users.id))
+    .orderBy(asc(schema.umkm.is_verified), asc(schema.umkm.created_at));
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    phone: row.phone,
+    address: row.address ?? undefined,
+    is_verified: row.is_verified ?? 1,
+    zone_name: row.zone_name,
+    zone_slug: row.zone_slug,
+    owner_email: row.owner_email ?? undefined,
+    product_count: row.product_count ?? 0,
+    created_at: row.created_at!.toISOString(),
+  }));
+}
+
+/**
+ * Verify or revoke a store's Verified badge (pengurus MWC only).
+ */
+export async function setUMKMVerified(umkmId: number, verified: boolean): Promise<boolean> {
+  const rows = await getDb()
+    .update(schema.umkm)
+    .set({ is_verified: verified ? 1 : 0 })
+    .where(eq(schema.umkm.id, umkmId))
+    .returning({ id: schema.umkm.id });
+  return rows.length > 0;
+}
+
+/**
+ * Delete a store and its products (pengurus MWC only, for spam/mistakes).
+ * Products cascade via FK; an owner's account survives untouched.
+ */
+export async function deleteUMKM(umkmId: number): Promise<boolean> {
+  const rows = await getDb()
+    .delete(schema.umkm)
+    .where(eq(schema.umkm.id, umkmId))
+    .returning({ id: schema.umkm.id });
+  return rows.length > 0;
 }
 
 /**

@@ -208,9 +208,16 @@ Kolom `gallery_images` dan `is_featured` pernah dibuat di DDL awal tetapi tidak 
 | `email` | `TEXT` | NOT NULL UNIQUE | Alamat email |
 | `name` | `TEXT` | NOT NULL | Nama lengkap |
 | `avatar_url` | `TEXT` | NULLABLE | Foto profil — URL http(s) (mis. foto Google) atau *key* objek Neon Object Storage (`avatars/...`) yang di-presign saat render |
+| `role` | `VARCHAR(20)` | NOT NULL DEFAULT `'warga'` | `'warga'` = pengguna biasa; `'pengurus'` = boleh membuka `/pengurus` (verifikasi/cabut/hapus toko). Promosi dilakukan manual lewat SQL console |
 | `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu registrasi pertama |
 
-Kolom `role` pernah ada (default `'umkm'`) tetapi tidak pernah dibaca aplikasi dan sudah dihapus dari skema.
+**Mempromosi pengurus MWC** (tidak ada UI-nya — sengaja, agar hak verifikasi tidak bisa dinaikkan lewat aplikasi):
+
+```sql
+UPDATE users SET role = 'pengurus' WHERE email = 'nama@nu.or.id';
+```
+
+Setelah login, pengurus melihat banner "Panel Pengurus MWC" di `/dashboard` yang menuju `/pengurus`.
 
 ---
 
@@ -259,6 +266,7 @@ CREATE TABLE IF NOT EXISTS users (
   email VARCHAR(255) NOT NULL UNIQUE,
   name VARCHAR(255) NOT NULL,
   avatar_url TEXT,
+  role VARCHAR(20) NOT NULL DEFAULT 'warga',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
