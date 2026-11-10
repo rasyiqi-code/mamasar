@@ -183,7 +183,32 @@ const authError = Astro.url.searchParams.get('error');
 
         <div id="setup-status" class="hidden p-3 rounded-xl text-xs font-semibold"></div>
 
+        <!-- Tawaran klaim toko: muncul bila nomor WhatsApp cocok dengan toko
+             hasil pendataan petugas lapangan (/agen) yang belum berpemilik -->
+        <div id="claim-offer" class="hidden p-4 rounded-2xl bg-amber-50 border border-amber-300 space-y-3">
+          <p id="claim-offer-text" class="text-xs text-amber-900 leading-relaxed"></p>
+          <p class="text-xs font-black text-amber-950">Apakah ini toko Anda?</p>
+          <div class="flex flex-col sm:flex-row gap-2">
+            <button
+              type="button"
+              id="btn-claim-yes"
+              class="flex-1 py-2.5 px-4 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-black text-xs rounded-xl transition shadow-sm cursor-pointer"
+            >
+              Ya, Ini Toko Saya
+            </button>
+            <button
+              type="button"
+              id="btn-claim-no"
+              class="flex-1 py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 transition cursor-pointer"
+            >
+              Bukan, Buat Toko Baru
+            </button>
+          </div>
+        </div>
+
         <form id="store-setup-form" class="space-y-4">
+          <input type="hidden" id="claimStoreIdInput" name="claimStoreId" value="" />
+          <input type="hidden" id="skipClaimInput" name="skipClaim" value="" />
           <div class="space-y-1">
             <label for="storeName" class="block text-xs font-bold text-slate-700">
               Nama Usaha / Toko UMKM <span class="text-rose-500">*</span>
@@ -854,12 +879,23 @@ const authError = Astro.url.searchParams.get('error');
       }
     });
 
-    // 1. Store Setup Submission
+    // 1. Store Setup Submission (+ orphan-store claim flow)
     const storeSetupForm = document.getElementById('store-setup-form') as HTMLFormElement;
     const setupStatus = document.getElementById('setup-status');
+    const claimOffer = document.getElementById('claim-offer');
+    const claimOfferText = document.getElementById('claim-offer-text');
+    let pendingClaimId = 0;
 
-    storeSetupForm?.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    function hideClaimOffer() {
+      pendingClaimId = 0;
+      const claimInput = document.getElementById('claimStoreIdInput') as HTMLInputElement | null;
+      const skipInput = document.getElementById('skipClaimInput') as HTMLInputElement | null;
+      if (claimInput) claimInput.value = '';
+      if (skipInput) skipInput.value = '';
+      claimOffer?.classList.add('hidden');
+    }
+
+    async function submitStoreSetup() {
       const btn = document.getElementById('btn-save-store') as HTMLButtonElement;
       if (btn) btn.disabled = true;
 
@@ -871,21 +907,53 @@ const authError = Astro.url.searchParams.get('error');
         });
         const data = await res.json();
 
+        if (data.claim_available) {
+          pendingClaimId = data.candidate?.id || 0;
+          if (claimOfferText) claimOfferText.textContent = data.message || '';
+          if (claimOffer) {
+            claimOffer.classList.remove('hidden');
+            claimOffer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+          return;
+        }
+
         if (res.ok && data.success) {
           window.location.reload();
-        } else {
-          if (setupStatus) {
-            setupStatus.className = 'p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200';
-            setupStatus.textContent = data.message || 'Gagal menyimpan profil toko.';
-            setupStatus.classList.remove('hidden');
-          }
+          return;
+        }
+
+        hideClaimOffer();
+        if (setupStatus) {
+          setupStatus.className = 'p-3 rounded-xl text-xs font-bold bg-rose-50 text-rose-800 border border-rose-200';
+          setupStatus.textContent = data.message || 'Gagal menyimpan profil toko.';
+          setupStatus.classList.remove('hidden');
         }
       } catch (err: any) {
         alert('Gagal menghubungi server: ' + err.message);
       } finally {
         if (btn) btn.disabled = false;
       }
+    }
+
+    storeSetupForm?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      submitStoreSetup();
     });
+
+    document.getElementById('btn-claim-yes')?.addEventListener('click', () => {
+      const input = document.getElementById('claimStoreIdInput') as HTMLInputElement | null;
+      if (input && pendingClaimId) input.value = String(pendingClaimId);
+      submitStoreSetup();
+    });
+
+    document.getElementById('btn-claim-no')?.addEventListener('click', () => {
+      const input = document.getElementById('skipClaimInput') as HTMLInputElement | null;
+      if (input) input.value = '1';
+      submitStoreSetup();
+    });
+
+    // Mengubah nomor WhatsApp membatalkan tawaran klaim yang tertunda.
+    document.getElementById('storePhone')?.addEventListener('input', hideClaimOffer);
 
     // 2. Toggle Add Product Accordion
     const btnToggleAdd = document.getElementById('btn-toggle-add-product');

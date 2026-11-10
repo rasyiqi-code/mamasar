@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getUserFromSession, createUMKMForUser } from '../../../lib/db';
+import { getUserFromSession, setupUMKMForUser } from '../../../lib/db';
 import { isValidIndonesianPhone } from '../../../lib/utils';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -30,6 +30,8 @@ export const POST: APIRoute = async ({ request }) => {
     const phone = formData.get('phone')?.toString().trim();
     const zoneId = Number(formData.get('zoneId'));
     const address = formData.get('address')?.toString().trim();
+    const claimStoreId = formData.get('claimStoreId') ? Number(formData.get('claimStoreId')) : undefined;
+    const skipClaim = formData.get('skipClaim') === '1';
 
     if (!name || !phone || !zoneId) {
       return new Response(JSON.stringify({ success: false, message: 'Nama Toko, No. WhatsApp, dan Wilayah MWC wajib diisi.' }), {
@@ -45,18 +47,39 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const storeId = await createUMKMForUser(user.id, {
-      name,
-      phone,
-      zoneId,
-      address,
-    });
+    const result = await setupUMKMForUser(
+      user.id,
+      { name, phone, zoneId, address },
+      { claimStoreId, skipClaim }
+    );
+
+    if (result.outcome === 'claim_available') {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          claim_available: true,
+          candidate: result.candidate,
+          message: `Nomor WhatsApp ini cocok dengan toko "${result.candidate.name}" di wilayah ${result.candidate.zone_name} — terdaftar dari hasil pendataan petugas lapangan.`,
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (result.outcome === 'claim_failed') {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Toko tersebut baru saja diambil alih akun lain. Muat ulang halaman, lalu isi ulang profil toko Anda.' }),
+        { status: 409, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
 
     return new Response(
       JSON.stringify({
         success: true,
-        storeId,
-        message: 'Alhamdulillah! Profil toko Anda berhasil disimpan.',
+        storeId: result.storeId,
+        claimed: result.claimed,
+        message: result.claimed
+          ? 'Alhamdulillah! Toko hasil pendataan kini dikelola lewat akun Anda.'
+          : 'Alhamdulillah! Profil toko Anda berhasil disimpan.',
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

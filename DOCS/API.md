@@ -17,7 +17,7 @@ Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. For
 | `POST` | `/api/products/bump` | Pemilik toko | Naikkan produk ke urutan teratas |
 | `POST` | `/api/products/delete` | Pemilik toko | Hapus produk |
 | `POST` | `/api/products/toggle-stock` | Pemilik toko | Ubah status habis/tersedia |
-| `POST` | `/api/umkm/setup` | Sesi toko | Simpan atau perbarui profil toko |
+| `POST` | `/api/umkm/setup` | Sesi toko | Simpan atau perbarui profil toko; tawarkan pengambilalihan toko hasil pendataan bila nomor WhatsApp cocok |
 | `POST` | `/api/umkm/add-product` | Sesi toko | Tambah produk ke toko sendiri |
 | `POST` | `/api/user/avatar` | Sesi opsional | Unggah foto profil |
 | `POST` | `/api/user/cashbook` | Sesi | Tambah catatan buku kas |
@@ -153,10 +153,18 @@ Memerlukan cookie `mamasar_session`. Format `multipart/form-data` atau form bias
 | `phone` | Ya | Nomor WhatsApp valid |
 | `zoneId` | Ya | ID zona MWC |
 | `address` | Tidak | Alamat toko |
+| `claimStoreId` | Tidak | ID toko orphan yang diambil alih (jawaban "Ya" dari penjual pada panel konfirmasi klaim) |
+| `skipClaim` | Tidak | `1` bila penjual menolak klaim — paksa buat toko baru |
 
-Bila user sudah punya toko, data toko diperbarui. Bila belum, toko baru dibuat dan ditautkan ke `user_id`.
+Bila user sudah punya toko, data toko diperbarui. Bila belum:
 
-Respons `200`: `{ "success": true, "storeId": 5, "message": "..." }`.
+1. Bila ada toko orphan (hasil pendataan `/agen`, tanpa `user_id`) dengan nomor WhatsApp yang sama dan belum ada keputusan klaim, toko itu **ditawarkan** — respons `200` berisi `{ "success": false, "claim_available": true, "candidate": { "id", "name", "zone_name" }, "message" }`. Tidak ada data yang berubah.
+2. `claimStoreId` → toko orphan ditautkan ke `user_id` penjual, profilnya diperbarui dengan isian form, `is_verified` tetap `0`.
+3. `skipClaim` → toko baru dibuat dan ditautkan ke `user_id`.
+
+Klaim digerbang `user_id IS NULL` + kecocokan nomor WhatsApp, sehingga ID toko tebakan tidak bisa membajak toko dan dua penjual tidak bisa mengambil toko yang sama. Bila toko sudah diambil alih lebih dulu: respons `409`.
+
+Respons `200`: `{ "success": true, "storeId": 5, "claimed": false, "message": "..." }`.
 
 ### `POST /api/umkm/add-product`
 

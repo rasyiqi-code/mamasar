@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, getTableColumns, gte, ilike, lt, lte, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, getTableColumns, gte, ilike, isNull, lt, lte, or, sql, type SQL } from 'drizzle-orm';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
 import { getNeonSql } from './neon';
@@ -448,7 +448,7 @@ export async function createUMKMAndProduct(data: {
   imageUrl: string;
   description?: string;
   shopeeUrl?: string;
-}): Promise<{ productId: number; slug: string }> {
+}): Promise<{ umkmId: number; productId: number; slug: string }> {
   const cleanPhone = formatPhoneForWhatsApp(data.phone);
   const uniqueSlug = `${slugify(data.productName)}-${Date.now().toString(36)}`;
 
@@ -480,6 +480,7 @@ export async function createUMKMAndProduct(data: {
     .returning({ id: schema.products.id });
 
   return {
+    umkmId: umkmRow.id,
     productId: productRow.id,
     slug: uniqueSlug,
   };
@@ -776,17 +777,69 @@ export async function getUMKMByUserId(userId: number): Promise<(UMKM & { zone_na
   };
 }
 
-/**
- * Create UMKM store profile linked to an authenticated user
- */
-export async function createUMKMForUser(userId: number, data: {
+export interface ClaimCandidate {
+  id: number;
   name: string;
-  phone: string;
-  zoneId: number;
-  address?: string;
-}): Promise<number> {
+  zone_name: string;
+}
+
+export type SetupUMKMResult =
+  | { outcome: 'linked'; storeId: number; claimed: boolean }
+  | { outcome: 'claim_available'; candidate: ClaimCandidate }
+  | { outcome: 'claim_failed' };
+
+/**
+ * Find an orphan store (created via /agen without an owner account) whose
+ * phone matches the seller's WhatsApp number. Oldest first, so repeated
+ * agent entries resolve to the same candidate.
+ */
+async function findClaimableUMKMByPhone(cleanPhone: string): Promise<ClaimCandidate | undefined> {
+  const [row] = await getDb()
+    .select({ id: schema.umkm.id, name: schema.umkm.name, zone_name: schema.zones.name })
+    .from(schema.umkm)
+    .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+    .where(and(eq(schema.umkm.phone, cleanPhone), isNull(schema.umkm.user_id)))
+    .orderBy(asc(schema.umkm.id))
+    .limit(1);
+  return row;
+}
+
+/**
+ * Link an orphan store to its real owner. Guarded by `user_id IS NULL` and
+ * the phone match, so a guessed store id cannot steal a store and two
+ * racing sellers cannot both claim it.
+ */
+async function claimOrphanUMKM(userId: number, storeId: number, cleanPhone: string): Promise<number | undefined> {
+  const [row] = await getDb()
+    .update(schema.umkm)
+    .set({ user_id: userId })
+    .where(and(eq(schema.umkm.id, storeId), isNull(schema.umkm.user_id), eq(schema.umkm.phone, cleanPhone)))
+    .returning({ id: schema.umkm.id });
+  return row?.id;
+}
+
+/**
+ * Save the store profile for an authenticated seller.
+ *
+ * Orphan stores from the /agen field survey carry the seller's phone number,
+ * so a seller registering with the same number is offered the claim instead
+ * of silently creating a duplicate store. `claimStoreId` accepts the offer,
+ * `skipClaim` declines it and forces a fresh store.
+ */
+export async function setupUMKMForUser(
+  userId: number,
+  data: {
+    name: string;
+    phone: string;
+    zoneId: number;
+    address?: string;
+  },
+  options?: { claimStoreId?: number; skipClaim?: boolean }
+): Promise<SetupUMKMResult> {
   const cleanPhone = formatPhoneForWhatsApp(data.phone);
 
+  // Sellers with an existing store just update their profile; the claim
+  // options are ignored so a stale confirm panel cannot hijack another store.
   const [existing] = await getDb()
     .select({ id: schema.umkm.id })
     .from(schema.umkm)
@@ -797,7 +850,25 @@ export async function createUMKMForUser(userId: number, data: {
       .update(schema.umkm)
       .set({ name: data.name, phone: cleanPhone, zone_id: data.zoneId, address: data.address || '' })
       .where(eq(schema.umkm.id, existing.id));
-    return existing.id;
+    return { outcome: 'linked', storeId: existing.id, claimed: false };
+  }
+
+  if (options?.claimStoreId) {
+    const claimed = await claimOrphanUMKM(userId, options.claimStoreId, cleanPhone);
+    if (!claimed) return { outcome: 'claim_failed' };
+
+    // Refresh the claimed profile with what the seller typed in the form;
+    // the phone already matches, so it is kept as-is.
+    await getDb()
+      .update(schema.umkm)
+      .set({ name: data.name, zone_id: data.zoneId, address: data.address || '' })
+      .where(eq(schema.umkm.id, claimed));
+    return { outcome: 'linked', storeId: claimed, claimed: true };
+  }
+
+  if (!options?.skipClaim) {
+    const candidate = await findClaimableUMKMByPhone(cleanPhone);
+    if (candidate) return { outcome: 'claim_available', candidate };
   }
 
   const [created] = await getDb()
@@ -814,7 +885,7 @@ export async function createUMKMForUser(userId: number, data: {
     })
     .returning({ id: schema.umkm.id });
 
-  return created.id;
+  return { outcome: 'linked', storeId: created.id, claimed: false };
 }
 
 /**

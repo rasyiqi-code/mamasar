@@ -107,14 +107,31 @@ await db.updateUserProfile(gUser.id, { name: 'Probe Updated' });
 const ufs2 = await db.getUserFromSession(sid);
 check('updateUserProfile', ufs2?.name === 'Probe Updated');
 
-const umkmId = await db.createUMKMForUser(gUser.id, { name: 'Toko Probe', phone: '081234567890', zoneId: zones[0].id, address: 'Jl. Probe' });
-check('createUMKMForUser', umkmId > 0);
-const umkmId2 = await db.createUMKMForUser(gUser.id, { name: 'Toko Probe 2', phone: '089876543210', zoneId: zones[1].id, address: 'Jl. Probe 2' });
-check('createUMKMForUser updates existing', umkmId2 === umkmId);
+// ---------- STORE SETUP + ORPHAN-STORE CLAIM ----------
+// Toko orphan: didata petugas lapangan via /agen, tanpa akun pemilik.
+const orphan = await db.createUMKMAndProduct({
+  umkmName: 'Toko Yatim Probe', phone: '0812000111222', zoneId: zones[2].id,
+  productName: 'Produk Yatim Probe', price: 999, category: 'Lainnya', imageUrl: 'https://example.com/y.jpg',
+});
+check('createUMKMAndProduct', orphan.productId > 0);
+const orphanRow = await raw.select().from(schema.umkm).where(eq(schema.umkm.id, orphan.umkmId));
+check('createUMKMAndProduct → user_id NULL (orphan)', orphanRow[0]?.user_id === null, JSON.stringify(orphanRow[0]?.user_id));
+check('createUMKMAndProduct → is_verified 0 (menunggu)', orphanRow[0]?.is_verified === 0, JSON.stringify(orphanRow[0]?.is_verified));
+
+// Penjual baru dengan nomor WA sama ditawari klaim, bukan toko duplikat.
+const offered = await db.setupUMKMForUser(gUser.id, { name: 'Toko Probe', phone: '0812000111222', zoneId: zones[0].id, address: 'Jl. Probe' });
+check('setupUMKMForUser offers matching orphan', offered.outcome === 'claim_available' && offered.candidate.name === 'Toko Yatim Probe' && offered.candidate.zone_name === zones[2].name, JSON.stringify(offered));
+
+const declined = await db.setupUMKMForUser(gUser.id, { name: 'Toko Probe', phone: '0812000111222', zoneId: zones[0].id, address: 'Jl. Probe' }, { skipClaim: true });
+const umkmId = declined.outcome === 'linked' && declined.storeId > 0 ? declined.storeId : -1;
+check('setupUMKMForUser skipClaim → toko baru', declined.outcome === 'linked' && declined.claimed === false && umkmId > 0, JSON.stringify(declined));
+
+const updated = await db.setupUMKMForUser(gUser.id, { name: 'Toko Probe 2', phone: '089876543210', zoneId: zones[1].id, address: 'Jl. Probe 2' });
+check('setupUMKMForUser updates existing store', updated.outcome === 'linked' && updated.storeId === umkmId, JSON.stringify(updated));
 
 const store = await db.getUMKMByUserId(gUser.id);
 check('getUMKMByUserId', !!store && store.id === umkmId && store.name === 'Toko Probe 2' && Array.isArray(store.products));
-check('createUMKMForUser → is_verified 0 (menunggu)', store?.is_verified === 0, JSON.stringify(store?.is_verified));
+check('setupUMKMForUser → is_verified 0 (menunggu)', store?.is_verified === 0, JSON.stringify(store?.is_verified));
 
 const added = await db.addProductToUMKM(umkmId, { name: 'Produk Probe', price: 12345, category: 'Makanan', imageUrl: 'https://example.com/x.jpg' });
 check('addProductToUMKM', added.productId > 0 && added.slug.includes('produk-probe'));
@@ -146,25 +163,48 @@ check('getCashbookSummary', summary.totalIncome === 50000 && summary.totalExpens
 check('deleteCashbookEntry', await db.deleteCashbookEntry(cb2.id, gUser.id));
 check('deleteCashbookEntry wrong user → false', (await db.deleteCashbookEntry(cb.id, gUser.id + 99999)) === false);
 
-const cp = await db.createUMKMAndProduct({ umkmName: 'Toko Lepas', phone: '0812000111222', zoneId: zones[2].id, productName: 'Produk Lepas', price: 999, category: 'Lainnya', imageUrl: 'https://example.com/y.jpg' });
-check('createUMKMAndProduct', cp.productId > 0);
-const umkmLepasRow = await raw.select().from(schema.umkm).where(eq(schema.umkm.name, 'Toko Lepas'));
-check('createUMKMAndProduct → is_verified 0 (menunggu)', umkmLepasRow[0]?.is_verified === 0, JSON.stringify(umkmLepasRow[0]?.is_verified));
-check('deleteProduct', await db.deleteProduct(cp.productId));
+// Penjual B mendaftar dengan nomor WA orphan, lalu mengambil alih tokonya.
+const gUserB = await db.findOrCreateUserByGoogle({ googleId: `probe-b-${stamp}`, email: `probe-b-${stamp}@example.com`, name: 'Probe Seller B' });
+const offeredB = await db.setupUMKMForUser(gUserB.id, { name: 'Toko Probe B', phone: '0812000111222', zoneId: zones[1].id });
+check('setupUMKMForUser offers orphan to second seller', offeredB.outcome === 'claim_available' && offeredB.candidate.id === orphan.umkmId, JSON.stringify(offeredB));
+
+const claimedB = await db.setupUMKMForUser(gUserB.id, { name: 'Toko Probe B', phone: '0812000111222', zoneId: zones[1].id, address: 'Jl. B' }, { claimStoreId: orphan.umkmId });
+check('setupUMKMForUser claim links orphan', claimedB.outcome === 'linked' && claimedB.claimed === true && claimedB.storeId === orphan.umkmId, JSON.stringify(claimedB));
+
+const storeB = await db.getUMKMByUserId(gUserB.id);
+check('claimed store owned + products follow', !!storeB && storeB.id === orphan.umkmId && storeB.name === 'Toko Probe B' && storeB.products.length === 1 && storeB.products[0]?.name === 'Produk Yatim Probe', JSON.stringify({ id: storeB?.id, name: storeB?.name, products: storeB?.products.map((p) => p.name) }));
+check('claim keeps is_verified 0 (menunggu)', storeB?.is_verified === 0, JSON.stringify(storeB?.is_verified));
+check('deleteProduct', await db.deleteProduct(orphan.productId));
+
+// Penjual C tidak bisa mencuri toko yang sudah diambil alih...
+const gUserC = await db.findOrCreateUserByGoogle({ googleId: `probe-c-${stamp}`, email: `probe-c-${stamp}@example.com`, name: 'Probe Seller C' });
+const stealC = await db.setupUMKMForUser(gUserC.id, { name: 'Toko Probe C', phone: '0812000111222', zoneId: zones[1].id }, { claimStoreId: orphan.umkmId });
+check('setupUMKMForUser claim on taken store fails', stealC.outcome === 'claim_failed', JSON.stringify(stealC));
+
+// ...dan nomor WA itu kini tidak lagi menawarkan klaim (orphan sudah berpemilik).
+const freshC = await db.setupUMKMForUser(gUserC.id, { name: 'Toko Probe C', phone: '0812000111222', zoneId: zones[1].id });
+check('setupUMKMForUser after claim → fresh store', freshC.outcome === 'linked' && freshC.claimed === false && freshC.storeId !== orphan.umkmId, JSON.stringify(freshC));
 
 // ---------- CLEANUP ----------
 check('deleteProduct own product', await db.deleteProduct(added.productId, umkmId));
 await db.deleteSession(sid);
 check('getUserFromSession after delete → null', (await db.getUserFromSession(sid)) === null);
-await raw.delete(schema.umkm).where(eq(schema.umkm.id, umkmId));
-const umkmLepas = await raw.select().from(schema.umkm).where(eq(schema.umkm.name, 'Toko Lepas'));
-if (umkmLepas.length) await raw.delete(schema.umkm).where(eq(schema.umkm.id, umkmLepas[0].id));
-await raw.delete(schema.users).where(eq(schema.users.id, gUser.id)); // cascades sessions + cashbook
 
+// umkm.user_id is ON DELETE SET NULL, so stores need explicit deletes
+// (their products cascade); deleting users cascades sessions + cashbook.
+const probeStores = [declined, claimedB, freshC].filter((r) => r.outcome === 'linked' && r.storeId > 0).map((r) => r.storeId);
+for (const storeId of probeStores) {
+  await raw.delete(schema.umkm).where(eq(schema.umkm.id, storeId));
+}
+for (const probeUser of [gUser.id, gUserB.id, gUserC.id]) {
+  await raw.delete(schema.users).where(eq(schema.users.id, probeUser));
+}
+
+const probeNames = ['Toko Probe 2', 'Toko Probe B', 'Toko Probe C', 'Toko Yatim Probe'];
 const finalUsers = await raw.select({ id: schema.users.id }).from(schema.users);
-check('cleanup: no probe users left', finalUsers.every((u) => u.id !== gUser.id));
+check('cleanup: no probe users left', finalUsers.every((u) => ![gUser.id, gUserB.id, gUserC.id].includes(u.id)));
 const finalUmkm = await raw.select({ id: schema.umkm.id, name: schema.umkm.name }).from(schema.umkm);
-check('cleanup: no probe umkm left', finalUmkm.every((u) => u.name !== 'Toko Probe 2' && u.name !== 'Toko Lepas'), JSON.stringify(finalUmkm.filter((u) => u.name?.includes('Probe') || u.name?.includes('Lepas'))));
+check('cleanup: no probe umkm left', finalUmkm.every((u) => !probeNames.includes(u.name)), JSON.stringify(finalUmkm.filter((u) => probeNames.includes(u.name))));
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

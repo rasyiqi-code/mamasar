@@ -130,7 +130,7 @@ Menyimpan 27 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
 | `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID toko / usaha |
-| `user_id` | `INTEGER` | NULLABLE REFERENCES users(id) | Akun pemilik toko. `NULL` untuk data hasil pendataan agen |
+| `user_id` | `INTEGER` | NULLABLE REFERENCES users(id) | Akun pemilik toko. `NULL` untuk data hasil pendataan agen — penjual yang kemudian mendaftar dengan nomor WhatsApp sama dapat mengambil alih toko via `/api/umkm/setup` (lihat `DOCS/API.md`) |
 | `name` | `TEXT` | NOT NULL | Nama usaha / toko |
 | `phone` | `TEXT` | NOT NULL | Nomor WhatsApp terstandardisasi (`628xx`) |
 | `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Relasi ke MWC tempat domisili usaha |
