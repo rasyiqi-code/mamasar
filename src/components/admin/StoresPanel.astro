@@ -1,9 +1,12 @@
 ---
+import AppIcon from '../common/AppIcon.astro';
+
 interface UMKMStore {
   id: number;
   name: string;
   phone: string;
   address?: string | null;
+  ranting?: string | null;
   zone_name: string;
   is_verified?: boolean | number | null;
   product_count?: number;
@@ -32,7 +35,7 @@ function formatDate(iso: string): string {
   <!-- Top Bar: Compact Header with Line Divider -->
   <div class="flex items-center justify-between pb-3 border-b border-slate-200">
     <div class="flex items-center gap-2.5">
-      <h1 class="text-base sm:text-lg font-bold text-slate-900">Kurasi & Moderasi Toko</h1>
+      <h2 class="text-base sm:text-lg font-bold text-slate-900">Kurasi & Moderasi Toko</h2>
       <span class="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
         {pendingStores.length} antrean
       </span>
@@ -55,8 +58,13 @@ function formatDate(iso: string): string {
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
                 <span class="text-[10px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
-                  📍 {store.zone_name}
+                  📍 MWC {store.zone_name}
                 </span>
+                {store.ranting && (
+                  <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    Desa {store.ranting}
+                  </span>
+                )}
                 <span class="text-[11px] text-slate-400">
                   {store.product_count || 0} produk · {formatDate(store.created_at)}
                 </span>
@@ -94,7 +102,7 @@ function formatDate(iso: string): string {
                 class="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
                 title="Hapus Toko"
               >
-                🗑️
+                <AppIcon name="trash" size="xs" />
               </button>
             </div>
           </div>
@@ -124,8 +132,13 @@ function formatDate(iso: string): string {
                   <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Verified
                 </span>
                 <span class="text-[10px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
-                  📍 {store.zone_name}
+                  📍 MWC {store.zone_name}
                 </span>
+                {store.ranting && (
+                  <span class="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                    Desa {store.ranting}
+                  </span>
+                )}
                 <span class="text-[11px] text-slate-400">
                   {store.product_count || 0} produk
                 </span>
@@ -164,7 +177,7 @@ function formatDate(iso: string): string {
                 class="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
                 title="Hapus Toko"
               >
-                🗑️
+                <AppIcon name="trash" size="xs" />
               </button>
             </div>
           </div>

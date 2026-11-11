@@ -19,6 +19,7 @@ import CashbookPanel from '../../components/dashboard/CashbookPanel.astro';
 import ProfilePanel from '../../components/dashboard/ProfilePanel.astro';
 import ServicesPanel from '../../components/dashboard/ServicesPanel.astro';
 import ProductModals from '../../components/dashboard/ProductModals.astro';
+import AdPromotionModal from '../../components/dashboard/AdPromotionModal.astro';
 
 const user = await resolveUser(Astro.request);
 const store = user ? await getUMKMByUserId(user.id) : undefined;
@@ -37,7 +38,7 @@ const isCadre = isPetugas(user);
 ---
 
 <AppLayout
-  title={user ? `Dashboard Toko: ${store?.name || user.name} | Pasar Warga NU` : 'Masuk ke Dashboard UMKM | Pasar Warga NU Sumenep'}
+  title={user ? `Dashboard Toko: ${store?.name || user.name} | Mamasar` : 'Masuk ke Dashboard UMKM | Mamasar'}
   description="Portal swalayan pemilik UMKM Nahdliyin untuk mengelola etalase produk, pembukuan kas santri, dan profil usaha secara mandiri."
 >
   <!-- KONDISI 1: Belum Login -->
@@ -62,6 +63,8 @@ const isCadre = isPetugas(user);
 
       <!-- Workspace Utama (Fullwidth & Compact) -->
       <main class="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 w-full space-y-6">
+        <h1 class="sr-only">Dashboard Toko {store.name}</h1>
+
         <!-- Status Notification Box -->
         <div id="action-status" class="hidden mb-4 p-2.5 rounded-lg text-xs font-semibold"></div>
 
@@ -88,6 +91,7 @@ const isCadre = isPetugas(user);
 
       <!-- Modal Dialogs -->
       <ProductModals />
+      <AdPromotionModal store={store} />
     </div>
   )}
 

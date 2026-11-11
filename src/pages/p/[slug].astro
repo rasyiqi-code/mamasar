@@ -37,6 +37,21 @@ if (!Astro.cookies.has(viewCookieKey)) {
 
 const currentUrl = Astro.url.href;
 
+// Price Promo / Strike-through calculation
+const hasDiscount = Boolean(product.original_price && product.original_price > product.price);
+const discountPercent = hasDiscount
+  ? Math.round(((product.original_price! - product.price) / product.original_price!) * 100)
+  : 0;
+
+// Multi-photo gallery images array (main image + gallery images)
+const allImages: string[] = [
+  product.image_url,
+  ...(Array.isArray(product.gallery_images) ? product.gallery_images : [])
+].filter(Boolean);
+
+// QR Code URL for offline marketing / stickers
+const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&margin=8&data=${encodeURIComponent(currentUrl)}`;
+
 // Shared WhatsApp direct-chat link generator
 const waLink = createProductWhatsAppUrl({
   phone: product.umkm_phone,
@@ -79,7 +94,7 @@ const productSchema = {
   },
 };
 
-const pageTitle = `${product.name} - ${formatRupiah(product.price)} | UMKM NU Sumenep`;
+const pageTitle = `${product.name} - ${formatRupiah(product.price)} | Mamasar`;
 const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name} (${product.zone_name}, Sumenep) seharga ${formatRupiah(product.price)}. Hubungi penjual warga NU langsung via WhatsApp tanpa perantara.`;
 ---
 
@@ -115,26 +130,38 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
         <!-- Unified Product Sheet Master Container -->
         <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl shadow-xs overflow-hidden divide-y divide-slate-100">
           
-          <!-- 1. Large Photo Container with Thumbnails (OsClass Gallery Signature) -->
+          <!-- 1. Large Photo Container with Multi-Photo Thumbnails (OsClass Gallery Signature) -->
           <div class="p-3 sm:p-5 space-y-3">
             
             <!-- Main Large Photo -->
-            <div class="relative w-full aspect-4/3 sm:aspect-16/10 bg-slate-100 rounded-xl overflow-hidden">
+            <div class="relative w-full aspect-4/3 sm:aspect-16/10 bg-slate-100 rounded-xl overflow-hidden group">
               <img
-                src={product.image_url}
+                id="main-product-image"
+                src={allImages[0]}
                 alt={product.name}
                 fetchpriority="high"
-                class="w-full h-full object-cover"
+                class="w-full h-full object-cover transition duration-300"
               />
               
               <!-- Badges Overlay -->
               <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
                 <span class="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm border border-slate-200">
-                  📍 {product.zone_name}
+                  📍 {product.umkm_ranting ? `Ranting ${product.umkm_ranting}, ` : ''}{product.zone_name}
                 </span>
+                {Boolean(product.is_featured) && (
+                  <span class="bg-amber-400 text-slate-950 border border-amber-300 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1">
+                    <span>★</span>
+                    <span>Iklan Unggulan</span>
+                  </span>
+                )}
                 {Boolean(product.is_verified) && (
                   <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm">
                     Verified
+                  </span>
+                )}
+                {hasDiscount && (
+                  <span class="bg-rose-600 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow-sm">
+                    Diskon {discountPercent}%
                   </span>
                 )}
               </div>
@@ -146,6 +173,27 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
                 </div>
               )}
             </div>
+
+            <!-- Multi-Photo Gallery Thumbnails (OsClass Gallery Thumbnails) -->
+            {allImages.length > 1 && (
+              <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
+                {allImages.map((imgUrl, idx) => (
+                  <button
+                    type="button"
+                    class={`gallery-thumb relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition cursor-pointer shrink-0 ${
+                      idx === 0 ? 'border-indigo-600 ring-2 ring-indigo-600/30' : 'border-slate-200 hover:border-slate-400 opacity-75 hover:opacity-100'
+                    }`}
+                    data-img-src={imgUrl}
+                    aria-label={`Lihat Foto ${idx + 1}`}
+                  >
+                    <img src={imgUrl} alt={`Thumbnail ${idx + 1}`} class="w-full h-full object-cover" />
+                    <span class="absolute bottom-0.5 right-0.5 text-[9px] font-bold px-1 rounded bg-black/60 text-white">
+                      {idx + 1}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
 
           </div>
 
@@ -184,12 +232,24 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
               </button>
             </div>
 
-            <!-- Price Display (Large Bold OsClass Typography) -->
+            <!-- Price Display (Large Bold OsClass Typography with Coret/Discount) -->
             <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
               <div>
-                <span class="text-2xl sm:text-3xl font-black text-emerald-700">
-                  {formatRupiah(product.price)}
-                </span>
+                <div class="flex items-baseline gap-2.5 flex-wrap">
+                  <span class="text-2xl sm:text-3xl font-black text-emerald-700 font-mono">
+                    {formatRupiah(product.price)}
+                  </span>
+                  {hasDiscount && (
+                    <>
+                      <span class="text-sm sm:text-base font-bold text-slate-400 line-through font-mono">
+                        {formatRupiah(product.original_price!)}
+                      </span>
+                      <span class="bg-rose-100 text-rose-700 text-xs font-black px-2 py-0.5 rounded-lg border border-rose-200">
+                        Diskon {discountPercent}%
+                      </span>
+                    </>
+                  )}
+                </div>
                 <span class="block text-xs text-slate-500 mt-0.5">
                   Harga langsung dari pengrajin/produsen (Bisa nego via WhatsApp)
                 </span>
@@ -200,7 +260,7 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
             </div>
 
             <!-- Attributes / Specs Grid (OsClass Attributes Box) -->
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
               <div>
                 <span class="text-slate-500 block text-[10px] uppercase font-bold">Wilayah MWC</span>
                 <span class="font-bold text-slate-800">{product.zone_name}</span>
@@ -211,7 +271,19 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
               </div>
               <div>
                 <span class="text-slate-500 block text-[10px] uppercase font-bold">Status Stok</span>
-                <span class="font-bold text-emerald-700">{product.is_sold_out ? 'Habis' : 'Tersedia'}</span>
+                <span class={`font-bold ${
+                  product.is_sold_out ? 'text-rose-700' :
+                  product.stock_status === 'po' ? 'text-amber-700' : 'text-emerald-700'
+                }`}>
+                  {product.is_sold_out ? 'Habis / Penuh' :
+                   product.stock_status === 'po' ? 'Pre-Order' : 'Ready Stock'}
+                </span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[10px] uppercase font-bold">Kapasitas / Estimasi</span>
+                <span class="font-bold text-slate-800">
+                  {product.production_capacity || (product.stock_status === 'po' ? 'Sesuai Antrean PO' : 'Siap Kirim')}
+                </span>
               </div>
               <div>
                 <span class="text-slate-500 block text-[10px] uppercase font-bold">Verifikasi</span>
@@ -279,7 +351,15 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
 
           <!-- 5. Page Actions Strip: Print, Share (OsClass Signature Footer) -->
           <div class="px-4 py-3.5 sm:px-6 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+              <button
+                type="button"
+                id="btn-open-label-modal"
+                class="text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1.5 transition cursor-pointer"
+              >
+                <span>🏷️</span> Cetak Label QR Iklan
+              </button>
+              <span>•</span>
               <button
                 type="button"
                 onclick="window.print()"
@@ -396,6 +476,39 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
                 <span>Wilayah MWC:</span>
                 <span class="text-slate-800">{product.zone_name}</span>
               </div>
+              {product.umkm_ranting && (
+                <div class="flex items-center justify-between">
+                  <span>Ranting NU:</span>
+                  <span class="text-emerald-800 font-bold">Desa {product.umkm_ranting}</span>
+                </div>
+              )}
+              {Boolean(product.umkm_halal_cert || product.umkm_nib || product.umkm_pirt || product.umkm_bpom) && (
+                <div class="pt-1 flex items-center justify-between">
+                  <span>Legalitas:</span>
+                  <div class="flex flex-wrap gap-1 justify-end">
+                    {product.umkm_halal_cert && (
+                      <span class="text-[9px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded" title={`Halal: ${product.umkm_halal_cert}`}>
+                        Halal
+                      </span>
+                    )}
+                    {product.umkm_nib && (
+                      <span class="text-[9px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded" title={`NIB: ${product.umkm_nib}`}>
+                        NIB
+                      </span>
+                    )}
+                    {product.umkm_pirt && (
+                      <span class="text-[9px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded" title={`P-IRT: ${product.umkm_pirt}`}>
+                        P-IRT
+                      </span>
+                    )}
+                    {product.umkm_bpom && (
+                      <span class="text-[9px] font-bold text-sky-800 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded" title={`BPOM: ${product.umkm_bpom}`}>
+                        BPOM
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <!-- Phone / WA Buttons (OsClass Phone Box) -->
@@ -424,6 +537,15 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
               >
                 Lihat Semua Iklan di {product.zone_name}
               </a>
+
+              <button
+                type="button"
+                id="btn-sidebar-label"
+                class="w-full py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <span>🏷️</span>
+                <span>Cetak Label QR Produk</span>
+              </button>
             </div>
 
           </div>
@@ -492,7 +614,12 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
       <div class="flex items-center gap-2">
         <div class="shrink-0 pl-1">
           <span class="text-[10px] text-slate-500 block leading-tight">Harga Iklan</span>
-          <span class="text-xs sm:text-sm font-black text-emerald-700 block leading-tight">
+          {hasDiscount && (
+            <span class="text-[10px] text-slate-400 line-through block leading-tight font-mono">
+              {formatRupiah(product.original_price!)}
+            </span>
+          )}
+          <span class="text-xs sm:text-sm font-black text-emerald-700 block leading-tight font-mono">
             {formatRupiah(product.price)}
           </span>
         </div>
@@ -523,4 +650,237 @@ const pageDescription = `Beli ${product.name} langsung dari ${product.umkm_name}
     </div>
 
   </div>
+
+  <!-- Printable Label & QR Code Modal -->
+  <div
+    id="label-modal"
+    class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-label-title"
+  >
+    <div class="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-8">
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2">
+          <span class="text-indigo-600 font-bold text-base">🏷️</span>
+          <h3 id="modal-label-title" class="text-sm font-black text-slate-900">
+            Label QR Iklan Produk UMKM
+          </h3>
+        </div>
+        <button
+          type="button"
+          id="btn-close-label-modal"
+          class="w-8 h-8 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-sm cursor-pointer transition"
+          aria-label="Tutup"
+        >
+          ✕
+        </button>
+      </div>
+
+      <!-- Modal Body: Printable Label Preview Area -->
+      <div class="p-4 sm:p-6 bg-slate-100/70 flex justify-center">
+        <!-- Exact Printable Card (Targeted by @media print) -->
+        <div
+          id="printable-label-card"
+          class="w-full max-w-sm bg-white border-2 border-dashed border-slate-400 rounded-2xl p-5 shadow-sm space-y-4 text-slate-900"
+        >
+          <!-- Label Header -->
+          <div class="text-center pb-3 border-b-2 border-slate-800 space-y-1">
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-800 text-white text-[10px] font-black uppercase tracking-widest">
+              <span>MAMASAR SUMENEP</span>
+            </div>
+            <p class="text-[11px] font-semibold text-slate-600">
+              Direktori Produk UMKM Warga Nahdliyin
+            </p>
+          </div>
+
+          <!-- Store & Product Info -->
+          <div class="space-y-1.5 text-center">
+            <p class="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              {product.umkm_name} • {product.zone_name}
+            </p>
+            <h4 class="text-base sm:text-lg font-black text-slate-900 leading-tight">
+              {product.name}
+            </h4>
+            <div class="pt-1 flex items-center justify-center gap-2 flex-wrap">
+              <span class="text-xl sm:text-2xl font-black text-emerald-800 font-mono">
+                {formatRupiah(product.price)}
+              </span>
+              {hasDiscount && (
+                <span class="text-xs font-bold text-slate-500 line-through font-mono">
+                  {formatRupiah(product.original_price!)}
+                </span>
+              )}
+            </div>
+            <div class="flex items-center justify-center gap-1.5 pt-1 text-[10px]">
+              <span class="px-2 py-0.5 rounded bg-slate-100 font-bold text-slate-700 border border-slate-200">
+                {product.category}
+              </span>
+              <span class="px-2 py-0.5 rounded bg-emerald-50 font-bold text-emerald-800 border border-emerald-200">
+                {product.stock_status === 'po' ? 'Pre-Order' : 'Ready Stock'}
+              </span>
+              {product.umkm_halal_cert && (
+                <span class="px-1.5 py-0.5 rounded bg-emerald-100 font-bold text-emerald-900">
+                  Halal
+                </span>
+              )}
+              {product.umkm_nib && (
+                <span class="px-1.5 py-0.5 rounded bg-indigo-50 font-bold text-indigo-900 border border-indigo-200">
+                  NIB
+                </span>
+              )}
+            </div>
+          </div>
+
+          <!-- Big Crisp QR Code Section -->
+          <div class="py-2 flex flex-col items-center justify-center space-y-2 bg-slate-50 rounded-xl p-3 border border-slate-200">
+            <img
+              src={qrCodeUrl}
+              alt={`QR Code untuk ${product.name}`}
+              class="w-44 h-44 object-contain bg-white p-1 rounded-lg border border-slate-300 shadow-2xs"
+              loading="eager"
+            />
+            <div class="text-center space-y-0.5">
+              <p class="text-[11px] font-black text-slate-800">
+                Scan QR via Kamera HP
+              </p>
+              <p class="text-[10px] text-slate-500">
+                Lihat foto detail & transaksi langsung via WhatsApp
+              </p>
+            </div>
+          </div>
+
+          <!-- Footer WhatsApp Contact -->
+          <div class="pt-2 border-t border-slate-200 text-center space-y-0.5 text-xs">
+            <span class="text-[10px] text-slate-500 block">WhatsApp Pemilik Usaha:</span>
+            <strong class="font-mono text-slate-900 text-sm font-black">+62 {product.umkm_phone}</strong>
+            <p class="text-[9px] text-slate-400">mamasar.id • Pasar Digital Warga NU</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer Actions (Non-printable) -->
+      <div class="p-4 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-2.5">
+        <button
+          type="button"
+          id="btn-close-label-modal-bottom"
+          class="w-full sm:w-auto px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl transition cursor-pointer"
+        >
+          Tutup
+        </button>
+        <button
+          type="button"
+          id="btn-do-print-label"
+          class="w-full sm:w-auto px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+        >
+          <span>🖨️</span>
+          <span>Cetak Label / Simpan PDF</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    @media print {
+      body.printing-label {
+        background: white !important;
+      }
+      body.printing-label * {
+        visibility: hidden;
+      }
+      body.printing-label #label-modal,
+      body.printing-label #label-modal * {
+        visibility: visible;
+      }
+      body.printing-label #label-modal {
+        position: fixed !important;
+        inset: 0 !important;
+        background: white !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: flex-start !important;
+        justify-content: center !important;
+        margin: 0 !important;
+      }
+      body.printing-label #label-modal > div {
+        box-shadow: none !important;
+        border: none !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+      }
+      body.printing-label #label-modal > div > div:not(:nth-child(2)) {
+        display: none !important;
+      }
+      body.printing-label #printable-label-card {
+        border: 2px dashed #000 !important;
+        box-shadow: none !important;
+        margin: 15px auto !important;
+        width: 360px !important;
+      }
+    }
+  </style>
+
+  <script>
+    // 1. Gallery Thumbnail Switcher
+    const mainImg = document.getElementById('main-product-image') as HTMLImageElement | null;
+    const thumbs = document.querySelectorAll<HTMLButtonElement>('.gallery-thumb');
+
+    thumbs.forEach((thumb) => {
+      thumb.addEventListener('click', () => {
+        const targetSrc = thumb.getAttribute('data-img-src');
+        if (mainImg && targetSrc) {
+          mainImg.src = targetSrc;
+          thumbs.forEach((t) => {
+            t.classList.remove('border-indigo-600', 'ring-2', 'ring-indigo-600/30');
+            t.classList.add('border-slate-200', 'opacity-75');
+          });
+          thumb.classList.remove('border-slate-200', 'opacity-75');
+          thumb.classList.add('border-indigo-600', 'ring-2', 'ring-indigo-600/30');
+        }
+      });
+    });
+
+    // 2. Printable Label Modal Controls
+    const labelModal = document.getElementById('label-modal');
+    const btnOpenLabelModal = document.getElementById('btn-open-label-modal');
+    const btnSidebarLabel = document.getElementById('btn-sidebar-label');
+    const btnCloseLabelModal = document.getElementById('btn-close-label-modal');
+    const btnCloseLabelModalBottom = document.getElementById('btn-close-label-modal-bottom');
+    const btnDoPrintLabel = document.getElementById('btn-do-print-label');
+
+    function openLabelModal() {
+      if (labelModal) {
+        labelModal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function closeLabelModal() {
+      if (labelModal) {
+        labelModal.classList.add('hidden');
+        document.body.style.overflow = '';
+      }
+    }
+
+    btnOpenLabelModal?.addEventListener('click', openLabelModal);
+    btnSidebarLabel?.addEventListener('click', openLabelModal);
+    btnCloseLabelModal?.addEventListener('click', closeLabelModal);
+    btnCloseLabelModalBottom?.addEventListener('click', closeLabelModal);
+
+    labelModal?.addEventListener('click', (e) => {
+      if (e.target === labelModal) closeLabelModal();
+    });
+
+    // 3. Dedicated Sticker Label Printing
+    btnDoPrintLabel?.addEventListener('click', () => {
+      document.body.classList.add('printing-label');
+      window.print();
+    });
+
+    window.addEventListener('afterprint', () => {
+      document.body.classList.remove('printing-label');
+    });
+  </script>
 </Layout>

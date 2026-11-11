@@ -16,6 +16,7 @@ export const POST: APIRoute = async ({ request }) => {
     const formData = await request.formData();
     const phone = formData.get('phone')?.toString().trim();
     const zoneId = Number(formData.get('zoneId'));
+    const ranting = formData.get('ranting')?.toString().trim() || undefined;
     const org = formData.get('org')?.toString().trim() || 'Kader NU Sumenep';
 
     if (!phone || !zoneId) {
@@ -32,7 +33,7 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    await registerPetugas(user.id, { phone, zoneId, org });
+    await registerPetugas(user.id, { phone, zoneId, org, ranting });
 
     return new Response(
       JSON.stringify({

@@ -42,7 +42,7 @@ function formatDate(iso: string): string {
   <!-- Top Bar: Compact Header with Line Divider -->
   <div class="flex items-center justify-between pb-3 border-b border-slate-200">
     <div class="flex items-center gap-2.5">
-      <h1 class="text-base sm:text-lg font-bold text-slate-900">Agenda Kegiatan & Konsumsi</h1>
+      <h2 class="text-base sm:text-lg font-bold text-slate-900">Agenda Kegiatan & Konsumsi</h2>
       <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
         {events.length} agenda
       </span>
@@ -146,10 +146,13 @@ function formatDate(iso: string): string {
   <!-- Raw Events JSON for prefilling edit modal -->
   <script type="application/json" id="admin-events-json" set:html={JSON.stringify(events).replace(/</g, '\\u003c')} />
 
-  <!-- MODAL: TAMBAH / UBAH AGENDA -->
-  <div id="modal-event" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4">
+  <!-- MODAL: TAMBAH / UBAH AGENDA (Bottom Sheet on Mobile) -->
+  <div id="modal-event" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="modal-backdrop fixed inset-0 bg-slate-900/40 backdrop-blur-xs"></div>
-    <div class="relative bg-white border border-slate-200 rounded-xl w-full max-w-xl shadow-xl overflow-hidden z-10 max-h-[90vh] flex flex-col">
+    <div class="relative bg-white border border-slate-200 rounded-t-2xl sm:rounded-xl w-full max-w-xl shadow-2xl overflow-hidden z-10 max-h-[85vh] sm:max-h-[90vh] flex flex-col">
+      <!-- Mobile Pill Drag Handle -->
+      <div class="sm:hidden w-12 h-1 bg-slate-300 rounded-full mx-auto my-2 shrink-0"></div>
+
       <div class="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between">
         <h3 id="modal-event-title" class="font-bold text-sm text-slate-900">Agenda Kegiatan NU</h3>
         <button type="button" id="btn-close-event-modal" class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1 cursor-pointer">✕</button>

@@ -318,8 +318,8 @@ export const SEED_ARTICLES: SeedArticle[] = [
 - **Kelor Organik:** Daun kelor Sumenep terkenal memiliki kualitas ekspor. Selain untuk sayur gizi harian keluarga, daun kering kelor dicari pabrik herbal dan industri teh santri.
 - **Budidaya Ikan Lele Kolam Terpal Bioflok:** Dengan modal kurang dari Rp 500.000 untuk terpal bulat diameter 2 meter, panen lele dapat mensuplai warung makan tetangga secara konsisten setiap 2,5 bulan.
 
-### 2. Sinergi dengan Pasar Warga NU
-Hasil panen pekarangan yang berlebih tidak perlu bingung mencari tengkulak. Daftarkan panen Anda ke direktori Pasar Warga NU melalui kader MWC setempat. Tetangga satu desa atau kecamatan yang membutuhkan bahan pangan segar dapat langsung mengontak Anda via WhatsApp tanpa potongan tengkulak.`,
+### 2. Sinergi dengan Mamasar
+Hasil panen pekarangan yang berlebih tidak perlu bingung mencari tengkulak. Daftarkan panen Anda ke direktori Mamasar melalui kader MWC setempat. Tetangga satu desa atau kecamatan yang membutuhkan bahan pangan segar dapat langsung mengontak Anda via WhatsApp tanpa potongan tengkulak.`,
   },
   {
     title: 'Panduan Memulai Usaha Santri Nahdliyin Tanpa Modal Besar',
@@ -336,7 +336,7 @@ Jangan mencari produk yang asing. Perhatikan apa yang dibeli jamaah pengajian, t
 - Jasa boga/katering konsumsi pengajian dan majelis shalawat.
 
 ### 2. Manfaatkan Skema Reseller & Konsinyasi
-Jika belum memiliki dapur produksi sendiri, temui pengrajin atau produsen UMKM warga NU di MWC Anda. Ambil produk mereka dengan sistem bagi hasil atau harga grosir, lalu bantu pasarkan secara digital melalui katalog Pasar Warga NU Sumenep.
+Jika belum memiliki dapur produksi sendiri, temui pengrajin atau produsen UMKM warga NU di MWC Anda. Ambil produk mereka dengan sistem bagi hasil atau harga grosir, lalu bantu pasarkan secara digital melalui katalog Mamasar.
 
 ### 3. Jaga Amanah & Kecepatan Komunikasi WhatsApp
 Karena platform ini menghubungkan langsung ke WhatsApp Anda, pastikan:
@@ -360,7 +360,7 @@ Karena platform ini menghubungkan langsung ke WhatsApp Anda, pastikan:
 ### Langkah Pengurusan:
 - Hubungi Pendamping Proses Produk Halal (P3H) yang ada di PC ISNU atau Lembaga Perekonomian NU (LPNU) Kabupaten Sumenep.
 - Pendamping akan datang meninjau dapur produksi Anda, memverifikasi bahan baku, dan mengunggah berkas ke sistem SiHalal Kementerian Agama.
-- Setelah terbit, sertifikat halal akan meningkatkan kepercayaan pembeli berkali-kali lipat di katalog digital Pasar Warga NU!`,
+- Setelah terbit, sertifikat halal akan meningkatkan kepercayaan pembeli berkali-kali lipat di katalog digital Mamasar!`,
   },
   {
     title: 'Panduan Transaksi COD Aman di Sumenep',
@@ -368,7 +368,7 @@ Karena platform ini menghubungkan langsung ke WhatsApp Anda, pastikan:
     category: 'Tips Transaksi',
     image_url: 'https://images.unsplash.com/photo-1556742049-0a67c5574f73?auto=format&fit=crop&w=800&q=80',
     summary: 'Tips ketemuan langsung dengan penjual warga NU, cek fisik barang, dan bayar di tempat tanpa risiko penipuan.',
-    content: `Transaksi di Pasar Warga NU Sumenep menggunakan sistem komunikasi langsung via WhatsApp tanpa perantara (*direct to seller*). Untuk menjaga kenyamanan bersama, ikuti panduan berikut:
+    content: `Transaksi di Mamasar menggunakan sistem komunikasi langsung via WhatsApp tanpa perantara (*direct to seller*). Untuk menjaga kenyamanan bersama, ikuti panduan berikut:
 
 ### 1. Sepakati Titik Ketemu yang Ramai
 Pilihlah lokasi pertemuan yang mudah diakses dan aman, seperti:

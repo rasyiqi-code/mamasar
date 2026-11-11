@@ -30,6 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
     const phone = formData.get('phone')?.toString().trim();
     const zoneId = Number(formData.get('zoneId'));
     const address = formData.get('address')?.toString().trim();
+    const ranting = formData.get('ranting')?.toString().trim();
     const claimStoreId = formData.get('claimStoreId') ? Number(formData.get('claimStoreId')) : undefined;
     const skipClaim = formData.get('skipClaim') === '1';
 
@@ -49,7 +50,7 @@ export const POST: APIRoute = async ({ request }) => {
 
     const result = await setupUMKMForUser(
       user.id,
-      { name, phone, zoneId, address },
+      { name, phone, zoneId, address, ranting },
       { claimStoreId, skipClaim }
     );
 

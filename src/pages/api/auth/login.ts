@@ -2,6 +2,10 @@ import type { APIRoute } from 'astro';
 import { getNeonAuthBaseUrl } from '../../../lib/neon-auth';
 
 export const GET: APIRoute = async ({ request, redirect }) => {
+  if (request.method === 'HEAD') {
+    return new Response(null, { status: 200 });
+  }
+
   const url = new URL(request.url);
 
   // Neon Auth Google Social Login Flow
@@ -32,53 +36,21 @@ export const GET: APIRoute = async ({ request, redirect }) => {
 
     if (neonRes.ok && data.url) {
       const headers = new Headers();
-
-      // Collect cookies from neonRes
-      const setCookies1 = typeof neonRes.headers.getSetCookie === 'function'
+      const setCookies = typeof neonRes.headers.getSetCookie === 'function'
         ? neonRes.headers.getSetCookie()
         : [neonRes.headers.get('set-cookie')].filter(Boolean) as string[];
 
-      for (const sc of setCookies1) {
+      for (const sc of setCookies) {
         if (url.protocol !== 'https:') {
-          const cleaned = sc.replace(/;\s*Secure/gi, '').replace(/;\s*SameSite=None/gi, '; SameSite=Lax');
+          const cleaned = sc
+            .replace(/__Secure-/g, '')
+            .replace(/;\s*Secure/gi, '')
+            .replace(/;\s*SameSite=None/gi, '; SameSite=Lax')
+            .replace(/;\s*Partitioned/gi, '');
           headers.append('Set-Cookie', cleaned);
         } else {
           headers.append('Set-Cookie', sc);
         }
-      }
-
-      // Resolve Google OAuth URL from init endpoint to append prompt=select_account
-      try {
-        const initRes = await fetch(data.url, {
-          method: 'GET',
-          headers: {
-            'User-Agent': request.headers.get('user-agent') || 'MamasarApp',
-          },
-          redirect: 'manual',
-        });
-
-        const setCookies2 = typeof initRes.headers.getSetCookie === 'function'
-          ? initRes.headers.getSetCookie()
-          : [initRes.headers.get('set-cookie')].filter(Boolean) as string[];
-
-        for (const sc of setCookies2) {
-          if (url.protocol !== 'https:') {
-            const cleaned = sc.replace(/;\s*Secure/gi, '').replace(/;\s*SameSite=None/gi, '; SameSite=Lax');
-            headers.append('Set-Cookie', cleaned);
-          } else {
-            headers.append('Set-Cookie', sc);
-          }
-        }
-
-        const googleLocation = initRes.headers.get('location');
-        if (googleLocation && googleLocation.startsWith('http')) {
-          const googleUrl = new URL(googleLocation);
-          googleUrl.searchParams.set('prompt', 'select_account');
-          headers.set('Location', googleUrl.toString());
-          return new Response(null, { status: 302, headers });
-        }
-      } catch (initErr) {
-        console.error('Error resolving Google OAuth URL:', initErr);
       }
 
       headers.set('Location', data.url);

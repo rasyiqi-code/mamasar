@@ -1,4 +1,6 @@
 ---
+import AppIcon from './common/AppIcon.astro';
+
 interface Slide {
   id: number;
   tag: string;
@@ -18,9 +20,9 @@ const slides: Slide[] = [
     tagColor: 'bg-emerald-500/20 text-emerald-200 border-emerald-400/30',
     title: 'Belanja Produk Tetangga Warga Nahdliyin',
     description: '100% Nol Biaya Admin. Transaksi langsung disepakati dengan pengrajin & warung lokal se-Sumenep via WhatsApp.',
-    ctaText: 'Belanja Sekarang ➔',
+    ctaText: 'Belanja Sekarang',
     ctaUrl: '/#katalog-terbaru',
-    icon: '🤝',
+    icon: 'store',
     bgGradient: 'from-emerald-900 via-emerald-800 to-teal-900',
   },
   {
@@ -29,9 +31,9 @@ const slides: Slide[] = [
     tagColor: 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30',
     title: 'Batik Tulis Asli & Kerajinan Santri Sumenep',
     description: 'Karya tangan perajin dari MWC Gapura, Kalianget, dan Kota. Motif khas Madura bergaransi kualitas otentik.',
-    ctaText: 'Lihat Batik & Kerajinan ➔',
+    ctaText: 'Lihat Batik & Kerajinan',
     ctaUrl: '/?kategori=Batik%20%26%20Kerajinan',
-    icon: '🧵',
+    icon: 'craft',
     bgGradient: 'from-indigo-950 via-indigo-900 to-slate-900',
   },
   {
@@ -40,9 +42,9 @@ const slides: Slide[] = [
     tagColor: 'bg-amber-500/20 text-amber-200 border-amber-400/30',
     title: 'Pusat Pesan Konsumsi Pengajian & Acara NU',
     description: 'Panitia Lailatul Ijtima & majelis: Pesan snack box, nasi kotak, dan katering berkat langsung dari warga MWC terdekat.',
-    ctaText: 'Cari Katering & Snack ➔',
+    ctaText: 'Pesan Konsumsi',
     ctaUrl: '/?kategori=Makanan%20%26%20Minuman',
-    icon: '🍲',
+    icon: 'utensils',
     bgGradient: 'from-amber-950 via-amber-900 to-stone-900',
   },
 ];
@@ -80,8 +82,8 @@ const slides: Slide[] = [
 
         <!-- Middle Content Area -->
         <div class="py-3 sm:py-4 max-w-2xl space-y-1.5 z-10">
-          <h2 class="text-lg sm:text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight flex items-center gap-2">
-            <span class="text-xl sm:text-2xl">{s.icon}</span>
+          <h2 class="text-lg sm:text-2xl lg:text-3xl font-black text-white leading-tight tracking-tight flex items-center gap-2.5">
+            <AppIcon name={s.icon} size="lg" class="text-emerald-300 shrink-0" />
             <span>{s.title}</span>
           </h2>
           <p class="text-xs sm:text-sm text-slate-200 leading-relaxed line-clamp-2">
@@ -96,11 +98,12 @@ const slides: Slide[] = [
             class="bg-white hover:bg-slate-100 text-slate-900 font-black text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5 active:scale-98"
           >
             <span>{s.ctaText}</span>
+            <AppIcon name="arrow-right" size="xs" />
           </a>
 
           <div class="hidden sm:flex items-center gap-2 text-[11px] text-white/70">
             <span>Geser untuk info lainnya</span>
-            <span>➔</span>
+            <AppIcon name="arrow-right" size="xs" />
           </div>
         </div>
       </div>

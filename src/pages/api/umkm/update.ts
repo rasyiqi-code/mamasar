@@ -18,6 +18,12 @@ export const POST: APIRoute = async ({ request }) => {
     const phone = formData.get('phone')?.toString().trim();
     const zoneId = Number(formData.get('zoneId'));
     const address = formData.get('address')?.toString().trim();
+    const ranting = formData.get('ranting')?.toString().trim();
+    const nib = formData.get('nib')?.toString().trim();
+    const halalCert = formData.get('halalCert')?.toString().trim();
+    const pirt = formData.get('pirt')?.toString().trim();
+    const bpom = formData.get('bpom')?.toString().trim();
+    const otherLegalities = formData.get('otherLegalities')?.toString().trim();
 
     if (!name || !phone || !zoneId) {
       return new Response(JSON.stringify({ success: false, message: 'Nama Toko, No. WhatsApp, dan Wilayah MWC wajib diisi.' }), {
@@ -38,6 +44,12 @@ export const POST: APIRoute = async ({ request }) => {
       phone,
       zoneId,
       address,
+      ranting,
+      nib,
+      halalCert,
+      pirt,
+      bpom,
+      otherLegalities,
     });
 
     if (!success) {
@@ -50,7 +62,7 @@ export const POST: APIRoute = async ({ request }) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: 'Alhamdulillah! Profil toko Anda berhasil diperbarui.',
+        message: 'Alhamdulillah! Profil dan data legalitas toko Anda berhasil diperbarui.',
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

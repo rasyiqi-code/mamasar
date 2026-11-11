@@ -1,0 +1,245 @@
+---
+import { AD_PACKAGES, type Product } from '../../lib/db';
+
+interface Props {
+  store: {
+    id: number;
+    name: string;
+    bump_credits?: number;
+    products?: Product[];
+  };
+}
+
+const { store } = Astro.props;
+const products = store.products || [];
+const featuredPackages = AD_PACKAGES.filter((p) => p.category === 'featured');
+const bumpPackages = AD_PACKAGES.filter((p) => p.category === 'bump');
+---
+
+<div
+  id="modal-ad-promo"
+  class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="modal-promo-title"
+>
+  <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-8">
+    <!-- Header -->
+    <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-amber-50 to-white">
+      <div class="flex items-center gap-2.5">
+        <span class="w-8 h-8 rounded-xl bg-amber-400 text-slate-950 font-black text-sm flex items-center justify-center shadow-2xs">
+          ★
+        </span>
+        <div>
+          <h3 id="modal-promo-title" class="text-sm sm:text-base font-black text-slate-900">
+            Promosi Iklan Berbayar Mamasar
+          </h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">
+            Dukung gerakan ekonomi warga dengan jangkauan pembeli lebih luas
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        id="btn-close-ad-promo"
+        class="w-8 h-8 rounded-lg hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center font-bold text-sm cursor-pointer transition"
+        aria-label="Tutup Modal"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Alert in Modal -->
+    <div id="promo-modal-alert" class="hidden m-4 p-3 rounded-xl text-xs font-semibold"></div>
+
+    <!-- Tab Category Switcher -->
+    <div class="px-4 sm:px-6 pt-4 flex items-center gap-2 border-b border-slate-100 text-xs font-bold">
+      <button
+        type="button"
+        id="tab-promo-featured"
+        class="pb-2.5 border-b-2 border-amber-500 text-amber-950 flex items-center gap-1.5 cursor-pointer"
+      >
+        <span>★ Slot Iklan Unggulan</span>
+      </button>
+      <button
+        type="button"
+        id="tab-promo-bump"
+        class="pb-2.5 border-b-2 border-transparent text-slate-400 hover:text-slate-700 flex items-center gap-1.5 cursor-pointer"
+      >
+        <span>⚡ Paket Token Sundul</span>
+      </button>
+    </div>
+
+    <!-- Form Order Promosi -->
+    <form id="form-order-promo" class="p-4 sm:p-6 space-y-4">
+      <input type="hidden" id="selectedPromoType" name="type" value="featured_14d" />
+      <input type="hidden" id="promoProofBase64" name="proofBase64" />
+
+      <!-- Section 1: Featured Category Fields -->
+      <div id="section-featured-fields" class="space-y-3">
+        <div class="space-y-1.5">
+          <label for="promoProductId" class="block text-xs font-bold text-slate-700">
+            Pilih Produk yang Diiklankan <span class="text-rose-500">*</span>
+          </label>
+          <select
+            id="promoProductId"
+            name="productId"
+            class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 cursor-pointer"
+          >
+            {products.map((p) => (
+              <option value={p.id}>
+                {p.name} — Rp {p.price.toLocaleString('id-ID')}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">
+            Pilih Durasi Slot Unggulan
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {featuredPackages.map((pkg) => (
+              <label
+                class={`package-radio-label relative border-2 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between space-y-1 ${
+                  pkg.id === 'featured_14d'
+                    ? 'border-amber-500 bg-amber-50/40 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                }`}
+                data-type={pkg.id}
+                data-price={pkg.price}
+                data-name={pkg.name}
+              >
+                <input
+                  type="radio"
+                  name="pkgRadio"
+                  value={pkg.id}
+                  checked={pkg.id === 'featured_14d'}
+                  class="sr-only"
+                />
+                {pkg.popular && (
+                  <span class="absolute -top-2.5 right-2 bg-amber-500 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
+                    Paling Laris
+                  </span>
+                )}
+                <div>
+                  <span class="text-xs font-black text-slate-900 block">{pkg.name}</span>
+                  <span class="text-[11px] font-mono font-bold text-amber-700 block mt-0.5">{pkg.formattedPrice}</span>
+                </div>
+                <p class="text-[10px] text-slate-500 leading-tight pt-1">{pkg.description}</p>
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Bump Packages Fields (Hidden by default) -->
+      <div id="section-bump-fields" class="hidden space-y-3">
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">
+            Pilih Paket Token Sundul Instan
+          </label>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            {bumpPackages.map((pkg) => (
+              <label
+                class={`package-radio-label relative border-2 rounded-xl p-3 cursor-pointer transition flex flex-col justify-between space-y-1 ${
+                  pkg.id === 'bump_pack_12'
+                    ? 'border-amber-500 bg-amber-50/40 shadow-xs'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                }`}
+                data-type={pkg.id}
+                data-price={pkg.price}
+                data-name={pkg.name}
+              >
+                <input
+                  type="radio"
+                  name="pkgRadio"
+                  value={pkg.id}
+                  class="sr-only"
+                />
+                {pkg.popular && (
+                  <span class="absolute -top-2.5 right-2 bg-amber-500 text-slate-950 text-[9px] font-black px-1.5 py-0.5 rounded-full shadow-2xs">
+                    Hemat Rp 2.000
+                  </span>
+                )}
+                <div>
+                  <span class="text-xs font-black text-slate-900 block">{pkg.name}</span>
+                  <span class="text-[11px] font-mono font-bold text-amber-700 block mt-0.5">{pkg.formattedPrice}</span>
+                </div>
+                <p class="text-[10px] text-slate-500 leading-tight pt-1">{pkg.description}</p>
+              </label>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <!-- Payment & QRIS Instructions -->
+      <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <span class="text-xs font-bold text-slate-700">Total Pembayaran / Infaq Usaha:</span>
+          <span id="promo-total-display" class="text-base font-black font-mono text-emerald-800">
+            Rp 18.000
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+          <!-- QRIS Sample Box -->
+          <div class="sm:col-span-4 flex flex-col items-center justify-center p-2 bg-white rounded-xl border border-slate-200">
+            <img
+              src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&margin=6&data=MAMASAR-INFAQ-PCNU-SUMENEP"
+              alt="QRIS Mamasar PCNU"
+              class="w-28 h-28 object-contain"
+            />
+            <span class="text-[9px] font-bold text-slate-500 mt-1">QRIS Resmi PCNU</span>
+          </div>
+
+          <!-- Transfer Bank & Petunjuk -->
+          <div class="sm:col-span-8 text-xs text-slate-600 space-y-1 leading-relaxed">
+            <p class="font-bold text-slate-900">Salurkan via QRIS atau Transfer Bank:</p>
+            <p class="font-mono text-[11px] text-slate-800 bg-white p-1.5 rounded border border-slate-200">
+              <strong>BSI (Bank Syariah):</strong> 7123-4567-89<br />
+              <span class="text-[10px] text-slate-500">a.n. Lazisnu / Lembaga Perekonomian NU Sumenep</span>
+            </p>
+            <p class="text-[10px] text-slate-500">
+              Setelah transfer, unggah foto bukti pembayaran di bawah agar langsung diaktifkan oleh admin.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload Bukti Transfer -->
+      <div class="space-y-1.5">
+        <label class="block text-xs font-bold text-slate-700">
+          Unggah Bukti Pembayaran (Struk / Tangkapan Layar) <span class="text-rose-500">*</span>
+        </label>
+        <input
+          type="file"
+          id="promoProofInput"
+          accept="image/*"
+          required
+          class="w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-amber-100 file:text-amber-950 hover:file:bg-amber-200 cursor-pointer"
+        />
+        <p id="promo-compress-info" class="text-[11px] text-slate-400"></p>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="pt-3 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-end gap-2.5">
+        <button
+          type="button"
+          id="btn-cancel-promo"
+          class="w-full sm:w-auto px-4 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl transition cursor-pointer"
+        >
+          Batal
+        </button>
+        <button
+          type="submit"
+          id="btn-submit-promo-order"
+          class="w-full sm:w-auto px-6 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-98"
+        >
+          <span>Konfirmasi & Ajukan Iklan ➔</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

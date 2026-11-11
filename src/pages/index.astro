@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import ProductCard from '../components/ProductCard.astro';
 import PromoSlider from '../components/PromoSlider.astro';
+import AppIcon from '../components/common/AppIcon.astro';
 import { getAllZones, getProducts, getAllUMKM, getArticles } from '../lib/db';
 import {
   PRODUCT_CATEGORIES,
@@ -13,6 +14,7 @@ import {
 const url = new URL(Astro.request.url);
 const currentZone = url.searchParams.get('zona') || 'semua';
 const currentCategory = url.searchParams.get('kategori') || 'semua';
+const currentStock = url.searchParams.get('stok') || 'semua';
 const searchQuery = url.searchParams.get('q') || '';
 const currentSort = url.searchParams.get('sort') || 'newest';
 
@@ -25,6 +27,7 @@ const products = await getProducts({
   zoneSlug: currentZone,
   category: currentCategory,
   search: searchQuery,
+  stockStatus: currentStock,
   sort: currentSort,
 });
 
@@ -34,10 +37,23 @@ const premiumProducts = products.slice(0, 4);
 // Most favorited products (Middle showcase with seller avatars, items 4-8 or slice)
 const favoritedProducts = products.length >= 8 ? products.slice(4, 8) : products.slice(0, 4);
 
-const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || searchQuery !== '';
+const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || searchQuery !== '' || currentStock !== 'semua';
+
+function buildFilterUrl(updates: Record<string, string | null>) {
+  const params = new URLSearchParams(url.searchParams);
+  for (const [key, val] of Object.entries(updates)) {
+    if (val === null || val === 'semua' || val === '') {
+      params.delete(key);
+    } else {
+      params.set(key, val);
+    }
+  }
+  const str = params.toString();
+  return str ? `/?${str}#katalog-terbaru` : `/#katalog-terbaru`;
+}
 ---
 
-<Layout title="Pasar Warga NU Sumenep | Direktori Iklan UMKM">
+<Layout title="Mamasar | Direktori Iklan UMKM Sumenep">
   <div class="space-y-8 sm:space-y-12 py-3 sm:py-6">
 
     <!-- 1. HERO SECTION: OsClass Headline + Large Central Search + Category Circles Hub -->
@@ -73,11 +89,11 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
               </option>
             ))}
           </select>
-          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-indigo-600 text-xs sm:text-sm pointer-events-none">
-            📍
+          <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-indigo-600 pointer-events-none flex items-center">
+            <AppIcon name="map-pin" size="xs" />
           </span>
-          <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 text-[10px] pointer-events-none">
-            ▼
+          <span class="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none flex items-center">
+            <AppIcon name="chevron-down" size="xs" />
           </span>
         </div>
 
@@ -94,9 +110,9 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
             <a
               href={`/?zona=${currentZone}&kategori=${currentCategory}`}
               aria-label="Hapus kata kunci"
-              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 font-bold text-xs"
+              class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-800 font-bold text-xs flex items-center"
             >
-              ✕
+              <AppIcon name="close" size="xs" />
             </a>
           )}
         </div>
@@ -106,10 +122,8 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
           type="submit"
           class="w-full sm:w-auto bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-xs sm:text-sm px-7 py-2.5 sm:py-3 rounded-xl transition flex items-center justify-center gap-2 shrink-0 cursor-pointer shadow-xs active:scale-98"
         >
-          <svg class="w-4 h-4 fill-none stroke-current" viewBox="0 0 24 24" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-          <span>Cari Iklan</span>
+          <AppIcon name="search" size="xs" />
+          <span>Cari</span>
         </button>
       </form>
 
@@ -139,13 +153,13 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
             class="group flex flex-col items-center gap-2 shrink-0 text-center"
           >
             <div
-              class={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl transition border-2 ${
+              class={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition border-2 ${
                 currentCategory === 'semua'
                   ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-sm'
                   : 'bg-white border-slate-200 text-slate-700 group-hover:border-slate-400 group-hover:scale-105 shadow-2xs'
               }`}
             >
-              🛍️
+              <AppIcon name="shopping-bag" size="lg" class="text-indigo-600" />
             </div>
             <span class={`text-[11px] sm:text-xs font-bold ${currentCategory === 'semua' ? 'text-indigo-700' : 'text-slate-700 group-hover:text-slate-900'}`}>
               Semua
@@ -155,7 +169,7 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
           <!-- Each Category Circle with Badge -->
           {PRODUCT_CATEGORIES.map((cat) => {
             const isActive = currentCategory === cat;
-            const icon = CATEGORY_ICONS[cat] || '📦';
+            const icon = CATEGORY_ICONS[cat] || 'package';
             const badge = CATEGORY_BADGES[cat];
             return (
               <a
@@ -163,13 +177,13 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
                 class="group flex flex-col items-center gap-2 shrink-0 text-center"
               >
                 <div
-                  class={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center text-xl sm:text-2xl transition border-2 ${
+                  class={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition border-2 ${
                     isActive
                       ? 'bg-indigo-50 border-indigo-600 text-indigo-700 shadow-sm'
                       : 'bg-white border-slate-200 text-slate-700 group-hover:border-slate-400 group-hover:scale-105 shadow-2xs'
                   }`}
                 >
-                  {icon}
+                  <AppIcon name={icon} size="lg" class={isActive ? 'text-indigo-600' : 'text-slate-600'} />
                   {badge && (
                     <span
                       class={`absolute -top-1 -right-1 text-[8px] font-black uppercase px-1.5 py-0.2 rounded-full shadow-2xs ${badge.color}`}
@@ -231,7 +245,8 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span>📰</span> Kabar & Panduan UMKM Sumenep
+              <AppIcon name="book" size="sm" class="text-emerald-700" />
+              <span>Kabar & Panduan UMKM Sumenep</span>
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">Edukasi ekonomi pekarangan, legalitas halal & panduan usaha nahdliyin</p>
           </div>
@@ -240,7 +255,7 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
             class="text-xs font-bold text-emerald-700 hover:text-emerald-800 border border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50 px-3.5 py-1.5 rounded-full transition inline-flex items-center gap-1.5 shadow-2xs"
           >
             <span>Semua Panduan ({articles.length})</span>
-            <span>➔</span>
+            <AppIcon name="arrow-right" size="xs" />
           </a>
         </div>
 
@@ -275,8 +290,8 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
     <section class="px-3 sm:px-0">
       <div class="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 border border-emerald-600 rounded-2xl p-4 sm:p-6 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-md text-white">
         <div class="flex items-center gap-3 sm:gap-4 text-center sm:text-left">
-          <div class="w-12 h-12 rounded-2xl bg-white/20 text-white border border-white/30 flex items-center justify-center text-2xl shrink-0">
-            🤝
+          <div class="w-12 h-12 rounded-2xl bg-white/20 text-white border border-white/30 flex items-center justify-center shrink-0">
+            <AppIcon name="store" size="lg" />
           </div>
           <div>
             <h3 class="font-black text-sm sm:text-base text-white">
@@ -288,7 +303,7 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
           </div>
         </div>
         <a
-          href="/dashboard"
+          href="/pasang-iklan"
           class="shrink-0 bg-white hover:bg-slate-100 text-emerald-900 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-xs transition"
         >
           + Pasang Iklan Toko Anda
@@ -302,7 +317,8 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span>⭐</span> Produk Warga NU Lainnya
+              <AppIcon name="star" size="sm" class="text-amber-500" />
+              <span>Produk Warga NU Lainnya</span>
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">Lanjutkan menjelajah etalase UMKM Nahdliyin se-Sumenep</p>
           </div>
@@ -328,12 +344,14 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
         <div class="flex items-center justify-between">
           <div>
             <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-              <span>🏪</span> Toko & Pengrajin Warga NU
+              <AppIcon name="store" size="sm" class="text-emerald-700" />
+              <span>Toko & Pengrajin Warga NU</span>
             </h2>
             <p class="text-xs text-slate-500 mt-0.5">Beli langsung dari produsen dan pedagang nahdliyin terdekat</p>
           </div>
-          <a href="/toko" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition">
-            Lihat Semua Toko ({sellers.length}) ➔
+          <a href="/toko" class="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition flex items-center gap-1">
+            <span>Lihat Semua Toko ({sellers.length})</span>
+            <AppIcon name="arrow-right" size="xs" />
           </a>
         </div>
 
@@ -349,7 +367,7 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
                 </div>
                 {Boolean(seller.is_verified) && (
                   <span class="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs" title="Terverifikasi MWC NU">
-                    ✓
+                    <AppIcon name="check" size="xs" />
                   </span>
                 )}
               </div>
@@ -377,8 +395,8 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
           <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <span>📋</span>
-            {isFiltered ? 'Hasil Pencarian Produk' : 'Iklan Produk Terbaru'}
+            <AppIcon name="clipboard" size="sm" class="text-slate-500" />
+            <span>{isFiltered ? 'Hasil Pencarian Produk' : 'Iklan Produk Terbaru'}</span>
           </h2>
           <p class="text-xs text-slate-500 mt-0.5">
             Menampilkan <strong>{products.length}</strong> produk iklan aktif di Kabupaten Sumenep
@@ -391,6 +409,7 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
           <form method="GET" action="/" class="flex items-center gap-1.5 shrink-0 text-xs">
             <input type="hidden" name="zona" value={currentZone} />
             <input type="hidden" name="kategori" value={currentCategory} />
+            <input type="hidden" name="stok" value={currentStock} />
             <input type="hidden" name="q" value={searchQuery} />
             <label for="sort-select" class="text-slate-600 font-bold">Urut:</label>
             <select
@@ -416,6 +435,45 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
         </div>
       </div>
 
+      <!-- Quick Filter Pills: Ketersediaan Stok -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs">
+        <span class="text-slate-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1">
+          Ketersediaan:
+        </span>
+        <a
+          href={buildFilterUrl({ stok: 'semua' })}
+          class={`px-3 py-1 rounded-full font-medium transition shrink-0 border text-[11px] sm:text-xs ${
+            currentStock === 'semua'
+              ? 'bg-slate-900 text-white border-slate-900 shadow-2xs font-semibold'
+              : 'bg-white text-slate-700 border-slate-200 hover:border-slate-400'
+          }`}
+        >
+          Semua Stok
+        </a>
+        <a
+          href={buildFilterUrl({ stok: 'ready' })}
+          class={`px-3 py-1 rounded-full font-medium transition shrink-0 border flex items-center gap-1.5 text-[11px] sm:text-xs ${
+            currentStock === 'ready'
+              ? 'bg-emerald-700 text-white border-emerald-700 shadow-2xs font-semibold'
+              : 'bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50'
+          }`}
+        >
+          <span class={`w-1.5 h-1.5 rounded-full ${currentStock === 'ready' ? 'bg-white' : 'bg-emerald-500'}`}></span>
+          <span>Ready Stock (Siap Kirim)</span>
+        </a>
+        <a
+          href={buildFilterUrl({ stok: 'po' })}
+          class={`px-3 py-1 rounded-full font-medium transition shrink-0 border flex items-center gap-1.5 text-[11px] sm:text-xs ${
+            currentStock === 'po'
+              ? 'bg-amber-400 text-slate-950 border-amber-400 shadow-2xs font-bold'
+              : 'bg-white text-amber-900 border-amber-300 hover:bg-amber-50'
+          }`}
+        >
+          <span class={`w-1.5 h-1.5 rounded-full ${currentStock === 'po' ? 'bg-slate-900' : 'bg-amber-500'}`}></span>
+          <span>Pre-Order (PO)</span>
+        </a>
+      </div>
+
       <!-- Active Filter Tags -->
       {isFiltered && (
         <div class="flex flex-wrap items-center gap-2 text-xs">
@@ -435,6 +493,12 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
               Kata Kunci: "{searchQuery}"
             </span>
           )}
+          {currentStock !== 'semua' && (
+            <span class="bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-full font-medium shadow-2xs flex items-center gap-1.5">
+              <span>Stok:</span>
+              <strong class="text-slate-900">{currentStock === 'ready' ? 'Ready Stock' : currentStock === 'po' ? 'Pre-Order' : 'Habis'}</strong>
+            </span>
+          )}
         </div>
       )}
 
@@ -447,7 +511,9 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
         </div>
       ) : (
         <div class="bg-white border border-slate-200 rounded-2xl p-12 text-center space-y-3 shadow-xs">
-          <div class="text-4xl">🔍</div>
+          <div class="flex justify-center text-slate-300">
+            <AppIcon name="search" size="xl" />
+          </div>
           <h3 class="font-extrabold text-slate-900 text-base">Tidak Ada Produk yang Cocok</h3>
           <p class="text-xs text-slate-500 max-w-sm mx-auto">
             Coba pilih wilayah MWC lainnya atau ubah kata kunci pencarian Anda.

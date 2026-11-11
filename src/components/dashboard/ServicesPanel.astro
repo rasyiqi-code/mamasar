@@ -11,6 +11,7 @@ interface Props {
     id: number;
     name: string;
     agent_status?: string | null;
+    agent_ranting?: string | null;
     agent_org?: string | null;
     assigned_zone_id?: number | null;
     role: string;
@@ -20,7 +21,7 @@ interface Props {
 }
 
 const { user, zones, assignedZone } = Astro.props;
-const isCadre = user.role === 'petugas' || user.role === 'superadmin';
+const isCadre = user.role === 'ranting' || user.role === 'mwcnu' || user.role === 'pcnu' || user.agent_status === 'active';
 const isPending = user.agent_status === 'pending';
 ---
 
@@ -28,11 +29,11 @@ const isPending = user.agent_status === 'pending';
   <!-- Top Bar: Compact Header with Line Divider -->
   <div class="flex items-center justify-between pb-3 border-b border-slate-200">
     <div class="flex items-center gap-2.5">
-      <h1 class="text-base sm:text-lg font-bold text-slate-900">Layanan Kemitraan & Kaderisasi MWC</h1>
+      <h2 class="text-base sm:text-lg font-bold text-slate-900">Layanan Kemitraan & Kaderisasi MWC / Ranting</h2>
     </div>
   </div>
 
-  <!-- BAGIAN 1: STATUS / PENDAFTARAN PETUGAS PENDATA MWC -->
+  <!-- BAGIAN 1: STATUS / PENDAFTARAN PETUGAS PENDATA MWC & RANTING -->
   {isCadre ? (
     <div class="py-3 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
       <div class="space-y-0.5">
@@ -41,7 +42,7 @@ const isPending = user.agent_status === 'pending';
             Kader Aktif
           </span>
           <span class="text-xs text-slate-700 font-medium">
-            MWC {assignedZone?.name || 'Sumenep'} • {user.agent_org || 'Kader NU'}
+            MWC {assignedZone?.name || 'Sumenep'} • {user.agent_ranting ? `Ranting ${user.agent_ranting} • ` : ''}{user.agent_org || 'Kader NU'}
           </span>
         </div>
         <p class="text-xs text-slate-500">
@@ -63,12 +64,12 @@ const isPending = user.agent_status === 'pending';
           Menunggu Konfirmasi
         </span>
         <span class="text-xs text-slate-700 font-medium">
-          Permohonan wilayah {assignedZone?.name || 'Sumenep'} sedang diverifikasi admin PCNU.
+          Permohonan wilayah {assignedZone?.name || 'Sumenep'} {user.agent_ranting ? `(Ranting ${user.agent_ranting})` : ''} sedang diverifikasi admin PCNU.
         </span>
       </div>
       <div>
         <a
-          href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent("Assalamu'alaikum Admin PCNU, saya sudah mengajukan diri sebagai petugas pendata Pasar Warga NU. Mohon bantuannya.")}`}
+          href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent("Assalamu'alaikum Admin PCNU, saya sudah mengajukan diri sebagai petugas pendata Mamasar. Mohon bantuannya.")}`}
           target="_blank"
           rel="noopener noreferrer"
           class="inline-flex items-center gap-1 text-xs text-emerald-700 hover:text-emerald-800 font-medium"
@@ -81,7 +82,7 @@ const isPending = user.agent_status === 'pending';
     <div class="space-y-3 pb-5 border-b border-slate-200">
       <div class="flex items-center justify-between pb-1 border-b border-slate-100">
         <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-          Daftar Jadi Petugas Pendata MWC
+          Daftar Jadi Kader Lapangan Ranting / MWC
         </h2>
       </div>
 
@@ -89,7 +90,7 @@ const isPending = user.agent_status === 'pending';
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="space-y-1">
             <label for="regZoneId" class="block text-[11px] font-medium text-slate-700">
-              Wilayah MWC NU <span class="text-rose-500">*</span>
+              Wilayah MWC NU (Kecamatan) <span class="text-rose-500">*</span>
             </label>
             <select
               id="regZoneId"
@@ -105,6 +106,22 @@ const isPending = user.agent_status === 'pending';
           </div>
 
           <div class="space-y-1">
+            <label for="regRanting" class="block text-[11px] font-medium text-slate-700">
+              Ranting NU (Nama Desa / Kelurahan) <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="regRanting"
+              name="ranting"
+              placeholder="Contoh: Gapura Barat / Paberasan / Pajagalan"
+              required
+              class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
             <label for="regPhone" class="block text-[11px] font-medium text-slate-700">
               Nomor WhatsApp <span class="text-rose-500">*</span>
             </label>
@@ -117,20 +134,20 @@ const isPending = user.agent_status === 'pending';
               class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
             />
           </div>
-        </div>
 
-        <div class="space-y-1">
-          <label for="regOrg" class="block text-[11px] font-medium text-slate-700">
-            Afiliasi Banom / Lembaga NU <span class="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="regOrg"
-            name="org"
-            placeholder="Contoh: GP Ansor MWC Gapura / Fatayat NU"
-            required
-            class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-          />
+          <div class="space-y-1">
+            <label for="regOrg" class="block text-[11px] font-medium text-slate-700">
+              Afiliasi Banom / Lembaga NU <span class="text-rose-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="regOrg"
+              name="org"
+              placeholder="Contoh: Ansor Ranting / Fatayat / IPNU"
+              required
+              class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            />
+          </div>
         </div>
 
         <button
@@ -138,7 +155,7 @@ const isPending = user.agent_status === 'pending';
           id="btn-submit-petugas-reg"
           class="py-1.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded shadow-xs transition cursor-pointer"
         >
-          Kirim Pengajuan ➔
+          Kirim Pengajuan Kader ➔
         </button>
       </form>
     </div>

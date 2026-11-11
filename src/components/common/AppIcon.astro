@@ -1,0 +1,213 @@
+---
+interface Props {
+  name: string;
+  class?: string;
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  strokeWidth?: number | string;
+  duotone?: boolean;
+  viewBox?: string;
+}
+
+const {
+  name,
+  class: className = '',
+  size = 'md',
+  strokeWidth = 1.75,
+  duotone = true,
+  viewBox = '0 0 24 24',
+} = Astro.props;
+
+const sizeClasses: Record<string, string> = {
+  xs: 'w-3.5 h-3.5',
+  sm: 'w-4 h-4',
+  md: 'w-4.5 h-4.5',
+  lg: 'w-5 h-5',
+  xl: 'w-6 h-6',
+};
+
+const resolvedSizeClass = size && sizeClasses[size] ? sizeClasses[size] : '';
+const combinedClasses = `inline-block shrink-0 transition-colors ${resolvedSizeClass} ${className}`.trim();
+---
+
+<svg
+  class={combinedClasses}
+  viewBox={viewBox}
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  stroke="currentColor"
+  stroke-width={strokeWidth}
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  aria-hidden="true"
+>
+  {/* 1. KATEGORI & PRODUK MAMASAR */}
+  {name === 'bag' || name === 'shopping-bag' || name === 'semua' ? (
+    <g>
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" />
+      <path d="M3 6h18" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </g>
+  ) : name === 'food' || name === 'culinary' || name === 'makanan' || name === 'utensils' ? (
+    <g>
+      <path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2" />
+      <path d="M15 2v18" />
+      <path d="M7 2v20" />
+      <path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Z" />
+    </g>
+  ) : name === 'craft' || name === 'batik' || name === 'scissors' || name === 'sparkles' ? (
+    <g>
+      <circle cx="6" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <line x1="20" y1="4" x2="8.12" y2="15.88" />
+      <line x1="14.47" y1="14.48" x2="20" y2="20" />
+      <line x1="8.12" y1="8.12" x2="12" y2="12" />
+    </g>
+  ) : name === 'fish' || name === 'laut' || name === 'seafood' ? (
+    <g>
+      <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.46-4.94 6-8.5 6-3.56 0-6.06-2.54-7-6Z" />
+      <path d="M18 12v.5" />
+      <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86" />
+      <path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 0 6.5 1 1.5 1 5 0 6.5C5.58 18.03 7 16 7 13.33" />
+    </g>
+  ) : name === 'sprout' || name === 'pertanian' || name === 'leaf' || name === 'plant' ? (
+    <g>
+      <path d="M12 21V10" />
+      <path d="M12 10C12 5.5 7.5 3 3 3v3c0 4.5 4.5 6 9 6" stroke-linejoin="round" />
+      <path d="M12 13c3.5-3.5 8-3.5 9-1 0 4-4.5 6-9 4" stroke-linejoin="round" />
+      {duotone && (
+        <path d="M12 10C12 5.5 7.5 3 3 3v3c0 4.5 4.5 6 9 6Z" fill="currentColor" fill-opacity="0.22" stroke="none" />
+      )}
+    </g>
+  ) : name === 'fashion' || name === 'muslim' || name === 'shirt' ? (
+    <g>
+      <path d="M20.38 3.46 16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z" />
+    </g>
+  ) : name === 'herbal' || name === 'jamu' || name === 'flask' ? (
+    <g>
+      <path d="M10 2v7.31a2 2 0 0 1-.37 1.17l-5.26 7.89A2 2 0 0 0 6 21h12a2 2 0 0 0 1.63-2.63l-5.26-7.89a2 2 0 0 1-.37-1.17V2" />
+      <path d="M8.5 2h7" />
+      <path d="M7 16h10" />
+    </g>
+  ) : name === 'service' || name === 'jasa' || name === 'wrench' ? (
+    <g>
+      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
+    </g>
+  ) : name === 'package' || name === 'box' || name === 'produk' ? (
+    <g>
+      <path d="M12 3 3.5 7.5 12 12l8.5-4.5L12 3Z" />
+      <path d="m3.5 7.5 8.5 4.5v9l-8.5-4.5v-9Z" />
+      <path d="m20.5 7.5-8.5 4.5v9l8.5-4.5v-9Z" />
+      <path d="M12 12v9" opacity="0.35" />
+    </g>
+  ) : name === 'store' || name === 'toko' || name === 'umkm' ? (
+    <g>
+      <path d="M3 9 4.5 4h15L21 9M3 9a3 3 0 0 0 6 0 3 3 0 0 0 6 0 3 3 0 0 0 6 0M3 9v11a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1V9" />
+      <path d="M9 21v-7a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v7" />
+    </g>
+  ) : name === 'tent' || name === 'event' || name === 'kegiatan' || name === 'agenda' ? (
+    <g>
+      <path d="M19 20 12 4 5 20h14Z" />
+      <path d="m12 4 4 16" />
+      <path d="M2 20h20" />
+    </g>
+  ) : name === 'map-pin' || name === 'location' || name === 'zona' ? (
+    <g>
+      <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+      <circle cx="12" cy="10" r="3" />
+    </g>
+  ) : name === 'book' || name === 'book-open' || name === 'edukasi' || name === 'artikel' ? (
+    <g>
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </g>
+  ) : name === 'shield' || name === 'shield-check' || name === 'pengurus' || name === 'admin' ? (
+    <g>
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+      <path d="m9 12 2 2 4-4" />
+      {duotone && (
+        <path d="M12 3.2 5 6v6c0 5 5.5 8.5 7 9.5V3.2z" fill="currentColor" fill-opacity="0.15" stroke="none" />
+      )}
+    </g>
+  ) : name === 'clipboard' || name === 'clipboard-list' || name === 'petugas' || name === 'entri' ? (
+    <g>
+      <rect x="5" y="4" width="14" height="17" rx="2" />
+      <path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1Z" />
+      <path d="M9 11h6M9 15h4" opacity="0.6" />
+    </g>
+  ) : name === 'star' || name === 'favorit' || name === 'rating' ? (
+    <g>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      {duotone && (
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 12 2" fill="currentColor" fill-opacity="0.3" stroke="none" />
+      )}
+    </g>
+  ) : name === 'zap' || name === 'bolt' || name === 'sundul' ? (
+    <g>
+      <polygon points="13 2 4.5 12.5 11 12.5 8.5 22 19.5 10.5 13 10.5" stroke-linejoin="round" />
+    </g>
+  ) : name === 'check' || name === 'verified' || name === 'success' ? (
+    <g>
+      <path d="m5 12 5 5L20 7" />
+    </g>
+  ) : name === 'x' || name === 'close' || name === 'cancel' ? (
+    <g>
+      <path d="M18 6 6 18M6 6l12 12" />
+    </g>
+  ) : name === 'arrow-right' || name === 'arrow' ? (
+    <g>
+      <path d="M5 12h14M12 5l7 7-7 7" />
+    </g>
+  ) : name === 'chevron-down' ? (
+    <g>
+      <polyline points="6 9 12 15 18 9" />
+    </g>
+  ) : name === 'search' || name === 'cari' ? (
+    <g>
+      <circle cx="11" cy="11" r="7" />
+      <path d="m21 21-4.35-4.35" />
+    </g>
+  ) : name === 'phone' || name === 'whatsapp' ? (
+    <g>
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92Z" />
+    </g>
+  ) : name === 'cash' || name === 'kas' || name === 'wallet' ? (
+    <g>
+      <rect x="2" y="6" width="20" height="12" rx="2" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M6 12h.01M18 12h.01" stroke-width="2.5" />
+    </g>
+  ) : name === 'user' || name === 'avatar' ? (
+    <g>
+      <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </g>
+  ) : name === 'plus' || name === 'add' ? (
+    <g>
+      <path d="M12 5v14M5 12h14" />
+    </g>
+  ) : name === 'trash' || name === 'delete' ? (
+    <g>
+      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+      <line x1="10" y1="11" x2="10" y2="17" />
+      <line x1="14" y1="11" x2="14" y2="17" />
+    </g>
+  ) : name === 'edit' || name === 'pencil' ? (
+    <g>
+      <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z" />
+    </g>
+  ) : name === 'camera' ? (
+    <g>
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+      <circle cx="12" cy="13" r="4" />
+    </g>
+  ) : name === 'eye' ? (
+    <g>
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </g>
+  ) : (
+    <g>
+      <circle cx="12" cy="12" r="4" />
+    </g>
+  )}
+</svg>

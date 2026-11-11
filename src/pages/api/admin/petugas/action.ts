@@ -5,7 +5,7 @@ import { isSuperadmin, reviewPetugas } from '../../../../lib/db';
 export const POST: APIRoute = async ({ request }) => {
   try {
     const user = await resolveUser(request);
-    if (!user || (!isSuperadmin(user) && user.role !== 'pengurus')) {
+    if (!user || !isSuperadmin(user)) {
       return new Response(JSON.stringify({ success: false, message: 'Akses khusus Admin / Pengurus PCNU Sumenep.' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' },

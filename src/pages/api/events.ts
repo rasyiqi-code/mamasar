@@ -76,8 +76,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    if (!isSuperadmin(user) && user.role !== 'pengurus') {
-      return new Response(JSON.stringify({ success: false, message: 'Akses khusus Admin / Pengurus MWC.' }), {
+    if (!isSuperadmin(user) && user.role !== 'mwcnu') {
+      return new Response(JSON.stringify({ success: false, message: 'Akses khusus Admin PCNU / Pengurus MWCNU.' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' },
       });

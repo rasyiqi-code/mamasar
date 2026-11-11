@@ -1,9 +1,10 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
 ---
 
 <Layout
-  title="Halaman Tidak Ditemukan (404) | Pasar Warga NU Sumenep"
+  title="Halaman Tidak Ditemukan (404) | Mamasar Sumenep"
   description="Maaf, halaman atau iklan yang Anda tuju tidak ditemukan atau sudah dipindahkan."
 >
   <div class="min-h-[65vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -28,21 +29,24 @@ import Layout from '../layouts/Layout.astro';
       <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
         <a
           href="/"
-          class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl shadow-xs transition"
+          class="w-full sm:w-auto px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl shadow-xs transition inline-flex items-center justify-center gap-1.5"
         >
-          📋 Kembali ke Katalog
+          <AppIcon name="clipboard" size="xs" />
+          <span>Kembali ke Katalog</span>
         </a>
         <a
           href="/toko"
-          class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+          class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition inline-flex items-center justify-center gap-1.5"
         >
-          🏪 Daftar Toko Warga
+          <AppIcon name="store" size="xs" class="text-slate-500" />
+          <span>Daftar Toko Warga</span>
         </a>
         <a
           href="/kegiatan"
-          class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition"
+          class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition inline-flex items-center justify-center gap-1.5"
         >
-          🎪 Pasar Kegiatan NU
+          <AppIcon name="tent" size="xs" class="text-slate-500" />
+          <span>Pasar Kegiatan NU</span>
         </a>
       </div>
 

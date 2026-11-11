@@ -1,115 +1,20 @@
 ---
-import { PRODUCT_CATEGORIES, CATEGORY_ICONS } from '../../lib/constants';
+import { PRODUCT_CATEGORIES } from '../../lib/constants';
+import AppIcon from '../common/AppIcon.astro';
 ---
 
-<!-- MODAL 1: TAMBAH PRODUK BARU -->
-<div id="modal-add-product" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4">
+<!-- MODAL: EDIT PRODUK -->
+<div id="modal-edit-product" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
   <div class="modal-backdrop fixed inset-0 bg-slate-900/40 backdrop-blur-xs"></div>
-  <div class="relative bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-xl overflow-hidden z-10 max-h-[90vh] flex flex-col">
-    <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between">
-      <h3 class="font-bold text-sm sm:text-base text-slate-900">Tambah Produk Baru</h3>
-      <button type="button" data-close-modal="add-product" class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1 cursor-pointer">✕</button>
-    </div>
+  <div class="relative bg-white border border-slate-200 rounded-t-2xl sm:rounded-xl w-full max-w-lg shadow-2xl overflow-hidden z-10 max-h-[85vh] sm:max-h-[90vh] flex flex-col">
+    <!-- Mobile Pill Drag Handle -->
+    <div class="sm:hidden w-12 h-1 bg-slate-300 rounded-full mx-auto my-2 shrink-0"></div>
 
-    <form id="add-product-form" class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
-      <input type="hidden" id="dashImageBase64" name="imageBase64" />
-
-      <div class="space-y-1.5">
-        <label for="prodName" class="block text-xs font-medium text-slate-700">Nama Barang / Produk <span class="text-rose-500">*</span></label>
-        <input
-          type="text"
-          id="prodName"
-          name="name"
-          placeholder="Contoh: Rengginang Lorjuk Spesial Renyah"
-          required
-          class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-        />
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="space-y-1.5">
-          <label for="prodCategory" class="block text-xs font-medium text-slate-700">Kategori <span class="text-rose-500">*</span></label>
-          <select
-            id="prodCategory"
-            name="category"
-            required
-            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs font-medium text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
-          >
-            {PRODUCT_CATEGORIES.map((cat) => (
-              <option value={cat}>
-                {CATEGORY_ICONS[cat] || '📦'} {cat}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <div class="space-y-1.5">
-          <label for="prodPrice" class="block text-xs font-medium text-slate-700">Harga Jual (IDR) <span class="text-rose-500">*</span></label>
-          <input
-            type="number"
-            id="prodPrice"
-            name="price"
-            placeholder="25000"
-            required
-            min="500"
-            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-          />
-        </div>
-      </div>
-
-      <div class="space-y-1.5">
-        <label class="block text-xs font-medium text-slate-700">Foto Produk (Dari Kamera HP / Galeri) <span class="text-rose-500">*</span></label>
-        <input
-          type="file"
-          id="dash-camera-input"
-          accept="image/*"
-          class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
-        />
-        <p id="dash-compress-info" class="text-[11px] text-slate-400 font-medium"></p>
-      </div>
-
-      <div class="space-y-1.5">
-        <label for="prodDesc" class="block text-xs font-medium text-slate-700">Deskripsi Produk</label>
-        <textarea
-          id="prodDesc"
-          name="description"
-          rows="2"
-          placeholder="Jelaskan rasa, berat kemasan, atau pilihan motif..."
-          class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-        ></textarea>
-      </div>
-
-      <div class="space-y-1.5">
-        <label for="prodShopee" class="block text-xs font-medium text-slate-700">Tautan Shopee (Opsional)</label>
-        <input
-          type="url"
-          id="prodShopee"
-          name="shopeeUrl"
-          placeholder="https://shopee.co.id/..."
-          class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-        />
-      </div>
-
-      <div class="pt-2">
-        <button
-          type="submit"
-          id="btn-submit-product"
-          class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition shadow-xs cursor-pointer"
-        >
-          Terbitkan Iklan Produk ➔
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- MODAL 2: EDIT PRODUK -->
-<div id="modal-edit-product" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4">
-  <div class="modal-backdrop fixed inset-0 bg-slate-900/40 backdrop-blur-xs"></div>
-  <div class="relative bg-white border border-slate-200 rounded-xl w-full max-w-lg shadow-xl overflow-hidden z-10 max-h-[90vh] flex flex-col">
     <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between">
       <h3 class="font-bold text-sm sm:text-base text-slate-900">Edit Iklan Produk</h3>
-      <button type="button" data-close-modal="edit-product" class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1 cursor-pointer">✕</button>
+      <button type="button" data-close-modal="edit-product" aria-label="Tutup" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer flex items-center">
+        <AppIcon name="close" size="xs" />
+      </button>
     </div>
 
     <form id="edit-product-form" class="p-4 sm:p-6 space-y-4 overflow-y-auto flex-1">
@@ -138,14 +43,14 @@ import { PRODUCT_CATEGORIES, CATEGORY_ICONS } from '../../lib/constants';
           >
             {PRODUCT_CATEGORIES.map((cat) => (
               <option value={cat}>
-                {CATEGORY_ICONS[cat] || '📦'} {cat}
+                {cat}
               </option>
             ))}
           </select>
         </div>
 
         <div class="space-y-1.5">
-          <label for="editProdPrice" class="block text-xs font-medium text-slate-700">Harga Jual (IDR) <span class="text-rose-500">*</span></label>
+          <label for="editProdPrice" class="block text-xs font-medium text-slate-700">Harga Jual Promo (IDR) <span class="text-rose-500">*</span></label>
           <input
             type="number"
             id="editProdPrice"
@@ -155,6 +60,19 @@ import { PRODUCT_CATEGORIES, CATEGORY_ICONS } from '../../lib/constants';
             class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           />
         </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="editProdOriginalPrice" class="block text-xs font-medium text-slate-700">Harga Normal / Coret (Opsional)</label>
+        <input
+          type="number"
+          id="editProdOriginalPrice"
+          name="originalPrice"
+          min="500"
+          placeholder="Contoh: 20000 (jika sedang promo diskon)"
+          class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
+        <p class="text-[10px] text-slate-400">Jika diisi lebih besar dari harga jual, sistem otomatis menampilkan harga coret dan badge diskon.</p>
       </div>
 
       <div class="space-y-1.5">
@@ -176,6 +94,33 @@ import { PRODUCT_CATEGORIES, CATEGORY_ICONS } from '../../lib/constants';
           rows="2"
           class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
         ></textarea>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label for="editProdStockStatus" class="block text-xs font-medium text-slate-700">Ketersediaan Stok <span class="text-rose-500">*</span></label>
+          <select
+            id="editProdStockStatus"
+            name="stockStatus"
+            required
+            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs font-medium text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+          >
+            <option value="ready">Ready Stock (Siap Kirim)</option>
+            <option value="po">Pre-Order / Dibuat Berdasarkan Pesanan</option>
+            <option value="sold_out">Habis / Kuota Penuh</option>
+          </select>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="editProdCapacity" class="block text-xs font-medium text-slate-700">Kapasitas / Estimasi (Opsional)</label>
+          <input
+            type="text"
+            id="editProdCapacity"
+            name="productionCapacity"
+            placeholder="Contoh: 50 bungkus/hari atau PO 2-3 hari"
+            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
       </div>
 
       <div class="space-y-1.5">

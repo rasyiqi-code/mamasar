@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { createUMKMAndProduct, isPetugas, isSuperadmin } from '../../lib/db';
+import { createUMKMAndProduct, addProductToUMKM, getUMKMByUserId } from '../../lib/db';
 import { resolveUser } from '../../lib/neon-auth';
 import { saveUploadedImage } from '../../lib/storage';
 import { isValidIndonesianPhone } from '../../lib/utils';
@@ -18,32 +18,91 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    if (!isPetugas(user) && !isSuperadmin(user)) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: 'Akses khusus Petugas Lapangan MWC atau Pengurus PCNU yang telah disetujui.',
-        }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
     const formData = await request.formData();
 
-    const umkmName = formData.get('umkmName')?.toString().trim();
-    const phone = formData.get('phone')?.toString().trim();
-    const zoneId = Number(formData.get('zoneId'));
-    const address = formData.get('address')?.toString().trim();
+    // Check if the user already has a store or passed a store ID
+    const explicitUmkmId = formData.get('umkmId') ? Number(formData.get('umkmId')) : undefined;
+    const userStore = await getUMKMByUserId(user.id);
+    const targetUmkmId = explicitUmkmId || userStore?.id || user.umkm?.id;
+
     const productName = formData.get('productName')?.toString().trim();
     const price = Number(formData.get('price'));
     const category = formData.get('category')?.toString().trim() || 'Makanan & Minuman';
     const description = formData.get('description')?.toString().trim();
 
-    if (!umkmName || !phone || !zoneId || !productName || !price) {
+    if (!productName || !price) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: 'Semua kolom wajib diisi (Nama Usaha, WA, Wilayah, Nama Produk, Harga).',
+          message: 'Nama produk dan harga wajib diisi.',
+        }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const imageFile = formData.get('image') as File | null;
+    const imageBase64 = formData.get('imageBase64')?.toString();
+    const shopeeUrl = formData.get('shopeeUrl')?.toString()?.trim() || undefined;
+    const stockStatus = formData.get('stockStatus')?.toString()?.trim() || 'ready';
+    const productionCapacity = formData.get('productionCapacity')?.toString()?.trim() || undefined;
+    const rawOrigPrice = formData.get('originalPrice')?.toString()?.trim();
+    const originalPrice = rawOrigPrice && Number(rawOrigPrice) > 0 ? Number(rawOrigPrice) : undefined;
+    const galleryJson = formData.get('galleryImages')?.toString()?.trim();
+    let galleryImages: string[] = [];
+    if (galleryJson) {
+      try {
+        const parsed = JSON.parse(galleryJson);
+        if (Array.isArray(parsed)) {
+          galleryImages = await Promise.all(
+            parsed.map(async (item: string) => {
+              if (typeof item === 'string' && item.startsWith('data:image')) {
+                return await saveUploadedImage({ imageBase64: item });
+              }
+              return item;
+            })
+          );
+        }
+      } catch (_) {}
+    }
+    const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
+
+    // SCENARIO 1: Existing Store (Pure Product Creation)
+    if (targetUmkmId) {
+      const result = await addProductToUMKM(targetUmkmId, {
+        name: productName,
+        price,
+        originalPrice,
+        category,
+        imageUrl,
+        galleryImages,
+        description,
+        shopeeUrl,
+        stockStatus,
+        productionCapacity,
+      });
+
+      return new Response(
+        JSON.stringify({
+          success: true,
+          slug: result.slug,
+          productId: result.productId,
+          message: 'Produk berhasil diterbitkan!',
+        }),
+        { status: 201, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // SCENARIO 2: No Store Yet (Store + Product combined creation fallback)
+    const umkmName = formData.get('umkmName')?.toString().trim();
+    const phone = formData.get('phone')?.toString().trim();
+    const zoneId = Number(formData.get('zoneId'));
+    const address = formData.get('address')?.toString().trim();
+
+    if (!umkmName || !phone || !zoneId) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Profil toko belum ada. Lengkapi nama usaha, WhatsApp, dan wilayah terlebih dahulu.',
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
@@ -60,12 +119,6 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    // Process image storage via shared storage module
-    const imageFile = formData.get('image') as File | null;
-    const imageBase64 = formData.get('imageBase64')?.toString();
-    const shopeeUrl = formData.get('shopeeUrl')?.toString()?.trim() || undefined;
-    const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
-
     const result = await createUMKMAndProduct({
       umkmName,
       phone,
@@ -73,10 +126,14 @@ export const POST: APIRoute = async ({ request }) => {
       address,
       productName,
       price,
+      originalPrice,
       category,
       imageUrl,
+      galleryImages,
       description,
       shopeeUrl,
+      stockStatus,
+      productionCapacity,
       createdByUserId: user.id,
     });
 
@@ -85,6 +142,7 @@ export const POST: APIRoute = async ({ request }) => {
         success: true,
         slug: result.slug,
         productId: result.productId,
+        message: 'Toko dan produk berhasil dibuat!',
       }),
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );

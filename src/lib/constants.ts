@@ -13,14 +13,14 @@ export const PRODUCT_CATEGORIES = [
 export type ProductCategory = (typeof PRODUCT_CATEGORIES)[number];
 
 export const CATEGORY_ICONS: Record<string, string> = {
-  'Semua': '🛍️',
-  'Makanan & Minuman': '🍲',
-  'Batik & Kerajinan': '🧵',
-  'Hasil Laut & Olahan': '🐟',
-  'Pertanian & Perkebunan': '🌱',
-  'Fashion Muslim': '🧕',
-  'Herbal & Jamu': '🌿',
-  'Jasa & Layanan': '🛠️',
+  'Semua': 'shopping-bag',
+  'Makanan & Minuman': 'utensils',
+  'Batik & Kerajinan': 'craft',
+  'Hasil Laut & Olahan': 'fish',
+  'Pertanian & Perkebunan': 'sprout',
+  'Fashion Muslim': 'fashion',
+  'Herbal & Jamu': 'herbal',
+  'Jasa & Layanan': 'service',
 };
 
 export const CATEGORY_BADGES: Record<string, { label: string; color: string }> = {
@@ -53,7 +53,7 @@ export const DEFAULT_PRODUCT_IMAGE =
   'https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=600&q=80';
 
 export const SITE_CONFIG = {
-  name: 'Pasar Warga NU Sumenep',
+  name: 'Mamasar',
   tagline: 'Direktori Iklan Baris UMKM Nahdliyin Kabupaten Sumenep',
   description:
     'Direktori Resmi Produk UMKM Nahdliyin Kabupaten Sumenep. Temukan produk lokal tetangga, transaksi langsung via WhatsApp tanpa perantara.',

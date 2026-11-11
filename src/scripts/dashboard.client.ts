@@ -169,81 +169,6 @@ export function initDashboardClient() {
     }
   });
 
-  // Add Product Camera Compression
-  const dashCameraInput = document.getElementById('dash-camera-input') as HTMLInputElement | null;
-  const dashImageBase64 = document.getElementById('dashImageBase64') as HTMLInputElement | null;
-  const dashCompressInfo = document.getElementById('dash-compress-info');
-
-  dashCameraInput?.addEventListener('change', () => {
-    const file = dashCameraInput.files?.[0];
-    if (!file) return;
-
-    const originalSizeKB = Math.round(file.size / 1024);
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const ctx = canvas.getContext('2d');
-        const maxDim = 1200;
-        let width = img.width;
-        let height = img.height;
-
-        if (width > height) {
-          if (width > maxDim) {
-            height = Math.round((height * maxDim) / width);
-            width = maxDim;
-          }
-        } else {
-          if (height > maxDim) {
-            width = Math.round((width * maxDim) / height);
-            height = maxDim;
-          }
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
-        if (dashImageBase64) dashImageBase64.value = compressedBase64;
-
-        const compressedSizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
-        if (dashCompressInfo) {
-          dashCompressInfo.textContent = `✓ Foto dikompres: ${originalSizeKB} KB ➔ ~${compressedSizeKB} KB`;
-          dashCompressInfo.className = 'text-[10px] font-bold text-emerald-600';
-        }
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  });
-
-  // Add Product Form Submit
-  const addProductForm = document.getElementById('add-product-form') as HTMLFormElement | null;
-  addProductForm?.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('btn-submit-product') as HTMLButtonElement | null;
-    if (btn) btn.disabled = true;
-
-    try {
-      const formData = new FormData(addProductForm);
-      const res = await fetch('/api/umkm/add-product', { method: 'POST', body: formData });
-      const data = await res.json();
-
-      if (res.ok && data.success) {
-        window.location.reload();
-      } else {
-        notify('Gagal menambah produk: ' + (data.message || 'Terjadi kesalahan sistem.'), true);
-      }
-    } catch (err: any) {
-      notify('Gagal mengirim ke server: ' + err.message, true);
-    } finally {
-      if (btn) btn.disabled = false;
-    }
-  });
-
   // Edit Product Camera Compression
   const editCameraInput = document.getElementById('edit-camera-input') as HTMLInputElement | null;
   const editImageBase64 = document.getElementById('editImageBase64') as HTMLInputElement | null;
@@ -304,20 +229,29 @@ export function initDashboardClient() {
       const category = btn.getAttribute('data-category') || '';
       const desc = btn.getAttribute('data-desc') || '';
       const shopee = btn.getAttribute('data-shopee') || '';
+      const stockStatus = btn.getAttribute('data-stock-status') || 'ready';
+      const capacity = btn.getAttribute('data-capacity') || '';
+      const originalPrice = btn.getAttribute('data-original-price') || '';
 
       const idInput = document.getElementById('editProductId') as HTMLInputElement | null;
       const nameInput = document.getElementById('editProdName') as HTMLInputElement | null;
       const priceInput = document.getElementById('editProdPrice') as HTMLInputElement | null;
+      const origPriceInput = document.getElementById('editProdOriginalPrice') as HTMLInputElement | null;
       const catSelect = document.getElementById('editProdCategory') as HTMLSelectElement | null;
       const descInput = document.getElementById('editProdDesc') as HTMLTextAreaElement | null;
       const shopeeInput = document.getElementById('editProdShopee') as HTMLInputElement | null;
+      const stockStatusSelect = document.getElementById('editProdStockStatus') as HTMLSelectElement | null;
+      const capacityInput = document.getElementById('editProdCapacity') as HTMLInputElement | null;
 
       if (idInput) idInput.value = id;
       if (nameInput) nameInput.value = name;
       if (priceInput) priceInput.value = price;
+      if (origPriceInput) origPriceInput.value = originalPrice;
       if (catSelect) catSelect.value = category;
       if (descInput) descInput.value = desc;
       if (shopeeInput) shopeeInput.value = shopee;
+      if (stockStatusSelect) stockStatusSelect.value = stockStatus;
+      if (capacityInput) capacityInput.value = capacity;
       if (editImageBase64) editImageBase64.value = '';
       if (editCompressInfo) editCompressInfo.textContent = '';
       if (editCameraInput) editCameraInput.value = '';
@@ -359,13 +293,23 @@ export function initDashboardClient() {
       const formData = new FormData();
       formData.append('productId', id || '');
 
-      const res = await fetch('/api/products/bump', { method: 'POST', body: formData });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        notify('⚡ Berhasil! Iklan disundul ke posisi teratas.');
-        setTimeout(() => window.location.reload(), 800);
-      } else {
-        notify(data.message || 'Gagal menyundul produk.', true);
+      try {
+        const res = await fetch('/api/products/bump', { method: 'POST', body: formData });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          const remaining = data.remainingCredits !== undefined ? ` (Sisa kuota: ${data.remainingCredits} token)` : '';
+          notify(`⚡ Berhasil! Iklan disundul ke posisi teratas${remaining}.`);
+          setTimeout(() => window.location.reload(), 800);
+        } else if (res.status === 402 || data.reason === 'insufficient_credits') {
+          notify('⚠️ Kuota token sundul Anda habis. Membuka paket isi ulang token...', true);
+          if ((window as any).openPromoModal) {
+            (window as any).openPromoModal('bump');
+          }
+        } else {
+          notify(data.message || 'Gagal menyundul produk.', true);
+        }
+      } catch (err: any) {
+        notify('Kendala jaringan: ' + err.message, true);
       }
     });
   });
@@ -647,7 +591,203 @@ export function initDashboardClient() {
     }
   });
 
-  // Initialize tabs
+  // Promosi Iklan Berbayar & Kuota Token Sundul
+  function initAdPromotionModal() {
+    const modal = document.getElementById('modal-ad-promo');
+    const btnOpen = document.getElementById('btn-open-promo-modal');
+    const btnClose = document.getElementById('btn-close-ad-promo');
+    const btnCancel = document.getElementById('btn-cancel-promo');
+    const form = document.getElementById('form-order-promo') as HTMLFormElement | null;
+    const tabFeatured = document.getElementById('tab-promo-featured');
+    const tabBump = document.getElementById('tab-promo-bump');
+    const secFeatured = document.getElementById('section-featured-fields');
+    const secBump = document.getElementById('section-bump-fields');
+    const selectedTypeInput = document.getElementById('selectedPromoType') as HTMLInputElement | null;
+    const totalDisplay = document.getElementById('promo-total-display');
+    const productSelect = document.getElementById('promoProductId') as HTMLSelectElement | null;
+    const proofInput = document.getElementById('promoProofInput') as HTMLInputElement | null;
+    const proofBase64 = document.getElementById('promoProofBase64') as HTMLInputElement | null;
+    const compressInfo = document.getElementById('promo-compress-info');
+    const modalAlert = document.getElementById('promo-modal-alert');
+    const submitBtn = document.getElementById('btn-submit-promo-order') as HTMLButtonElement | null;
+    const radioLabels = document.querySelectorAll<HTMLLabelElement>('.package-radio-label');
+
+    if (!modal) return;
+
+    function openPromoModal(category: 'featured' | 'bump' = 'featured', preselectedProductId?: string) {
+      modal?.classList.remove('hidden');
+      if (modalAlert) modalAlert.classList.add('hidden');
+      switchCategory(category);
+      if (preselectedProductId && productSelect) {
+        productSelect.value = preselectedProductId;
+      }
+    }
+
+    function closePromoModal() {
+      modal?.classList.add('hidden');
+    }
+
+    function switchCategory(category: 'featured' | 'bump') {
+      if (category === 'featured') {
+        tabFeatured?.classList.add('border-amber-500', 'text-amber-950');
+        tabFeatured?.classList.remove('border-transparent', 'text-slate-400');
+        tabBump?.classList.remove('border-amber-500', 'text-amber-950');
+        tabBump?.classList.add('border-transparent', 'text-slate-400');
+        secFeatured?.classList.remove('hidden');
+        secBump?.classList.add('hidden');
+
+        selectPackage('featured_14d');
+      } else {
+        tabBump?.classList.add('border-amber-500', 'text-amber-950');
+        tabBump?.classList.remove('border-transparent', 'text-slate-400');
+        tabFeatured?.classList.remove('border-amber-500', 'text-amber-950');
+        tabFeatured?.classList.add('border-transparent', 'text-slate-400');
+        secBump?.classList.remove('hidden');
+        secFeatured?.classList.add('hidden');
+
+        selectPackage('bump_pack_12');
+      }
+    }
+
+    function selectPackage(pkgId: string) {
+      radioLabels.forEach((label) => {
+        const type = label.getAttribute('data-type');
+        const radio = label.querySelector('input[type="radio"]') as HTMLInputElement | null;
+        if (type === pkgId) {
+          label.classList.add('border-amber-500', 'bg-amber-50/40', 'shadow-xs');
+          label.classList.remove('border-slate-200');
+          if (radio) radio.checked = true;
+          if (selectedTypeInput) selectedTypeInput.value = pkgId;
+          const price = Number(label.getAttribute('data-price') || 0);
+          if (totalDisplay) {
+            totalDisplay.textContent = 'Rp ' + price.toLocaleString('id-ID');
+          }
+        } else {
+          label.classList.remove('border-amber-500', 'bg-amber-50/40', 'shadow-xs');
+          label.classList.add('border-slate-200');
+          if (radio) radio.checked = false;
+        }
+      });
+    }
+
+    btnOpen?.addEventListener('click', () => openPromoModal('featured'));
+    btnClose?.addEventListener('click', closePromoModal);
+    btnCancel?.addEventListener('click', closePromoModal);
+
+    tabFeatured?.addEventListener('click', () => switchCategory('featured'));
+    tabBump?.addEventListener('click', () => switchCategory('bump'));
+
+    document.querySelectorAll<HTMLButtonElement>('[data-action="promote-single"]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const prodId = btn.getAttribute('data-id');
+        openPromoModal('featured', prodId || undefined);
+      });
+    });
+
+    radioLabels.forEach((label) => {
+      label.addEventListener('click', () => {
+        const pkgId = label.getAttribute('data-type');
+        if (pkgId) selectPackage(pkgId);
+      });
+    });
+
+    proofInput?.addEventListener('change', async () => {
+      const file = proofInput.files?.[0];
+      if (!file) return;
+
+      if (compressInfo) {
+        compressInfo.textContent = 'Mengompres foto bukti pembayaran...';
+        compressInfo.className = 'text-[10px] text-amber-600 font-medium';
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d');
+
+          const maxDim = 1200;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.82);
+          if (proofBase64) proofBase64.value = compressedBase64;
+
+          const originalSizeKB = Math.round(file.size / 1024);
+          const compressedSizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
+          if (compressInfo) {
+            compressInfo.textContent = `✓ Bukti siap dikirim (${originalSizeKB} KB ➔ ${compressedSizeKB} KB)`;
+            compressInfo.className = 'text-[10px] text-emerald-600 font-bold';
+          }
+        };
+        img.src = e.target?.result as string;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengirim Pesanan...';
+      }
+
+      if (modalAlert) {
+        modalAlert.className = 'hidden';
+        modalAlert.textContent = '';
+      }
+
+      try {
+        const formData = new FormData(form);
+        const res = await fetch('/api/promotions/order', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          closePromoModal();
+          notify('Alhamdulillah! Pesanan promosi iklan berhasil diajukan dan sedang diverifikasi admin.');
+          setTimeout(() => window.location.reload(), 1200);
+        } else {
+          if (modalAlert) {
+            modalAlert.className = 'm-4 p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 block';
+            modalAlert.textContent = data.message || 'Gagal mengajukan promosi iklan.';
+          }
+        }
+      } catch (err: any) {
+        if (modalAlert) {
+          modalAlert.className = 'm-4 p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 block';
+          modalAlert.textContent = 'Kendala server: ' + err.message;
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Konfirmasi & Ajukan Iklan ➔';
+        }
+      }
+    });
+
+    (window as any).openPromoModal = openPromoModal;
+  }
+
+  // Initialize features
+  initAdPromotionModal();
   initTabs();
 }
 

@@ -38,7 +38,7 @@ const articleSchema = {
   },
   publisher: {
     '@type': 'Organization',
-    name: 'Pasar Warga NU Sumenep',
+    name: 'Mamasar Sumenep',
     logo: {
       '@type': 'ImageObject',
       url: `${Astro.url.origin}/favicon.svg`,
@@ -47,10 +47,21 @@ const articleSchema = {
   description: article.summary,
 };
 
-// Simple Markdown to HTML formatter for headings and lists
+// Anti-XSS HTML escape helper for raw strings
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Simple Markdown to HTML formatter for headings and lists with anti-XSS sanitization
 function formatContent(text: string): string {
   if (!text) return '';
-  return text
+  const safeText = escapeHtml(text);
+  return safeText
     .replace(/^### (.*$)/gim, '<h3 class="text-base sm:text-lg font-black text-slate-900 mt-6 mb-2">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 class="text-lg sm:text-xl font-black text-slate-900 mt-8 mb-3">$1</h2>')
     .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc text-slate-700 leading-relaxed">$1</li>')
@@ -173,7 +184,7 @@ const renderedContent = formatContent(article.content || article.summary);
             Daftarkan produk Anda secara gratis. Hubungi agen lapangan MWC terdekat atau masukkan produk sendiri.
           </p>
           <a
-            href="/dashboard"
+            href="/pasang-iklan"
             class="block w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-emerald-900 rounded-xl font-black text-xs text-center transition shadow-xs active:scale-98"
           >
             + Pasang Iklan Toko Anda

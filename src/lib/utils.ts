@@ -77,7 +77,7 @@ export function createProductWhatsAppUrl(params: {
   const cleanPhone = formatPhoneForWhatsApp(params.phone);
   const formattedPrice = formatRupiah(params.price);
 
-  let message = `Halo *${params.storeName}*,\n\nSaya melihat produk Anda di *Pasar Digital UMKM NU Sumenep*:\n📦 *Produk:* ${params.productName}\n💰 *Harga:* ${formattedPrice}`;
+  let message = `Halo *${params.storeName}*,\n\nSaya melihat produk Anda di *Mamasar*:\n📦 *Produk:* ${params.productName}\n💰 *Harga:* ${formattedPrice}`;
 
   if (params.zoneName) {
     message += `\n📍 *Wilayah:* ${params.zoneName}`;

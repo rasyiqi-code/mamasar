@@ -1,4 +1,4 @@
-# Direktori Digital UMKM NU Sumenep (Pasar Warga NU / Mamasar)
+# Mamasar - Direktori Digital UMKM NU Sumenep
 
 Aplikasi direktori dan marketplace mandiri UMKM Nahdliyin se-Kabupaten Sumenep. Dibangun dengan arsitektur modern berbasis **Astro (SSR)**, **Tailwind CSS 4**, dan **Drizzle ORM di atas Neon PostgreSQL Serverless**. Terintegrasi dengan Neon Auth, Neon Object Storage, dan ImageKit CDN untuk deployment cloud berkinerja tinggi. Tampilan *mobile-first*, ramah SEO (Schema.org & Open Graph), dan konversi 100% langsung ke WhatsApp penjual tanpa potongan biaya komisi.
 

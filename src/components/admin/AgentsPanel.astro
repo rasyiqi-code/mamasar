@@ -5,6 +5,7 @@ interface Petugas {
   email: string;
   agent_status?: string | null;
   agent_phone?: string | null;
+  agent_ranting?: string | null;
   agent_org?: string | null;
   zone_name?: string | null;
 }
@@ -22,7 +23,7 @@ const activePetugas = allPetugas.filter((p) => p.agent_status === 'active');
   <!-- Top Bar: Compact Header with Line Divider -->
   <div class="flex items-center justify-between pb-3 border-b border-slate-200">
     <div class="flex items-center gap-2.5">
-      <h1 class="text-base sm:text-lg font-bold text-slate-900">Petugas Lapangan MWC</h1>
+      <h2 class="text-base sm:text-lg font-bold text-slate-900">Kader Lapangan Ranting & MWC</h2>
       <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
         {pendingPetugas.length} menunggu persetujuan
       </span>
@@ -47,8 +48,13 @@ const activePetugas = allPetugas.filter((p) => p.agent_status === 'active');
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="font-bold text-sm text-slate-900">{kader.name}</h3>
                 <span class="text-[10px] font-semibold text-emerald-800 bg-emerald-50 px-1.5 py-0.5 rounded">
-                  📍 {kader.zone_name || 'Sumenep'}
+                  📍 MWC {kader.zone_name || 'Sumenep'}
                 </span>
+                {kader.agent_ranting && (
+                  <span class="text-[10px] font-bold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">
+                    Desa {kader.agent_ranting}
+                  </span>
+                )}
                 <span class="text-[11px] text-slate-500">{kader.agent_org || 'Kader NU'}</span>
                 <span class="text-[11px] text-slate-400 font-mono">{kader.email}</span>
               </div>
@@ -57,7 +63,7 @@ const activePetugas = allPetugas.filter((p) => p.agent_status === 'active');
             <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
               {kader.agent_phone && (
                 <a
-                  href={`https://wa.me/${kader.agent_phone}?text=${encodeURIComponent(`Assalamu'alaikum Sahabat ${kader.name}, kami dari Admin PCNU Sumenep mengonfirmasi permohonan petugas lapangan Pasar Warga NU untuk wilayah ${kader.zone_name}.`)}`}
+                  href={`https://wa.me/${kader.agent_phone}?text=${encodeURIComponent(`Assalamu'alaikum Sahabat ${kader.name}, kami dari Admin PCNU Sumenep mengonfirmasi permohonan petugas lapangan Mamasar untuk wilayah MWC ${kader.zone_name}.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="px-2 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded text-xs font-medium transition"
@@ -95,7 +101,7 @@ const activePetugas = allPetugas.filter((p) => p.agent_status === 'active');
   <div class="space-y-2 pt-2">
     <div class="flex items-center justify-between pb-2 border-b border-slate-200">
       <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-        Petugas Resmi Aktif ({activePetugas.length})
+        Kader Resmi Aktif ({activePetugas.length})
       </h2>
     </div>
 
@@ -106,6 +112,9 @@ const activePetugas = allPetugas.filter((p) => p.agent_status === 'active');
             <div class="min-w-0 flex items-center gap-2 flex-wrap text-xs">
               <strong class="font-bold text-slate-900">{p.name}</strong>
               <span class="text-slate-500">MWC {p.zone_name}</span>
+              {p.agent_ranting && (
+                <span class="text-slate-700 font-semibold">• Ranting {p.agent_ranting}</span>
+              )}
               <span class="text-slate-400">• {p.agent_org}</span>
               <span class="text-slate-400 font-mono text-[11px]">{p.email}</span>
             </div>

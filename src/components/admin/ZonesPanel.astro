@@ -1,73 +1,618 @@
 ---
+import AppIcon from '../common/AppIcon.astro';
+
 interface Zone {
   id: number;
   name: string;
   slug: string;
   type?: 'daratan' | 'kepulauan' | string;
+  count?: number;
+}
+
+interface StoreVerificationRow {
+  id: number;
+  name: string;
+  zone_id: number;
+  product_count?: number;
 }
 
 interface Props {
   zones: Zone[];
+  allStores?: StoreVerificationRow[];
 }
 
-const { zones } = Astro.props;
+const { zones, allStores = [] } = Astro.props;
 
-const daratan = zones.filter((z) => z.type !== 'kepulauan');
-const kepulauan = zones.filter((z) => z.type === 'kepulauan');
+// Geo-Coordinates & Local Commodities for all 27 MWC in Kabupaten Sumenep
+const SUMENEP_ZONE_GEO: Record<
+  string,
+  { lat: number; lng: number; type: 'daratan' | 'kepulauan'; highlight: string }
+> = {
+  // 18 MWC Daratan
+  'mwc-kota-sumenep': { lat: -6.9950, lng: 113.8650, type: 'daratan', highlight: 'Pusat Kota, Keraton Sumenep, & Sentra Kuliner Madura' },
+  'mwc-batuan': { lat: -7.0180, lng: 113.8420, type: 'daratan', highlight: 'Sentra Olahan Makanan, Keripik, & Pertanian' },
+  'mwc-kalianget': { lat: -7.0420, lng: 113.9160, type: 'daratan', highlight: 'Pelabuhan Kalianget, Garam Rakyat, & Perikanan' },
+  'mwc-manding': { lat: -6.9380, lng: 113.8450, type: 'daratan', highlight: 'Sentra Anyaman Tikar Pandan & Palawija' },
+  'mwc-gapura': { lat: -6.9850, lng: 113.9520, type: 'daratan', highlight: 'Sentra Rengginang Lorjuk, Kerupuk Ikan, & Terasi' },
+  'mwc-bluto': { lat: -7.0850, lng: 113.8050, type: 'daratan', highlight: 'Kampung Pembuat Keris Tradisional & Pandai Besi' },
+  'mwc-saronggi': { lat: -7.0720, lng: 113.8450, type: 'daratan', highlight: 'Budidaya Rumput Laut & Perikanan Tambak' },
+  'mwc-lenteng': { lat: -7.0350, lng: 113.7850, type: 'daratan', highlight: 'Industri Genteng Tradisional & Makanan Ringan' },
+  'mwc-guluk-guluk': { lat: -7.0250, lng: 113.6350, type: 'daratan', highlight: 'Pesantren Bersejarah Annuqayah & Perkebunan Tembakau' },
+  'mwc-ganding': { lat: -7.0280, lng: 113.7050, type: 'daratan', highlight: 'Sentra Seni Ukir Kayu, Mebel, & Hasil Bumi' },
+  'mwc-pragaan': { lat: -7.1250, lng: 113.6750, type: 'daratan', highlight: 'Pesisir Selatan Madura, Garam, & Kerupuk Ikan' },
+  'mwc-ambunten': { lat: -6.8920, lng: 113.7250, type: 'daratan', highlight: 'Sentra Teri Nasi (Crispy), Rengginang, & Hasil Nelayan' },
+  'mwc-pasongsongan': { lat: -6.8950, lng: 113.6250, type: 'daratan', highlight: 'Pendaratan Perahu Nelayan Laut Jawa & Ikan Asin' },
+  'mwc-rubaru': { lat: -6.9450, lng: 113.7750, type: 'daratan', highlight: 'Sentra Komoditas Unggulan Bawang Merah Rubaru' },
+  'mwc-dasuk': { lat: -6.8980, lng: 113.8150, type: 'daratan', highlight: 'Sentra Gula Merah Aren, Kelapa, & Buah Siwalan' },
+  'mwc-dungkek': { lat: -6.9550, lng: 114.0450, type: 'daratan', highlight: 'Ujung Timur Madura, Oksigen Gili Iyang, & Ikan Tangkap' },
+  'mwc-batang-batang': { lat: -6.9250, lng: 113.9950, type: 'daratan', highlight: 'Kawasan Wisata Pantai Lombang & Anyaman Daun Lontar' },
+  'mwc-batuputih': { lat: -6.8850, lng: 113.8950, type: 'daratan', highlight: 'Perkebunan Mete, Asam Jawa, & Peternakan Sapi' },
+
+  // 9 MWC Kepulauan
+  'mwc-talango': { lat: -7.0650, lng: 113.9750, type: 'kepulauan', highlight: 'Pulau Poteran, Wisata Religi Asta Sayyid Yusuf' },
+  'mwc-giligenting': { lat: -7.1950, lng: 113.9250, type: 'kepulauan', highlight: 'Pulau Giligenting & Gili Labak, Perikanan Bahari' },
+  'mwc-gayam': { lat: -7.1550, lng: 114.3350, type: 'kepulauan', highlight: 'Pulau Sapudi Bagian Selatan, Sentra Sapi Madura' },
+  'mwc-nonggunong': { lat: -7.0850, lng: 114.3550, type: 'kepulauan', highlight: 'Pulau Sapudi Bagian Utara, Budidaya Rumput Laut' },
+  'mwc-raas': { lat: -7.1450, lng: 114.5650, type: 'kepulauan', highlight: 'Pulau Raas, Pengrajin Perahu & Kucing Busok Raas' },
+  'mwc-arjasa': { lat: -6.8550, lng: 115.3050, type: 'kepulauan', highlight: 'Pulau Kangean, Sentra Niaga & Komoditas Kepulauan' },
+  'mwc-kangayan': { lat: -6.9150, lng: 115.4850, type: 'kepulauan', highlight: 'Pulau Kangean Timur, Hasil Hutan, Bakau, & Ikan Kerapu' },
+  'mwc-sapeken': { lat: -7.0050, lng: 115.7050, type: 'kepulauan', highlight: 'Gugusan Terumbu Karang, Budidaya Kerapu & Lobster' },
+  'mwc-masalembu': { lat: -5.5550, lng: 114.4350, type: 'kepulauan', highlight: 'Kepulauan Laut Jawa, Minyak Kelapa, Kopra, & Perikanan' },
+};
+
+// Compute Store count and Product count per zone
+const storeCountByZone = new Map<number, number>();
+const productCountByZone = new Map<number, number>();
+
+allStores.forEach((s) => {
+  storeCountByZone.set(s.zone_id, (storeCountByZone.get(s.zone_id) || 0) + 1);
+  productCountByZone.set(s.zone_id, (productCountByZone.get(s.zone_id) || 0) + (s.product_count || 0));
+});
+
+const enrichedZones = zones.map((z) => {
+  const geo = SUMENEP_ZONE_GEO[z.slug] || {
+    lat: -7.0167,
+    lng: 113.8667,
+    type: 'daratan',
+    highlight: 'Kawasan MWC NU Kabupaten Sumenep',
+  };
+
+  const storeCount = storeCountByZone.get(z.id) || 0;
+  const productCount = productCountByZone.get(z.id) || (z.count || 0);
+
+  return {
+    ...z,
+    lat: geo.lat,
+    lng: geo.lng,
+    type: geo.type,
+    highlight: geo.highlight,
+    storeCount,
+    productCount,
+  };
+});
+
+const daratan = enrichedZones.filter((z) => z.type === 'daratan');
+const kepulauan = enrichedZones.filter((z) => z.type === 'kepulauan');
+
+const totalStores = enrichedZones.reduce((acc, z) => acc + z.storeCount, 0);
+const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
 ---
 
-<section id="panel-zones" class="admin-tab-panel hidden space-y-5">
-  <!-- Top Bar: Compact Header with Line Divider -->
-  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
-    <div class="flex items-center gap-2.5">
-      <h1 class="text-base sm:text-lg font-bold text-slate-900">Sebaran 27 MWC NU Sumenep</h1>
-      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-        {zones.length} Zona
-      </span>
+<!-- Leaflet CSS & JS for Interactive Map -->
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+  crossorigin=""
+/>
+<script
+  is:inline
+  src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+  integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+  crossorigin=""
+></script>
+
+<section id="panel-zones" class="admin-tab-panel hidden space-y-6">
+  <!-- Top Bar: Header with External Maps Link -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-200 gap-3">
+    <div>
+      <div class="flex items-center gap-2">
+        <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <AppIcon name="map-pin" size="sm" class="text-emerald-700" />
+          <span>Peta Sebaran 27 MWC NU Kabupaten Sumenep</span>
+        </h2>
+        <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+          Geolokasi Interaktif
+        </span>
+      </div>
+      <p class="text-xs text-slate-500 mt-0.5">
+        Pemetaan persebaran kader MWC NU, sentra komoditas unggulan daerah, dan pelaku UMKM binaan se-Kabupaten Sumenep.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        id="btn-recenter-map"
+        class="py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer active:scale-98"
+      >
+        <span>🎯</span>
+        <span>Pusatkan Sumenep</span>
+      </button>
+
+      <a
+        href="https://www.google.com/maps/search/?api=1&query=Kabupaten+Sumenep+Madura"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer active:scale-98"
+      >
+        <span>🗺️</span>
+        <span>Buka Google Maps ↗</span>
+      </a>
     </div>
   </div>
 
-  <!-- Daratan: Compact Flow with Line Divider -->
-  <div class="space-y-2">
-    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-        Wilayah Daratan ({daratan.length})
-      </h2>
+  <!-- Key Metrics Bar -->
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Total Wilayah MWC</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono">27</span>
+        <span class="text-[11px] text-slate-500 font-semibold">Kecamatan</span>
+      </div>
+      <p class="text-[10px] text-emerald-700 font-bold">18 Daratan • 9 Kepulauan</p>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
-      {daratan.map((z) => (
-        <a
-          href={`/?zona=${z.slug}`}
-          target="_blank"
-          class="p-2 rounded border border-slate-200 hover:border-emerald-500 hover:bg-slate-50 text-slate-700 font-medium transition flex items-center justify-between"
-        >
-          <span class="truncate">{z.name}</span>
-          <span class="text-slate-400 text-[10px]">➔</span>
-        </a>
-      ))}
+    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Toko UMKM Terdata</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-xl sm:text-2xl font-black text-emerald-700 font-mono">{totalStores}</span>
+        <span class="text-[11px] text-slate-500 font-semibold">Unit Usaha</span>
+      </div>
+      <p class="text-[10px] text-slate-500">Pendataan kader lapangan MWC</p>
+    </div>
+
+    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Produk Terkatalog</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-xl sm:text-2xl font-black text-indigo-700 font-mono">{totalProducts}</span>
+        <span class="text-[11px] text-slate-500 font-semibold">Iklan Aktif</span>
+      </div>
+      <p class="text-[10px] text-slate-500">Tersedia di katalog Mamasar</p>
+    </div>
+
+    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Cakupan Wilayah</span>
+      <div class="flex items-baseline gap-2">
+        <span class="text-xl sm:text-2xl font-black text-emerald-800 font-mono">100%</span>
+        <span class="text-[11px] text-emerald-700 font-bold">Terpetakan</span>
+      </div>
+      <p class="text-[10px] text-slate-500">Seluruh MWC memiliki koordinat</p>
     </div>
   </div>
 
-  <!-- Kepulauan: Compact Flow with Line Divider -->
-  <div class="space-y-2 pt-2">
-    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-        Wilayah Kepulauan ({kepulauan.length})
-      </h2>
+  <!-- Map Filtering Controls -->
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <div class="flex items-center gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold">
+      <button
+        type="button"
+        id="btn-filter-all"
+        class="zone-filter-btn py-1.5 px-3 rounded-lg bg-white text-slate-900 shadow-2xs transition cursor-pointer"
+        data-filter="all"
+      >
+        Semua 27 MWC
+      </button>
+      <button
+        type="button"
+        id="btn-filter-daratan"
+        class="zone-filter-btn py-1.5 px-3 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer"
+        data-filter="daratan"
+      >
+        18 MWC Daratan
+      </button>
+      <button
+        type="button"
+        id="btn-filter-kepulauan"
+        class="zone-filter-btn py-1.5 px-3 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer"
+        data-filter="kepulauan"
+      >
+        9 MWC Kepulauan
+      </button>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
-      {kepulauan.map((z) => (
-        <a
-          href={`/?zona=${z.slug}`}
-          target="_blank"
-          class="p-2 rounded border border-slate-200 hover:border-emerald-500 hover:bg-slate-50 text-slate-700 font-medium transition flex items-center justify-between"
-        >
-          <span class="truncate">{z.name}</span>
-          <span class="text-slate-400 text-[10px]">➔</span>
-        </a>
-      ))}
+    <p class="text-xs text-slate-500">
+      <span class="text-emerald-700 font-bold">Klik pin di peta</span> atau tombol <span class="font-bold">📍 Lihat di Peta</span> pada daftar untuk melompat ke lokasi.
+    </p>
+  </div>
+
+  <!-- Leaflet Interactive Map Container -->
+  <div class="relative w-full rounded-2xl overflow-hidden border border-slate-300 shadow-sm bg-slate-100">
+    <div id="zones-leaflet-map" class="w-full h-[460px] sm:h-[540px] z-0"></div>
+
+    <!-- Map Overlay Legend (Bottom Left) -->
+    <div class="absolute bottom-3 left-3 z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-xl p-2.5 shadow-md text-[11px] space-y-1.5 pointer-events-auto">
+      <p class="font-bold text-slate-800 leading-tight">Legenda Peta MWC NU:</p>
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-emerald-600 border border-emerald-800"></span>
+        <span class="text-slate-600">MWC Daratan (18 Kecamatan)</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="w-3 h-3 rounded-full bg-teal-600 border border-teal-800"></span>
+        <span class="text-slate-600">MWC Kepulauan (9 Kecamatan)</span>
+      </div>
     </div>
   </div>
+
+  <!-- Detailed Zone Cards Section (Divided into Daratan & Kepulauan) -->
+  <div class="space-y-6 pt-2">
+    <!-- Daratan Cards -->
+    <div id="container-daratan" class="space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">
+            Wilayah Daratan ({daratan.length} MWC)
+          </h3>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+            Daratan Madura
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {daratan.map((z) => (
+          <div
+            id={`card-zone-${z.slug}`}
+            class="zone-card bg-white border border-slate-200 hover:border-emerald-500 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5 group"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <h4 class="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 transition truncate">
+                  {z.name}
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-1" title={z.highlight}>
+                  {z.highlight}
+                </p>
+              </div>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 shrink-0">
+                Daratan
+              </span>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+              <div class="flex items-center gap-2 text-slate-600 font-medium">
+                <span><strong>{z.storeCount}</strong> Toko</span>
+                <span>•</span>
+                <span><strong>{z.productCount}</strong> Produk</span>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  class="btn-fly-zone text-emerald-700 hover:text-emerald-900 font-bold px-2 py-1 rounded bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
+                  data-lat={z.lat}
+                  data-lng={z.lng}
+                  data-slug={z.slug}
+                  title="Lihat posisi pin di peta"
+                >
+                  📍 Peta
+                </button>
+
+                <a
+                  href={`/?zona=${z.slug}`}
+                  target="_blank"
+                  class="text-indigo-600 hover:text-indigo-800 font-bold px-2 py-1 rounded bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition"
+                  title="Buka katalog produk MWC ini"
+                >
+                  Katalog ➔
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <!-- Kepulauan Cards -->
+    <div id="container-kepulauan" class="space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+        <div class="flex items-center gap-2">
+          <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">
+            Wilayah Kepulauan ({kepulauan.length} MWC)
+          </h3>
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
+            Gugusan Pulau & Bahari
+          </span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {kepulauan.map((z) => (
+          <div
+            id={`card-zone-${z.slug}`}
+            class="zone-card bg-white border border-slate-200 hover:border-teal-500 rounded-xl p-3.5 shadow-2xs hover:shadow-xs transition space-y-2.5 group"
+          >
+            <div class="flex items-start justify-between gap-2">
+              <div class="min-w-0">
+                <h4 class="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-teal-700 transition truncate">
+                  {z.name}
+                </h4>
+                <p class="text-[11px] text-slate-500 mt-0.5 line-clamp-1" title={z.highlight}>
+                  {z.highlight}
+                </p>
+              </div>
+              <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 shrink-0">
+                Kepulauan
+              </span>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px]">
+              <div class="flex items-center gap-2 text-slate-600 font-medium">
+                <span><strong>{z.storeCount}</strong> Toko</span>
+                <span>•</span>
+                <span><strong>{z.productCount}</strong> Produk</span>
+              </div>
+
+              <div class="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  class="btn-fly-zone text-teal-800 hover:text-teal-950 font-bold px-2 py-1 rounded bg-teal-50 hover:bg-teal-100 border border-teal-200 transition cursor-pointer"
+                  data-lat={z.lat}
+                  data-lng={z.lng}
+                  data-slug={z.slug}
+                  title="Lihat posisi pin di peta"
+                >
+                  📍 Peta
+                </button>
+
+                <a
+                  href={`/?zona=${z.slug}`}
+                  target="_blank"
+                  class="text-indigo-600 hover:text-indigo-800 font-bold px-2 py-1 rounded bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 transition"
+                  title="Buka katalog produk MWC ini"
+                >
+                  Katalog ➔
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Raw Zones Geo Data for Client Script -->
+  <script id="zones-geo-data-json" type="application/json" set:html={JSON.stringify(enrichedZones)} />
 </section>
+
+<style is:global>
+  /* Custom Leaflet Styling */
+  .mamasar-map-pin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .mamasar-pin-inner {
+    width: 28px;
+    height: 28px;
+    border-radius: 9999px;
+    background: #047857;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.25);
+    transition: transform 0.15s ease;
+  }
+  .mamasar-pin-inner.kepulauan {
+    background: #0f766e;
+  }
+  .mamasar-pin-inner:hover {
+    transform: scale(1.2);
+  }
+  .leaflet-popup-content-wrapper {
+    border-radius: 14px;
+    padding: 0;
+    overflow: hidden;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e2e8f0;
+  }
+  .leaflet-popup-content {
+    margin: 0;
+    line-height: 1.4;
+  }
+</style>
+
+<script>
+  let mapInstance: any = null;
+  const markersMap = new Map<string, any>();
+
+  function initZonesMap() {
+    const mapContainer = document.getElementById('zones-leaflet-map');
+    const jsonEl = document.getElementById('zones-geo-data-json');
+    if (!mapContainer || !jsonEl) return;
+
+    // Check if Leaflet L global is loaded
+    // @ts-ignore
+    if (typeof L === 'undefined') {
+      setTimeout(initZonesMap, 200);
+      return;
+    }
+
+    if (mapInstance) {
+      mapInstance.invalidateSize();
+      return;
+    }
+
+    let zonesData: any[] = [];
+    try {
+      zonesData = JSON.parse(jsonEl.textContent || '[]');
+    } catch (_) {
+      zonesData = [];
+    }
+
+    // Default center: Kabupaten Sumenep
+    const sumenepCenter = [-7.0167, 113.8667];
+    // @ts-ignore
+    mapInstance = L.map('zones-leaflet-map', {
+      center: sumenepCenter,
+      zoom: 10,
+      zoomControl: true,
+      scrollWheelZoom: true,
+    });
+
+    // OpenStreetMap standard tile layer
+    // @ts-ignore
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+    }).addTo(mapInstance);
+
+    // Place Markers for each MWC zone
+    zonesData.forEach((z) => {
+      // @ts-ignore
+      const customIcon = L.divIcon({
+        className: 'mamasar-map-pin',
+        html: `<div class="mamasar-pin-inner ${z.type}">${z.type === 'kepulauan' ? '🏝️' : 'NU'}</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+        popupAnchor: [0, -14],
+      });
+
+      const popupHtml = `
+        <div class="p-3.5 space-y-2 text-slate-900 min-w-[220px]">
+          <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
+            <h4 class="font-black text-xs text-slate-900">${z.name}</h4>
+            <span class="text-[9px] font-bold px-1.5 py-0.5 rounded ${
+              z.type === 'kepulauan' ? 'bg-teal-50 text-teal-800 border border-teal-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+            }">${z.type === 'kepulauan' ? 'Kepulauan' : 'Daratan'}</span>
+          </div>
+          <p class="text-[11px] text-slate-600 leading-snug">${z.highlight || 'Wilayah MWC NU Sumenep'}</p>
+          <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500 font-semibold">
+            <span>${z.storeCount} Toko UMKM</span>
+            <span>${z.productCount} Produk</span>
+          </div>
+          <div class="pt-1 flex items-center gap-1.5">
+            <a href="/?zona=${z.slug}" target="_blank" class="flex-1 py-1.5 px-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-center font-bold text-[10px] transition">
+              Katalog Wilayah ➔
+            </a>
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(z.name + ' Sumenep')}" target="_blank" class="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-center font-bold text-[10px] transition">
+              Rute ↗
+            </a>
+          </div>
+        </div>
+      `;
+
+      // @ts-ignore
+      const marker = L.marker([z.lat, z.lng], { icon: customIcon })
+        .addTo(mapInstance)
+        .bindPopup(popupHtml);
+
+      markersMap.set(z.slug, marker);
+    });
+
+    // Re-center button
+    const btnRecenter = document.getElementById('btn-recenter-map');
+    btnRecenter?.addEventListener('click', () => {
+      if (mapInstance) {
+        mapInstance.flyTo(sumenepCenter, 10, { duration: 1 });
+      }
+    });
+
+    // Interactive Filter Buttons: All, Daratan, Kepulauan
+    const filterBtns = document.querySelectorAll<HTMLButtonElement>('.zone-filter-btn');
+    const containerDaratan = document.getElementById('container-daratan');
+    const containerKepulauan = document.getElementById('container-kepulauan');
+
+    filterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filterType = btn.getAttribute('data-filter');
+
+        // Update button active styles
+        filterBtns.forEach((b) => {
+          b.classList.remove('bg-white', 'text-slate-900', 'shadow-2xs');
+          b.classList.add('text-slate-600');
+        });
+        btn.classList.add('bg-white', 'text-slate-900', 'shadow-2xs');
+        btn.classList.remove('text-slate-600');
+
+        // Filter list items
+        if (filterType === 'all') {
+          containerDaratan?.classList.remove('hidden');
+          containerKepulauan?.classList.remove('hidden');
+        } else if (filterType === 'daratan') {
+          containerDaratan?.classList.remove('hidden');
+          containerKepulauan?.classList.add('hidden');
+        } else if (filterType === 'kepulauan') {
+          containerDaratan?.classList.add('hidden');
+          containerKepulauan?.classList.remove('hidden');
+        }
+
+        // Adjust map view & markers
+        if (filterType === 'daratan') {
+          mapInstance.flyTo([-6.9950, 113.8650], 11, { duration: 1 });
+        } else if (filterType === 'kepulauan') {
+          mapInstance.flyTo([-6.9500, 115.0000], 9, { duration: 1 });
+        } else {
+          mapInstance.flyTo(sumenepCenter, 10, { duration: 1 });
+        }
+      });
+    });
+
+    // "📍 Peta" buttons on cards
+    document.querySelectorAll<HTMLButtonElement>('.btn-fly-zone').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lat = Number(btn.getAttribute('data-lat'));
+        const lng = Number(btn.getAttribute('data-lng'));
+        const slug = btn.getAttribute('data-slug');
+
+        if (mapInstance && !isNaN(lat) && !isNaN(lng)) {
+          mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          mapInstance.flyTo([lat, lng], 13, { duration: 1.2 });
+
+          setTimeout(() => {
+            const marker = markersMap.get(slug || '');
+            if (marker) marker.openPopup();
+          }, 1300);
+        }
+      });
+    });
+  }
+
+  // Handle Tab Switch to #zones: Leaflet needs invalidateSize() when unhidden
+  window.addEventListener('hashchange', () => {
+    if (window.location.hash === '#zones') {
+      setTimeout(() => {
+        if (!mapInstance) {
+          initZonesMap();
+        } else {
+          mapInstance.invalidateSize();
+        }
+      }, 100);
+    }
+  });
+
+  document.querySelectorAll('[data-admin-tab="zones"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      setTimeout(() => {
+        if (!mapInstance) {
+          initZonesMap();
+        } else {
+          mapInstance.invalidateSize();
+        }
+      }, 100);
+    });
+  });
+
+  // Init if loaded directly on #zones or after DOMContentLoaded
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      setTimeout(initZonesMap, 300);
+    });
+  } else {
+    setTimeout(initZonesMap, 300);
+  }
+</script>

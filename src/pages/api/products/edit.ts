@@ -19,7 +19,28 @@ export const POST: APIRoute = async ({ request }) => {
     const price = Number(formData.get('price'));
     const category = formData.get('category')?.toString().trim() || 'Makanan & Minuman';
     const description = formData.get('description')?.toString().trim();
-    const shopeeUrl = formData.get('shopeeUrl')?.toString().trim() || undefined;
+    const shopeeUrl = formData.get('shopeeUrl')?.toString()?.trim() || undefined;
+    const stockStatus = formData.get('stockStatus')?.toString()?.trim() || undefined;
+    const productionCapacity = formData.get('productionCapacity')?.toString()?.trim() || undefined;
+    const rawOrigPrice = formData.get('originalPrice')?.toString()?.trim();
+    const originalPrice = rawOrigPrice ? Number(rawOrigPrice) : undefined;
+    const galleryJson = formData.get('galleryImages')?.toString()?.trim();
+    let galleryImages: string[] | undefined = undefined;
+    if (galleryJson !== undefined && galleryJson !== '') {
+      try {
+        const parsed = JSON.parse(galleryJson);
+        if (Array.isArray(parsed)) {
+          galleryImages = await Promise.all(
+            parsed.map(async (item: string) => {
+              if (typeof item === 'string' && item.startsWith('data:image')) {
+                return await saveUploadedImage({ imageBase64: item });
+              }
+              return item;
+            })
+          );
+        }
+      } catch (_) {}
+    }
 
     if (!productId || !name || !price) {
       return new Response(JSON.stringify({ success: false, message: 'ID produk, nama, dan harga wajib diisi.' }), {
@@ -39,10 +60,14 @@ export const POST: APIRoute = async ({ request }) => {
     const success = await updateProduct(productId, user.umkm.id, {
       name,
       price,
+      originalPrice,
       category,
       imageUrl,
+      galleryImages,
       description,
       shopeeUrl,
+      stockStatus,
+      productionCapacity,
     });
 
     if (!success) {

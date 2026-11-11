@@ -41,6 +41,7 @@ export async function getNeonAuthUser(cookieHeader: string | null): Promise<{
   const neonToken =
     cookies['__Secure-neon-auth.session_token'] ||
     cookies['neon_auth.session_token'] ||
+    cookies['neon-auth.session_token'] ||
     cookies['better-auth.session_token'];
 
   if (!neonToken) return null;
@@ -49,11 +50,31 @@ export async function getNeonAuthUser(cookieHeader: string | null): Promise<{
   if (!baseUrl) return null;
 
   try {
+    const cookieMap = new Map<string, string>();
+    if (cookieHeader) {
+      cookieHeader.split(';').forEach((part) => {
+        const eqIdx = part.indexOf('=');
+        if (eqIdx !== -1) {
+          const name = part.slice(0, eqIdx).trim();
+          const val = part.slice(eqIdx + 1).trim();
+          if (name) cookieMap.set(name, val);
+        }
+      });
+      for (const [name, val] of Array.from(cookieMap.entries())) {
+        if (name.startsWith('neon-auth.') || name.startsWith('neon_auth.')) {
+          const suffix = name.replace(/^neon[-_]auth\./, '');
+          cookieMap.set(`__Secure-neon-auth.${suffix}`, val);
+        }
+      }
+    }
+    const upstreamCookie = Array.from(cookieMap.entries()).map(([k, v]) => `${k}=${v}`).join('; ');
+
     const res = await fetch(`${baseUrl}/get-session`, {
       method: 'GET',
       headers: {
-        Cookie: cookieHeader,
+        Cookie: upstreamCookie,
         Origin: 'https://mamasar.vercel.app',
+        'x-neon-auth-middleware': 'true',
       },
     });
 

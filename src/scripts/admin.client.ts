@@ -37,7 +37,7 @@ export function initAdminClient() {
     });
 
     const currentHash = window.location.hash.replace('#', '');
-    if (['agents', 'stores', 'entry', 'events', 'zones'].includes(currentHash)) {
+    if (['agents', 'stores', 'entry', 'events', 'promotions', 'zones'].includes(currentHash)) {
       switchTab(currentHash);
     }
   }
@@ -317,63 +317,375 @@ export function initAdminClient() {
     });
   });
 
-  // --- JEMPUT BOLA ENTRY (CAMERA COMPRESSION & PRODUCT SUBMISSION) ---
+  // --- JEMPUT BOLA ENTRY (2-STEP FLOW) ---
+  const step1Indicator = document.getElementById('step1-indicator');
+  const step1Badge = document.getElementById('step1-badge');
+  const step2Indicator = document.getElementById('step2-indicator');
+  const step2Badge = document.getElementById('step2-badge');
+  const step2Title = document.getElementById('step2-title');
+  const step2Desc = document.getElementById('step2-desc');
+
+  const step1Container = document.getElementById('jemput-step-1');
+  const step2Container = document.getElementById('jemput-step-2');
+  const jemputAlertBox = document.getElementById('jemput-alert-box');
+
+  const btnModeNewStore = document.getElementById('btn-mode-new-store');
+  const btnModeExistingStore = document.getElementById('btn-mode-existing-store');
+  const formStep1Store = document.getElementById('form-petugas-step1-store') as HTMLFormElement | null;
+  const sectionChooseExistingStore = document.getElementById('section-choose-existing-store');
+  const selectExistingStore = document.getElementById('select-existing-store') as HTMLSelectElement | null;
+  const btnUseExistingStore = document.getElementById('btn-use-existing-store');
+  const btnSubmitStep1 = document.getElementById('btn-submit-step1') as HTMLButtonElement | null;
+
+  const activeStoreName = document.getElementById('active-store-name');
+  const activeStoreZone = document.getElementById('active-store-zone');
+  const activeStorePhone = document.getElementById('active-store-phone');
+  const sessionProductCounter = document.getElementById('session-product-counter');
+  const btnBackToStep1 = document.getElementById('btn-back-to-step1');
+
+  const formStep2Product = document.getElementById('form-petugas-step2-product') as HTMLFormElement | null;
+  const step2UmkmIdInput = document.getElementById('step2UmkmId') as HTMLInputElement | null;
   const cameraInput = document.getElementById('petugas-camera-input') as HTMLInputElement | null;
+  const galleryInput = document.getElementById('petugas-gallery-input') as HTMLInputElement | null;
   const base64Input = document.getElementById('entryImageBase64') as HTMLInputElement | null;
+  const galleryImagesInput = document.getElementById('entryGalleryImages') as HTMLInputElement | null;
   const compressInfo = document.getElementById('petugas-compress-info');
-  const entryForm = document.getElementById('petugas-entry-form') as HTMLFormElement | null;
+  const photosGrid = document.getElementById('petugas-photos-grid');
+  const photoCounter = document.getElementById('petugas-photo-counter');
+  const uploadBoxes = document.getElementById('petugas-upload-boxes');
   const btnSaveAndAddMore = document.getElementById('btn-save-and-add-more');
-  let keepStore = false;
+  const btnSubmitStep2 = document.getElementById('btn-submit-step2') as HTMLButtonElement | null;
 
-  cameraInput?.addEventListener('change', () => {
-    const file = cameraInput.files?.[0];
-    if (!file) return;
+  let currentStore: { id: number; name: string; phone: string; zoneName: string } | null = null;
+  let sessionProductCount = 0;
+  let petugasPhotos: string[] = [];
+  let isAddMoreMode = false;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const maxDim = 1200;
-        let w = img.width;
-        let h = img.height;
-        if (w > maxDim || h > maxDim) {
-          if (w > h) {
-            h = Math.round((h * maxDim) / w);
-            w = maxDim;
-          } else {
-            w = Math.round((w * maxDim) / h);
-            h = maxDim;
-          }
-        }
-        canvas.width = w;
-        canvas.height = h;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, w, h);
-        const compressed = canvas.toDataURL('image/jpeg', 0.82);
-        if (base64Input) base64Input.value = compressed;
-        if (compressInfo) compressInfo.textContent = '✓ Foto berhasil terkompresi otomatis.';
-      };
-      img.src = e.target?.result as string;
-    };
-    reader.readAsDataURL(file);
+  function showJemputAlert(msg: string, isError = false) {
+    if (!jemputAlertBox) return;
+    jemputAlertBox.textContent = msg;
+    jemputAlertBox.classList.remove('hidden', 'bg-rose-50', 'text-rose-900', 'border-rose-200', 'bg-emerald-50', 'text-emerald-950', 'border-emerald-200');
+    if (isError) {
+      jemputAlertBox.classList.add('bg-rose-50', 'text-rose-900', 'border', 'border-rose-200');
+    } else {
+      jemputAlertBox.classList.add('bg-emerald-50', 'text-emerald-950', 'border', 'border-emerald-200');
+    }
+    jemputAlertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function goToStep1() {
+    step1Container?.classList.remove('hidden');
+    step2Container?.classList.add('hidden');
+
+    // Step 1 Active Indicator
+    step1Indicator?.classList.remove('bg-emerald-50', 'border-emerald-200', 'shadow-none');
+    step1Indicator?.classList.add('bg-emerald-50', 'border-2', 'border-emerald-500', 'shadow-2xs');
+    if (step1Badge) {
+      step1Badge.textContent = '1';
+      step1Badge.className = 'w-7 h-7 rounded-full bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';
+    }
+
+    // Step 2 Inactive Indicator
+    step2Indicator?.classList.remove('bg-emerald-50', 'border-2', 'border-emerald-500', 'shadow-2xs');
+    step2Indicator?.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-400');
+    if (step2Badge) {
+      step2Badge.className = 'w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-black text-xs shrink-0';
+    }
+    if (step2Title) step2Title.className = 'text-xs font-bold leading-tight text-slate-600';
+    if (step2Desc) step2Desc.className = 'text-[11px] text-slate-400 font-medium truncate mt-0.5';
+  }
+
+  function goToStep2(store: { id: number; name: string; phone: string; zoneName: string; ranting?: string }) {
+    currentStore = store;
+    if (step2UmkmIdInput) step2UmkmIdInput.value = String(store.id);
+    if (activeStoreName) activeStoreName.textContent = store.name;
+    if (activeStoreZone) {
+      activeStoreZone.textContent = store.ranting ? `${store.zoneName} • Ranting ${store.ranting}` : store.zoneName;
+    }
+    if (activeStorePhone) activeStorePhone.textContent = store.phone;
+
+    step1Container?.classList.add('hidden');
+    step2Container?.classList.remove('hidden');
+
+    // Step 1 Completed Indicator
+    step1Indicator?.classList.remove('border-2', 'border-emerald-500', 'shadow-2xs');
+    step1Indicator?.classList.add('bg-emerald-50/60', 'border', 'border-emerald-200');
+    if (step1Badge) {
+      step1Badge.textContent = '✓';
+      step1Badge.className = 'w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-xs shrink-0';
+    }
+
+    // Step 2 Active Indicator
+    step2Indicator?.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-400');
+    step2Indicator?.classList.add('bg-emerald-50', 'border-2', 'border-emerald-500', 'shadow-2xs');
+    if (step2Badge) {
+      step2Badge.className = 'w-7 h-7 rounded-full bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';
+    }
+    if (step2Title) step2Title.className = 'text-xs font-black leading-tight text-emerald-950';
+    if (step2Desc) step2Desc.className = 'text-[11px] text-emerald-700 font-medium truncate mt-0.5';
+
+    step2Container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  // Toggle Step 1 Mode: Daftarkan Baru vs Pilih Terdaftar
+  btnModeNewStore?.addEventListener('click', () => {
+    btnModeNewStore.classList.add('bg-white', 'text-slate-900', 'shadow-2xs');
+    btnModeNewStore.classList.remove('text-slate-600');
+    btnModeExistingStore?.classList.remove('bg-white', 'text-slate-900', 'shadow-2xs');
+    btnModeExistingStore?.classList.add('text-slate-600');
+
+    formStep1Store?.classList.remove('hidden');
+    sectionChooseExistingStore?.classList.add('hidden');
   });
 
-  btnSaveAndAddMore?.addEventListener('click', () => {
-    keepStore = true;
-    entryForm?.requestSubmit();
+  btnModeExistingStore?.addEventListener('click', () => {
+    btnModeExistingStore.classList.add('bg-white', 'text-slate-900', 'shadow-2xs');
+    btnModeExistingStore.classList.remove('text-slate-600');
+    btnModeNewStore?.classList.remove('bg-white', 'text-slate-900', 'shadow-2xs');
+    btnModeNewStore?.classList.add('text-slate-600');
+
+    formStep1Store?.classList.add('hidden');
+    sectionChooseExistingStore?.classList.remove('hidden');
   });
 
-  entryForm?.addEventListener('submit', async (e) => {
+  // Step 1: Submit Form Daftarkan Toko Baru
+  formStep1Store?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = document.getElementById('btn-submit-entry') as HTMLButtonElement | null;
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = 'Menyimpan Produk...';
+    if (btnSubmitStep1) {
+      btnSubmitStep1.disabled = true;
+      btnSubmitStep1.innerHTML = '<span>Menyimpan Toko...</span>';
     }
 
     try {
-      const formData = new FormData(entryForm);
+      const formData = new FormData(formStep1Store);
+      const res = await fetch('/api/umkm/create', {
+        method: 'POST',
+        body: formData,
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success && data.store) {
+        showJemputAlert(data.message || 'Toko berhasil disimpan! Lanjut daftarkan produk untuk toko ini.', false);
+        goToStep2(data.store);
+      } else {
+        showJemputAlert(data.message || 'Gagal mendaftarkan toko.', true);
+      }
+    } catch (err: any) {
+      showJemputAlert(err.message || 'Terjadi gangguan jaringan saat menyimpan toko.', true);
+    } finally {
+      if (btnSubmitStep1) {
+        btnSubmitStep1.disabled = false;
+        btnSubmitStep1.innerHTML = '<span>Lanjut ke Step 2: Daftarkan Produk</span><span>➔</span>';
+      }
+    }
+  });
+
+  // Step 1: Choose Existing Store
+  btnUseExistingStore?.addEventListener('click', () => {
+    if (!selectExistingStore || !selectExistingStore.value) {
+      showJemputAlert('Silakan pilih salah satu toko UMKM terlebih dahulu.', true);
+      return;
+    }
+
+    const selectedOpt = selectExistingStore.options[selectExistingStore.selectedIndex];
+    const storeId = Number(selectExistingStore.value);
+    const storeName = selectedOpt.getAttribute('data-name') || 'Toko UMKM';
+    const storePhone = selectedOpt.getAttribute('data-phone') || '';
+    const storeZone = selectedOpt.getAttribute('data-zone') || '';
+
+    showJemputAlert(`Toko "${storeName}" dipilih. Silakan masukkan produk untuk toko ini.`, false);
+    goToStep2({
+      id: storeId,
+      name: storeName,
+      phone: storePhone,
+      zoneName: storeZone,
+    });
+  });
+
+  // Return to Step 1 Button
+  btnBackToStep1?.addEventListener('click', () => {
+    goToStep1();
+  });
+
+  // Step 2: Multi-Photo Handling & Compression
+  function syncPetugasPhotos() {
+    if (petugasPhotos.length > 0) {
+      if (base64Input) base64Input.value = petugasPhotos[0];
+      if (galleryImagesInput) galleryImagesInput.value = JSON.stringify(petugasPhotos.slice(1));
+    } else {
+      if (base64Input) base64Input.value = '';
+      if (galleryImagesInput) galleryImagesInput.value = '[]';
+    }
+
+    if (photoCounter) {
+      photoCounter.textContent = `${petugasPhotos.length} dari 4 foto dipilih`;
+    }
+
+    if (uploadBoxes) {
+      if (petugasPhotos.length >= 4) {
+        uploadBoxes.classList.add('hidden');
+      } else {
+        uploadBoxes.classList.remove('hidden');
+      }
+    }
+
+    renderPetugasPhotosGrid();
+  }
+
+  function renderPetugasPhotosGrid() {
+    if (!photosGrid) return;
+    photosGrid.innerHTML = '';
+
+    petugasPhotos.forEach((dataUrl, idx) => {
+      const item = document.createElement('div');
+      item.className = 'relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-square flex items-center justify-center';
+
+      const img = document.createElement('img');
+      img.src = dataUrl;
+      img.alt = `Foto ${idx + 1}`;
+      img.className = 'w-full h-full object-cover';
+      item.appendChild(img);
+
+      const badge = document.createElement('span');
+      badge.className = `absolute bottom-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs ${
+        idx === 0 ? 'bg-emerald-700 text-white' : 'bg-slate-900/80 text-white backdrop-blur-xs'
+      }`;
+      badge.textContent = idx === 0 ? 'Foto Utama' : `Foto ${idx + 1}`;
+      item.appendChild(badge);
+
+      const removeBtn = document.createElement('button');
+      removeBtn.type = 'button';
+      removeBtn.className = 'absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center shadow-sm cursor-pointer transition';
+      removeBtn.textContent = '✕';
+      removeBtn.onclick = (e) => {
+        e.preventDefault();
+        petugasPhotos.splice(idx, 1);
+        syncPetugasPhotos();
+      };
+      item.appendChild(removeBtn);
+
+      photosGrid.appendChild(item);
+    });
+  }
+
+  function compressPetugasImage(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const maxDim = 1200;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.82));
+        };
+        img.onerror = reject;
+        img.src = e.target?.result as string;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function handlePetugasPhotoFiles(files: FileList | null) {
+    if (!files || files.length === 0) return;
+    const remainingSlots = 4 - petugasPhotos.length;
+    if (remainingSlots <= 0) {
+      showJemputAlert('Maksimal 4 foto per produk telah tercapai.', true);
+      return;
+    }
+
+    const filesToProcess = Array.from(files).slice(0, remainingSlots);
+    if (compressInfo) {
+      compressInfo.textContent = `Mengompres ${filesToProcess.length} foto otomatis...`;
+      compressInfo.classList.remove('hidden');
+    }
+
+    for (const file of filesToProcess) {
+      try {
+        const dataUrl = await compressPetugasImage(file);
+        if (petugasPhotos.length < 4) {
+          petugasPhotos.push(dataUrl);
+        }
+      } catch (err) {
+        console.error('Failed to compress image:', err);
+      }
+    }
+
+    if (compressInfo) compressInfo.classList.add('hidden');
+    syncPetugasPhotos();
+  }
+
+  cameraInput?.addEventListener('change', () => {
+    handlePetugasPhotoFiles(cameraInput.files);
+    cameraInput.value = '';
+  });
+
+  galleryInput?.addEventListener('change', () => {
+    handlePetugasPhotoFiles(galleryInput.files);
+    galleryInput.value = '';
+  });
+
+  function resetStep2ProductForm() {
+    if (formStep2Product) {
+      const nameInput = document.getElementById('productName') as HTMLInputElement | null;
+      const priceInput = document.getElementById('prodPrice') as HTMLInputElement | null;
+      const origPriceInput = document.getElementById('prodOriginalPrice') as HTMLInputElement | null;
+      const shopeeInput = document.getElementById('prodShopee') as HTMLInputElement | null;
+      const capacityInput = document.getElementById('prodProductionCapacity') as HTMLInputElement | null;
+      const descInput = document.getElementById('prodDesc') as HTMLTextAreaElement | null;
+
+      if (nameInput) nameInput.value = '';
+      if (priceInput) priceInput.value = '';
+      if (origPriceInput) origPriceInput.value = '';
+      if (shopeeInput) shopeeInput.value = '';
+      if (capacityInput) capacityInput.value = '';
+      if (descInput) descInput.value = '';
+
+      petugasPhotos = [];
+      syncPetugasPhotos();
+    }
+  }
+
+  btnSaveAndAddMore?.addEventListener('click', () => {
+    isAddMoreMode = true;
+    formStep2Product?.requestSubmit();
+  });
+
+  btnSubmitStep2?.addEventListener('click', () => {
+    isAddMoreMode = false;
+  });
+
+  // Step 2: Submit Product for Active Store
+  formStep2Product?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!currentStore || !step2UmkmIdInput?.value) {
+      showJemputAlert('Toko aktif belum dipilih. Silakan kembali ke Step 1.', true);
+      goToStep1();
+      return;
+    }
+
+    const activeBtn = isAddMoreMode ? btnSaveAndAddMore : btnSubmitStep2;
+    if (activeBtn) {
+      activeBtn.setAttribute('disabled', 'true');
+    }
+
+    try {
+      const formData = new FormData(formStep2Product);
       const res = await fetch('/api/products', {
         method: 'POST',
         body: formData,
@@ -381,35 +693,85 @@ export function initAdminClient() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        notify('Alhamdulillah! Produk berhasil diterbitkan ke katalog Pasar NU.');
+        sessionProductCount += 1;
+        if (sessionProductCounter) {
+          sessionProductCounter.textContent = `${sessionProductCount} produk tersimpan sesi ini`;
+        }
 
-        if (keepStore) {
+        if (isAddMoreMode) {
+          showJemputAlert(`Alhamdulillah! Produk berhasil ditambahkan untuk ${currentStore.name}. Silakan isi produk berikutnya untuk toko ini.`, false);
+          resetStep2ProductForm();
           const nameInput = document.getElementById('productName') as HTMLInputElement | null;
-          const priceInput = document.getElementById('prodPrice') as HTMLInputElement | null;
-          const descInput = document.getElementById('prodDesc') as HTMLTextAreaElement | null;
-          if (nameInput) nameInput.value = '';
-          if (priceInput) priceInput.value = '';
-          if (descInput) descInput.value = '';
-          if (base64Input) base64Input.value = '';
-          if (cameraInput) cameraInput.value = '';
-          if (compressInfo) compressInfo.textContent = '';
-          keepStore = false;
+          nameInput?.focus();
         } else {
-          entryForm.reset();
-          if (base64Input) base64Input.value = '';
-          if (compressInfo) compressInfo.textContent = '';
+          showJemputAlert(`Alhamdulillah! Produk berhasil diterbitkan ke katalog Mamasar.`, false);
+          resetStep2ProductForm();
+          setTimeout(() => {
+            if (confirm('Produk berhasil diterbitkan! Ingin melihat halaman produk di tab baru?')) {
+              window.open(`/p/${data.slug}`, '_blank');
+            }
+          }, 300);
         }
       } else {
-        notify(data.message || 'Gagal menerbitkan iklan produk.', true);
+        showJemputAlert(data.message || 'Gagal menerbitkan produk.', true);
       }
     } catch (err: any) {
-      notify(err.message || 'Terjadi kesalahan jaringan.', true);
+      showJemputAlert(err.message || 'Terjadi gangguan jaringan.', true);
     } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Terbitkan Iklan Produk ➔';
+      if (activeBtn) {
+        activeBtn.removeAttribute('disabled');
       }
     }
+  });
+
+  // Review Promotion Orders (Approve / Reject)
+  document.querySelectorAll<HTMLButtonElement>('[data-action="review-promo"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const orderId = btn.getAttribute('data-order-id');
+      const decision = btn.getAttribute('data-decision');
+      if (!orderId || !decision) return;
+
+      let reason: string | undefined = undefined;
+      if (decision === 'reject') {
+        const inputReason = prompt('Masukkan alasan penolakan pesanan promosi iklan:', 'Bukti transfer tidak sesuai atau tidak terbaca');
+        if (inputReason === null) return;
+        reason = inputReason.trim();
+      } else {
+        if (!confirm('Setujui bukti pembayaran dan aktifkan promosi iklan ini sekarang?')) {
+          return;
+        }
+      }
+
+      btn.disabled = true;
+      const originalText = btn.textContent;
+      btn.textContent = 'Memproses...';
+
+      try {
+        const formData = new FormData();
+        formData.append('orderId', orderId);
+        formData.append('action', decision);
+        if (reason) formData.append('reason', reason);
+
+        const res = await fetch('/api/promotions/review', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          notify(data.message || 'Berhasil memproses pesanan iklan.');
+          setTimeout(() => window.location.reload(), 900);
+        } else {
+          notify(data.message || 'Gagal memproses pesanan.', true);
+          btn.disabled = false;
+          btn.textContent = originalText;
+        }
+      } catch (err: any) {
+        notify('Kendala jaringan: ' + err.message, true);
+        btn.disabled = false;
+        btn.textContent = originalText;
+      }
+    });
   });
 
   initTabs();

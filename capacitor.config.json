@@ -1,6 +1,6 @@
 {
   "appId": "id.or.nusumenep.mamasar",
-  "appName": "Pasar Warga NU",
+  "appName": "Mamasar",
   "webDir": "dist/client",
   "bundledWebRuntime": false,
   "server": {
@@ -13,7 +13,7 @@
     ]
   },
   "android": {
-    "allowMixedContent": true,
+    "allowMixedContent": false,
     "captureInput": true,
     "webContentsDebuggingEnabled": false
   },

@@ -9,6 +9,7 @@ import {
   getUMKMForVerification,
   getAllZones,
   getEvents,
+  getAllPendingAdOrders,
 } from '../../lib/db';
 
 import AdminSidebar from '../../components/admin/AdminSidebar.astro';
@@ -17,9 +18,10 @@ import StoresPanel from '../../components/admin/StoresPanel.astro';
 import EntryPanel from '../../components/admin/EntryPanel.astro';
 import EventsPanel from '../../components/admin/EventsPanel.astro';
 import ZonesPanel from '../../components/admin/ZonesPanel.astro';
+import PromotionsPanel from '../../components/admin/PromotionsPanel.astro';
 
 const user = await resolveUser(Astro.request);
-const isSuper = !!user && (isSuperadmin(user) || user.role === 'pengurus');
+const isSuper = !!user && isSuperadmin(user);
 const isCadre = !!user && isPetugas(user);
 
 // Proteksi akses: Khusus semua role selain warga (superadmin, pengurus, atau petugas aktif)
@@ -45,10 +47,11 @@ const events = isSuper
 
 const pendingStores = stores.filter((s) => !s.is_verified);
 const verifiedStores = stores.filter((s) => s.is_verified);
+const pendingPromotions = await getAllPendingAdOrders();
 ---
 
 <AppLayout
-  title={isSuper ? "Pusat Kendali Admin PCNU | Pasar Warga NU Sumenep" : `Portal Petugas MWC ${assignedZone?.name || 'Sumenep'} | Pasar NU`}
+  title={isSuper ? "Pusat Kendali Admin PCNU | Mamasar" : `Portal Petugas MWC ${assignedZone?.name || 'Sumenep'} | Mamasar`}
   description="Panel kendali operasional terpadu PCNU untuk persetujuan petugas lapangan MWC, moderasi toko, dan pendataan UMKM jemput bola."
 >
   <div class="min-h-screen bg-white flex flex-col md:flex-row">
@@ -60,10 +63,13 @@ const verifiedStores = stores.filter((s) => s.is_verified);
       pendingPetugasCount={pendingPetugas.length}
       pendingStoresCount={pendingStores.length}
       zonesCount={zones.length}
+      pendingPromotionsCount={pendingPromotions.length}
     />
 
     <!-- Workspace Utama Admin / Petugas (Fullwidth & Compact) -->
     <main class="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 w-full space-y-6">
+      <h1 class="sr-only">{isSuper ? 'Pusat Kendali Admin PCNU Sumenep' : `Portal Petugas MWC ${assignedZone?.name || 'Sumenep'}`}</h1>
+
       <!-- Status Box Fallback -->
       <div id="admin-status-box" class="hidden mb-4 p-2.5 rounded-lg text-xs font-semibold"></div>
 
@@ -73,14 +79,17 @@ const verifiedStores = stores.filter((s) => s.is_verified);
       <!-- Tab: Kurasi & Moderasi Toko Warga -->
       <StoresPanel pendingStores={pendingStores} verifiedStores={verifiedStores} />
 
-      <!-- Tab: Pendataan Jemput Bola (Formulir Kamera & Entri Lapangan) -->
-      <EntryPanel user={user} assignedZone={assignedZone} zones={zones} isDefaultActive={!isSuper} />
+      <!-- Tab: Pendataan Jemput Bola (Formulir Kamera & Entri Lapangan 2-Step) -->
+      <EntryPanel user={user} assignedZone={assignedZone} zones={zones} stores={stores} isDefaultActive={!isSuper} />
 
       <!-- Tab: Agenda Kegiatan NU & Pasar Konsumsi -->
       <EventsPanel events={events} zones={zones} />
 
-      <!-- Tab: Sebaran Wilayah 27 MWC NU Sumenep (Khusus Superadmin) -->
-      {isSuper && <ZonesPanel zones={zones} />}
+      <!-- Tab: Moderasi Iklan & Promosi Berbayar -->
+      <PromotionsPanel pendingPromotions={pendingPromotions} />
+
+      <!-- Tab: Sebaran Wilayah 27 MWC NU Sumenep (Peta Sebaran Maps) -->
+      <ZonesPanel zones={zones} allStores={allStores} />
     </main>
   </div>
 

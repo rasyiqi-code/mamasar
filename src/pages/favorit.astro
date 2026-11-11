@@ -44,7 +44,7 @@ function formatRupiah(amount: number) {
 ---
 
 <Layout
-  title="Iklan Produk Favorit Tersimpan | Pasar Warga NU Sumenep"
+  title="Iklan Produk Favorit Tersimpan | Mamasar Sumenep"
   description="Daftar produk UMKM Nahdliyin yang Anda simpan untuk dibeli atau dihubungi via WhatsApp."
 >
   <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
@@ -96,7 +96,7 @@ function formatRupiah(amount: number) {
       {serverFavorites.map((p) => {
         const formattedPrice = formatRupiah(p.price);
         const waMsg = encodeURIComponent(
-          `Halo *${p.umkm_name}*, saya tertarik dengan produk Anda di Pasar Warga NU Sumenep:\n📦 *${p.name}* (${formattedPrice})\nApakah barang masih tersedia?`
+          `Halo *${p.umkm_name}*, saya tertarik dengan produk Anda di Mamasar:\n📦 *${p.name}* (${formattedPrice})\nApakah barang masih tersedia?`
         );
         return (
           <div
@@ -205,7 +205,7 @@ function formatRupiah(amount: number) {
     function createFavCard(p) {
       const formattedPrice = formatPriceIDR(p.price);
       const waMsg = encodeURIComponent(
-        'Halo *' + (p.umkm_name || 'Penjual') + '*, saya tertarik dengan produk Anda di Pasar Warga NU Sumenep:\n📦 *' +
+        'Halo *' + (p.umkm_name || 'Penjual') + '*, saya tertarik dengan produk Anda di Mamasar:\n📦 *' +
           p.name +
           '* (' +
           formattedPrice +

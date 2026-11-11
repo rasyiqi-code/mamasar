@@ -51,13 +51,12 @@ const {
   </div>
 
   <div class="flex items-center gap-2">
-    <button
-      type="button"
-      data-open-modal="add-product"
-      class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg cursor-pointer shrink-0 transition"
+    <a
+      href="/pasang-iklan"
+      class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shrink-0 transition flex items-center gap-1"
     >
       + Produk
-    </button>
+    </a>
   </div>
 </div>
 
@@ -77,7 +76,7 @@ const {
           {store.name.slice(0, 2).toUpperCase()}
         </div>
         <div class="min-w-0">
-          <h1 class="text-xs font-bold text-slate-900 truncate" title={store.name}>{store.name}</h1>
+          <div class="text-xs font-bold text-slate-900 truncate" title={store.name}>{store.name}</div>
           <div class="flex items-center gap-1.5 pt-0.5">
             {store.is_verified ? (
               <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">

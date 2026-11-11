@@ -30,7 +30,14 @@ export const GET: APIRoute = async ({ request }) => {
     <priority>0.9</priority>
   </url>
 
-  <!-- Direktori Pasar Kegiatan NU -->
+  <!-- Pasang Iklan -->
+  <url>
+    <loc>${siteUrl}/pasang-iklan</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Direktori Kegiatan & Konsumsi -->
   <url>
     <loc>${siteUrl}/kegiatan</loc>
     <changefreq>daily</changefreq>
@@ -44,7 +51,7 @@ export const GET: APIRoute = async ({ request }) => {
     <priority>0.8</priority>
   </url>
 
-  <!-- Jadwal Kegiatan & Pasar NU -->
+  <!-- Jadwal Kegiatan & Konsumsi Mamasar -->
   ${events
     .map(
       (e) => `

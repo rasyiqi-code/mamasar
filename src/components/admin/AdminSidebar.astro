@@ -5,12 +5,14 @@ interface Props {
     name: string;
     email: string;
     avatar_url?: string | null;
+    agent_ranting?: string | null;
   };
   isSuper?: boolean;
   assignedZoneName?: string;
   pendingPetugasCount: number;
   pendingStoresCount: number;
   zonesCount: number;
+  pendingPromotionsCount?: number;
 }
 
 const {
@@ -20,6 +22,7 @@ const {
   pendingPetugasCount,
   pendingStoresCount,
   zonesCount,
+  pendingPromotionsCount = 0,
 } = Astro.props;
 ---
 
@@ -38,7 +41,7 @@ const {
     </button>
     <div class="min-w-0">
       <h2 class="text-xs font-bold text-slate-900 truncate">
-        {isSuper ? 'Pusat Kendali PCNU' : `Petugas MWC ${assignedZoneName}`}
+        {isSuper ? 'Pusat Kendali PCNU' : user.agent_ranting ? `Kader Ranting ${user.agent_ranting}` : `Kader MWC ${assignedZoneName}`}
       </h2>
       <p class="text-[10px] text-slate-500 truncate">{user.name}</p>
     </div>
@@ -70,11 +73,11 @@ const {
           PCNU
         </div>
         <div class="min-w-0">
-          <h1 class="text-xs font-bold text-slate-900 truncate">
-            {isSuper ? 'Konsol Admin PCNU' : `Petugas MWC`}
-          </h1>
+          <div class="text-xs font-bold text-slate-900 truncate">
+            {isSuper ? 'Konsol Admin PCNU' : user.agent_ranting ? `Kader Ranting ${user.agent_ranting}` : `Kader MWC`}
+          </div>
           <p class="text-[10px] text-slate-500 truncate">
-            {isSuper ? 'Sumenep' : `Kecamatan ${assignedZoneName}`}
+            {isSuper ? 'Sumenep' : `MWC ${assignedZoneName}`}
           </p>
         </div>
       </div>
@@ -178,21 +181,39 @@ const {
         <span>Agenda Kegiatan</span>
       </button>
 
-      {isSuper && (
-        <button
-          type="button"
-          data-admin-tab="zones"
-          class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
-        >
-          <div class="flex items-center gap-2.5">
-            <span class="text-sm">📍</span>
-            <span>Sebaran Wilayah</span>
-          </div>
-          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-            {zonesCount}
+      <button
+        type="button"
+        data-admin-tab="promotions"
+        class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+      >
+        <div class="flex items-center gap-2.5">
+          <span class="text-sm">⭐</span>
+          <span>Iklan & Promosi</span>
+        </div>
+        {pendingPromotionsCount > 0 ? (
+          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-950">
+            {pendingPromotionsCount}
           </span>
-        </button>
-      )}
+        ) : (
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+            0
+          </span>
+        )}
+      </button>
+
+      <button
+        type="button"
+        data-admin-tab="zones"
+        class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+      >
+        <div class="flex items-center gap-2.5">
+          <span class="text-sm">🗺️</span>
+          <span>Peta Sebaran Wilayah</span>
+        </div>
+        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+          {zonesCount}
+        </span>
+      </button>
 
       <div class="pt-3 mt-2 border-t border-slate-200/60 space-y-1">
         <a
@@ -218,7 +239,7 @@ const {
         <div class="min-w-0">
           <span class="font-semibold text-slate-900 block truncate text-[11px]">{user.name}</span>
           <span class="text-[9px] text-slate-400 block truncate">
-            {isSuper ? 'Superadmin PCNU' : `Kader MWC ${assignedZoneName}`}
+            {isSuper ? 'Superadmin PCNU' : user.agent_ranting ? `Kader Ranting ${user.agent_ranting} • MWC ${assignedZoneName}` : `Kader MWC ${assignedZoneName}`}
           </span>
         </div>
         <a

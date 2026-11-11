@@ -1,11 +1,19 @@
 ---
+import AppIcon from '../common/AppIcon.astro';
+
 interface Props {
   store: {
     id: number;
     name: string;
     phone: string;
     zone_id: number;
+    ranting?: string | null;
     address?: string | null;
+    nib?: string | null;
+    halal_cert?: string | null;
+    pirt?: string | null;
+    bpom?: string | null;
+    other_legalities?: string | null;
   };
   zones: Array<{ id: number; name: string }>;
 }
@@ -13,89 +21,218 @@ interface Props {
 const { store, zones } = Astro.props;
 ---
 
-<section id="panel-profile" class="tab-panel hidden space-y-4">
-  <!-- Top Bar: Compact Header with Line Divider -->
+<section id="panel-profile" class="tab-panel hidden space-y-6">
+  <!-- Top Bar: Header with Store ID -->
   <div class="flex items-center justify-between pb-3 border-b border-slate-200">
     <div class="flex items-center gap-2.5">
-      <h1 class="text-base sm:text-lg font-bold text-slate-900">Profil & Data Toko</h1>
+      <h2 class="text-base sm:text-lg font-bold text-slate-900">Profil & Data Toko</h2>
       <span class="text-xs font-mono font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-600">
         ID #{store.id}
       </span>
     </div>
   </div>
 
-  <form id="edit-store-form" class="space-y-4 max-w-3xl">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="space-y-1">
-        <label for="editStoreName" class="block text-xs font-medium text-slate-700">
-          Nama Usaha / Toko <span class="text-rose-500">*</span>
-        </label>
-        <input
-          type="text"
-          id="editStoreName"
-          name="name"
-          value={store.name}
-          required
-          class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-        />
+  <form id="edit-store-form" class="space-y-6 max-w-3xl">
+    <!-- SECTION 1: Informasi Usaha & Kontak Dasar -->
+    <div class="space-y-4">
+      <div class="pb-1 border-b border-slate-100 flex items-center justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+          <AppIcon name="store" size="xs" class="text-slate-500" />
+          <span>Informasi Usaha & Kontak</span>
+        </h3>
+        <span class="text-[11px] text-slate-400">* Wajib diisi</span>
       </div>
 
-      <div class="space-y-1">
-        <label for="editStorePhone" class="block text-xs font-medium text-slate-700">
-          Nomor WhatsApp <span class="text-rose-500">*</span>
-        </label>
-        <input
-          type="tel"
-          id="editStorePhone"
-          name="phone"
-          value={store.phone}
-          required
-          class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
-        />
-      </div>
-    </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <label for="editStoreName" class="block text-xs font-medium text-slate-700">
+            Nama Usaha / Toko <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="editStoreName"
+            name="name"
+            value={store.name}
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="space-y-1">
-        <label for="editStoreZone" class="block text-xs font-medium text-slate-700">
-          Wilayah MWC NU <span class="text-rose-500">*</span>
-        </label>
-        <select
-          id="editStoreZone"
-          name="zoneId"
-          required
-          class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-medium text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
-        >
-          {zones.map((z) => (
-            <option value={z.id} selected={z.id === store.zone_id}>
-              {z.name}
-            </option>
-          ))}
-        </select>
+        <div class="space-y-1">
+          <label for="editStorePhone" class="block text-xs font-medium text-slate-700">
+            Nomor WhatsApp <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="tel"
+            id="editStorePhone"
+            name="phone"
+            value={store.phone}
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1">
+          <label for="editStoreZone" class="block text-xs font-medium text-slate-700">
+            Wilayah MWC NU (Kecamatan) <span class="text-rose-500">*</span>
+          </label>
+          <select
+            id="editStoreZone"
+            name="zoneId"
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-medium text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+          >
+            {zones.map((z) => (
+              <option value={z.id} selected={z.id === store.zone_id}>
+                {z.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label for="editStoreRanting" class="block text-xs font-medium text-slate-700">
+            Ranting NU (Desa / Kelurahan)
+          </label>
+          <input
+            type="text"
+            id="editStoreRanting"
+            name="ranting"
+            value={store.ranting || ''}
+            placeholder="Contoh: Gapura Barat / Paberasan / Pajagalan"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
       </div>
 
       <div class="space-y-1">
         <label for="editStoreAddress" class="block text-xs font-medium text-slate-700">
-          Alamat Lengkap
+          Alamat Lengkap Usaha / Dusun
         </label>
         <input
           type="text"
           id="editStoreAddress"
           name="address"
           value={store.address || ''}
-          placeholder="Contoh: Jl. Raya Gapura No. 12"
+          placeholder="Contoh: Jl. Raya Gapura No. 12, Dusun Karang Anyar"
           class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
         />
       </div>
     </div>
 
-    <div class="pt-2 border-t border-slate-100">
+    <!-- SECTION 2: Legalitas & Sertifikasi Usaha -->
+    <div class="space-y-4 pt-2">
+      <div class="pb-1 border-b border-slate-100 flex items-center justify-between">
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+            <AppIcon name="shield" size="xs" class="text-slate-500" />
+            <span>Legalitas & Izin Usaha</span>
+          </h3>
+          <p class="text-[11px] text-slate-500 mt-0.5">
+            Lengkapi nomor legalitas untuk memperkuat kredibilitas toko Anda di mata pembeli dan jejaring warga NU.
+          </p>
+        </div>
+        <span class="text-[11px] text-slate-400">Opsional</span>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- NIB (Nomor Induk Berusaha) -->
+        <div class="space-y-1">
+          <label for="editStoreNib" class="block text-xs font-medium text-slate-700">
+            Nomor Induk Berusaha (NIB OSS)
+          </label>
+          <input
+            type="text"
+            id="editStoreNib"
+            name="nib"
+            value={store.nib || ''}
+            placeholder="Contoh: 1234567890123"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+          <p class="text-[10px] text-slate-400">Nomor induk resmi dari sistem OSS Republik Indonesia.</p>
+        </div>
+
+        <!-- Sertifikat Halal -->
+        <div class="space-y-1">
+          <label for="editStoreHalal" class="block text-xs font-medium text-slate-700">
+            Sertifikat Halal (BPJPH / Kemenag)
+          </label>
+          <input
+            type="text"
+            id="editStoreHalal"
+            name="halalCert"
+            value={store.halal_cert || ''}
+            placeholder="Contoh: ID35110001234560723"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+          <p class="text-[10px] text-slate-400">Penting untuk komoditas olahan makanan, minuman, dan kosmetik.</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Izin P-IRT -->
+        <div class="space-y-1">
+          <label for="editStorePirt" class="block text-xs font-medium text-slate-700">
+            Izin Pangan Industri Rumah Tangga (P-IRT)
+          </label>
+          <input
+            type="text"
+            id="editStorePirt"
+            name="pirt"
+            value={store.pirt || ''}
+            placeholder="Contoh: P-IRT 2063529010123-26"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+          <p class="text-[10px] text-slate-400">Izin edar produk pangan olahan dari Dinas Kesehatan.</p>
+        </div>
+
+        <!-- Izin BPOM -->
+        <div class="space-y-1">
+          <label for="editStoreBpom" class="block text-xs font-medium text-slate-700">
+            Izin Edar BPOM (MD / ML)
+          </label>
+          <input
+            type="text"
+            id="editStoreBpom"
+            name="bpom"
+            value={store.bpom || ''}
+            placeholder="Contoh: BPOM MD 867012345678"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+          <p class="text-[10px] text-slate-400">Nomor registrasi resmi Badan Pengawas Obat dan Makanan.</p>
+        </div>
+      </div>
+
+      <!-- Legalitas Lainnya -->
+      <div class="space-y-1">
+        <label for="editStoreOtherLegalities" class="block text-xs font-medium text-slate-700">
+          Izin Tambahan / Legalitas Lainnya
+        </label>
+        <input
+          type="text"
+          id="editStoreOtherLegalities"
+          name="otherLegalities"
+          value={store.other_legalities || ''}
+          placeholder="Contoh: HAKI Merek Dagang IDM000123456, Surat Keterangan Usaha (SKU) Desa, atau NPWP Usaha"
+          class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
+        <p class="text-[10px] text-slate-400">Bisa mencakup sertifikat HAKI DJKI, SKU dari Kepala Desa, atau kelengkapan legalitas lainnya.</p>
+      </div>
+    </div>
+
+    <!-- Tombol Simpan -->
+    <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+      <p class="text-[11px] text-slate-400">
+        Data yang disimpan akan langsung diperbarui di halaman etalase toko Anda.
+      </p>
       <button
         type="submit"
         id="btn-submit-edit-store"
-        class="py-1.5 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded shadow-xs transition cursor-pointer"
+        class="py-2 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded shadow-xs transition cursor-pointer"
       >
-        Simpan Perubahan ➔
+        Simpan Profil & Legalitas Toko ➔
       </button>
     </div>
   </form>

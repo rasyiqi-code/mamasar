@@ -2,6 +2,7 @@
 import type { Product } from '../lib/db';
 import { formatRupiah, createProductWhatsAppUrl } from '../lib/utils';
 import { DEFAULT_PRODUCT_IMAGE } from '../lib/constants';
+import AppIcon from './common/AppIcon.astro';
 
 interface Props {
   product: Product;
@@ -28,6 +29,12 @@ const waLink = createProductWhatsAppUrl({
   price: product.price,
 });
 
+const hasDiscount = Boolean(product.original_price && product.original_price > product.price);
+const discountPercent = hasDiscount
+  ? Math.round(((product.original_price! - product.price) / product.original_price!) * 100)
+  : 0;
+const isFeatured = Boolean(product.is_featured);
+
 const badgeStyles: Record<string, string> = {
   indigo: 'bg-[#4f46e5] text-white',
   amber: 'bg-amber-400 text-slate-950 font-black',
@@ -37,9 +44,9 @@ const badgeStyles: Record<string, string> = {
 ---
 
 <article
-  class={`bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs hover:border-slate-300 hover:shadow-md transition duration-200 flex flex-col justify-between group relative ${
-    isSoldOut ? 'opacity-90' : ''
-  }`}
+  class={`bg-white border rounded-xl overflow-hidden shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between group relative ${
+    isFeatured ? 'border-amber-300 ring-1 ring-amber-300/40 shadow-xs' : 'border-slate-200 hover:border-slate-300'
+  } ${isSoldOut ? 'opacity-90' : ''}`}
 >
   <!-- Card Top Media & Details -->
   <div>
@@ -61,9 +68,21 @@ const badgeStyles: Record<string, string> = {
 
         <!-- Price Overlay Bar at Bottom of Image (OsClass Epsilon Signature) -->
         <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent pt-6 pb-2 px-2.5 sm:px-3 flex items-end justify-between pointer-events-none">
-          <span class="text-sm sm:text-base font-black text-white drop-shadow-sm tracking-tight">
-            {formatRupiah(product.price)}
-          </span>
+          <div class="flex items-baseline gap-1.5 flex-wrap min-w-0">
+            <span class="text-sm sm:text-base font-semibold font-mono tracking-wider text-white drop-shadow-sm">
+              {formatRupiah(product.price)}
+            </span>
+            {hasDiscount && (
+              <span class="text-[10px] sm:text-xs text-slate-300 line-through font-mono drop-shadow-sm">
+                {formatRupiah(product.original_price!)}
+              </span>
+            )}
+          </div>
+          {hasDiscount && (
+            <span class="text-[9px] font-black bg-rose-600 text-white px-1.5 py-0.5 rounded shadow-xs tracking-wider shrink-0">
+              -{discountPercent}%
+            </span>
+          )}
         </div>
       </a>
 
@@ -71,6 +90,25 @@ const badgeStyles: Record<string, string> = {
       {isSoldOut && (
         <div class="absolute -left-10 top-5 -rotate-45 bg-rose-600 text-white font-black text-[9px] sm:text-[10px] uppercase tracking-wider py-1 w-36 text-center shadow-md z-20 pointer-events-none">
           Habis
+        </div>
+      )}
+
+      <!-- Featured / Sponsor Badge -->
+      {isFeatured && !isSoldOut && (
+        <div class="absolute top-2 left-2 z-10">
+          <span class="text-[9px] sm:text-[10px] font-black px-2 py-0.5 rounded shadow-xs tracking-wide bg-amber-400 text-slate-950 border border-amber-300 flex items-center gap-1">
+            <span>★</span>
+            <span>Unggulan</span>
+          </span>
+        </div>
+      )}
+
+      <!-- Pre-Order Badge -->
+      {product.stock_status === 'po' && !isSoldOut && !isFeatured && !badge && !sellerAvatar && (
+        <div class="absolute top-2 left-2 z-10">
+          <span class="text-[9px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs tracking-wide bg-amber-400 text-slate-950">
+            Pre-Order
+          </span>
         </div>
       )}
 
@@ -105,9 +143,9 @@ const badgeStyles: Record<string, string> = {
           data-id={product.id}
           data-name={product.name}
           aria-label={`Simpan ${product.name} ke Favorit`}
-          class="w-7 h-7 rounded-full bg-white/95 hover:bg-white border border-slate-200 text-slate-400 hover:text-amber-500 flex items-center justify-center text-xs shadow-xs transition cursor-pointer select-none"
+          class="w-7 h-7 rounded-full bg-white/95 hover:bg-white border border-slate-200 text-slate-400 hover:text-amber-500 flex items-center justify-center shadow-xs transition cursor-pointer select-none"
         >
-          ★
+          <AppIcon name="star" size="xs" />
         </button>
       </div>
     </div>
@@ -116,8 +154,8 @@ const badgeStyles: Record<string, string> = {
     <div class="p-2.5 sm:p-3 space-y-1">
       <!-- Location (OsClass Sub-Title Style) -->
       <div class="text-[10px] sm:text-[11px] text-slate-500 flex items-center gap-1 truncate font-medium">
-        <span>📍</span>
-        <span class="truncate">{product.zone_name}, Sumenep</span>
+        <AppIcon name="map-pin" size="xs" class="text-slate-400" />
+        <span class="truncate">{product.umkm_ranting ? `${product.umkm_ranting}, ` : ''}{product.zone_name}</span>
       </div>
 
       <!-- Listing Title -->
@@ -139,13 +177,16 @@ const badgeStyles: Record<string, string> = {
       <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[11px]">
         <a
           href={`/toko/${product.umkm_id}`}
-          class="text-slate-600 hover:text-emerald-700 font-medium truncate text-[11px] hover:underline transition cursor-pointer"
+          class="text-slate-600 hover:text-emerald-700 font-medium truncate text-[11px] hover:underline transition cursor-pointer flex items-center gap-1"
           title={`Lihat Profil Toko ${product.umkm_name}`}
         >
-          🏪 {product.umkm_name}
+          <AppIcon name="store" size="xs" class="text-slate-400" />
+          <span class="truncate">{product.umkm_name}</span>
         </a>
         {Boolean(product.is_verified) && (
-          <span class="text-emerald-600 text-xs shrink-0 font-bold" title="Verified">✓</span>
+          <span class="text-emerald-600 shrink-0 flex items-center" title="Verified">
+            <AppIcon name="check" size="xs" />
+          </span>
         )}
       </div>
     </div>

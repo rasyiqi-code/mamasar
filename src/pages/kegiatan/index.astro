@@ -10,11 +10,11 @@ const zones = await getAllZones();
 const events = await getEvents({ zoneSlug: currentZone });
 const activeZone = zones.find((z) => z.slug === currentZone);
 const user = await resolveUser(Astro.request);
-const isPengurus = !!user && (isSuperadmin(user) || user.role === 'pengurus');
+const isPengurus = !!user && (isSuperadmin(user) || user.role === 'mwcnu');
 ---
 
 <Layout
-  title="Direktori Kegiatan NU & Pasar Konsumsi Warga | Pasar Warga NU Sumenep"
+  title="Direktori Kegiatan NU & Pasar Konsumsi Warga | Mamasar Sumenep"
   description="Jadwal pengajian, Lailatul Ijtima, Harlah, dan kegiatan NU se-Kabupaten Sumenep. Pusat pesanan konsumsi berkat dan peluang buka lapak bazar warga."
 >
   <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
@@ -66,8 +66,7 @@ const isPengurus = !!user && (isSuperadmin(user) || user.role === 'pengurus');
     <!-- Hero Header & Value Proposition (Pure Public Directory) -->
     <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-5 sm:p-8 shadow-xs space-y-4">
       <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 text-amber-900 border border-amber-300 text-xs font-bold">
-        <span>🕌</span>
-        <span>Setiap Kegiatan NU adalah Pasar Warga</span>
+        <span>Setiap Kegiatan NU adalah Potensi Pasar Mamasar</span>
       </div>
       
       <div class="space-y-2 max-w-3xl">

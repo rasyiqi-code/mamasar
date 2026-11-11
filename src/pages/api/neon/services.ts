@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { getNeonSql, getNeonS3Client, invokeNeonFunction, sealRealtimeQuery, getNeonAuthInfo } from '../../../lib/neon';
 import { getUserFromSession } from '../../../lib/db';
 import { ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { isSafeOutboundUrl } from '../../../lib/security';
 
 export const GET: APIRoute = async ({ cookies }) => {
   // Diagnostic endpoint: only reachable by logged-in members.
@@ -80,7 +81,7 @@ export const GET: APIRoute = async ({ cookies }) => {
   // 4. Test Neon Auth (JWKS)
   try {
     const authInfo = getNeonAuthInfo();
-    if (!authInfo.jwksUrl) {
+    if (!authInfo.jwksUrl || !(await isSafeOutboundUrl(authInfo.jwksUrl))) {
       report.services.auth = { status: 'unconfigured' };
     } else {
       const jwksRes = await fetch(authInfo.jwksUrl);

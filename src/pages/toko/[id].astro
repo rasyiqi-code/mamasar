@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
+import AppIcon from '../../components/common/AppIcon.astro';
 import { getUMKMById } from '../../lib/db';
 import { formatPhoneForWhatsApp } from '../../lib/utils';
 
@@ -19,7 +20,7 @@ if (!store) {
 const cleanPhone = formatPhoneForWhatsApp(store.phone);
 const currentUrl = Astro.url.href;
 const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
-  `Assalamu'alaikum ${store.name}, saya melihat etalase toko Anda di Pasar Warga NU Sumenep. Saya ingin bertanya mengenai ketersediaan produk Anda.`
+  `Assalamu'alaikum ${store.name}, saya melihat etalase toko Anda di Mamasar Sumenep. Saya ingin bertanya mengenai ketersediaan produk Anda.`
 )}`;
 
 const initials = store.name.slice(0, 2).toUpperCase();
@@ -109,9 +110,29 @@ const storeSchema = {
                     <span>Verified</span>
                   </span>
                 )}
+                {store.halal_cert && (
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md shadow-2xs" title={`Sertifikat Halal: ${store.halal_cert}`}>
+                    <span>Halal</span>
+                  </span>
+                )}
+                {store.nib && (
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold text-indigo-800 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md shadow-2xs" title={`NIB: ${store.nib}`}>
+                    <span>NIB</span>
+                  </span>
+                )}
+                {store.pirt && (
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md shadow-2xs" title={`P-IRT: ${store.pirt}`}>
+                    <span>P-IRT</span>
+                  </span>
+                )}
+                {store.bpom && (
+                  <span class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-800 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded-md shadow-2xs" title={`BPOM: ${store.bpom}`}>
+                    <span>BPOM</span>
+                  </span>
+                )}
               </div>
               <p class="text-xs sm:text-sm text-slate-600 flex items-center gap-1.5 truncate">
-                <span>📍 {store.address || `${store.zone_name}, Sumenep`}</span>
+                <span>📍 {store.ranting ? `Ranting ${store.ranting}, ` : ''}{store.zone_name}{store.address ? ` — ${store.address}` : ''}</span>
               </p>
             </div>
           </div>
@@ -131,14 +152,14 @@ const storeSchema = {
             </a>
 
             <a
-              href={`https://wa.me/?text=${encodeURIComponent(`Kunjungi Toko ${store.name} di Pasar Warga NU Sumenep: ${currentUrl}`)}`}
+              href={`https://wa.me/?text=${encodeURIComponent(`Kunjungi Toko ${store.name} di Mamasar Sumenep: ${currentUrl}`)}`}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Bagikan Toko"
               class="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-300 text-slate-700 flex items-center justify-center text-sm transition shadow-2xs shrink-0 cursor-pointer"
               title="Bagikan Profil Toko"
             >
-              📤
+              <AppIcon name="share" size="sm" />
             </a>
           </div>
 
@@ -179,7 +200,7 @@ const storeSchema = {
           <div class="flex items-center justify-between pb-3 border-b border-slate-100">
             <div>
               <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <span>📦</span>
+                <AppIcon name="box" size="sm" class="text-slate-500" />
                 <span>Etalase Produk {store.name}</span>
               </h2>
               <p class="text-xs text-slate-500 mt-0.5">
@@ -200,7 +221,7 @@ const storeSchema = {
             </div>
           ) : (
             <div class="py-12 text-center space-y-3">
-              <span class="text-4xl">📦</span>
+              <AppIcon name="box" size="xl" class="mx-auto text-slate-300" />
               <p class="text-xs sm:text-sm text-slate-500 font-medium">
                 Belum ada produk aktif yang terdaftar untuk toko ini.
               </p>
@@ -211,7 +232,7 @@ const storeSchema = {
         <!-- About Store Profile Card -->
         <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
           <h2 class="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
-            <span>🏪</span>
+            <AppIcon name="store" size="sm" class="text-slate-500" />
             <span>Tentang Usaha & Komitmen Kualitas</span>
           </h2>
 
@@ -220,18 +241,18 @@ const storeSchema = {
               <strong>{store.name}</strong> adalah unit usaha UMKM yang berlokasi di <strong>{store.address || store.zone_name}</strong>, Kabupaten Sumenep. Dikelola langsung oleh warga Nahdliyin dengan komitmen menjaga keaslian mutu, proses produksi yang halal, bersih, dan thayyib.
             </p>
             <p class="text-slate-500 text-xs">
-              Dengan berbelanja langsung dari toko ini melalui Pasar Warga NU Sumenep, Anda turut memutar roda ekonomi umat di tingkat akar rumput dan mendukung kemandirian pengrajin lokal tanpa potongan komisi perantara.
+              Dengan berbelanja langsung dari toko ini melalui Mamasar, Anda turut memutar roda ekonomi umat di tingkat akar rumput dan mendukung kemandirian pengrajin lokal tanpa potongan komisi perantara.
             </p>
           </div>
 
           <!-- Verification Checklist -->
           <div class="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div class="flex items-center gap-2 text-slate-700">
-              <span class="text-emerald-600 font-bold">✓</span>
+              <AppIcon name="check" size="xs" class="text-emerald-600" />
               <span>100% Produk Asli Lokal</span>
             </div>
             <div class="flex items-center gap-2 text-slate-700">
-              <span class="text-emerald-600 font-bold">✓</span>
+              <AppIcon name="check" size="xs" class="text-emerald-600" />
               <span>Terdata di MWC NU Setempat</span>
             </div>
             <div class="flex items-center gap-2 text-slate-700">
@@ -240,6 +261,55 @@ const storeSchema = {
             </div>
           </div>
         </div>
+
+        <!-- Legalitas & Izin Usaha Terdaftar -->
+        {(store.nib || store.halal_cert || store.pirt || store.bpom || store.other_legalities) && (
+          <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-4 sm:p-6 shadow-xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h2 class="text-sm font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+                <AppIcon name="shield" size="sm" class="text-emerald-600" />
+                <span>Legalitas & Izin Usaha</span>
+              </h2>
+              <span class="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+                Terverifikasi Toko
+              </span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              {store.nib && (
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                  <span class="text-slate-500 block text-[10px] uppercase font-bold">Nomor Induk Berusaha (NIB OSS)</span>
+                  <span class="font-mono font-bold text-slate-900 text-xs sm:text-sm">{store.nib}</span>
+                </div>
+              )}
+              {store.halal_cert && (
+                <div class="p-3 rounded-xl bg-emerald-50/50 border border-emerald-200 space-y-0.5">
+                  <span class="text-emerald-800 block text-[10px] uppercase font-bold">Sertifikasi Halal (BPJPH)</span>
+                  <span class="font-mono font-bold text-emerald-900 text-xs sm:text-sm">{store.halal_cert}</span>
+                </div>
+              )}
+              {store.pirt && (
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                  <span class="text-slate-500 block text-[10px] uppercase font-bold">Izin P-IRT (Dinkes)</span>
+                  <span class="font-mono font-bold text-slate-900 text-xs sm:text-sm">{store.pirt}</span>
+                </div>
+              )}
+              {store.bpom && (
+                <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                  <span class="text-slate-500 block text-[10px] uppercase font-bold">Izin Edar BPOM</span>
+                  <span class="font-mono font-bold text-slate-900 text-xs sm:text-sm">{store.bpom}</span>
+                </div>
+              )}
+            </div>
+
+            {store.other_legalities && (
+              <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-0.5">
+                <span class="text-slate-500 block text-[10px] uppercase font-bold">Izin Tambahan / Legalitas Lainnya</span>
+                <span class="font-medium text-slate-800">{store.other_legalities}</span>
+              </div>
+            )}
+          </div>
+        )}
 
       </div>
 

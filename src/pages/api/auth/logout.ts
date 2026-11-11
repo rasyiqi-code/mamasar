@@ -64,6 +64,8 @@ export const ALL: APIRoute = async ({ request }) => {
     '__Secure-neon-auth.session_data',
     'neon-auth.session_challenge',
     '__Secure-neon-auth.session_challenge',
+    'neon-auth.session_challange',
+    '__Secure-neon-auth.session_challange',
     'neon-auth.dont_remember',
     '__Secure-neon-auth.dont_remember',
     'neon-auth.state',

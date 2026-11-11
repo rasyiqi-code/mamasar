@@ -37,6 +37,8 @@ const { authError, isLoggedOut = false } = Astro.props;
     <div class="space-y-4 pt-2">
       <a
         href="/api/auth/login"
+        data-astro-prefetch="false"
+        data-astro-reload
         class="w-full py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-xs sm:text-sm rounded-lg flex items-center justify-center gap-3 transition cursor-pointer"
       >
         <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24">

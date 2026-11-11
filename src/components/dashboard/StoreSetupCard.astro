@@ -75,7 +75,7 @@ const { user, zones } = Astro.props;
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="space-y-1.5">
-          <label for="storeZoneId" class="block text-xs font-medium text-slate-700">Wilayah MWC NU <span class="text-rose-500">*</span></label>
+          <label for="storeZoneId" class="block text-xs font-medium text-slate-700">Wilayah MWC NU (Kecamatan) <span class="text-rose-500">*</span></label>
           <select
             id="storeZoneId"
             name="zoneId"
@@ -90,15 +90,26 @@ const { user, zones } = Astro.props;
         </div>
 
         <div class="space-y-1.5">
-          <label for="storeAddress" class="block text-xs font-medium text-slate-700">Alamat Lengkap / Dusun</label>
+          <label for="storeRanting" class="block text-xs font-medium text-slate-700">Ranting NU (Desa / Kelurahan)</label>
           <input
             type="text"
-            id="storeAddress"
-            name="address"
-            placeholder="Contoh: Dusun Karang Anyar, Gapura Timur"
+            id="storeRanting"
+            name="ranting"
+            placeholder="Contoh: Gapura Barat / Paberasan"
             class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           />
         </div>
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="storeAddress" class="block text-xs font-medium text-slate-700">Alamat Lengkap / Dusun</label>
+        <input
+          type="text"
+          id="storeAddress"
+          name="address"
+          placeholder="Contoh: Dusun Karang Anyar, RT 01 RW 02"
+          class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
       </div>
 
       <div class="pt-2">

@@ -18,7 +18,7 @@ const activeZone = zones.find((z) => z.slug === currentZone);
 ---
 
 <Layout
-  title="Direktori Toko UMKM Warga NU | Pasar Warga NU Sumenep"
+  title="Direktori Toko UMKM Warga NU | Mamasar Sumenep"
   description="Daftar toko, produsen, dan pengrajin UMKM Nahdliyin terverifikasi se-Kabupaten Sumenep. Belanja langsung tanpa perantara."
 >
   <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
@@ -159,7 +159,7 @@ const activeZone = zones.find((z) => z.slug === currentZone);
         {stores.map((store) => {
           const initials = store.name.slice(0, 2).toUpperCase();
           const waLink = `https://wa.me/${formatPhoneForWhatsApp(store.phone)}?text=${encodeURIComponent(
-            `Assalamu'alaikum ${store.name}, saya menemukan toko Anda di Pasar Warga NU Sumenep. Saya tertarik dengan produk Anda.`
+            `Assalamu'alaikum ${store.name}, saya menemukan toko Anda di Mamasar Sumenep. Saya tertarik dengan produk Anda.`
           )}`;
 
           return (
