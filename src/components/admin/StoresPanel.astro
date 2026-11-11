@@ -1,0 +1,177 @@
+---
+interface UMKMStore {
+  id: number;
+  name: string;
+  phone: string;
+  address?: string | null;
+  zone_name: string;
+  is_verified?: boolean | number | null;
+  product_count?: number;
+  owner_name?: string | null;
+  owner_email?: string | null;
+  created_at: string;
+}
+
+interface Props {
+  pendingStores: UMKMStore[];
+  verifiedStores: UMKMStore[];
+}
+
+const { pendingStores, verifiedStores } = Astro.props;
+
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return iso;
+  }
+}
+---
+
+<section id="panel-stores" class="admin-tab-panel hidden space-y-6">
+  <!-- Top Bar: Compact Header with Line Divider -->
+  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+    <div class="flex items-center gap-2.5">
+      <h1 class="text-base sm:text-lg font-bold text-slate-900">Kurasi & Moderasi Toko</h1>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">
+        {pendingStores.length} antrean
+      </span>
+    </div>
+  </div>
+
+  <!-- Section 1: Antrean Menunggu Verifikasi -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+        Antrean Verifikasi ({pendingStores.length})
+      </h2>
+    </div>
+
+    {pendingStores.length > 0 ? (
+      <div class="divide-y divide-slate-100 border-b border-slate-200">
+        {pendingStores.map((store) => (
+          <div class="py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 px-1 transition">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
+                <span class="text-[10px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+                  📍 {store.zone_name}
+                </span>
+                <span class="text-[11px] text-slate-400">
+                  {store.product_count || 0} produk · {formatDate(store.created_at)}
+                </span>
+                <span class="text-[11px] text-slate-500">
+                  {store.owner_email || 'Kader Lapangan'}
+                </span>
+              </div>
+              {store.address && (
+                <p class="text-[11px] text-slate-500 truncate mt-0.5">{store.address}</p>
+              )}
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
+              <a
+                href={`/toko/${store.id}`}
+                target="_blank"
+                class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium rounded transition"
+              >
+                Lihat ➔
+              </a>
+              <button
+                type="button"
+                data-action="verify-store"
+                data-id={store.id}
+                data-verified="1"
+                class="py-1 px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition cursor-pointer"
+              >
+                ✓ Verifikasi
+              </button>
+              <button
+                type="button"
+                data-action="delete-store"
+                data-id={store.id}
+                data-name={store.name}
+                class="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                title="Hapus Toko"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p class="text-xs text-slate-400 py-3">Tidak ada toko baru yang menunggu verifikasi.</p>
+    )}
+  </div>
+
+  <!-- Section 2: Toko Terverifikasi -->
+  <div class="space-y-2 pt-2">
+    <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+        Toko Terverifikasi ({verifiedStores.length})
+      </h2>
+    </div>
+
+    {verifiedStores.length > 0 ? (
+      <div class="divide-y divide-slate-100 border-b border-slate-200">
+        {verifiedStores.map((store) => (
+          <div class="py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 px-1 transition">
+            <div class="min-w-0">
+              <div class="flex items-center gap-2 flex-wrap">
+                <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
+                <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Verified
+                </span>
+                <span class="text-[10px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+                  📍 {store.zone_name}
+                </span>
+                <span class="text-[11px] text-slate-400">
+                  {store.product_count || 0} produk
+                </span>
+                <span class="text-[11px] text-slate-500">
+                  {store.owner_email || 'Binaan Warga'}
+                </span>
+              </div>
+              {store.address && (
+                <p class="text-[11px] text-slate-500 truncate mt-0.5">{store.address}</p>
+              )}
+            </div>
+
+            <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
+              <a
+                href={`/toko/${store.id}`}
+                target="_blank"
+                class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium rounded transition"
+              >
+                Lihat ➔
+              </a>
+              <button
+                type="button"
+                data-action="verify-store"
+                data-id={store.id}
+                data-verified="0"
+                class="py-1 px-2.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-200 font-medium text-xs rounded transition cursor-pointer"
+                title="Cabut status verifikasi"
+              >
+                Cabut
+              </button>
+              <button
+                type="button"
+                data-action="delete-store"
+                data-id={store.id}
+                data-name={store.name}
+                class="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                title="Hapus Toko"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    ) : (
+      <p class="text-xs text-slate-400 py-3">Belum ada toko yang terverifikasi.</p>
+    )}
+  </div>
+</section>

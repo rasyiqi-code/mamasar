@@ -1,5 +1,5 @@
 import type { APIRoute } from 'astro';
-import { getUserFromSession, getAllZones, createEvent, updateEvent, deleteEvent, type EventInput } from '../../lib/db';
+import { getUserFromSession, getAllZones, createEvent, updateEvent, deleteEvent, isSuperadmin, type EventInput } from '../../lib/db';
 import { isValidIndonesianPhone } from '../../lib/utils';
 
 /**
@@ -65,7 +65,7 @@ function parseEventForm(
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    // Hanya pengurus MWC (users.role = 'pengurus') boleh mengelola agenda.
+    // Hanya Superadmin atau Pengurus boleh mengelola agenda.
     const sessionCookie = cookies.get('mamasar_session')?.value;
     const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
@@ -76,8 +76,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    if (user.role !== 'pengurus') {
-      return new Response(JSON.stringify({ success: false, message: 'Aksi ini khusus pengurus MWC.' }), {
+    if (!isSuperadmin(user) && user.role !== 'pengurus') {
+      return new Response(JSON.stringify({ success: false, message: 'Akses khusus Admin / Pengurus MWC.' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' },
       });

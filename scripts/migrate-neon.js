@@ -78,9 +78,28 @@ async function runMigration() {
   // Kolom yang pernah dibuat tapi tidak pernah dipakai aplikasi
   await sql`ALTER TABLE products DROP COLUMN IF EXISTS gallery_images;`;
   await sql`ALTER TABLE products DROP COLUMN IF EXISTS is_featured;`;
-  // role dipakai halaman /pengurus (verifikasi toko); 'warga' = default,
-  // 'pengurus' dipromosi manual lewat SQL console (lihat DOCS/DATABASE.md).
+  // 3 Core Roles RBAC: 'superadmin', 'petugas', 'warga' (kepemilikan toko berbasis relasi entitas umkm)
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'warga';`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS agent_status VARCHAR(20) NOT NULL DEFAULT 'none';`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS assigned_zone_id INTEGER REFERENCES zones(id);`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS agent_org VARCHAR(255);`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS agent_phone VARCHAR(50);`;
+
+  // Kolom tracking pembuat toko jemput bola & riwayat klaim
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS created_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMP WITH TIME ZONE;`;
+
+  // Tabel Favorit Sinkron Database
+  await sql`
+    CREATE TABLE IF NOT EXISTS favorites (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id INTEGER NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+      CONSTRAINT uq_user_product UNIQUE (user_id, product_id)
+    );
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_favorites_user ON favorites(user_id);`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS articles (

@@ -1,0 +1,86 @@
+---
+import '../styles/global.css';
+import { SITE_CONFIG } from '../lib/constants';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const {
+  title,
+  description = 'Pusat Manajemen Pasar Digital Warga NU Kabupaten Sumenep',
+} = Astro.props;
+
+const siteName = SITE_CONFIG.name;
+const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
+---
+
+<!doctype html>
+<html lang="id" class="h-full bg-white text-slate-900">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- SEO & Security -->
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- PWA & Mobile Meta Tags -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#047857" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Pasar NU App" />
+  </head>
+  <body class="min-h-full bg-white text-slate-900 font-sans antialiased flex flex-col selection:bg-emerald-500 selection:text-white">
+    
+    <!-- Main App Slot (Zero Front Web Header or Footer) -->
+    <div class="flex-1 flex flex-col min-h-screen">
+      <slot />
+    </div>
+
+    <!-- App Global Toast Container -->
+    <div
+      id="app-toast"
+      class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-slate-900/95 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-0 pointer-events-none translate-y-2 backdrop-blur-sm flex items-center gap-2 border border-slate-800"
+      role="status"
+      aria-live="polite"
+    >
+      <span id="app-toast-icon">✓</span>
+      <span id="app-toast-msg">Notifikasi</span>
+    </div>
+
+    <script>
+      let toastTimeout: any;
+      (window as any).showAppToast = function (msg: string, isError = false) {
+        const toast = document.getElementById('app-toast');
+        const toastMsg = document.getElementById('app-toast-msg');
+        const toastIcon = document.getElementById('app-toast-icon');
+        if (!toast || !toastMsg || !toastIcon) return;
+
+        toastMsg.textContent = msg;
+        toastIcon.textContent = isError ? '✕' : '✓';
+
+        if (isError) {
+          toast.classList.remove('bg-slate-900/95', 'border-slate-800');
+          toast.classList.add('bg-rose-900/95', 'border-rose-700');
+        } else {
+          toast.classList.remove('bg-rose-900/95', 'border-rose-700');
+          toast.classList.add('bg-slate-900/95', 'border-slate-800');
+        }
+
+        toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+        toast.classList.add('opacity-100', 'translate-y-0');
+
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          toast.classList.remove('opacity-100', 'translate-y-0');
+          toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+        }, 2500);
+      };
+    </script>
+  </body>
+</html>

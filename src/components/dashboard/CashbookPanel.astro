@@ -1,0 +1,210 @@
+---
+import { formatRupiah } from '../../lib/utils';
+
+interface Props {
+  summary: {
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+  };
+  entries: Array<{
+    id: number;
+    transaction_date: string;
+    title: string;
+    type: string;
+    amount: number;
+  }>;
+  products?: Array<{
+    id: number;
+    name: string;
+    price: number;
+  }>;
+}
+
+const { summary, entries, products = [] } = Astro.props;
+---
+
+<section id="panel-cashbook" class="tab-panel hidden space-y-4">
+  <!-- Top Bar: Compact Header with Line Divider -->
+  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+    <div class="flex items-center gap-2.5">
+      <h1 class="text-base sm:text-lg font-bold text-slate-900">Buku Kas Santri</h1>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+        Pembukuan
+      </span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <button
+        type="button"
+        id="btn-export-csv"
+        class="py-1 px-2.5 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded border border-slate-200 transition cursor-pointer flex items-center gap-1"
+        title="Unduh CSV"
+      >
+        <span>📊 CSV</span>
+      </button>
+      <button
+        type="button"
+        id="btn-toggle-cashbook-form"
+        class="py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer flex items-center gap-1"
+      >
+        <span>+ Catat Transaksi</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Summary Metric Strip: Compact 3-Column with Line Dividers -->
+  <div class="grid grid-cols-3 divide-x divide-slate-200 py-2.5 border-b border-slate-200 text-xs">
+    <div class="pr-3">
+      <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Pemasukan</span>
+      <span class="text-base sm:text-lg font-bold text-slate-900 block font-mono mt-0.5" id="cash-income-display">
+        {formatRupiah(summary.totalIncome)}
+      </span>
+    </div>
+    <div class="px-3">
+      <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Pengeluaran</span>
+      <span class="text-base sm:text-lg font-bold text-slate-900 block font-mono mt-0.5" id="cash-expense-display">
+        {formatRupiah(summary.totalExpense)}
+      </span>
+    </div>
+    <div class="pl-3">
+      <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Saldo Bersih</span>
+      <span class="text-base sm:text-lg font-bold text-emerald-700 block font-mono mt-0.5" id="cash-balance-display">
+        {formatRupiah(summary.balance)}
+      </span>
+    </div>
+  </div>
+
+  <!-- Fast Entry Cashbook Section: Compact Form with Line Divider -->
+  <div id="cashbook-form-container" class="hidden py-3 border-b border-slate-200 space-y-3">
+    <div class="flex items-center justify-between">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700">Catat Transaksi Kas</h3>
+      <button type="button" id="btn-cancel-cashbook" class="text-xs text-slate-400 hover:text-slate-700 cursor-pointer">
+        Tutup ✕
+      </button>
+    </div>
+
+    <form id="cashbook-entry-form" class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+      {products.length > 0 && (
+        <div class="sm:col-span-4 bg-slate-50 p-2 rounded border border-slate-200 flex items-center gap-2">
+          <span class="text-[11px] font-semibold text-slate-700 shrink-0">Pilih Produk:</span>
+          <select id="cashProdSelect" class="flex-1 bg-white border border-slate-300 rounded p-1 text-xs font-medium text-slate-800">
+            <option value="">-- Isi otomatis nama & harga dari produk --</option>
+            {products.map((p) => (
+              <option value={p.id} data-name={p.name} data-price={p.price}>
+                {p.name} ({formatRupiah(p.price)})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div class="sm:col-span-2 space-y-1">
+        <label for="cashTitle" class="block text-[11px] font-medium text-slate-700">Keterangan <span class="text-rose-500">*</span></label>
+        <input
+          type="text"
+          id="cashTitle"
+          name="title"
+          placeholder="Contoh: Penjualan 3 Kripik"
+          required
+          class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
+      </div>
+
+      <div class="space-y-1">
+        <label for="cashAmount" class="block text-[11px] font-medium text-slate-700">Nominal (Rp) <span class="text-rose-500">*</span></label>
+        <input
+          type="number"
+          id="cashAmount"
+          name="amount"
+          placeholder="45000"
+          required
+          min="100"
+          class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
+      </div>
+
+      <div class="space-y-1">
+        <label for="cashType" class="block text-[11px] font-medium text-slate-700">Jenis</label>
+        <select
+          id="cashType"
+          name="type"
+          class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs font-medium focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        >
+          <option value="income">Pemasukan</option>
+          <option value="expense">Pengeluaran</option>
+        </select>
+      </div>
+
+      <div class="sm:col-span-2 space-y-1">
+        <label for="cashDate" class="block text-[11px] font-medium text-slate-700">Tanggal</label>
+        <input
+          type="date"
+          id="cashDate"
+          name="transactionDate"
+          class="w-full bg-white border border-slate-300 rounded p-1.5 text-xs font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
+      </div>
+
+      <div class="sm:col-span-2 flex items-end justify-end">
+        <button
+          type="submit"
+          class="py-1.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded shadow-xs cursor-pointer"
+        >
+          Simpan ➔
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Cashbook Table: Compact Table with Line Dividers -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs border-b border-slate-200">
+      <thead>
+        <tr class="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+          <th class="py-2.5 px-2">Tanggal</th>
+          <th class="py-2.5 px-2">Keterangan</th>
+          <th class="py-2.5 px-2">Jenis</th>
+          <th class="py-2.5 px-2 text-right">Nominal</th>
+          <th class="py-2.5 px-2 text-center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody id="cashbook-rows" class="divide-y divide-slate-100">
+        {entries.length > 0 ? (
+          entries.map((c) => (
+            <tr class="hover:bg-slate-50/60 transition" id={`cash-row-${c.id}`}>
+              <td class="py-2.5 px-2 text-slate-500 font-mono text-[11px] whitespace-nowrap">{c.transaction_date}</td>
+              <td class="py-2.5 px-2 text-slate-900 font-medium">{c.title}</td>
+              <td class="py-2.5 px-2">
+                <span class={`inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold ${
+                  c.type === 'income' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                }`}>
+                  {c.type === 'income' ? 'Masuk' : 'Keluar'}
+                </span>
+              </td>
+              <td class={`py-2.5 px-2 text-right font-bold font-mono ${c.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                {c.type === 'income' ? '+' : '-'} {formatRupiah(c.amount)}
+              </td>
+              <td class="py-2.5 px-2 text-center">
+                <button
+                  type="button"
+                  class="btn-delete-cash text-slate-400 hover:text-rose-600 p-1 cursor-pointer transition"
+                  data-id={c.id}
+                  title="Hapus"
+                >
+                  ✕
+                </button>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colspan="5" class="py-8 text-center text-slate-400 text-xs">
+              Belum ada catatan buku kas.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+</section>

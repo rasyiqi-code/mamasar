@@ -1,0 +1,73 @@
+---
+interface Zone {
+  id: number;
+  name: string;
+  slug: string;
+  type?: 'daratan' | 'kepulauan' | string;
+}
+
+interface Props {
+  zones: Zone[];
+}
+
+const { zones } = Astro.props;
+
+const daratan = zones.filter((z) => z.type !== 'kepulauan');
+const kepulauan = zones.filter((z) => z.type === 'kepulauan');
+---
+
+<section id="panel-zones" class="admin-tab-panel hidden space-y-5">
+  <!-- Top Bar: Compact Header with Line Divider -->
+  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+    <div class="flex items-center gap-2.5">
+      <h1 class="text-base sm:text-lg font-bold text-slate-900">Sebaran 27 MWC NU Sumenep</h1>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+        {zones.length} Zona
+      </span>
+    </div>
+  </div>
+
+  <!-- Daratan: Compact Flow with Line Divider -->
+  <div class="space-y-2">
+    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+        Wilayah Daratan ({daratan.length})
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+      {daratan.map((z) => (
+        <a
+          href={`/?zona=${z.slug}`}
+          target="_blank"
+          class="p-2 rounded border border-slate-200 hover:border-emerald-500 hover:bg-slate-50 text-slate-700 font-medium transition flex items-center justify-between"
+        >
+          <span class="truncate">{z.name}</span>
+          <span class="text-slate-400 text-[10px]">➔</span>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <!-- Kepulauan: Compact Flow with Line Divider -->
+  <div class="space-y-2 pt-2">
+    <div class="flex items-center justify-between pb-1.5 border-b border-slate-200">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+        Wilayah Kepulauan ({kepulauan.length})
+      </h2>
+    </div>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+      {kepulauan.map((z) => (
+        <a
+          href={`/?zona=${z.slug}`}
+          target="_blank"
+          class="p-2 rounded border border-slate-200 hover:border-emerald-500 hover:bg-slate-50 text-slate-700 font-medium transition flex items-center justify-between"
+        >
+          <span class="truncate">{z.name}</span>
+          <span class="text-slate-400 text-[10px]">➔</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</section>

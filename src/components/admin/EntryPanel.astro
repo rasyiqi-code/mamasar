@@ -1,0 +1,237 @@
+---
+import { PRODUCT_CATEGORIES, CATEGORY_ICONS } from '../../lib/constants';
+
+interface Zone {
+  id: number;
+  name: string;
+}
+
+interface Props {
+  user: {
+    id: number;
+    name: string;
+    agent_org?: string | null;
+    assigned_zone_id?: number | null;
+  };
+  assignedZone?: Zone;
+  zones: Zone[];
+  isDefaultActive?: boolean;
+}
+
+const { user, assignedZone, zones, isDefaultActive = false } = Astro.props;
+---
+
+<section id="panel-entry" class={`admin-tab-panel space-y-6 ${isDefaultActive ? '' : 'hidden'}`}>
+  <!-- Top Bar: Compact Header with Line Divider -->
+  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+    <div class="flex items-center gap-2.5">
+      <h1 class="text-base sm:text-lg font-bold text-slate-900">Entri Jemput Bola</h1>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+        Pendataan Lapangan
+      </span>
+    </div>
+
+    {assignedZone && (
+      <div class="text-xs text-slate-600 font-medium shrink-0">
+        📍 MWC <strong class="text-emerald-700">{assignedZone.name}</strong>
+      </div>
+    )}
+  </div>
+
+  <!-- Form: Compact Fullwidth Flow with Line Dividers -->
+  <form id="petugas-entry-form" class="space-y-6 max-w-4xl">
+    <input type="hidden" id="entryImageBase64" name="imageBase64" />
+
+    <!-- Bagian 1: Data Pemilik & Toko UMKM -->
+    <div class="space-y-3">
+      <div class="pb-1.5 border-b border-slate-200">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+          1. Data Pemilik & Toko UMKM
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="space-y-1">
+          <label for="umkmName" class="block text-xs font-medium text-slate-700">
+            Nama Usaha / Toko <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="umkmName"
+            name="umkmName"
+            placeholder="Contoh: Dapur Barokah Bu Fatimah"
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="storePhone" class="block text-xs font-medium text-slate-700">
+            Nomor WhatsApp Penjual <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="tel"
+            id="storePhone"
+            name="phone"
+            placeholder="Contoh: 081234567890"
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="space-y-1">
+          <label for="entryZoneId" class="block text-xs font-medium text-slate-700">
+            Wilayah MWC Kecamatan <span class="text-rose-500">*</span>
+          </label>
+          <select
+            id="entryZoneId"
+            name="zoneId"
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-medium text-slate-800 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+          >
+            {zones.map((z) => (
+              <option value={z.id} selected={z.id === user.assigned_zone_id}>
+                {z.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label for="entryAddress" class="block text-xs font-medium text-slate-700">
+            Alamat / Dusun / Desa
+          </label>
+          <input
+            type="text"
+            id="entryAddress"
+            name="address"
+            placeholder="Contoh: Dusun Karang Anyar, Gapura Timur"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+      </div>
+    </div>
+
+    <!-- Bagian 2: Data Produk Barang Dagangan -->
+    <div class="space-y-3 pt-1">
+      <div class="pb-1.5 border-b border-slate-200">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+          2. Data Produk
+        </h2>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="space-y-1">
+          <label for="productName" class="block text-xs font-medium text-slate-700">
+            Nama Barang <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="productName"
+            name="productName"
+            placeholder="Contoh: Rengginang Lorjuk Spesial"
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="prodCategory" class="block text-xs font-medium text-slate-700">
+            Kategori <span class="text-rose-500">*</span>
+          </label>
+          <select
+            id="prodCategory"
+            name="category"
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-medium text-slate-800 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+          >
+            {PRODUCT_CATEGORIES.map((cat) => (
+              <option value={cat}>
+                {CATEGORY_ICONS[cat] || '📦'} {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="space-y-1">
+          <label for="prodPrice" class="block text-xs font-medium text-slate-700">
+            Harga Jual Satuan (IDR) <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="number"
+            id="prodPrice"
+            name="price"
+            placeholder="25000"
+            required
+            min="500"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+
+        <!-- Foto Kamera HP -->
+        <div class="space-y-1">
+          <label class="block text-xs font-medium text-slate-700">
+            Foto Produk (Kamera HP / Galeri) <span class="text-rose-500">*</span>
+          </label>
+          <input
+            type="file"
+            id="petugas-camera-input"
+            accept="image/*"
+            capture="environment"
+            class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2.5 file:rounded file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
+          />
+          <p id="petugas-compress-info" class="text-[11px] text-slate-400 font-medium"></p>
+        </div>
+      </div>
+
+      <div class="space-y-1">
+        <label for="prodDesc" class="block text-xs font-medium text-slate-700">
+          Deskripsi Produk
+        </label>
+        <textarea
+          id="prodDesc"
+          name="description"
+          rows="2"
+          placeholder="Rasa, berat kemasan, atau pilihan motif..."
+          class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        ></textarea>
+      </div>
+
+      <div class="space-y-1">
+        <label for="prodShopee" class="block text-xs font-medium text-slate-700">
+          Tautan Shopee (Opsional)
+        </label>
+        <input
+          type="url"
+          id="prodShopee"
+          name="shopeeUrl"
+          placeholder="https://shopee.co.id/..."
+          class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
+      </div>
+    </div>
+
+    <!-- Tombol Submit -->
+    <div class="pt-2 border-t border-slate-100 flex items-center gap-3">
+      <button
+        type="submit"
+        id="btn-submit-entry"
+        class="py-1.5 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer"
+      >
+        Terbitkan Produk ➔
+      </button>
+
+      <button
+        type="button"
+        id="btn-save-and-add-more"
+        class="py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 text-xs font-medium rounded transition cursor-pointer"
+      >
+        + Simpan & Tambah Lagi
+      </button>
+    </div>
+  </form>
+</section>

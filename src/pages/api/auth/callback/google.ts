@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { findOrCreateUserByGoogle, createSession } from '../../../../lib/db';
+import { getEnv } from '../../../../lib/neon';
 
 export const GET: APIRoute = async ({ request, redirect }) => {
   const url = new URL(request.url);
@@ -10,9 +11,9 @@ export const GET: APIRoute = async ({ request, redirect }) => {
     return redirect('/dashboard?error=auth_failed');
   }
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const redirectUri = process.env.GOOGLE_REDIRECT_URI || `${url.origin}/api/auth/callback/google`;
+  const clientId = getEnv('GOOGLE_CLIENT_ID');
+  const clientSecret = getEnv('GOOGLE_CLIENT_SECRET');
+  const redirectUri = getEnv('GOOGLE_REDIRECT_URI') || `${url.origin}/api/auth/callback/google`;
 
   if (!clientId || !clientSecret) {
     return redirect('/dashboard?error=missing_credentials');

@@ -1,5 +1,5 @@
 import { sql } from 'drizzle-orm';
-import { pgTable, index, varchar, text, integer, timestamp, date, serial } from 'drizzle-orm/pg-core';
+import { pgTable, index, uniqueIndex, varchar, text, integer, timestamp, date, serial } from 'drizzle-orm/pg-core';
 
 /**
  * Drizzle mirror of the Neon PostgreSQL tables created by
@@ -21,9 +21,16 @@ export const users = pgTable('users', {
   name: varchar('name', { length: 255 }).notNull(),
   avatar_url: text('avatar_url'),
   role: varchar('role', { length: 20 })
-    .$type<'warga' | 'pengurus'>()
+    .$type<'superadmin' | 'pengurus' | 'petugas' | 'warga'>()
     .notNull()
     .default('warga'),
+  agent_status: varchar('agent_status', { length: 20 })
+    .$type<'none' | 'pending' | 'active' | 'rejected'>()
+    .notNull()
+    .default('none'),
+  assigned_zone_id: integer('assigned_zone_id').references(() => zones.id),
+  agent_org: varchar('agent_org', { length: 255 }),
+  agent_phone: varchar('agent_phone', { length: 50 }),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -38,6 +45,7 @@ export const sessions = pgTable('sessions', {
 export const umkm = pgTable('umkm', {
   id: serial('id').primaryKey(),
   user_id: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+  created_by_user_id: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
   name: varchar('name', { length: 255 }).notNull(),
   phone: varchar('phone', { length: 50 }).notNull(),
   zone_id: integer('zone_id')
@@ -45,6 +53,7 @@ export const umkm = pgTable('umkm', {
     .references(() => zones.id),
   is_verified: integer('is_verified').default(1),
   address: text('address'),
+  claimed_at: timestamp('claimed_at', { withTimezone: true }),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
@@ -116,4 +125,22 @@ export const cashbook = pgTable(
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (t) => [index('idx_cashbook_user').on(t.user_id, t.transaction_date.desc())]
+);
+
+export const favorites = pgTable(
+  'favorites',
+  {
+    id: serial('id').primaryKey(),
+    user_id: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    product_id: integer('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    index('idx_favorites_user').on(t.user_id),
+    uniqueIndex('idx_favorites_user_product').on(t.user_id, t.product_id),
+  ]
 );

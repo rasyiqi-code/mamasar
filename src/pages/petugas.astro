@@ -1,0 +1,12 @@
+---
+import { isPetugas, isSuperadmin } from '../lib/db';
+import { resolveUser } from '../lib/neon-auth';
+
+const user = await resolveUser(Astro.request);
+
+if (isPetugas(user) || isSuperadmin(user)) {
+  return Astro.redirect('/admin#entry');
+}
+
+return Astro.redirect('/dashboard#services');
+---

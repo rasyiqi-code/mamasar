@@ -1,21 +1,46 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import { getProducts } from '../lib/db';
+import { getUserFromSession, getUserFavoriteIds, getProductsByIds } from '../lib/db';
 import { DEFAULT_PRODUCT_IMAGE } from '../lib/constants';
 
-const catalog = await getProducts();
+const sessionCookie = Astro.cookies.get('mamasar_session')?.value;
+const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
-// Slim projection: only fields the client needs, keeps page payload small.
-const allProducts = catalog.map((p) => ({
-  id: p.id,
-  slug: p.slug,
-  name: p.name,
-  price: p.price,
-  image_url: p.image_url || DEFAULT_PRODUCT_IMAGE,
-  zone_name: p.zone_name,
-  umkm_name: p.umkm_name,
-  umkm_phone: p.umkm_phone,
-}));
+let serverFavorites: Array<{
+  id: number;
+  slug: string;
+  name: string;
+  price: number;
+  image_url: string;
+  zone_name: string;
+  umkm_name: string;
+  umkm_phone: string;
+}> = [];
+
+if (user) {
+  const favoriteIds = await getUserFavoriteIds(user.id);
+  if (favoriteIds.length > 0) {
+    const products = await getProductsByIds(favoriteIds);
+    serverFavorites = products.map((p) => ({
+      id: p.id,
+      slug: p.slug,
+      name: p.name,
+      price: p.price,
+      image_url: p.image_url || DEFAULT_PRODUCT_IMAGE,
+      zone_name: p.zone_name,
+      umkm_name: p.umkm_name,
+      umkm_phone: p.umkm_phone,
+    }));
+  }
+}
+
+function formatRupiah(amount: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
 ---
 
 <Layout
@@ -47,26 +72,97 @@ const allProducts = catalog.map((p) => ({
           <span>⭐</span> Produk yang Anda Simpan
         </h1>
         <p class="text-xs text-slate-500">
-          Produk yang Anda tandai bintang di HP ini agar mudah dicek kembali sebelum menghubungi penjual via WhatsApp.
+          {user ? (
+            <span>Tersimpan di akun Anda (<strong>{user.email || user.name}</strong>) dan tersinkronisasi di semua perangkat.</span>
+          ) : (
+            <span>Tersimpan sementara di browser HP ini. Masuk ke akun untuk menyimpan permanen.</span>
+          )}
         </p>
       </div>
 
       <button
         id="btn-clear-favorites"
         type="button"
-        class="text-xs text-rose-600 hover:text-rose-800 font-bold underline cursor-pointer"
+        class={`text-xs text-rose-600 hover:text-rose-800 font-bold underline cursor-pointer ${
+          serverFavorites.length === 0 ? 'hidden' : ''
+        }`}
       >
         Hapus Semua Simpanan
       </button>
     </div>
 
-    <!-- Container Rendered Client-Side based on localStorage -->
+    <!-- Container Grid: Server Rendered when logged in, or populated via client script -->
     <div id="favorites-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
-      <!-- Injected by client script below -->
+      {serverFavorites.map((p) => {
+        const formattedPrice = formatRupiah(p.price);
+        const waMsg = encodeURIComponent(
+          `Halo *${p.umkm_name}*, saya tertarik dengan produk Anda di Pasar Warga NU Sumenep:\n📦 *${p.name}* (${formattedPrice})\nApakah barang masih tersedia?`
+        );
+        return (
+          <div
+            id={`fav-card-${p.id}`}
+            class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between group relative"
+          >
+            <button
+              type="button"
+              title="Hapus dari simpanan"
+              data-remove-fav={p.id}
+              class="absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-rose-600 border border-slate-200 flex items-center justify-center text-xs shadow-xs cursor-pointer"
+            >
+              ✕
+            </button>
+
+            <div>
+              <a href={`/p/${p.slug}`} class="block relative aspect-4/3 bg-slate-100 overflow-hidden">
+                <img
+                  src={p.image_url}
+                  alt={p.name}
+                  loading="lazy"
+                  class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+                />
+                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white font-black text-xs font-mono">
+                  {formattedPrice}
+                </div>
+              </a>
+
+              <div class="p-2.5 space-y-1">
+                <span class="text-[10px] text-slate-500 font-medium truncate block">
+                  📍 {p.zone_name}
+                </span>
+                <a
+                  href={`/p/${p.slug}`}
+                  class="font-bold text-xs text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-tight block"
+                >
+                  {p.name}
+                </a>
+                <span class="text-[10px] text-slate-500 block truncate">
+                  🏪 {p.umkm_name}
+                </span>
+              </div>
+            </div>
+
+            <div class="p-2.5 pt-0">
+              <a
+                href={`https://wa.me/${p.umkm_phone}?text=${waMsg}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition"
+              >
+                <span>Chat WA</span>
+              </a>
+            </div>
+          </div>
+        );
+      })}
     </div>
 
-    <!-- Empty State (Hidden by default, shown by script if zero favorites) -->
-    <div id="empty-favorites" class="hidden bg-white border border-slate-200 rounded-3xl p-10 text-center space-y-3">
+    <!-- Empty State (Shown if no favorites) -->
+    <div
+      id="empty-favorites"
+      class={`bg-white border border-slate-200 rounded-3xl p-10 text-center space-y-3 ${
+        serverFavorites.length > 0 ? 'hidden' : ''
+      }`}
+    >
       <div class="text-4xl">⭐</div>
       <h3 class="font-extrabold text-slate-900 text-base">Belum Ada Produk yang Disimpan</h3>
       <p class="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
@@ -82,13 +178,13 @@ const allProducts = catalog.map((p) => ({
 
   </div>
 
-  <!-- Client Side Script: Read favorites from localStorage and match with preloaded catalog -->
-  <script define:vars={{ allProducts }}>
+  <!-- Client Script for Favorites management & Guest Sync -->
+  <script define:vars={{ isLoggedIn: Boolean(user), initialServerCount: serverFavorites.length }}>
     const container = document.getElementById('favorites-container');
     const emptyState = document.getElementById('empty-favorites');
     const clearBtn = document.getElementById('btn-clear-favorites');
 
-    function getSavedFavorites() {
+    function getLocalFavorites() {
       try {
         const raw = localStorage.getItem('mamasar_favorites');
         const parsed = raw ? JSON.parse(raw) : [];
@@ -106,12 +202,10 @@ const allProducts = catalog.map((p) => ({
       }).format(value);
     }
 
-    // Builds a favorite card via DOM APIs (never innerHTML) so product names,
-    // store names and zones coming from user input cannot inject HTML.
     function createFavCard(p) {
       const formattedPrice = formatPriceIDR(p.price);
       const waMsg = encodeURIComponent(
-        'Halo *' + p.umkm_name + '*, saya tertarik dengan produk Anda di Pasar Warga NU Sumenep:\n\u{1F4E6} *' +
+        'Halo *' + (p.umkm_name || 'Penjual') + '*, saya tertarik dengan produk Anda di Pasar Warga NU Sumenep:\n📦 *' +
           p.name +
           '* (' +
           formattedPrice +
@@ -120,6 +214,7 @@ const allProducts = catalog.map((p) => ({
       const detailHref = '/p/' + encodeURIComponent(p.slug);
 
       const card = document.createElement('div');
+      card.id = 'fav-card-' + p.id;
       card.className =
         'bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between group relative';
 
@@ -129,7 +224,7 @@ const allProducts = catalog.map((p) => ({
       removeBtn.setAttribute('data-remove-fav', String(p.id));
       removeBtn.className =
         'absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-rose-600 border border-slate-200 flex items-center justify-center text-xs shadow-xs cursor-pointer';
-      removeBtn.textContent = '\u2715';
+      removeBtn.textContent = '✕';
       card.appendChild(removeBtn);
 
       const top = document.createElement('div');
@@ -139,7 +234,7 @@ const allProducts = catalog.map((p) => ({
       imgLink.className = 'block relative aspect-4/3 bg-slate-100 overflow-hidden';
 
       const img = document.createElement('img');
-      img.src = p.image_url;
+      img.src = p.image_url || '/placeholder-product.svg';
       img.alt = p.name;
       img.loading = 'lazy';
       img.className = 'w-full h-full object-cover group-hover:scale-105 transition duration-300';
@@ -147,7 +242,7 @@ const allProducts = catalog.map((p) => ({
 
       const priceOverlay = document.createElement('div');
       priceOverlay.className =
-        'absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white font-black text-xs';
+        'absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white font-black text-xs font-mono';
       priceOverlay.textContent = formattedPrice;
       imgLink.appendChild(priceOverlay);
 
@@ -158,7 +253,7 @@ const allProducts = catalog.map((p) => ({
 
       const zone = document.createElement('span');
       zone.className = 'text-[10px] text-slate-500 font-medium truncate block';
-      zone.textContent = '\u{1F4CD} ' + p.zone_name;
+      zone.textContent = '📍 ' + (p.zone_name || 'Sumenep');
 
       const titleLink = document.createElement('a');
       titleLink.href = detailHref;
@@ -168,7 +263,7 @@ const allProducts = catalog.map((p) => ({
 
       const seller = document.createElement('span');
       seller.className = 'text-[10px] text-slate-500 block truncate';
-      seller.textContent = '\u{1F3EA} ' + p.umkm_name;
+      seller.textContent = '🏪 ' + (p.umkm_name || 'Toko Warga NU');
 
       body.append(zone, titleLink, seller);
       top.appendChild(body);
@@ -178,7 +273,7 @@ const allProducts = catalog.map((p) => ({
       foot.className = 'p-2.5 pt-0';
 
       const waLink = document.createElement('a');
-      waLink.href = 'https://wa.me/' + encodeURIComponent(String(p.umkm_phone)) + '?text=' + waMsg;
+      waLink.href = 'https://wa.me/' + encodeURIComponent(String(p.umkm_phone || '')) + '?text=' + waMsg;
       waLink.target = '_blank';
       waLink.rel = 'noopener noreferrer';
       waLink.className =
@@ -194,51 +289,120 @@ const allProducts = catalog.map((p) => ({
       return card;
     }
 
-    function renderFavorites() {
-      const favIds = getSavedFavorites();
-
-      if (!container) return;
-
-      while (container.firstChild) {
-        container.removeChild(container.firstChild);
-      }
-
-      const hasFavorites = favIds && favIds.length > 0;
-      const savedProducts = hasFavorites ? allProducts.filter((p) => favIds.includes(p.id)) : [];
-
-      if (savedProducts.length === 0) {
-        emptyState?.classList.remove('hidden');
-        if (clearBtn) clearBtn.classList.add('hidden');
+    async function loadGuestFavorites() {
+      const favIds = getLocalFavorites();
+      if (!favIds || favIds.length === 0) {
+        if (initialServerCount === 0) {
+          emptyState?.classList.remove('hidden');
+          clearBtn?.classList.add('hidden');
+        }
         return;
       }
 
-      emptyState?.classList.add('hidden');
-      if (clearBtn) clearBtn.classList.remove('hidden');
-
-      const fragment = document.createDocumentFragment();
-      for (const p of savedProducts) {
-        fragment.appendChild(createFavCard(p));
+      // If user is logged in, sync them with backend
+      if (isLoggedIn) {
+        try {
+          const res = await fetch('/api/favorites/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ guestProductIds: favIds }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success && data.syncedCount > 0) {
+            localStorage.removeItem('mamasar_favorites');
+            window.location.reload();
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to sync favorites', e);
+        }
       }
-      container.appendChild(fragment);
+
+      // If not logged in, fetch product cards from API
+      if (!isLoggedIn) {
+        try {
+          const res = await fetch('/api/favorites/list?ids=' + favIds.join(','));
+          const data = await res.json();
+          if (res.ok && data.success && data.products && data.products.length > 0) {
+            if (container) {
+              container.innerHTML = '';
+              const fragment = document.createDocumentFragment();
+              for (const p of data.products) {
+                fragment.appendChild(createFavCard(p));
+              }
+              container.appendChild(fragment);
+            }
+            emptyState?.classList.add('hidden');
+            clearBtn?.classList.remove('hidden');
+          } else {
+            emptyState?.classList.remove('hidden');
+            clearBtn?.classList.add('hidden');
+          }
+        } catch (e) {
+          console.error('Failed to load guest favorites', e);
+        }
+      }
     }
 
-    // Event delegation survives re-renders without re-attaching listeners.
-    container?.addEventListener('click', (e) => {
+    // Handle remove favorite
+    container?.addEventListener('click', async (e) => {
       const btn = e.target.closest('[data-remove-fav]');
       if (!btn) return;
       const id = Number(btn.getAttribute('data-remove-fav'));
-      const currentFavs = getSavedFavorites().filter((fid) => fid !== id);
-      localStorage.setItem('mamasar_favorites', JSON.stringify(currentFavs));
-      renderFavorites();
-    });
 
-    clearBtn?.addEventListener('click', () => {
-      if (confirm('Hapus semua daftar produk favorit yang tersimpan?')) {
-        localStorage.removeItem('mamasar_favorites');
-        renderFavorites();
+      // Remove from localStorage
+      const currentFavs = getLocalFavorites().filter((fid) => fid !== id);
+      localStorage.setItem('mamasar_favorites', JSON.stringify(currentFavs));
+
+      // Remove from database if logged in
+      if (isLoggedIn) {
+        try {
+          await fetch('/api/favorites/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: id }),
+          });
+        } catch (err) {
+          console.error(err);
+        }
+      }
+
+      // Remove DOM card
+      const card = document.getElementById('fav-card-' + id);
+      card?.remove();
+
+      if (container && container.children.length === 0) {
+        emptyState?.classList.remove('hidden');
+        clearBtn?.classList.add('hidden');
       }
     });
 
-    renderFavorites();
+    clearBtn?.addEventListener('click', async () => {
+      if (!confirm('Hapus semua daftar produk favorit yang tersimpan?')) return;
+      localStorage.removeItem('mamasar_favorites');
+
+      if (isLoggedIn) {
+        // Toggle off all visible favorites
+        const cards = document.querySelectorAll('[data-remove-fav]');
+        for (const card of cards) {
+          const id = Number(card.getAttribute('data-remove-fav'));
+          try {
+            await fetch('/api/favorites/toggle', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ productId: id }),
+            });
+          } catch {}
+        }
+      }
+
+      if (container) container.innerHTML = '';
+      emptyState?.classList.remove('hidden');
+      clearBtn?.classList.add('hidden');
+    });
+
+    if (!isLoggedIn || getLocalFavorites().length > 0) {
+      loadGuestFavorites();
+    }
   </script>
 </Layout>

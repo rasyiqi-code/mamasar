@@ -1,12 +1,9 @@
 import { findOrCreateUserByGoogle, getOrCreateSessionForUser, getUserFromSession, getUMKMByUserId } from './db';
 import type { User, UMKM } from './db';
+import { getEnv } from './neon';
 
 export function getNeonAuthBaseUrl(): string | null {
-  if (typeof process !== 'undefined' && process.env.NEON_AUTH_BASE_URL) {
-    return process.env.NEON_AUTH_BASE_URL;
-  }
-  // No hardcoded fallback: pointing at a stale endpoint silently breaks auth.
-  return null;
+  return getEnv('NEON_AUTH_BASE_URL') || null;
 }
 
 /**

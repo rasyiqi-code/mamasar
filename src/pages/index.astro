@@ -288,7 +288,7 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
           </div>
         </div>
         <a
-          href="/agen"
+          href="/dashboard"
           class="shrink-0 bg-white hover:bg-slate-100 text-emerald-900 font-extrabold text-xs px-5 py-2.5 rounded-xl shadow-xs transition"
         >
           + Pasang Iklan Toko Anda
@@ -347,9 +347,11 @@ const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || sea
                 <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-800 border-2 border-emerald-300 flex items-center justify-center font-black text-lg shadow-inner group-hover:bg-emerald-100 transition">
                   {seller.name.slice(0, 2).toUpperCase()}
                 </div>
-                <span class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[9px] font-black px-1.5 py-0.2 rounded-full uppercase tracking-wider">
-                  PRO
-                </span>
+                {Boolean(seller.is_verified) && (
+                  <span class="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-black w-5 h-5 rounded-full flex items-center justify-center shadow-xs" title="Terverifikasi MWC NU">
+                    ✓
+                  </span>
+                )}
               </div>
               <div class="space-y-0.5 w-full">
                 <h4 class="font-extrabold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 transition truncate">

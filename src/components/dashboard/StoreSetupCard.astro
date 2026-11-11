@@ -1,0 +1,115 @@
+---
+interface Props {
+  user: {
+    id: number;
+    name: string;
+    email: string;
+  };
+  zones: Array<{ id: number; name: string }>;
+}
+
+const { user, zones } = Astro.props;
+---
+
+<div class="max-w-xl mx-auto py-12 sm:py-20 px-4">
+  <div class="space-y-6">
+    <div class="space-y-1.5 pb-6 border-b border-slate-200">
+      <h1 class="text-2xl font-bold tracking-tight text-slate-900">Buka Profil Toko Anda</h1>
+      <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+        Ahlan wa sahlan, <strong>{user.name}</strong>! Masukkan nama usaha dan nomor WhatsApp aktif Anda agar pembeli dapat langsung memesan produk.
+      </p>
+    </div>
+
+    <div id="setup-status" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+
+    <form id="store-setup-form" class="space-y-4">
+      <input type="hidden" id="claimStoreIdInput" name="claimStoreId" value="" />
+      <input type="hidden" id="skipClaimInput" name="skipClaim" value="" />
+
+      <div class="space-y-1.5">
+        <label for="storeName" class="block text-xs font-medium text-slate-700">Nama Toko / Usaha <span class="text-rose-500">*</span></label>
+        <input
+          type="text"
+          id="storeName"
+          name="name"
+          placeholder="Contoh: Toko Barokah Gapura"
+          required
+          class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
+      </div>
+
+      <div class="space-y-1.5">
+        <label for="storePhone" class="block text-xs font-medium text-slate-700">Nomor WhatsApp Aktif <span class="text-rose-500">*</span></label>
+        <input
+          type="tel"
+          id="storePhone"
+          name="phone"
+          placeholder="Contoh: 081234567890"
+          required
+          class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+        />
+        <p class="text-[11px] text-slate-400">Pastikan nomor ini aktif di WhatsApp untuk menerima pesanan dari jamaah.</p>
+      </div>
+
+      <!-- Pending Claim Card (Shown if phone matches an orphan store) -->
+      <div id="claim-offer" class="hidden p-4 rounded-lg bg-amber-50 border border-amber-300 space-y-3">
+        <span class="text-[10px] font-semibold uppercase tracking-wider text-amber-900">Toko Terdeteksi</span>
+        <p id="claim-offer-text" class="text-xs text-amber-950 leading-relaxed font-medium"></p>
+        <div class="flex items-center gap-2 pt-1">
+          <button
+            type="button"
+            id="btn-claim-store"
+            class="py-1.5 px-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-md shadow-2xs transition cursor-pointer"
+          >
+            ✓ Ya, Ini Toko Saya (Klaim)
+          </button>
+          <button
+            type="button"
+            id="btn-skip-claim"
+            class="py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium text-xs rounded-md transition cursor-pointer"
+          >
+            Bukan, Buat Profil Baru
+          </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="space-y-1.5">
+          <label for="storeZoneId" class="block text-xs font-medium text-slate-700">Wilayah MWC NU <span class="text-rose-500">*</span></label>
+          <select
+            id="storeZoneId"
+            name="zoneId"
+            required
+            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs font-medium text-slate-800 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+          >
+            <option value="" disabled selected>Pilih Wilayah MWC Kecamatan</option>
+            {zones.map((z) => (
+              <option value={z.id}>{z.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div class="space-y-1.5">
+          <label for="storeAddress" class="block text-xs font-medium text-slate-700">Alamat Lengkap / Dusun</label>
+          <input
+            type="text"
+            id="storeAddress"
+            name="address"
+            placeholder="Contoh: Dusun Karang Anyar, Gapura Timur"
+            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+      </div>
+
+      <div class="pt-2">
+        <button
+          type="submit"
+          id="btn-save-store"
+          class="w-full py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-xs transition cursor-pointer"
+        >
+          Buka Toko Saya Sekarang ➔
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

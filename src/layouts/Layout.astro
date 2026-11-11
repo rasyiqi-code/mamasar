@@ -1,7 +1,7 @@
 ---
 import '../styles/global.css';
 import { SITE_CONFIG } from '../lib/constants';
-import { getAllZones } from '../lib/db';
+import { getAllZones, getUserFromSession } from '../lib/db';
 
 interface Props {
   title: string;
@@ -25,6 +25,11 @@ const siteName = SITE_CONFIG.name;
 const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 const zones = await getAllZones();
 const currentYear = new Date().getFullYear();
+
+const sessionCookie = Astro.cookies.get('mamasar_session')?.value;
+const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
+const isSuperadmin = user?.role === 'superadmin';
+const isPetugas = user?.role === 'petugas' || user?.agent_status === 'active';
 ---
 
 <!doctype html>
@@ -128,17 +133,35 @@ const currentYear = new Date().getFullYear();
           </a>
         </nav>
 
-        <!-- Right Side: Post Ad Button (OsClass "+ Place an ad" Button) -->
+        <!-- Right Side: Post Ad Button & Admin/Dashboard Links -->
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          {isSuperadmin && (
+            <a
+              href="/admin"
+              class="hidden sm:inline-flex items-center gap-1 text-xs text-rose-700 bg-rose-50 hover:bg-rose-100 font-bold px-2.5 py-1.5 rounded-xl border border-rose-300 transition"
+            >
+              <span>🛡️</span>
+              <span>Konsol Admin</span>
+            </a>
+          )}
+          {isPetugas && !isSuperadmin && (
+            <a
+              href="/admin#entry"
+              class="hidden sm:inline-flex items-center gap-1 text-xs text-emerald-800 bg-emerald-50 hover:bg-emerald-100 font-bold px-2.5 py-1.5 rounded-xl border border-emerald-300 transition"
+            >
+              <span>📋</span>
+              <span>Petugas MWC</span>
+            </a>
+          )}
           <a
             href="/dashboard"
             class="hidden sm:inline-flex items-center gap-1 text-xs text-slate-700 hover:text-emerald-700 font-bold transition px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100"
           >
             <span>🏪</span>
-            <span>Dashboard UMKM</span>
+            <span>{user ? 'Toko Saya' : 'Masuk / Toko'}</span>
           </a>
           <a
-            href="/agen"
+            href={isPetugas ? '/admin#entry' : '/dashboard'}
             class="bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-xs sm:text-sm px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-full shadow-sm transition flex items-center gap-1.5 active:scale-98"
           >
             <span class="text-base leading-none font-black">+</span>
@@ -162,8 +185,12 @@ const currentYear = new Date().getFullYear();
             NU
           </div>
           <div>
-            <h3 class="text-xs font-black text-slate-900">Ahlan wa Sahlan!</h3>
-            <p class="text-[10px] text-slate-500">Pasar Warga NU Sumenep</p>
+            <h3 class="text-xs font-black text-slate-900">
+              {user ? (user.name || user.email) : 'Ahlan wa Sahlan!'}
+            </h3>
+            <p class="text-[10px] text-slate-500">
+              {isSuperadmin ? 'Superadmin Mamasar' : isPetugas ? 'Petugas Pendata MWC' : 'Pasar Warga NU Sumenep'}
+            </p>
           </div>
         </div>
         <button id="close-mobile-drawer" aria-label="Tutup Menu" class="text-slate-400 hover:text-slate-700 text-base p-1 cursor-pointer">
@@ -173,13 +200,19 @@ const currentYear = new Date().getFullYear();
 
       <!-- Drawer Nav Links -->
       <div class="p-3.5 space-y-1.5 flex-1 overflow-y-auto text-xs font-semibold text-slate-700">
+        {isSuperadmin && (
+          <a href="/admin" class="flex items-center gap-2.5 p-2.5 rounded-xl bg-rose-50 text-rose-900 border border-rose-300 font-bold hover:bg-rose-100 transition shadow-2xs">
+            <span>🛡️</span>
+            <span>Konsol Superadmin</span>
+          </a>
+        )}
         <a href="/dashboard" class="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold hover:bg-emerald-100 transition shadow-2xs">
           <span>🏪</span>
-          <span>Dashboard Toko Saya (Login)</span>
+          <span>{user ? 'Dashboard Toko Saya' : 'Masuk / Buka Toko Saya'}</span>
         </a>
-        <a href="/agen" class="flex items-center gap-2.5 p-2.5 rounded-xl bg-indigo-600 text-white font-black shadow-sm">
+        <a href={isPetugas ? '/admin#entry' : '/dashboard#services'} class="flex items-center gap-2.5 p-2.5 rounded-xl bg-indigo-600 text-white font-black shadow-sm">
           <span class="text-base leading-none font-black">+</span>
-          <span>Pasang Iklan Cepat (Agen)</span>
+          <span>{isPetugas ? 'Portal Petugas Pendata' : 'Daftar Jadi Kader Petugas'}</span>
         </a>
         <a href="/" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
           <span>📋</span>
@@ -214,8 +247,8 @@ const currentYear = new Date().getFullYear();
 
       <!-- Drawer Footer -->
       <div class="p-3.5 border-t border-slate-200 bg-slate-50 text-xs">
-        <a href="/agen" class="flex items-center justify-between text-emerald-700 font-bold hover:text-emerald-800">
-          <span>Masuk Portal Agen Lapangan</span>
+        <a href={isPetugas ? '/admin#entry' : '/dashboard#services'} class="flex items-center justify-between text-emerald-700 font-bold hover:text-emerald-800">
+          <span>{isPetugas ? 'Masuk Portal Petugas Lapangan' : 'Daftar Kader Petugas Lapangan'}</span>
           <span>➔</span>
         </a>
       </div>
@@ -236,7 +269,7 @@ const currentYear = new Date().getFullYear();
           </p>
         </div>
         <a
-          href="/agen"
+          href="/dashboard"
           class="shrink-0 bg-white hover:bg-slate-100 text-[#4361ee] font-black text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-md transition active:scale-98"
         >
           + Pasang Iklan Sekarang
@@ -314,10 +347,10 @@ const currentYear = new Date().getFullYear();
           </p>
           <div class="pt-2">
             <a
-              href="/agen"
+              href={isPetugas ? '/admin#entry' : '/dashboard#services'}
               class="inline-block text-xs font-bold text-emerald-700 hover:text-emerald-800 underline"
             >
-              Masuk Portal Agen Lapangan ➔
+              {isPetugas ? 'Masuk Portal Petugas MWC ➔' : 'Daftar Jadi Kader Petugas MWC ➔'}
             </a>
           </div>
           <div class="pt-2">
@@ -339,21 +372,21 @@ const currentYear = new Date().getFullYear();
       </div>
     </footer>
 
-    <!-- Mobile Bottom Navigation Bar (OsClass 5-Button Light Theme) -->
+    <!-- Mobile Bottom Navigation Bar (5-Button Clean UX) -->
     {!hideMobileNav && (
       <nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 shadow-xl px-2 py-1 pb-[calc(0.5rem+env(safe-area-inset-bottom,0px))] flex items-center justify-around">
         <a href="/" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
           <span class="text-base leading-none">🏠</span>
           <span>Beranda</span>
         </a>
-        <a href="/kegiatan" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
-          <span class="text-base leading-none">🎪</span>
-          <span>Kegiatan</span>
+        <a href="/favorit" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
+          <span class="text-base leading-none">⭐</span>
+          <span>Favorit</span>
         </a>
         
-        <!-- Elevated Center Plus Button (OsClass Blue Center CTA) -->
+        <!-- Elevated Center Plus Button -->
         <a
-          href="/agen"
+          href={isPetugas ? '/admin#entry' : '/dashboard'}
           aria-label="Pasang Iklan Produk"
           class="w-12 h-12 -mt-5 rounded-full bg-[#4f46e5] text-white flex items-center justify-center text-2xl font-black shadow-lg border-4 border-white active:scale-95 transition"
         >
@@ -364,9 +397,9 @@ const currentYear = new Date().getFullYear();
           <span class="text-base leading-none">🏪</span>
           <span>Toko</span>
         </a>
-        <a href="/favorit" class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
-          <span class="text-base leading-none">⭐</span>
-          <span>Favorit</span>
+        <a href={isSuperadmin ? '/admin' : '/dashboard'} class="flex flex-col items-center gap-0.5 text-slate-600 hover:text-emerald-700 font-bold text-[10px] py-1">
+          <span class="text-base leading-none">{isSuperadmin ? '🛡️' : '👤'}</span>
+          <span>{isSuperadmin ? 'Admin' : 'Toko Saya'}</span>
         </a>
       </nav>
     )}
@@ -483,6 +516,13 @@ const currentYear = new Date().getFullYear();
           saveFavorites(favs);
           syncButtonStyles();
           showToast(isNowFav ? '⭐ Disimpan ke Favorit' : 'Dihapus dari Favorit');
+
+          // Background sync to database if user is logged in
+          fetch('/api/favorites/toggle', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productId: id }),
+          }).catch(() => {});
         });
 
         syncButtonStyles();

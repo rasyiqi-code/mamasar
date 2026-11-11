@@ -1,0 +1,330 @@
+---
+interface EventItem {
+  id: number;
+  title: string;
+  slug: string;
+  organizer: string;
+  zone_id: number;
+  zone_name: string;
+  event_date: string;
+  time_description: string;
+  location_name: string;
+  location_address?: string | null;
+  estimated_attendance?: number | null;
+  consumption_needed?: string | null;
+  allow_stalls?: boolean | number | null;
+  coordinator_name?: string | null;
+  coordinator_phone: string;
+}
+
+interface Zone {
+  id: number;
+  name: string;
+}
+
+interface Props {
+  events: EventItem[];
+  zones: Zone[];
+}
+
+const { events, zones } = Astro.props;
+
+function formatDate(iso: string): string {
+  try {
+    return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+  } catch {
+    return iso;
+  }
+}
+---
+
+<section id="panel-events" class="admin-tab-panel hidden space-y-4">
+  <!-- Top Bar: Compact Header with Line Divider -->
+  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+    <div class="flex items-center gap-2.5">
+      <h1 class="text-base sm:text-lg font-bold text-slate-900">Agenda Kegiatan & Konsumsi</h1>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+        {events.length} agenda
+      </span>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a
+        href="/kegiatan"
+        target="_blank"
+        class="py-1 px-2.5 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded border border-slate-200 transition"
+      >
+        Direktori ➔
+      </a>
+      <button
+        type="button"
+        id="btn-open-add-event"
+        class="py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded shadow-xs transition cursor-pointer flex items-center gap-1"
+      >
+        <span>+ Tambah Agenda</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Events Management Table: Compact Table with Line Dividers -->
+  <div class="overflow-x-auto">
+    <table class="w-full text-left text-xs border-b border-slate-200">
+      <thead>
+        <tr class="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider text-[10px]">
+          <th class="py-2.5 px-2">Tanggal</th>
+          <th class="py-2.5 px-2">Nama Acara & Wilayah</th>
+          <th class="py-2.5 px-2">Penyelenggara</th>
+          <th class="py-2.5 px-2">Bazar</th>
+          <th class="py-2.5 px-2 text-center">Aksi</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {events.length > 0 ? (
+          events.map((ev) => (
+            <tr class="hover:bg-slate-50/60 transition" id={`event-row-${ev.id}`}>
+              <td class="py-2.5 px-2 text-slate-500 font-mono text-[11px] whitespace-nowrap">
+                {formatDate(ev.event_date)}
+              </td>
+              <td class="py-2.5 px-2 min-w-[200px]">
+                <a href={`/kegiatan/${ev.slug}`} target="_blank" class="font-semibold text-slate-900 hover:text-emerald-700 transition block">
+                  {ev.title}
+                </a>
+                <span class="text-[10px] text-slate-400 block">
+                  📍 {ev.zone_name} • {ev.location_name}
+                </span>
+              </td>
+              <td class="py-2.5 px-2 text-slate-700">
+                <span class="text-xs font-medium">{ev.organizer}</span>
+                <span class="text-[10px] text-slate-400 block font-mono">{ev.coordinator_phone}</span>
+              </td>
+              <td class="py-2.5 px-2 whitespace-nowrap">
+                {Boolean(ev.allow_stalls) ? (
+                  <span class="inline-block px-1.5 py-0.2 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    Bazar
+                  </span>
+                ) : (
+                  <span class="inline-block px-1.5 py-0.2 rounded text-[10px] font-medium bg-slate-100 text-slate-500">
+                    -
+                  </span>
+                )}
+              </td>
+              <td class="py-2.5 px-2 text-center whitespace-nowrap">
+                <div class="flex items-center justify-center gap-1.5">
+                  <button
+                    type="button"
+                    data-action="edit-event"
+                    data-id={ev.id}
+                    class="py-1 px-2 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded border border-slate-200 transition cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    data-action="delete-event"
+                    data-id={ev.id}
+                    data-title={ev.title}
+                    class="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                    title="Hapus"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </td>
+            </tr>
+          ))
+        ) : (
+          <tr>
+            <td colspan="5" class="py-8 text-center text-slate-400 text-xs">
+              Belum ada agenda kegiatan.
+            </td>
+          </tr>
+        )}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Raw Events JSON for prefilling edit modal -->
+  <script type="application/json" id="admin-events-json" set:html={JSON.stringify(events).replace(/</g, '\\u003c')} />
+
+  <!-- MODAL: TAMBAH / UBAH AGENDA -->
+  <div id="modal-event" class="fixed inset-0 z-50 hidden flex items-center justify-center p-3 sm:p-4">
+    <div class="modal-backdrop fixed inset-0 bg-slate-900/40 backdrop-blur-xs"></div>
+    <div class="relative bg-white border border-slate-200 rounded-xl w-full max-w-xl shadow-xl overflow-hidden z-10 max-h-[90vh] flex flex-col">
+      <div class="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between">
+        <h3 id="modal-event-title" class="font-bold text-sm text-slate-900">Agenda Kegiatan NU</h3>
+        <button type="button" id="btn-close-event-modal" class="text-slate-400 hover:text-slate-700 text-sm font-bold p-1 cursor-pointer">✕</button>
+      </div>
+
+      <form id="admin-event-form" class="p-4 space-y-3.5 overflow-y-auto flex-1 text-xs">
+        <input type="hidden" id="adminEventAction" name="action" value="create" />
+        <input type="hidden" id="adminEventId" name="eventId" value="" />
+
+        <div class="space-y-1">
+          <label for="adminEvTitle" class="block font-medium text-slate-700">Judul Acara <span class="text-rose-500">*</span></label>
+          <input
+            type="text"
+            id="adminEvTitle"
+            name="title"
+            placeholder="Contoh: Lailatul Ijtima' MWC NU Gapura"
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label for="adminEvDate" class="block font-medium text-slate-700">Tanggal Acara <span class="text-rose-500">*</span></label>
+            <input
+              type="date"
+              id="adminEvDate"
+              name="eventDate"
+              required
+              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-mono"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label for="adminEvTime" class="block font-medium text-slate-700">Waktu Pelaksanaan <span class="text-rose-500">*</span></label>
+            <input
+              type="text"
+              id="adminEvTime"
+              name="timeDesc"
+              placeholder="Contoh: 19:30 WIB - Selesai"
+              required
+              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label for="adminEvZone" class="block font-medium text-slate-700">Wilayah MWC <span class="text-rose-500">*</span></label>
+            <select
+              id="adminEvZone"
+              name="zoneId"
+              required
+              class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-medium text-slate-800 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+            >
+              {zones.map((z) => (
+                <option value={z.id}>{z.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div class="space-y-1">
+            <label for="adminEvOrganizer" class="block font-medium text-slate-700">Penyelenggara <span class="text-rose-500">*</span></label>
+            <input
+              type="text"
+              id="adminEvOrganizer"
+              name="organizer"
+              placeholder="Contoh: MWC NU Gapura"
+              required
+              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            />
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label for="adminEvLocation" class="block font-medium text-slate-700">Tempat / Lokasi <span class="text-rose-500">*</span></label>
+          <input
+            type="text"
+            id="adminEvLocation"
+            name="locationName"
+            placeholder="Contoh: Masjid Jamik Gapura"
+            required
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="adminEvAddress" class="block font-medium text-slate-700">Alamat Lengkap</label>
+          <input
+            type="text"
+            id="adminEvAddress"
+            name="locationAddress"
+            placeholder="Contoh: Jl. Raya Gapura Timur Km 3"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label for="adminEvAttendance" class="block font-medium text-slate-700">Estimasi Jamaah</label>
+            <input
+              type="number"
+              id="adminEvAttendance"
+              name="estimatedAttendance"
+              placeholder="Contoh: 500"
+              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-mono"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label for="adminEvStalls" class="block font-medium text-slate-700">Izinkan Bazar UMKM?</label>
+            <select
+              id="adminEvStalls"
+              name="allowStalls"
+              class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-medium text-slate-800 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+            >
+              <option value="1">Ya, Diizinkan</option>
+              <option value="0">Tidak Diizinkan</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <label for="adminEvConsumption" class="block font-medium text-slate-700">Kebutuhan Konsumsi</label>
+          <input
+            type="text"
+            id="adminEvConsumption"
+            name="consumptionNeeded"
+            placeholder="Contoh: 500 nasi kotak, snack box"
+            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div class="space-y-1">
+            <label for="adminEvCoordinator" class="block font-medium text-slate-700">Nama Panitia</label>
+            <input
+              type="text"
+              id="adminEvCoordinator"
+              name="coordinatorName"
+              placeholder="Contoh: Ustadz Ahmad Fauzi"
+              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            />
+          </div>
+
+          <div class="space-y-1">
+            <label for="adminEvPhone" class="block font-medium text-slate-700">Nomor WhatsApp <span class="text-rose-500">*</span></label>
+            <input
+              type="tel"
+              id="adminEvPhone"
+              name="coordinatorPhone"
+              placeholder="Contoh: 081234567890"
+              required
+              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            />
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
+          <button
+            type="button"
+            id="btn-cancel-event-modal"
+            class="py-1 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-medium text-xs rounded transition cursor-pointer"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            id="btn-submit-event"
+            class="py-1 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded shadow-xs transition cursor-pointer"
+          >
+            Simpan Agenda ➔
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

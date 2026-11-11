@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, gt, getTableColumns, gte, ilike, isNull, lt, lte, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, gt, getTableColumns, gte, ilike, inArray, isNull, lt, lte, or, sql, type SQL } from 'drizzle-orm';
 import { drizzle, type NeonHttpDatabase } from 'drizzle-orm/neon-http';
 import * as schema from './schema';
-import { getNeonSql } from './neon';
+import { getNeonSql, getEnv } from './neon';
 import { formatPhoneForWhatsApp, slugify } from './utils';
 
 /**
@@ -228,18 +228,56 @@ export interface User {
   email: string;
   name: string;
   avatar_url?: string;
-  role: 'warga' | 'pengurus';
+  role: 'superadmin' | 'pengurus' | 'petugas' | 'warga';
+  agent_status: 'none' | 'pending' | 'active' | 'rejected';
+  assigned_zone_id?: number;
+  assigned_zone_name?: string;
+  agent_org?: string;
+  agent_phone?: string;
   created_at: string;
 }
 
-function toUser(row: typeof schema.users.$inferSelect): User {
+export function isSuperadmin(user?: { role?: string; email?: string } | null): boolean {
+  if (!user) return false;
+  const superadminEmail = getEnv('SUPERADMIN_EMAIL');
+  if (superadminEmail && user.email?.toLowerCase() === superadminEmail.toLowerCase()) {
+    return true;
+  }
+  return user.role === 'superadmin';
+}
+
+export function isPetugas(user?: { role?: string; agent_status?: string } | null): boolean {
+  if (!user) return false;
+  return user.role === 'petugas' || user.agent_status === 'active' || user.role === 'pengurus' || user.role === 'superadmin';
+}
+
+/**
+ * Best-practice resource ownership:
+ * Setiap warga/pengguna (bahkan petugas atau superadmin) yang memiliki toko
+ * otomatis bertindak sebagai penjual (merchant) lewat relasi entitas umkm.
+ */
+export function isMerchant(user?: { role?: string; umkm?: any } | null): boolean {
+  if (!user) return false;
+  return Boolean(user.umkm);
+}
+
+function toUser(row: typeof schema.users.$inferSelect, zoneName?: string): User {
+  const superadminEmail = getEnv('SUPERADMIN_EMAIL');
+  const isSuper = Boolean(superadminEmail && row.email.toLowerCase() === superadminEmail.toLowerCase());
+  const effectiveRole = isSuper ? 'superadmin' : (row.role as User['role']);
+
   return {
     id: row.id,
     google_id: row.google_id,
     email: row.email,
     name: row.name,
     avatar_url: row.avatar_url ?? undefined,
-    role: row.role,
+    role: effectiveRole,
+    agent_status: (row.agent_status as User['agent_status']) || 'none',
+    assigned_zone_id: row.assigned_zone_id ?? undefined,
+    assigned_zone_name: zoneName,
+    agent_org: row.agent_org ?? undefined,
+    agent_phone: row.agent_phone ?? undefined,
     created_at: row.created_at!.toISOString(),
   };
 }
@@ -534,27 +572,41 @@ export async function createUMKMAndProduct(data: {
   imageUrl: string;
   description?: string;
   shopeeUrl?: string;
+  createdByUserId?: number;
 }): Promise<{ umkmId: number; productId: number; slug: string }> {
   const cleanPhone = formatPhoneForWhatsApp(data.phone);
   const uniqueSlug = `${slugify(data.productName)}-${Date.now().toString(36)}`;
 
-  const [umkmRow] = await getDb()
-    .insert(schema.umkm)
-    .values({
-      name: data.umkmName,
-      phone: cleanPhone,
-      zone_id: data.zoneId,
-      // Every user-submitted store (dashboard or /agen) starts unverified;
-      // pengurus MWC flip it to verified after checking the member.
-      is_verified: 0,
-      address: data.address || '',
-    })
-    .returning({ id: schema.umkm.id });
+  // Anti-duplikasi: jika toko dengan nomor WhatsApp ini sudah ada di wilayah tersebut,
+  // gabungkan produk ke toko yang sama, jangan buat toko duplikat.
+  let targetUmkmId: number;
+  const [existingStore] = await getDb()
+    .select({ id: schema.umkm.id })
+    .from(schema.umkm)
+    .where(eq(schema.umkm.phone, cleanPhone))
+    .limit(1);
+
+  if (existingStore) {
+    targetUmkmId = existingStore.id;
+  } else {
+    const [umkmRow] = await getDb()
+      .insert(schema.umkm)
+      .values({
+        name: data.umkmName,
+        phone: cleanPhone,
+        zone_id: data.zoneId,
+        is_verified: 0,
+        address: data.address || '',
+        created_by_user_id: data.createdByUserId || null,
+      })
+      .returning({ id: schema.umkm.id });
+    targetUmkmId = umkmRow.id;
+  }
 
   const [productRow] = await getDb()
     .insert(schema.products)
     .values({
-      umkm_id: umkmRow.id,
+      umkm_id: targetUmkmId,
       name: data.productName,
       slug: uniqueSlug,
       price: data.price,
@@ -566,7 +618,7 @@ export async function createUMKMAndProduct(data: {
     .returning({ id: schema.products.id });
 
   return {
-    umkmId: umkmRow.id,
+    umkmId: targetUmkmId,
     productId: productRow.id,
     slug: uniqueSlug,
   };
@@ -689,6 +741,9 @@ export async function findOrCreateUserByGoogle(data: {
   }
 
   // Create new user
+  const superadminEmail = getEnv('SUPERADMIN_EMAIL');
+  const isSuper = Boolean(superadminEmail && data.email.toLowerCase() === superadminEmail.toLowerCase());
+
   const [created] = await getDb()
     .insert(schema.users)
     .values({
@@ -696,19 +751,12 @@ export async function findOrCreateUserByGoogle(data: {
       email: data.email,
       name: data.name,
       avatar_url: data.avatarUrl || '',
+      role: isSuper ? 'superadmin' : 'warga',
+      agent_status: 'none',
     })
-    .returning({ id: schema.users.id });
+    .returning();
 
-  return {
-    id: created.id,
-    google_id: data.googleId,
-    email: data.email,
-    name: data.name,
-    avatar_url: data.avatarUrl,
-    // Kolom role punya DEFAULT 'warga' di DDL.
-    role: 'warga',
-    created_at: new Date().toISOString(),
-  };
+  return toUser(created);
 }
 
 export async function updateUserProfile(userId: number, data: { name?: string; avatarUrl?: string }): Promise<void> {
@@ -803,13 +851,21 @@ export async function getUserFromSession(sessionId: string): Promise<(User & { u
     return null;
   }
 
+  const superadminEmail = getEnv('SUPERADMIN_EMAIL');
+  const isSuper = Boolean(superadminEmail && row.email.toLowerCase() === superadminEmail.toLowerCase());
+  const effectiveRole = isSuper ? 'superadmin' : (row.role as User['role']);
+
   const user: User & { umkm?: UMKM & { zone_name: string; zone_slug: string } } = {
     id: row.id,
     google_id: row.google_id,
     email: row.email,
     name: row.name,
     avatar_url: row.avatar_url ?? undefined,
-    role: row.role,
+    role: effectiveRole,
+    agent_status: (row.agent_status as User['agent_status']) || 'none',
+    assigned_zone_id: row.assigned_zone_id ?? undefined,
+    agent_org: row.agent_org ?? undefined,
+    agent_phone: row.agent_phone ?? undefined,
     created_at: row.created_at!.toISOString(),
   };
 
@@ -837,6 +893,15 @@ export async function getUserFromSession(sessionId: string): Promise<(User & { u
 export async function deleteSession(sessionId: string): Promise<void> {
   try {
     await getDb().delete(schema.sessions).where(eq(schema.sessions.id, sessionId));
+  } catch (_) {}
+}
+
+/**
+ * Delete all sessions for a user on logout
+ */
+export async function deleteUserSessions(userId: number): Promise<void> {
+  try {
+    await getDb().delete(schema.sessions).where(eq(schema.sessions.user_id, userId));
   } catch (_) {}
 }
 
@@ -983,6 +1048,7 @@ export interface UMKMVerificationRow {
   phone: string;
   address?: string;
   is_verified: number;
+  zone_id: number;
   zone_name: string;
   zone_slug: string;
   owner_email?: string;
@@ -1003,6 +1069,7 @@ export async function getUMKMForVerification(): Promise<UMKMVerificationRow[]> {
       phone: schema.umkm.phone,
       address: schema.umkm.address,
       is_verified: schema.umkm.is_verified,
+      zone_id: schema.umkm.zone_id,
       zone_name: schema.zones.name,
       zone_slug: schema.zones.slug,
       owner_email: schema.users.email,
@@ -1020,6 +1087,7 @@ export async function getUMKMForVerification(): Promise<UMKMVerificationRow[]> {
     phone: row.phone,
     address: row.address ?? undefined,
     is_verified: row.is_verified ?? 1,
+    zone_id: row.zone_id,
     zone_name: row.zone_name,
     zone_slug: row.zone_slug,
     owner_email: row.owner_email ?? undefined,
@@ -1181,4 +1249,222 @@ export async function deleteCashbookEntry(id: number, userId: number): Promise<b
     .where(and(eq(schema.cashbook.id, id), eq(schema.cashbook.user_id, userId)))
     .returning({ id: schema.cashbook.id });
   return rows.length > 0;
+}
+
+/**
+ * ------------------------------------------------------------------------------
+ * UPDATE PRODUCT & STORE PROFILE
+ * ------------------------------------------------------------------------------
+ */
+
+export async function updateProduct(
+  productId: number,
+  umkmId: number,
+  data: {
+    name: string;
+    price: number;
+    category: string;
+    imageUrl?: string;
+    description?: string;
+    shopeeUrl?: string;
+  }
+): Promise<boolean> {
+  const [existing] = await getDb()
+    .select({ id: schema.products.id })
+    .from(schema.products)
+    .where(and(eq(schema.products.id, productId), eq(schema.products.umkm_id, umkmId)));
+
+  if (!existing) return false;
+
+  const updateFields: any = {
+    name: data.name,
+    price: data.price,
+    category: data.category,
+    description: data.description ?? '',
+    shopee_url: data.shopeeUrl || null,
+  };
+
+  if (data.imageUrl) {
+    updateFields.image_url = data.imageUrl;
+  }
+
+  await getDb()
+    .update(schema.products)
+    .set(updateFields)
+    .where(eq(schema.products.id, productId));
+
+  return true;
+}
+
+export async function updateUMKMProfile(
+  umkmId: number,
+  userId: number,
+  data: {
+    name: string;
+    phone: string;
+    zoneId: number;
+    address?: string;
+  }
+): Promise<boolean> {
+  const [existing] = await getDb()
+    .select({ id: schema.umkm.id })
+    .from(schema.umkm)
+    .where(and(eq(schema.umkm.id, umkmId), eq(schema.umkm.user_id, userId)));
+
+  if (!existing) return false;
+
+  const cleanPhone = formatPhoneForWhatsApp(data.phone);
+
+  await getDb()
+    .update(schema.umkm)
+    .set({
+      name: data.name,
+      phone: cleanPhone,
+      zone_id: data.zoneId,
+      address: data.address || '',
+    })
+    .where(eq(schema.umkm.id, umkmId));
+
+  return true;
+}
+
+/**
+ * ------------------------------------------------------------------------------
+ * PETUGAS LAPANGAN & APPROVAL SYSTEM
+ * ------------------------------------------------------------------------------
+ */
+
+export async function registerPetugas(
+  userId: number,
+  data: { phone: string; zoneId: number; org: string }
+): Promise<boolean> {
+  const cleanPhone = formatPhoneForWhatsApp(data.phone);
+  await getDb()
+    .update(schema.users)
+    .set({
+      agent_phone: cleanPhone,
+      assigned_zone_id: data.zoneId,
+      agent_org: data.org,
+      agent_status: 'pending',
+    })
+    .where(eq(schema.users.id, userId));
+  return true;
+}
+
+export async function getPendingPetugas(): Promise<any[]> {
+  const rows = await getDb()
+    .select({
+      id: schema.users.id,
+      name: schema.users.name,
+      email: schema.users.email,
+      avatar_url: schema.users.avatar_url,
+      agent_phone: schema.users.agent_phone,
+      agent_org: schema.users.agent_org,
+      agent_status: schema.users.agent_status,
+      assigned_zone_id: schema.users.assigned_zone_id,
+      zone_name: schema.zones.name,
+      created_at: schema.users.created_at,
+    })
+    .from(schema.users)
+    .leftJoin(schema.zones, eq(schema.users.assigned_zone_id, schema.zones.id))
+    .where(eq(schema.users.agent_status, 'pending'))
+    .orderBy(desc(schema.users.created_at));
+
+  return rows.map((r) => ({
+    ...r,
+    created_at: r.created_at ? r.created_at.toISOString() : new Date().toISOString(),
+  }));
+}
+
+export async function getAllPetugas(): Promise<any[]> {
+  const rows = await getDb()
+    .select({
+      id: schema.users.id,
+      name: schema.users.name,
+      email: schema.users.email,
+      avatar_url: schema.users.avatar_url,
+      agent_phone: schema.users.agent_phone,
+      agent_org: schema.users.agent_org,
+      agent_status: schema.users.agent_status,
+      assigned_zone_id: schema.users.assigned_zone_id,
+      zone_name: schema.zones.name,
+      created_at: schema.users.created_at,
+    })
+    .from(schema.users)
+    .leftJoin(schema.zones, eq(schema.users.assigned_zone_id, schema.zones.id))
+    .where(or(eq(schema.users.role, 'petugas'), eq(schema.users.agent_status, 'active'), eq(schema.users.agent_status, 'pending')))
+    .orderBy(desc(schema.users.created_at));
+
+  return rows.map((r) => ({
+    ...r,
+    created_at: r.created_at ? r.created_at.toISOString() : new Date().toISOString(),
+  }));
+}
+
+export async function reviewPetugas(userId: number, action: 'approve' | 'reject'): Promise<boolean> {
+  const newStatus = action === 'approve' ? 'active' : 'rejected';
+  const newRole = action === 'approve' ? 'petugas' : 'warga';
+
+  await getDb()
+    .update(schema.users)
+    .set({
+      agent_status: newStatus,
+      role: newRole,
+    })
+    .where(eq(schema.users.id, userId));
+  return true;
+}
+
+/**
+ * ------------------------------------------------------------------------------
+ * FAVORITES (DATABASE SYNC)
+ * ------------------------------------------------------------------------------
+ */
+
+export async function getUserFavoriteIds(userId: number): Promise<number[]> {
+  const rows = await getDb()
+    .select({ productId: schema.favorites.product_id })
+    .from(schema.favorites)
+    .where(eq(schema.favorites.user_id, userId));
+  return rows.map((r) => r.productId);
+}
+
+export async function toggleUserFavorite(userId: number, productId: number): Promise<{ favorited: boolean }> {
+  const [existing] = await getDb()
+    .select({ id: schema.favorites.id })
+    .from(schema.favorites)
+    .where(and(eq(schema.favorites.user_id, userId), eq(schema.favorites.product_id, productId)));
+
+  if (existing) {
+    await getDb().delete(schema.favorites).where(eq(schema.favorites.id, existing.id));
+    return { favorited: false };
+  } else {
+    await getDb().insert(schema.favorites).values({
+      user_id: userId,
+      product_id: productId,
+    });
+    return { favorited: true };
+  }
+}
+
+export async function syncGuestFavorites(userId: number, productIds: number[]): Promise<void> {
+  if (!productIds || productIds.length === 0) return;
+  for (const pid of productIds) {
+    if (typeof pid === 'number' && pid > 0) {
+      try {
+        await getDb()
+          .insert(schema.favorites)
+          .values({ user_id: userId, product_id: pid })
+          .onConflictDoNothing();
+      } catch (_) {}
+    }
+  }
+}
+
+export async function getProductsByIds(productIds: number[]): Promise<Product[]> {
+  if (!productIds || productIds.length === 0) return [];
+  const rows = await productSelect()
+    .where(inArray(schema.products.id, productIds))
+    .orderBy(desc(schema.products.id));
+  return rows.map(toProduct);
 }

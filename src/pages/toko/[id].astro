@@ -91,9 +91,11 @@ const storeSchema = {
               <div class="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl bg-white text-emerald-800 border-4 border-white shadow-md flex items-center justify-center font-black text-2xl sm:text-3xl bg-gradient-to-br from-emerald-50 to-emerald-100">
                 {initials}
               </div>
-              <span class="absolute -top-1 -right-1 bg-indigo-600 text-white text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wider shadow-sm">
-                PRO
-              </span>
+              {Boolean(store.is_verified) && (
+                <span class="absolute -top-1 -right-1 bg-emerald-600 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-sm" title="Terverifikasi MWC NU">
+                  ✓
+                </span>
+              )}
             </div>
 
             <div class="space-y-1 min-w-0 pt-2">

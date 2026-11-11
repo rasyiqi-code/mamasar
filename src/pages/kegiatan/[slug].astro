@@ -23,18 +23,15 @@ const coordinatorWaLink = `https://wa.me/${formatPhoneForWhatsApp(event.coordina
   `Assalamu'alaikum ${event.coordinator_name || 'Panitia'}, saya ingin bertanya mengenai partisipasi buka lapak bazar atau kebutuhan konsumsi untuk acara: *${event.title}* di ${event.location_name}.`
 )}`;
 
-// Fetch local food & beverage products from the same MWC zone
 const localFoodProducts = (await getProducts({
   zoneSlug: event.zone_slug,
   category: 'Makanan & Minuman',
 })).slice(0, 4);
 
-// Fallback all food products if zone is empty
 const foodVendors = localFoodProducts.length > 0
   ? localFoodProducts
   : (await getProducts({ category: 'Makanan & Minuman' })).slice(0, 4);
 
-// Schema.org Event Structured Data for SEO
 const eventSchema = {
   '@context': 'https://schema.org',
   '@type': 'Event',
@@ -67,6 +64,7 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
   day: 'numeric',
   month: 'long',
   year: 'numeric',
+  timeZone: 'Asia/Jakarta',
 });
 ---
 
@@ -76,9 +74,7 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
   canonicalUrl={currentUrl}
   schema={eventSchema}
 >
-  <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
-    
-    <!-- Top Breadcrumb -->
+  <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
       <nav aria-label="Breadcrumb" class="flex items-center gap-2 truncate">
         <a href="/" class="hover:text-emerald-700">Beranda</a>
@@ -98,7 +94,6 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
       </a>
     </div>
 
-    <!-- Event Hero Card -->
     <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
@@ -127,7 +122,6 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
         </p>
       </div>
 
-      <!-- Schedule & Location Spec Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs">
         <div class="space-y-0.5">
           <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Hari & Tanggal</span>
@@ -149,13 +143,8 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
       </div>
     </div>
 
-    <!-- 2 Column Section: Consumption Hub on Left, Stall Coordinator on Right -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      
-      <!-- LEFT COLUMN: Consumption Hub (7-8 cols) -->
       <div class="lg:col-span-8 space-y-6">
-        
-        <!-- Consumption Callout Card -->
         <div class="bg-amber-50/80 border-2 border-amber-300/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
           <div class="flex items-start gap-3">
             <div class="w-12 h-12 rounded-xl bg-amber-200/60 text-amber-900 flex items-center justify-center text-2xl shrink-0">
@@ -187,7 +176,6 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
           </div>
         </div>
 
-        <!-- Local Food & Beverage Vendors Grid -->
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <h3 class="font-black text-sm sm:text-base text-slate-900 flex items-center gap-2">
@@ -224,13 +212,9 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
             })}
           </div>
         </div>
-
       </div>
 
-      <!-- RIGHT COLUMN: Stall / Bazar Coordinator Sidebar (4-5 cols) -->
       <aside class="lg:col-span-4 space-y-5 lg:sticky lg:top-20">
-        
-        <!-- Stall Registration Box -->
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
           <div class="space-y-1">
             <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
@@ -271,7 +255,6 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
           </p>
         </div>
 
-        <!-- Share Event Box -->
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs text-xs space-y-2.5">
           <span class="font-bold text-slate-800 block">Sebarkan agenda ini ke grup WhatsApp warga:</span>
           <a
@@ -283,10 +266,7 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
             <span>Bagikan ke WhatsApp ➔</span>
           </a>
         </div>
-
       </aside>
-
     </div>
-
   </div>
 </Layout>

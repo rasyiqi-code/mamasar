@@ -1,0 +1,234 @@
+---
+interface Props {
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
+  isSuper?: boolean;
+  assignedZoneName?: string;
+  pendingPetugasCount: number;
+  pendingStoresCount: number;
+  zonesCount: number;
+}
+
+const {
+  user,
+  isSuper = true,
+  assignedZoneName = 'Sumenep',
+  pendingPetugasCount,
+  pendingStoresCount,
+  zonesCount,
+} = Astro.props;
+---
+
+<!-- MOBILE TOP HEADER (Compact bar for mobile) -->
+<div class="md:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-2.5 min-w-0">
+    <button
+      type="button"
+      id="btn-toggle-admin-sidebar"
+      class="p-1.5 text-slate-700 hover:text-slate-900 rounded-lg border border-slate-200 focus:outline-none cursor-pointer"
+      aria-label="Buka Menu Admin"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+    <div class="min-w-0">
+      <h2 class="text-xs font-bold text-slate-900 truncate">
+        {isSuper ? 'Pusat Kendali PCNU' : `Petugas MWC ${assignedZoneName}`}
+      </h2>
+      <p class="text-[10px] text-slate-500 truncate">{user.name}</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <a
+      href="/dashboard"
+      class="text-xs font-medium text-slate-700 hover:text-slate-900 px-2 py-1 transition"
+    >
+      Toko Saya ➔
+    </a>
+  </div>
+</div>
+
+<!-- SIDEBAR BACKDROP ON MOBILE -->
+<div id="admin-sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 hidden md:hidden transition-opacity"></div>
+
+<!-- DESKTOP & MOBILE SIDEBAR -->
+<aside
+  id="admin-sidebar"
+  class="fixed md:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#fbfcfd] border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-screen shrink-0"
+>
+  <div class="flex flex-col h-full overflow-y-auto">
+    <!-- Sidebar Header: PCNU Logo & Portal Info -->
+    <div class="p-4 border-b border-slate-200/70 flex items-center justify-between">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-xs shrink-0">
+          PCNU
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-xs font-bold text-slate-900 truncate">
+            {isSuper ? 'Konsol Admin PCNU' : `Petugas MWC`}
+          </h1>
+          <p class="text-[10px] text-slate-500 truncate">
+            {isSuper ? 'Sumenep' : `Kecamatan ${assignedZoneName}`}
+          </p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        id="btn-close-admin-sidebar"
+        class="md:hidden text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+        aria-label="Tutup Menu Admin"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="p-3 space-y-1 flex-1 text-xs">
+      {isSuper && (
+        <button
+          type="button"
+          data-admin-tab="agents"
+          class="admin-nav-tab active w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm">🛡️</span>
+            <span>Petugas Lapangan</span>
+          </div>
+          {pendingPetugasCount > 0 ? (
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
+              {pendingPetugasCount}
+            </span>
+          ) : (
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+              0
+            </span>
+          )}
+        </button>
+      )}
+
+      {isSuper ? (
+        <button
+          type="button"
+          data-admin-tab="stores"
+          class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm">🏪</span>
+            <span>Moderasi Toko</span>
+          </div>
+          {pendingStoresCount > 0 ? (
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-900">
+              {pendingStoresCount}
+            </span>
+          ) : (
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+              0
+            </span>
+          )}
+        </button>
+      ) : (
+        <button
+          type="button"
+          data-admin-tab="entry"
+          class="admin-nav-tab active w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <span class="text-sm">📝</span>
+          <span>Entri Jemput Bola</span>
+        </button>
+      )}
+
+      {isSuper ? (
+        <button
+          type="button"
+          data-admin-tab="entry"
+          class="admin-nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <span class="text-sm">📝</span>
+          <span>Entri Jemput Bola</span>
+        </button>
+      ) : (
+        <button
+          type="button"
+          data-admin-tab="stores"
+          class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm">🏪</span>
+            <span>Toko Binaan MWC</span>
+          </div>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+            {pendingStoresCount}
+          </span>
+        </button>
+      )}
+
+      <button
+        type="button"
+        data-admin-tab="events"
+        class="admin-nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+      >
+        <span class="text-sm">🎪</span>
+        <span>Agenda Kegiatan</span>
+      </button>
+
+      {isSuper && (
+        <button
+          type="button"
+          data-admin-tab="zones"
+          class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <div class="flex items-center gap-2.5">
+            <span class="text-sm">📍</span>
+            <span>Sebaran Wilayah</span>
+          </div>
+          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+            {zonesCount}
+          </span>
+        </button>
+      )}
+
+      <div class="pt-3 mt-2 border-t border-slate-200/60 space-y-1">
+        <a
+          href="/dashboard"
+          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+        >
+          <span class="text-sm">🏬</span>
+          <span>Dashboard Toko Saya</span>
+        </a>
+        <a
+          href="/"
+          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+        >
+          <span class="text-sm">🌐</span>
+          <span>Lihat Katalog Depan</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="p-3 border-t border-slate-200/70">
+      <div class="flex items-center justify-between text-xs">
+        <div class="min-w-0">
+          <span class="font-semibold text-slate-900 block truncate text-[11px]">{user.name}</span>
+          <span class="text-[9px] text-slate-400 block truncate">
+            {isSuper ? 'Superadmin PCNU' : `Kader MWC ${assignedZoneName}`}
+          </span>
+        </div>
+        <a
+          href="/api/auth/logout"
+          class="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition"
+          title="Keluar"
+        >
+          🚪
+        </a>
+      </div>
+    </div>
+  </div>
+</aside>

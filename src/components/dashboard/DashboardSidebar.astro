@@ -1,0 +1,227 @@
+---
+interface Props {
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    avatar_url?: string | null;
+  };
+  store: {
+    id: number;
+    name: string;
+    zone_name: string;
+    is_verified?: boolean | number | null;
+    products?: any[];
+  };
+  avatarUrl?: string | null;
+  isSuper?: boolean;
+  isCadre?: boolean;
+  productCount?: number;
+  cashbookCount?: number;
+}
+
+const {
+  user,
+  store,
+  avatarUrl,
+  isSuper = false,
+  isCadre = false,
+  productCount = 0,
+  cashbookCount = 0,
+} = Astro.props;
+---
+
+<!-- MOBILE TOP HEADER (Compact bar for mobile) -->
+<div class="md:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+  <div class="flex items-center gap-2.5 min-w-0">
+    <button
+      type="button"
+      id="btn-toggle-sidebar"
+      class="p-1.5 text-slate-700 hover:text-slate-900 rounded-lg border border-slate-200 focus:outline-none cursor-pointer"
+      aria-label="Buka Menu Sidebar"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+    <div class="min-w-0">
+      <h2 class="text-xs font-bold text-slate-900 truncate">{store.name}</h2>
+      <p class="text-[10px] text-slate-500 truncate">📍 {store.zone_name}</p>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <button
+      type="button"
+      data-open-modal="add-product"
+      class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg cursor-pointer shrink-0 transition"
+    >
+      + Produk
+    </button>
+  </div>
+</div>
+
+<!-- SIDEBAR BACKDROP ON MOBILE -->
+<div id="sidebar-backdrop" class="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 hidden md:hidden transition-opacity"></div>
+
+<!-- DESKTOP & MOBILE SIDEBAR -->
+<aside
+  id="dashboard-sidebar"
+  class="fixed md:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#fbfcfd] border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-screen shrink-0"
+>
+  <div class="flex flex-col h-full overflow-y-auto">
+    <!-- Sidebar Brand / Store Profile -->
+    <div class="p-4 border-b border-slate-200/70 flex items-center justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-9 h-9 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm shrink-0">
+          {store.name.slice(0, 2).toUpperCase()}
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-xs font-bold text-slate-900 truncate" title={store.name}>{store.name}</h1>
+          <div class="flex items-center gap-1.5 pt-0.5">
+            {store.is_verified ? (
+              <span class="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Terverifikasi
+              </span>
+            ) : (
+              <span class="inline-flex items-center gap-1 text-[10px] text-slate-500">
+                <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Proses Kurasi
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        id="btn-close-sidebar"
+        class="md:hidden text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+        aria-label="Tutup Menu Sidebar"
+      >
+        ✕
+      </button>
+    </div>
+
+    <!-- Role Quick Links (If Superadmin or Petugas) -->
+    {(isSuper || isCadre) && (
+      <div class="p-3 border-b border-slate-200/70 space-y-1.5">
+        {isSuper && (
+          <a
+            href="/admin"
+            class="flex items-center justify-between px-3 py-2 rounded-lg bg-rose-50 text-rose-900 border border-rose-200/70 text-xs font-semibold hover:bg-rose-100/70 transition"
+          >
+            <span class="flex items-center gap-1.5">
+              <span>🛡️</span>
+              <span>Konsol Superadmin</span>
+            </span>
+            <span>➔</span>
+          </a>
+        )}
+        {isCadre && !isSuper && (
+          <a
+            href="/admin#entry"
+            class="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200/70 text-xs font-semibold hover:bg-emerald-100/70 transition"
+          >
+            <span class="flex items-center gap-1.5">
+              <span>📋</span>
+              <span>Portal Petugas MWC</span>
+            </span>
+            <span>➔</span>
+          </a>
+        )}
+      </div>
+    )}
+
+    <!-- Navigation Items -->
+    <nav class="p-3 space-y-1 flex-1 text-xs">
+      <button
+        type="button"
+        data-nav-tab="products"
+        class="nav-tab-btn active w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+      >
+        <div class="flex items-center gap-2.5">
+          <span class="text-sm">📦</span>
+          <span>Katalog Produk</span>
+        </div>
+        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+          {productCount}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        data-nav-tab="cashbook"
+        class="nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+      >
+        <div class="flex items-center gap-2.5">
+          <span class="text-sm">📖</span>
+          <span>Buku Kas Santri</span>
+        </div>
+        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+          {cashbookCount}
+        </span>
+      </button>
+
+      <button
+        type="button"
+        data-nav-tab="profile"
+        class="nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+      >
+        <span class="text-sm">🏪</span>
+        <span>Profil Usaha</span>
+      </button>
+
+      <button
+        type="button"
+        data-nav-tab="services"
+        class="nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+      >
+        <span class="text-sm">🏛️</span>
+        <span>Layanan Kemitraan</span>
+      </button>
+
+      <div class="pt-3 mt-2 border-t border-slate-200/60">
+        <a
+          href="/"
+          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+        >
+          <span class="text-sm">🌐</span>
+          <span>Katalog Publik</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Sidebar Footer: User Card & Storefront link -->
+    <div class="p-3 border-t border-slate-200/70 space-y-2">
+      <a
+        href={`/toko/${store.id}`}
+        target="_blank"
+        class="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition"
+      >
+        <span>Lihat Toko Publik</span>
+        <span>➔</span>
+      </a>
+
+      <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
+        <div class="flex items-center gap-2 min-w-0">
+          <img
+            src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=059669&color=fff`}
+            alt={user.name}
+            class="w-7 h-7 rounded-full border border-slate-200 shrink-0 object-cover"
+          />
+          <div class="min-w-0">
+            <span class="font-semibold text-slate-900 block truncate text-[11px]">{user.name}</span>
+            <span class="text-[9px] text-slate-400 block truncate">{user.email}</span>
+          </div>
+        </div>
+        <a
+          href="/api/auth/logout"
+          class="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition"
+          title="Keluar"
+        >
+          🚪
+        </a>
+      </div>
+    </div>
+  </div>
+</aside>

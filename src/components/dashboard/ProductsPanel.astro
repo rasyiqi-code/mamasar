@@ -1,0 +1,167 @@
+---
+import { formatRupiah } from '../../lib/utils';
+
+interface Product {
+  id: number;
+  name: string;
+  slug: string;
+  price: number;
+  category: string;
+  image_url: string;
+  is_sold_out?: boolean | number | null;
+  views?: number;
+  description?: string;
+  shopee_url?: string;
+}
+
+interface Props {
+  store: {
+    id: number;
+    name: string;
+    products?: Product[];
+  };
+}
+
+const { store } = Astro.props;
+const products = store.products || [];
+---
+
+<section id="panel-products" class="tab-panel space-y-4">
+  <!-- Top Bar: Compact Header with Line Divider -->
+  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+    <div class="flex items-center gap-2.5">
+      <h1 class="text-base sm:text-lg font-bold text-slate-900">Katalog Produk</h1>
+      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+        {products.length} produk
+      </span>
+    </div>
+
+    <button
+      type="button"
+      data-open-modal="add-product"
+      class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer flex items-center gap-1 shrink-0"
+    >
+      <span>+ Tambah Produk</span>
+    </button>
+  </div>
+
+  <!-- Product List: Compact Table/List with Line Dividers -->
+  {products.length > 0 ? (
+    <div class="divide-y divide-slate-100 border-b border-slate-200">
+      {products.map((prod) => (
+        <div class="py-2.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 px-1 transition">
+          <div class="flex items-center gap-3 min-w-0">
+            <img
+              src={prod.image_url}
+              alt={prod.name}
+              class={`w-11 h-11 rounded object-cover border border-slate-200 shrink-0 bg-slate-50 ${
+                prod.is_sold_out ? 'grayscale opacity-75' : ''
+              }`}
+            />
+            <div class="min-w-0 space-y-0.5">
+              <div class="flex items-center gap-2">
+                <h2 class="font-bold text-xs sm:text-sm text-slate-900 truncate">{prod.name}</h2>
+                <span class="text-[10px] text-slate-400 uppercase tracking-wider">{prod.category}</span>
+                {prod.is_sold_out ? (
+                  <span class="text-[9px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 px-1 py-0.1 rounded">
+                    Habis
+                  </span>
+                ) : (
+                  <span class="text-[9px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-1 py-0.1 rounded">
+                    Tersedia
+                  </span>
+                )}
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-slate-900 font-mono">{formatRupiah(prod.price)}</span>
+                {prod.views ? (
+                  <span class="text-[10px] text-slate-400">👁 {prod.views}</span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions: Compact -->
+          <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
+            <button
+              type="button"
+              data-action="edit-product"
+              data-id={prod.id}
+              data-name={prod.name}
+              data-price={prod.price}
+              data-category={prod.category}
+              data-desc={prod.description || ''}
+              data-shopee={prod.shopee_url || ''}
+              class="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded border border-slate-200 transition cursor-pointer"
+            >
+              Edit
+            </button>
+
+            <button
+              type="button"
+              data-action="record-sale"
+              data-title={`Penjualan ${prod.name}`}
+              data-amount={prod.price}
+              class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-medium text-xs rounded border border-emerald-200 transition cursor-pointer"
+            >
+              + Kas
+            </button>
+
+            <button
+              type="button"
+              data-action="bump"
+              data-id={prod.id}
+              title="Sundul ke posisi teratas"
+              class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 font-medium text-xs rounded border border-amber-200 transition cursor-pointer"
+            >
+              ⚡ Sundul
+            </button>
+
+            <button
+              type="button"
+              data-action="toggle-stock"
+              data-id={prod.id}
+              class={`px-2 py-1 font-medium text-xs rounded border transition cursor-pointer ${
+                prod.is_sold_out
+                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
+                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
+              }`}
+            >
+              {prod.is_sold_out ? 'Tersedia' : 'Habis'}
+            </button>
+
+            <a
+              href={`/p/${prod.slug}`}
+              target="_blank"
+              class="px-2 py-1 text-slate-500 hover:text-slate-900 text-xs font-medium"
+            >
+              Lihat ➔
+            </a>
+
+            <button
+              type="button"
+              data-action="delete"
+              data-id={prod.id}
+              data-name={prod.name}
+              class="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+              title="Hapus"
+            >
+              🗑️
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  ) : (
+    <div class="py-12 text-center space-y-2">
+      <p class="text-xs text-slate-400">Belum ada produk yang didaftarkan.</p>
+      <button
+        type="button"
+        data-open-modal="add-product"
+        class="py-1.5 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition shadow-xs cursor-pointer"
+      >
+        + Tambah Produk Pertama
+      </button>
+    </div>
+  )}
+</section>

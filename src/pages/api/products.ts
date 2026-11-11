@@ -1,22 +1,30 @@
 import type { APIRoute } from 'astro';
-import { createUMKMAndProduct, getUserFromSession } from '../../lib/db';
+import { createUMKMAndProduct, isPetugas, isSuperadmin } from '../../lib/db';
+import { resolveUser } from '../../lib/neon-auth';
 import { saveUploadedImage } from '../../lib/storage';
 import { isValidIndonesianPhone } from '../../lib/utils';
 
-export const POST: APIRoute = async ({ request, cookies }) => {
+export const POST: APIRoute = async ({ request }) => {
   try {
-    // Submissions are tied to a logged-in member (Neon Auth / Google) —
-    // the shared PIN gate was replaced by real accounts.
-    const sessionCookie = cookies.get('mamasar_session')?.value;
-    const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
+    const user = await resolveUser(request);
 
     if (!user) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: 'Silakan masuk dengan akun Google terlebih dahulu untuk mendata produk.',
+          message: 'Silakan masuk dengan akun Google atau Email terlebih dahulu.',
         }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!isPetugas(user) && !isSuperadmin(user)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Akses khusus Petugas Lapangan MWC atau Pengurus PCNU yang telah disetujui.',
+        }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -69,6 +77,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       imageUrl,
       description,
       shopeeUrl,
+      createdByUserId: user.id,
     });
 
     return new Response(
