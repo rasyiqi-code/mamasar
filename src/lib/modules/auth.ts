@@ -1,4 +1,4 @@
-import { and, desc, eq, gt, lt, getTableColumns } from 'drizzle-orm';
+import { and, desc, eq, gt, lt, getTableColumns, sql } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
 import { getEnv } from '../neon';
@@ -64,6 +64,8 @@ export async function findOrCreateUserByGoogle(data: {
   name: string;
   avatarUrl?: string;
 }): Promise<User> {
+  const normalizedEmail = data.email.trim().toLowerCase();
+
   const [existingByGoogle] = await getDb()
     .select()
     .from(schema.users)
@@ -84,28 +86,38 @@ export async function findOrCreateUserByGoogle(data: {
   const [existingByEmail] = await getDb()
     .select()
     .from(schema.users)
-    .where(eq(schema.users.email, data.email));
+    .where(sql`lower(${schema.users.email}) = ${normalizedEmail}`);
 
   if (existingByEmail) {
     const nextName = data.name || existingByEmail.name;
     const nextAvatar = data.avatarUrl || existingByEmail.avatar_url;
-    if (nextName !== existingByEmail.name || nextAvatar !== existingByEmail.avatar_url) {
+    const shouldLinkGoogleId = existingByEmail.google_id.startsWith('pre_') && !data.googleId.startsWith('pre_');
+    const nextGoogleId = shouldLinkGoogleId ? data.googleId : existingByEmail.google_id;
+    if (
+      nextName !== existingByEmail.name ||
+      nextAvatar !== existingByEmail.avatar_url ||
+      shouldLinkGoogleId
+    ) {
       await getDb()
         .update(schema.users)
-        .set({ name: nextName, avatar_url: nextAvatar })
+        .set({ name: nextName, avatar_url: nextAvatar, google_id: nextGoogleId })
         .where(eq(schema.users.id, existingByEmail.id));
     }
-    return { ...toUser(existingByEmail), name: nextName, avatar_url: nextAvatar ?? undefined };
+    return {
+      ...toUser({ ...existingByEmail, google_id: nextGoogleId }),
+      name: nextName,
+      avatar_url: nextAvatar ?? undefined,
+    };
   }
 
   const superadminEmail = getEnv('SUPERADMIN_EMAIL');
-  const isSuper = Boolean(superadminEmail && data.email.toLowerCase() === superadminEmail.toLowerCase());
+  const isSuper = Boolean(superadminEmail && normalizedEmail === superadminEmail.toLowerCase());
 
   const [created] = await getDb()
     .insert(schema.users)
     .values({
       google_id: data.googleId,
-      email: data.email,
+      email: normalizedEmail,
       name: data.name,
       avatar_url: data.avatarUrl || '',
       role: isSuper ? 'pcnu' : 'warga',
@@ -204,6 +216,7 @@ export async function getUserFromSession(sessionId: string): Promise<(User & { u
     role: effectiveRole,
     agent_status: (row.agent_status as User['agent_status']) || 'none',
     assigned_zone_id: row.assigned_zone_id ?? undefined,
+    agent_ranting: row.agent_ranting ?? undefined,
     agent_org: row.agent_org ?? undefined,
     agent_phone: row.agent_phone ?? undefined,
     created_at: row.created_at!.toISOString(),

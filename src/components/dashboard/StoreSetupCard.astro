@@ -1,28 +1,180 @@
 ---
+import KaderRegisterForm from './KaderRegisterForm.astro';
+
+interface Zone {
+  id: number;
+  name: string;
+}
+
 interface Props {
   user: {
     id: number;
     name: string;
     email: string;
+    role: string;
+    agent_status?: string | null;
+    agent_ranting?: string | null;
+    agent_org?: string | null;
+    agent_phone?: string | null;
+    assigned_zone_id?: number | null;
   };
-  zones: Array<{ id: number; name: string }>;
+  zones: Zone[];
+  assignedZone?: Zone;
+  isSuper?: boolean;
+  isCadre?: boolean;
+  initialTab?: 'store' | 'kader';
 }
 
-const { user, zones } = Astro.props;
+const {
+  user,
+  zones,
+  assignedZone,
+  isSuper = false,
+  isCadre = false,
+  initialTab = 'store',
+} = Astro.props;
+
+const isPending = user.agent_status === 'pending' || user.agent_status === 'pending_mwcnu';
+const roleLabel = isSuper
+  ? 'Superadmin PCNU'
+  : user.role === 'mwcnu'
+    ? 'Pengurus MWC NU'
+    : isCadre
+      ? 'Kader Ranting Aktif'
+      : isPending
+        ? 'Menunggu Verifikasi Kader'
+        : 'Warga';
+
+const showKaderFirst = initialTab === 'kader';
 ---
 
-<div class="max-w-xl mx-auto py-12 sm:py-20 px-4">
-  <div class="space-y-6">
-    <div class="space-y-1.5 pb-6 border-b border-slate-200">
-      <h1 class="text-2xl font-bold tracking-tight text-slate-900">Buka Profil Toko Anda</h1>
-      <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
-        Ahlan wa sahlan, <strong>{user.name}</strong>! Masukkan nama usaha dan nomor WhatsApp aktif Anda agar pembeli dapat langsung memesan produk.
+<div class="max-w-2xl mx-auto py-8 sm:py-14 px-4 space-y-6">
+  <!-- Account Status & Quick Navigation Bar -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+    <div class="min-w-0 space-y-0.5">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-sm font-bold text-slate-900 truncate">{user.name}</span>
+        <span class={`text-[11px] font-semibold px-2 py-0.5 rounded border ${
+          isSuper
+            ? 'bg-rose-50 text-rose-800 border-rose-200'
+            : isCadre
+              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+              : isPending
+                ? 'bg-amber-50 text-amber-900 border-amber-200'
+                : 'bg-slate-100 text-slate-700 border-slate-200'
+        }`}>
+          {roleLabel}
+        </span>
+      </div>
+      <p class="text-xs text-slate-600 truncate font-mono">{user.email}</p>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      <a
+        href="/"
+        class="inline-flex items-center min-h-[40px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition"
+      >
+        Lihat Pasar
+      </a>
+      <a
+        href="/api/auth/logout"
+        class="inline-flex items-center min-h-[40px] px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-800 transition"
+      >
+        Keluar Akun
+      </a>
+    </div>
+  </div>
+
+  <!-- Quick Portal Banner for Superadmin / Active Pengurus / Active Kader -->
+  {(isSuper || isCadre) && (
+    <div class={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+      isSuper ? 'bg-rose-50/70 border-rose-200' : 'bg-emerald-50/70 border-emerald-200'
+    }`}>
+      <div class="space-y-0.5">
+        <p class="text-xs font-bold text-slate-900">
+          {isSuper
+            ? 'Anda masuk dengan akun Superadmin PCNU'
+            : user.role === 'mwcnu'
+              ? `Anda aktif sebagai Pengurus MWC ${assignedZone?.name || 'Sumenep'}`
+              : `Anda aktif sebagai Kader Ranting ${user.agent_ranting || ''} (MWC ${assignedZone?.name || 'Sumenep'})`}
+        </p>
+        <p class="text-xs text-slate-700">
+          {isSuper
+            ? 'Atur peran seluruh akun, setujui pengajuan kader/MWC, dan moderasi toko dari Konsol Admin.'
+            : 'Masuk ke portal tugas untuk mendata UMKM warga atau mengelola toko binaan di wilayah Anda.'}
+        </p>
+      </div>
+      <a
+        href={isSuper ? '/admin' : '/admin#entry'}
+        class={`inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold text-white shadow-xs transition shrink-0 ${
+          isSuper ? 'bg-rose-700 hover:bg-rose-800' : 'bg-emerald-700 hover:bg-emerald-800'
+        }`}
+      >
+        {isSuper ? 'Buka Konsol Admin PCNU ➔' : 'Buka Portal Tugas ➔'}
+      </a>
+    </div>
+  )}
+
+  <!-- Role Onboarding Header + Accessible Tab Switcher -->
+  <div class="space-y-4">
+    <div class="space-y-1">
+      <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+        Pilih Tujuan Akun Anda
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+        Ingin berjualan di pasar UMKM atau bertugas sebagai Kader Ranting / Pengurus MWC NU? Pilih tab di bawah ini sesuai kebutuhan Anda.
       </p>
     </div>
 
-    <div id="setup-status" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+    <div
+      role="tablist"
+      aria-label="Pilihan pendaftaran peran akun"
+      class="flex border-b border-slate-200 overflow-x-auto"
+    >
+      <button
+        type="button"
+        role="tab"
+        id="onboard-tab-store"
+        data-onboard-tab="store"
+        aria-selected={showKaderFirst ? 'false' : 'true'}
+        tabindex={showKaderFirst ? '-1' : '0'}
+        class={`relative flex-1 min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap cursor-pointer transition border-b-2 ${
+          !showKaderFirst
+            ? 'border-emerald-700 text-emerald-800 bg-emerald-50/50'
+            : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+        }`}
+      >
+        🏪 Buka / Klaim Toko UMKM
+      </button>
+      <button
+        type="button"
+        role="tab"
+        id="onboard-tab-kader"
+        data-onboard-tab="kader"
+        aria-selected={showKaderFirst ? 'true' : 'false'}
+        tabindex={showKaderFirst ? '0' : '-1'}
+        class={`relative flex-1 min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap cursor-pointer transition border-b-2 ${
+          showKaderFirst
+            ? 'border-emerald-700 text-emerald-800 bg-emerald-50/50'
+            : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+        }`}
+      >
+        🤝 Daftar Kader / Pengurus NU
+      </button>
+    </div>
+  </div>
 
-    <form id="store-setup-form" class="space-y-4">
+  <!-- Panel 1: Buka / Klaim Toko UMKM -->
+  <div
+    id="onboard-panel-store"
+    role="tabpanel"
+    aria-labelledby="onboard-tab-store"
+    hidden={showKaderFirst}
+    class="space-y-5"
+  >
+    <div id="setup-status" role="status" aria-live="polite" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+
+    <form id="store-setup-form" class="space-y-4" aria-label="Formulir pembukaan profil toko UMKM">
       <input type="hidden" id="claimStoreIdInput" name="claimStoreId" value="" />
       <input type="hidden" id="skipClaimInput" name="skipClaim" value="" />
 
@@ -116,11 +268,22 @@ const { user, zones } = Astro.props;
         <button
           type="submit"
           id="btn-save-store"
-          class="w-full py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-xs transition cursor-pointer"
+          class="w-full min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-xs transition cursor-pointer"
         >
           Buka Toko Saya Sekarang ➔
         </button>
       </div>
     </form>
+  </div>
+
+  <!-- Panel 2: Daftar Kader Ranting / Pengurus MWC NU -->
+  <div
+    id="onboard-panel-kader"
+    role="tabpanel"
+    aria-labelledby="onboard-tab-kader"
+    hidden={!showKaderFirst}
+    class="space-y-4"
+  >
+    <KaderRegisterForm user={user} zones={zones} assignedZone={assignedZone} />
   </div>
 </div>

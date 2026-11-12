@@ -4,9 +4,13 @@ import { resolveUser } from '../lib/neon-auth';
 
 const user = await resolveUser(Astro.request);
 
+if (!user) {
+  return Astro.redirect('/dashboard?intent=daftar-kader');
+}
+
 if (isPetugas(user) || isSuperadmin(user)) {
   return Astro.redirect('/admin#entry');
 }
 
-return Astro.redirect('/dashboard#services');
+return Astro.redirect('/dashboard?intent=daftar-kader#services');
 ---

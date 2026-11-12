@@ -4,19 +4,55 @@ export interface Zone {
   slug: string;
 }
 
+export type UserRole = 'pcnu' | 'mwcnu' | 'ranting' | 'warga';
+export type AgentStatus = 'none' | 'pending' | 'pending_mwcnu' | 'active' | 'rejected';
+
 export interface User {
   id: number;
   google_id: string;
   email: string;
   name: string;
   avatar_url?: string;
-  role: 'pcnu' | 'mwcnu' | 'ranting' | 'warga';
-  agent_status: 'none' | 'pending' | 'active' | 'rejected';
+  role: UserRole;
+  agent_status: AgentStatus;
   assigned_zone_id?: number;
   assigned_zone_name?: string;
   agent_ranting?: string;
   agent_org?: string;
   agent_phone?: string;
+  created_at: string;
+}
+
+export interface PendingPetugasRow {
+  id: number;
+  name: string;
+  email: string;
+  avatar_url?: string | null;
+  agent_phone?: string | null;
+  agent_ranting?: string | null;
+  agent_org?: string | null;
+  agent_status: AgentStatus;
+  requested_role: 'ranting' | 'mwcnu';
+  assigned_zone_id?: number | null;
+  zone_name?: string | null;
+  created_at: string;
+}
+
+export interface AdminUserRow {
+  id: number;
+  name: string;
+  email: string;
+  role: UserRole;
+  agent_status: AgentStatus;
+  assigned_zone_id?: number | null;
+  zone_name?: string | null;
+  agent_ranting?: string | null;
+  agent_org?: string | null;
+  agent_phone?: string | null;
+  umkm_id?: number | null;
+  umkm_name?: string | null;
+  is_env_superadmin: boolean;
+  is_pending_login: boolean;
   created_at: string;
 }
 

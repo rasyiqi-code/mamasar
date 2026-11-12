@@ -220,6 +220,15 @@ async function runMigration() {
     console.log(`ℹ️ Database Neon sudah memiliki ${count} zona MWC.`);
   }
 
+  // Hapus zona non-aktif jika tidak terpakai oleh UMKM, kegiatan, maupun pengguna
+  await sql`
+    DELETE FROM zones z
+    WHERE z.slug IN ('mwc-kangayan', 'mwc-gayam', 'mwc-masalembu')
+      AND NOT EXISTS (SELECT 1 FROM umkm u WHERE u.zone_id = z.id)
+      AND NOT EXISTS (SELECT 1 FROM events e WHERE e.zone_id = z.id)
+      AND NOT EXISTS (SELECT 1 FROM users usr WHERE usr.assigned_zone_id = z.id);
+  `;
+
   const counts = await sql`
     SELECT 
       (SELECT count(*) FROM zones) as zones_count,

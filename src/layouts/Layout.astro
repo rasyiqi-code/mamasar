@@ -151,7 +151,7 @@ const isPetugas = isRanting(user);
               class="hidden sm:inline-flex items-center gap-1.5 text-xs text-emerald-800 bg-emerald-50 hover:bg-emerald-100 font-bold px-2.5 py-1.5 rounded-xl border border-emerald-300 transition"
             >
               <AppIcon name="clipboard" size="xs" class="text-emerald-600" />
-              <span>Petugas MWC</span>
+              <span>{user?.role === 'mwcnu' ? 'Pengurus MWC' : 'Petugas MWC'}</span>
             </a>
           )}
           <a
@@ -159,7 +159,7 @@ const isPetugas = isRanting(user);
             class="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-700 hover:text-emerald-700 font-bold transition px-2.5 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100"
           >
             <AppIcon name="store" size="xs" class="text-slate-500" />
-            <span>{user ? 'Toko Saya' : 'Masuk / Toko'}</span>
+            <span>{user ? (user.umkm ? 'Toko Saya' : 'Akun & Peran') : 'Masuk / Daftar'}</span>
           </a>
           <a
             href="/pasang-iklan"
@@ -211,9 +211,9 @@ const isPetugas = isRanting(user);
           <AppIcon name="store" size="sm" class="text-emerald-700" />
           <span>{user ? 'Dashboard Toko Saya' : 'Masuk / Buka Toko Saya'}</span>
         </a>
-        <a href={isPetugas ? '/admin#entry' : '/dashboard#services'} class="flex items-center gap-2.5 p-2.5 rounded-xl bg-indigo-600 text-white font-black shadow-sm">
+        <a href={isPetugas ? '/admin#entry' : '/petugas'} class="flex items-center gap-2.5 p-2.5 rounded-xl bg-indigo-600 text-white font-black shadow-sm">
           <AppIcon name="plus" size="sm" />
-          <span>{isPetugas ? 'Portal Petugas Pendata' : 'Daftar Jadi Kader Petugas'}</span>
+          <span>{isPetugas ? 'Portal Pengurus / Petugas' : 'Daftar Kader / Pengurus NU'}</span>
         </a>
         <a href="/" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
           <AppIcon name="clipboard" size="sm" class="text-slate-400" />
@@ -249,8 +249,8 @@ const isPetugas = isRanting(user);
 
       <!-- Drawer Footer -->
       <div class="p-3.5 border-t border-slate-200 bg-slate-50 text-xs">
-        <a href={isPetugas ? '/admin#entry' : '/dashboard#services'} class="flex items-center justify-between text-emerald-700 font-bold hover:text-emerald-800">
-          <span>{isPetugas ? 'Masuk Portal Petugas Lapangan' : 'Daftar Kader Petugas Lapangan'}</span>
+        <a href={isPetugas ? '/admin#entry' : '/petugas'} class="flex items-center justify-between text-emerald-700 font-bold hover:text-emerald-800">
+          <span>{isPetugas ? 'Masuk Portal Pengurus / Petugas' : 'Daftar Kader / Pengurus MWC'}</span>
           <AppIcon name="arrow-right" size="xs" />
         </a>
       </div>
@@ -351,10 +351,10 @@ const isPetugas = isRanting(user);
           </p>
           <div class="pt-2">
             <a
-              href={isPetugas ? '/admin#entry' : '/dashboard#services'}
+              href={isPetugas ? '/admin#entry' : '/petugas'}
               class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 underline"
             >
-              <span>{isPetugas ? 'Masuk Portal Petugas MWC' : 'Daftar Jadi Kader Petugas MWC'}</span>
+              <span>{isPetugas ? 'Masuk Portal Pengurus / Petugas MWC' : 'Daftar Kader / Pengurus MWC'}</span>
               <AppIcon name="arrow-right" size="xs" />
             </a>
           </div>

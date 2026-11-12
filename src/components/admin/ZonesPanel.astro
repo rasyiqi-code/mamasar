@@ -23,7 +23,7 @@ interface Props {
 
 const { zones, allStores = [] } = Astro.props;
 
-// Geo-Coordinates & Local Commodities for all 27 MWC in Kabupaten Sumenep
+// Geo-Coordinates & Local Commodities for MWC zones in Kabupaten Sumenep
 const SUMENEP_ZONE_GEO: Record<
   string,
   { lat: number; lng: number; type: 'daratan' | 'kepulauan'; highlight: string }
@@ -48,16 +48,13 @@ const SUMENEP_ZONE_GEO: Record<
   'mwc-batang-batang': { lat: -6.9250, lng: 113.9950, type: 'daratan', highlight: 'Kawasan Wisata Pantai Lombang & Anyaman Daun Lontar' },
   'mwc-batuputih': { lat: -6.8850, lng: 113.8950, type: 'daratan', highlight: 'Perkebunan Mete, Asam Jawa, & Peternakan Sapi' },
 
-  // 9 MWC Kepulauan
+  // 6 MWC Kepulauan
   'mwc-talango': { lat: -7.0650, lng: 113.9750, type: 'kepulauan', highlight: 'Pulau Poteran, Wisata Religi Asta Sayyid Yusuf' },
   'mwc-giligenting': { lat: -7.1950, lng: 113.9250, type: 'kepulauan', highlight: 'Pulau Giligenting & Gili Labak, Perikanan Bahari' },
-  'mwc-gayam': { lat: -7.1550, lng: 114.3350, type: 'kepulauan', highlight: 'Pulau Sapudi Bagian Selatan, Sentra Sapi Madura' },
   'mwc-nonggunong': { lat: -7.0850, lng: 114.3550, type: 'kepulauan', highlight: 'Pulau Sapudi Bagian Utara, Budidaya Rumput Laut' },
   'mwc-raas': { lat: -7.1450, lng: 114.5650, type: 'kepulauan', highlight: 'Pulau Raas, Pengrajin Perahu & Kucing Busok Raas' },
   'mwc-arjasa': { lat: -6.8550, lng: 115.3050, type: 'kepulauan', highlight: 'Pulau Kangean, Sentra Niaga & Komoditas Kepulauan' },
-  'mwc-kangayan': { lat: -6.9150, lng: 115.4850, type: 'kepulauan', highlight: 'Pulau Kangean Timur, Hasil Hutan, Bakau, & Ikan Kerapu' },
   'mwc-sapeken': { lat: -7.0050, lng: 115.7050, type: 'kepulauan', highlight: 'Gugusan Terumbu Karang, Budidaya Kerapu & Lobster' },
-  'mwc-masalembu': { lat: -5.5550, lng: 114.4350, type: 'kepulauan', highlight: 'Kepulauan Laut Jawa, Minyak Kelapa, Kopra, & Perikanan' },
 };
 
 // Compute Store count and Product count per zone
@@ -119,7 +116,7 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
       <div class="flex items-center gap-2">
         <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
           <AppIcon name="map-pin" size="sm" class="text-emerald-700" />
-          <span>Peta Sebaran 27 MWC NU Kabupaten Sumenep</span>
+          <span>Peta Sebaran {enrichedZones.length} MWC NU Kabupaten Sumenep</span>
         </h2>
         <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
           Geolokasi Interaktif
@@ -157,10 +154,10 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
     <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
       <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Total Wilayah MWC</span>
       <div class="flex items-baseline gap-2">
-        <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono">27</span>
+        <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono">{enrichedZones.length}</span>
         <span class="text-[11px] text-slate-500 font-semibold">Kecamatan</span>
       </div>
-      <p class="text-[10px] text-emerald-700 font-bold">18 Daratan • 9 Kepulauan</p>
+      <p class="text-[10px] text-emerald-700 font-bold">{daratan.length} Daratan • {kepulauan.length} Kepulauan</p>
     </div>
 
     <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
@@ -200,7 +197,7 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
         class="zone-filter-btn py-1.5 px-3 rounded-lg bg-white text-slate-900 shadow-2xs transition cursor-pointer"
         data-filter="all"
       >
-        Semua 27 MWC
+        Semua {enrichedZones.length} MWC
       </button>
       <button
         type="button"
@@ -208,7 +205,7 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
         class="zone-filter-btn py-1.5 px-3 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer"
         data-filter="daratan"
       >
-        18 MWC Daratan
+        {daratan.length} MWC Daratan
       </button>
       <button
         type="button"
@@ -216,7 +213,7 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
         class="zone-filter-btn py-1.5 px-3 rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer"
         data-filter="kepulauan"
       >
-        9 MWC Kepulauan
+        {kepulauan.length} MWC Kepulauan
       </button>
     </div>
 

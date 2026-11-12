@@ -15,6 +15,7 @@ export const POST: APIRoute = async ({ request }) => {
     const formData = await request.formData();
     const targetUserId = Number(formData.get('userId'));
     const action = formData.get('action')?.toString() as 'approve' | 'reject';
+    const targetRole = formData.get('role')?.toString() === 'mwcnu' ? 'mwcnu' : 'ranting';
 
     if (!targetUserId || (action !== 'approve' && action !== 'reject')) {
       return new Response(JSON.stringify({ success: false, message: 'ID pengguna dan aksi (approve/reject) diperlukan.' }), {
@@ -23,14 +24,15 @@ export const POST: APIRoute = async ({ request }) => {
       });
     }
 
-    await reviewPetugas(targetUserId, action);
+    await reviewPetugas(targetUserId, action, targetRole);
 
+    const roleLabel = targetRole === 'mwcnu' ? 'Pengurus MWC NU' : 'Kader Ranting';
     return new Response(
       JSON.stringify({
         success: true,
         message: action === 'approve'
-          ? 'Alhamdulillah! Petugas berhasil disetujui dan kini aktif mendata UMKM.'
-          : 'Pendaftaran petugas telah ditolak.',
+          ? `Alhamdulillah! Pengajuan disetujui sebagai ${roleLabel}.`
+          : 'Permohonan kader/pengurus telah ditolak.',
       }),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );

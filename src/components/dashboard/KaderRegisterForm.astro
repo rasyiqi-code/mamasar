@@ -1,0 +1,231 @@
+---
+import { SITE_CONFIG } from '../../lib/constants';
+
+interface Zone {
+  id: number;
+  name: string;
+}
+
+interface Props {
+  user: {
+    id: number;
+    name: string;
+    role: string;
+    agent_status?: string | null;
+    agent_ranting?: string | null;
+    agent_org?: string | null;
+    agent_phone?: string | null;
+    assigned_zone_id?: number | null;
+  };
+  zones: Zone[];
+  assignedZone?: Zone;
+}
+
+const { user, zones, assignedZone } = Astro.props;
+const isSuper = user.role === 'pcnu';
+const isMwcAdmin = user.role === 'mwcnu';
+const isCadre =
+  isSuper ||
+  isMwcAdmin ||
+  user.role === 'ranting' ||
+  user.agent_status === 'active';
+const isPending = user.agent_status === 'pending' || user.agent_status === 'pending_mwcnu';
+const isPendingMwc = user.agent_status === 'pending_mwcnu';
+const isRejected = user.agent_status === 'rejected';
+---
+
+{isCadre ? (
+  <div class="py-3 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+    <div class="space-y-1">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+          {isSuper ? 'Superadmin PCNU' : isMwcAdmin ? 'Pengurus MWC Aktif' : 'Kader Ranting Aktif'}
+        </span>
+        <span class="text-xs text-slate-700 font-medium">
+          {isSuper
+            ? 'Akses Penuh PCNU Sumenep'
+            : `MWC ${assignedZone?.name || 'Sumenep'}${user.agent_ranting ? ` • Ranting ${user.agent_ranting}` : ''}${user.agent_org ? ` • ${user.agent_org}` : ''}`}
+        </span>
+      </div>
+      <p class="text-xs text-slate-600">
+        {isSuper
+          ? 'Anda dapat menyetujui kader, mengatur peran akun, dan memoderasi seluruh toko di konsol admin.'
+          : isMwcAdmin
+            ? 'Anda memiliki hak akses verifikasi toko binaan, manajemen agenda, dan pendataan UMKM di wilayah MWC Anda.'
+            : 'Anda memiliki hak akses entri jemput bola UMKM warga di portal petugas.'}
+      </p>
+    </div>
+
+    <a
+      href={isSuper ? '/admin' : '/admin#entry'}
+      class="inline-flex items-center justify-center min-h-[40px] py-2 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-xs transition shrink-0"
+    >
+      {isSuper ? 'Buka Konsol Admin ➔' : 'Buka Portal Tugas ➔'}
+    </a>
+  </div>
+) : isPending ? (
+  <div class="py-3 border-b border-slate-200 space-y-2.5">
+    <div class="flex items-center gap-2 flex-wrap">
+      <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+        Menunggu Konfirmasi
+      </span>
+      <span class="text-xs text-slate-800 font-medium">
+        Pengajuan sebagai <strong>{isPendingMwc ? 'Pengurus MWC NU' : 'Kader Ranting / Petugas'}</strong> wilayah MWC {assignedZone?.name || 'Sumenep'}
+        {user.agent_ranting ? ` (Ranting ${user.agent_ranting})` : ''} sedang ditinjau Admin PCNU.
+      </span>
+    </div>
+    <div>
+      <a
+        href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent(`Assalamu'alaikum Admin PCNU, saya ${user.name} sudah mengajukan peran ${isPendingMwc ? 'Pengurus MWC NU' : 'Kader Ranting'} di Mamasar untuk wilayah MWC ${assignedZone?.name || 'Sumenep'}. Mohon bantuannya.`)}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="inline-flex items-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-semibold underline underline-offset-2"
+      >
+        <span>💬 Konfirmasi via WhatsApp Admin PCNU ➔</span>
+      </a>
+    </div>
+  </div>
+) : (
+  <div class="space-y-4 pb-5 border-b border-slate-200">
+    {isRejected && (
+      <div class="p-3 rounded-lg bg-amber-50 border border-amber-200 text-xs text-amber-900 font-medium">
+        Pengajuan sebelumnya belum disetujui Admin PCNU. Periksa kembali wilayah MWC dan nomor WhatsApp aktif Anda, lalu kirim ulang pengajuan di bawah ini.
+      </div>
+    )}
+
+    <div class="flex items-center justify-between pb-1 border-b border-slate-100">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+        Pengajuan Peran Kader Ranting atau Pengurus MWC NU
+      </h2>
+    </div>
+
+    <div id="petugas-reg-status" role="status" aria-live="polite" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+
+    <form id="petugas-register-form" class="space-y-4 max-w-2xl" aria-label="Formulir pengajuan peran kader atau pengurus">
+      <fieldset class="space-y-2">
+        <legend class="block text-xs font-semibold text-slate-800 mb-1.5">
+          Pilih Peran yang Diajukan <span class="text-rose-600" aria-hidden="true">*</span>
+        </legend>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+          <label
+            for="roleOptionRanting"
+            class="flex items-start gap-2.5 p-3 rounded-lg border border-slate-300 bg-white hover:border-emerald-600 cursor-pointer transition min-h-[48px]"
+          >
+            <input
+              type="radio"
+              id="roleOptionRanting"
+              name="requestedRole"
+              value="ranting"
+              checked
+              class="mt-0.5 w-4 h-4 accent-emerald-700 shrink-0"
+            />
+            <span class="text-xs leading-snug">
+              <strong class="block text-slate-900 font-bold">Kader Ranting / Petugas</strong>
+              <span class="text-slate-600">Mendata & mendampingi UMKM warga di tingkat Desa/Kelurahan.</span>
+            </span>
+          </label>
+
+          <label
+            for="roleOptionMwc"
+            class="flex items-start gap-2.5 p-3 rounded-lg border border-slate-300 bg-white hover:border-emerald-600 cursor-pointer transition min-h-[48px]"
+          >
+            <input
+              type="radio"
+              id="roleOptionMwc"
+              name="requestedRole"
+              value="mwcnu"
+              class="mt-0.5 w-4 h-4 accent-emerald-700 shrink-0"
+            />
+            <span class="text-xs leading-snug">
+              <strong class="block text-slate-900 font-bold">Pengurus MWC NU</strong>
+              <span class="text-slate-600">Memverifikasi toko binaan & mengelola agenda di tingkat Kecamatan.</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="space-y-1">
+          <label for="regZoneId" class="block text-xs font-medium text-slate-800">
+            Wilayah MWC NU (Kecamatan) <span class="text-rose-600" aria-hidden="true">*</span>
+          </label>
+          <select
+            id="regZoneId"
+            name="zoneId"
+            required
+            aria-invalid="false"
+            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-2.5 py-2 text-sm sm:text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
+          >
+            <option value="" disabled selected={!user.assigned_zone_id}>Pilih Wilayah MWC</option>
+            {zones.map((z) => (
+              <option value={z.id} selected={user.assigned_zone_id === z.id}>{z.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <div class="space-y-1">
+          <label for="regRanting" id="regRantingLabel" class="block text-xs font-medium text-slate-800">
+            Ranting NU (Desa / Kelurahan) <span id="regRantingRequiredMark" class="text-rose-600" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="regRanting"
+            name="ranting"
+            value={user.agent_ranting || ''}
+            placeholder="Contoh: Gapura Barat / Pajagalan"
+            required
+            aria-invalid="false"
+            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-2.5 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+          />
+          <p id="regRantingHelp" class="text-[11px] text-slate-600">
+            Wajib diisi untuk Kader Ranting. Untuk Pengurus MWC boleh dikosongkan.
+          </p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div class="space-y-1">
+          <label for="regPhone" class="block text-xs font-medium text-slate-800">
+            Nomor WhatsApp Aktif <span class="text-rose-600" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="tel"
+            id="regPhone"
+            name="phone"
+            value={user.agent_phone || ''}
+            autocomplete="tel"
+            inputmode="tel"
+            placeholder="Contoh: 081234567890"
+            required
+            aria-invalid="false"
+            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-2.5 py-2 text-sm sm:text-xs text-slate-900 font-mono focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+          />
+        </div>
+
+        <div class="space-y-1">
+          <label for="regOrg" class="block text-xs font-medium text-slate-800">
+            Afiliasi Banom / Lembaga NU <span class="text-rose-600" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="text"
+            id="regOrg"
+            name="org"
+            value={user.agent_org || ''}
+            placeholder="Contoh: LPNU MWC / Ansor Ranting / Fatayat"
+            required
+            aria-invalid="false"
+            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-2.5 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+          />
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        id="btn-submit-petugas-reg"
+        class="min-h-[44px] py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-xs transition cursor-pointer"
+      >
+        Kirim Pengajuan ➔
+      </button>
+    </form>
+  </div>
+)}

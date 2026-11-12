@@ -33,19 +33,31 @@ const cashbookEntries = user ? await getCashbookEntries(user.id, 50) : [];
 
 const authError = Astro.url.searchParams.get('error');
 const isLoggedOut = Astro.url.searchParams.get('logged_out') === '1';
+const intent = Astro.url.searchParams.get('intent');
+const initialOnboardTab = intent === 'daftar-kader' ? 'kader' : 'store';
 const isSuper = isSuperadmin(user);
 const isCadre = isPetugas(user);
+const assignedZone = user ? zones.find((z) => z.id === user.assigned_zone_id) : undefined;
 ---
 
 <AppLayout
-  title={user ? `Dashboard Toko: ${store?.name || user.name} | Mamasar` : 'Masuk ke Dashboard UMKM | Mamasar'}
-  description="Portal swalayan pemilik UMKM Nahdliyin untuk mengelola etalase produk, pembukuan kas santri, dan profil usaha secara mandiri."
+  title={user ? (store ? `Dashboard Toko: ${store.name} | Mamasar` : `Akun & Pendaftaran Peran: ${user.name} | Mamasar`) : 'Masuk atau Daftar Akun | Mamasar'}
+  description="Portal swalayan pemilik UMKM Nahdliyin, Kader Ranting, Pengurus MWC, dan Admin PCNU Sumenep."
 >
   <!-- KONDISI 1: Belum Login -->
-  {!user && <AuthCard authError={authError} isLoggedOut={isLoggedOut} />}
+  {!user && <AuthCard authError={authError} isLoggedOut={isLoggedOut} intent={intent} />}
 
   <!-- KONDISI 2: Sudah Login, Belum Punya Profil Toko -->
-  {user && !store && <StoreSetupCard user={user} zones={zones} />}
+  {user && !store && (
+    <StoreSetupCard
+      user={user}
+      zones={zones}
+      assignedZone={assignedZone}
+      isSuper={isSuper}
+      isCadre={isCadre}
+      initialTab={initialOnboardTab}
+    />
+  )}
 
   <!-- KONDISI 3: Workspace Toko Siap (Modern SaaS Shell) -->
   {user && store && (

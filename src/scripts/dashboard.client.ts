@@ -497,6 +497,16 @@ export function initDashboardClient() {
   const nameFieldGroup = document.getElementById('name-field-group');
   const neonAuthAction = document.getElementById('neonAuthAction') as HTMLInputElement | null;
   const neonSubmitBtn = document.getElementById('neon-submit-btn') as HTMLButtonElement | null;
+  const neonPasswordInput = document.getElementById('neonPassword') as HTMLInputElement | null;
+  const toggleNeonPasswordBtn = document.getElementById('toggle-neon-password') as HTMLButtonElement | null;
+
+  toggleNeonPasswordBtn?.addEventListener('click', () => {
+    if (!neonPasswordInput) return;
+    const isPassword = neonPasswordInput.type === 'password';
+    neonPasswordInput.type = isPassword ? 'text' : 'password';
+    toggleNeonPasswordBtn.setAttribute('aria-pressed', isPassword ? 'true' : 'false');
+    toggleNeonPasswordBtn.textContent = isPassword ? 'Sembunyikan' : 'Tampilkan';
+  });
 
   toggleAuthModeBtn?.addEventListener('click', () => {
     if (!neonAuthAction) return;
@@ -504,11 +514,13 @@ export function initDashboardClient() {
     if (isSignIn) {
       neonAuthAction.value = 'signup';
       nameFieldGroup?.classList.remove('hidden');
+      if (neonPasswordInput) neonPasswordInput.autocomplete = 'new-password';
       if (neonSubmitBtn) neonSubmitBtn.textContent = 'Daftar Akun Baru';
       toggleAuthModeBtn.textContent = 'Sudah punya akun? Masuk di sini ➔';
     } else {
       neonAuthAction.value = 'signin';
       nameFieldGroup?.classList.add('hidden');
+      if (neonPasswordInput) neonPasswordInput.autocomplete = 'current-password';
       if (neonSubmitBtn) neonSubmitBtn.textContent = 'Masuk dengan Email';
       toggleAuthModeBtn.textContent = 'Belum punya akun? Daftar Baru di sini ➔';
     }
@@ -554,14 +566,89 @@ export function initDashboardClient() {
     }
   });
 
-  // Pendaftaran Petugas Pendata MWC (Layanan Kemitraan)
+  // Tab Onboarding Multi-Peran (Ketika user belum memiliki profil toko)
+  function initOnboardingTabs() {
+    const onboardTabs = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-onboard-tab]'));
+    if (onboardTabs.length === 0) return;
+
+    function activateOnboardTab(target: 'store' | 'kader', focusTab = false) {
+      onboardTabs.forEach((btn) => {
+        const name = btn.getAttribute('data-onboard-tab');
+        const selected = name === target;
+        btn.setAttribute('aria-selected', selected ? 'true' : 'false');
+        btn.setAttribute('tabindex', selected ? '0' : '-1');
+        btn.classList.toggle('border-emerald-700', selected);
+        btn.classList.toggle('text-emerald-800', selected);
+        btn.classList.toggle('bg-emerald-50/50', selected);
+        btn.classList.toggle('border-transparent', !selected);
+        btn.classList.toggle('text-slate-600', !selected);
+        if (selected && focusTab) btn.focus();
+
+        const panel = document.getElementById(`onboard-panel-${name}`);
+        if (panel) panel.hidden = !selected;
+      });
+    }
+
+    onboardTabs.forEach((btn, idx) => {
+      btn.addEventListener('click', () => {
+        const name = btn.getAttribute('data-onboard-tab') as 'store' | 'kader' | null;
+        if (name) activateOnboardTab(name);
+      });
+
+      btn.addEventListener('keydown', (e) => {
+        let nextIdx: number | null = null;
+        if (e.key === 'ArrowRight') nextIdx = (idx + 1) % onboardTabs.length;
+        else if (e.key === 'ArrowLeft') nextIdx = (idx - 1 + onboardTabs.length) % onboardTabs.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = onboardTabs.length - 1;
+
+        if (nextIdx !== null) {
+          e.preventDefault();
+          const nextName = onboardTabs[nextIdx].getAttribute('data-onboard-tab') as 'store' | 'kader' | null;
+          if (nextName) activateOnboardTab(nextName, true);
+        }
+      });
+    });
+
+    const hash = window.location.hash.replace('#', '');
+    if (hash === 'services' || hash === 'daftar-kader') {
+      activateOnboardTab('kader');
+    }
+  }
+  initOnboardingTabs();
+
+  // Pendaftaran Kader Ranting / Pengurus MWC NU
   const regForm = document.getElementById('petugas-register-form') as HTMLFormElement | null;
+  const regRantingInput = document.getElementById('regRanting') as HTMLInputElement | null;
+  const regRantingMark = document.getElementById('regRantingRequiredMark');
+  const regStatusBox = document.getElementById('petugas-reg-status');
+  const roleRadios = document.querySelectorAll<HTMLInputElement>('input[name="requestedRole"]');
+
+  function syncRequestedRoleUI() {
+    const selected = document.querySelector<HTMLInputElement>('input[name="requestedRole"]:checked')?.value || 'ranting';
+    const isMwc = selected === 'mwcnu';
+    if (regRantingInput) {
+      regRantingInput.required = !isMwc;
+      regRantingInput.placeholder = isMwc
+        ? 'Opsional (mis. Bidang Ekonomi / LPNU MWC)'
+        : 'Contoh: Gapura Barat / Pajagalan';
+    }
+    if (regRantingMark) {
+      regRantingMark.classList.toggle('hidden', isMwc);
+    }
+  }
+
+  if (roleRadios.length > 0) {
+    roleRadios.forEach((r) => r.addEventListener('change', syncRequestedRoleUI));
+    syncRequestedRoleUI();
+  }
+
   regForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const submitBtn = document.getElementById('btn-submit-petugas-reg') as HTMLButtonElement | null;
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.textContent = 'Mengirim Permohonan...';
+      submitBtn.textContent = 'Mengirim Pengajuan...';
     }
 
     try {
@@ -573,20 +660,30 @@ export function initDashboardClient() {
       const data = await res.json();
 
       if (res.ok && data.success) {
-        notify(data.message || 'Permohonan berhasil dikirim!');
+        if (regStatusBox) {
+          regStatusBox.className = 'p-3 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-900 border border-emerald-200';
+          regStatusBox.textContent = data.message || 'Pengajuan berhasil dikirim!';
+          regStatusBox.classList.remove('hidden');
+        }
+        notify(data.message || 'Pengajuan berhasil dikirim!');
         setTimeout(() => window.location.reload(), 1200);
       } else {
+        if (regStatusBox) {
+          regStatusBox.className = 'p-3 rounded-lg text-xs font-semibold bg-rose-50 text-rose-900 border border-rose-200';
+          regStatusBox.textContent = data.message || 'Gagal mengajukan permohonan.';
+          regStatusBox.classList.remove('hidden');
+        }
         notify(data.message || 'Gagal mengajukan permohonan.', true);
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Kirim Pengajuan Petugas Lapangan ➔';
+          submitBtn.textContent = 'Kirim Pengajuan ➔';
         }
       }
     } catch (err: any) {
       notify(err.message || 'Terjadi kesalahan jaringan.', true);
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Kirim Pengajuan Petugas Lapangan ➔';
+        submitBtn.textContent = 'Kirim Pengajuan ➔';
       }
     }
   });

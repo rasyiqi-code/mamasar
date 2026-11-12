@@ -15,6 +15,7 @@ export * from './modules/types';
 export * from './modules/articles';
 export * from './modules/events';
 export * from './modules/auth';
+export * from './modules/users';
 export * from './modules/zones';
 export * from './modules/stores';
 export * from './modules/products';

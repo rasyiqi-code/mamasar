@@ -70,16 +70,13 @@ export const SEED_ZONES: SeedZone[] = [
   { name: 'MWC Batang-Batang', slug: 'mwc-batang-batang' },
   { name: 'MWC Batuputih', slug: 'mwc-batuputih' },
 
-  // 9 MWC Kepulauan
+  // 6 MWC Kepulauan
   { name: 'MWC Talango', slug: 'mwc-talango' },
   { name: 'MWC Giligenting', slug: 'mwc-giligenting' },
-  { name: 'MWC Gayam (Sapudi)', slug: 'mwc-gayam' },
   { name: 'MWC Nonggunong (Sapudi)', slug: 'mwc-nonggunong' },
   { name: 'MWC Raas', slug: 'mwc-raas' },
   { name: 'MWC Arjasa (Kangean)', slug: 'mwc-arjasa' },
-  { name: 'MWC Kangayan (Kangean)', slug: 'mwc-kangayan' },
   { name: 'MWC Sapeken', slug: 'mwc-sapeken' },
-  { name: 'MWC Masalembu', slug: 'mwc-masalembu' },
 ];
 
 export const SEED_UMKM: SeedUMKM[] = [

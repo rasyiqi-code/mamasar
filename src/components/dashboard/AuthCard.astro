@@ -2,23 +2,27 @@
 interface Props {
   authError?: string | null;
   isLoggedOut?: boolean;
+  intent?: string | null;
 }
 
-const { authError, isLoggedOut = false } = Astro.props;
+const { authError, isLoggedOut = false, intent = null } = Astro.props;
+const isKaderIntent = intent === 'daftar-kader';
 ---
 
 <div class="max-w-md mx-auto py-12 sm:py-20 px-4">
   <div class="space-y-6 text-center">
     <div class="w-12 h-12 rounded-lg bg-emerald-700 text-white flex items-center justify-center text-xl mx-auto font-bold shadow-xs">
-      🏪
+      {isKaderIntent ? '🤝' : '🏪'}
     </div>
 
     <div class="space-y-1.5">
       <h1 class="text-2xl font-bold tracking-tight text-slate-900">
-        Masuk ke Dashboard Toko
+        {isKaderIntent ? 'Masuk untuk Daftar Kader / Pengurus' : 'Masuk atau Daftar ke Mamasar'}
       </h1>
-      <p class="text-xs sm:text-sm text-slate-500 leading-relaxed max-w-sm mx-auto">
-        Kelola etalase produk, pembukuan kas santri, dan profil usaha warga Nahdliyin dari satu tempat.
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-sm mx-auto">
+        {isKaderIntent
+          ? 'Masuk dengan Google atau Email terlebih dahulu, lalu ajukan peran Kader Ranting atau Pengurus MWC NU langsung dari halaman berikutnya.'
+          : 'Satu akun untuk kelola toko UMKM, pembukuan kas, pendaftaran kader Ranting atau Pengurus MWC, hingga konsol pengurus.'}
       </p>
     </div>
 
@@ -52,64 +56,80 @@ const { authError, isLoggedOut = false } = Astro.props;
 
       <div class="relative flex items-center justify-center my-4">
         <div class="border-t border-slate-200 w-full"></div>
-        <span class="bg-white px-3 text-[11px] font-medium text-slate-400 uppercase tracking-wider relative">atau dengan email</span>
+        <span class="bg-white px-3 text-[11px] font-medium text-slate-600 uppercase tracking-wider relative">atau dengan email</span>
       </div>
 
-      <form id="neon-auth-form" class="space-y-3.5 text-left">
+      <form id="neon-auth-form" class="space-y-3.5 text-left" aria-label="Formulir masuk atau daftar dengan email">
         <input type="hidden" id="neonAuthAction" name="action" value="signin" />
 
         <div id="name-field-group" class="space-y-1 hidden">
-          <label for="neonName" class="block text-xs font-medium text-slate-700">Nama Lengkap</label>
+          <label for="neonName" class="block text-xs font-medium text-slate-800">Nama Lengkap</label>
           <input
             type="text"
             id="neonName"
             name="name"
+            autocomplete="name"
             placeholder="Contoh: H. Ahmad Zaini"
-            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="space-y-1">
-          <label for="neonEmail" class="block text-xs font-medium text-slate-700">Alamat Email</label>
+          <label for="neonEmail" class="block text-xs font-medium text-slate-800">Alamat Email</label>
           <input
             type="email"
             id="neonEmail"
             name="email"
+            autocomplete="email"
+            autocorrect="off"
+            autocapitalize="none"
+            spellcheck="false"
             required
             placeholder="nama@email.com"
-            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="space-y-1">
-          <label for="neonPassword" class="block text-xs font-medium text-slate-700">Kata Sandi</label>
+          <div class="flex items-center justify-between">
+            <label for="neonPassword" class="block text-xs font-medium text-slate-800">Kata Sandi</label>
+            <button
+              type="button"
+              id="toggle-neon-password"
+              aria-pressed="false"
+              class="text-[11px] font-semibold text-slate-600 hover:text-emerald-800 underline underline-offset-2 cursor-pointer"
+            >
+              Tampilkan
+            </button>
+          </div>
           <input
             type="password"
             id="neonPassword"
             name="password"
+            autocomplete="current-password"
             required
             minlength="6"
             placeholder="Minimal 6 karakter"
-            class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <button
           type="submit"
           id="neon-submit-btn"
-          class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition shadow-xs cursor-pointer"
+          class="w-full min-h-[44px] py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition shadow-xs cursor-pointer"
         >
           Masuk dengan Email
         </button>
       </form>
 
-      <div id="neon-auth-msg" class="hidden p-2.5 rounded-lg text-xs font-medium"></div>
+      <div id="neon-auth-msg" role="status" aria-live="polite" class="hidden p-2.5 rounded-lg text-xs font-medium"></div>
 
       <div class="pt-2">
         <button
           type="button"
           id="toggle-auth-mode"
-          class="text-xs text-slate-500 hover:text-emerald-700 font-medium underline block mx-auto cursor-pointer"
+          class="min-h-[40px] px-2 text-xs text-slate-600 hover:text-emerald-800 font-medium underline block mx-auto cursor-pointer"
         >
           Belum punya akun? Buat akun baru di sini ➔
         </button>

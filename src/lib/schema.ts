@@ -25,7 +25,7 @@ export const users = pgTable('users', {
     .notNull()
     .default('warga'),
   agent_status: varchar('agent_status', { length: 20 })
-    .$type<'none' | 'pending' | 'active' | 'rejected'>()
+    .$type<'none' | 'pending' | 'pending_mwcnu' | 'active' | 'rejected'>()
     .notNull()
     .default('none'),
   assigned_zone_id: integer('assigned_zone_id').references(() => zones.id),

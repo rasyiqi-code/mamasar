@@ -79,13 +79,14 @@ export function initAdminClient() {
     }
   }
 
-  // Handle Petugas Review (Approve/Reject)
+  // Handle Petugas / Pengurus Review (Approve with selected role / Reject)
   document.querySelectorAll<HTMLButtonElement>('[data-action="review-agent"]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const userId = btn.dataset.id;
       const decision = btn.dataset.decision;
       if (!userId || !decision) return;
 
+      const originalLabel = btn.textContent || 'Proses';
       btn.disabled = true;
       btn.textContent = 'Memproses...';
 
@@ -94,6 +95,11 @@ export function initAdminClient() {
         form.set('userId', userId);
         form.set('action', decision);
 
+        const roleSelect = document.querySelector<HTMLSelectElement>(`[data-role-select-for="${userId}"]`);
+        if (decision === 'approve' && roleSelect?.value) {
+          form.set('role', roleSelect.value);
+        }
+
         const res = await fetch('/api/admin/petugas/action', {
           method: 'POST',
           body: form,
@@ -101,18 +107,170 @@ export function initAdminClient() {
         const data = await res.json();
 
         if (res.ok && data.success) {
-          notify(data.message || 'Permohonan petugas berhasil diproses.');
+          notify(data.message || 'Permohonan berhasil diproses.');
           setTimeout(() => window.location.reload(), 900);
         } else {
-          notify(data.message || 'Gagal memproses permohonan petugas.', true);
+          notify(data.message || 'Gagal memproses permohonan.', true);
           btn.disabled = false;
+          btn.textContent = originalLabel;
         }
       } catch (err: any) {
         notify(err.message || 'Terjadi kesalahan jaringan.', true);
         btn.disabled = false;
+        btn.textContent = originalLabel;
       }
     });
   });
+
+  // Form Daftarkan / Tetapkan Akun Peran Khusus (Admin PCNU)
+  function initAdminUserManagement() {
+    const addUserForm = document.getElementById('form-admin-add-user') as HTMLFormElement | null;
+    const addUserRole = document.getElementById('addUserRole') as HTMLSelectElement | null;
+    const addUserZone = document.getElementById('addUserZone') as HTMLSelectElement | null;
+    const addUserZoneMark = document.getElementById('addUserZoneRequiredMark');
+    const addUserStatus = document.getElementById('admin-add-user-status');
+    const addUserBtn = document.getElementById('btn-admin-add-user') as HTMLButtonElement | null;
+
+    function syncAddUserZoneReq() {
+      if (!addUserRole || !addUserZone) return;
+      const needsZone = addUserRole.value === 'ranting' || addUserRole.value === 'mwcnu';
+      addUserZone.required = needsZone;
+      if (addUserZoneMark) addUserZoneMark.classList.toggle('hidden', !needsZone);
+    }
+
+    if (addUserRole) {
+      addUserRole.addEventListener('change', syncAddUserZoneReq);
+      syncAddUserZoneReq();
+    }
+
+    addUserForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (addUserBtn) {
+        addUserBtn.disabled = true;
+        addUserBtn.textContent = 'Menyimpan...';
+      }
+
+      try {
+        const formData = new FormData(addUserForm);
+        const res = await fetch('/api/admin/users/role', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          if (addUserStatus) {
+            addUserStatus.className = 'p-2.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-900 border border-emerald-200';
+            addUserStatus.textContent = data.message || 'Akun berhasil ditetapkan.';
+            addUserStatus.classList.remove('hidden');
+          }
+          notify(data.message || 'Akun berhasil ditetapkan.');
+          setTimeout(() => window.location.reload(), 1000);
+        } else {
+          if (addUserStatus) {
+            addUserStatus.className = 'p-2.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-900 border border-rose-200';
+            addUserStatus.textContent = data.message || 'Gagal menetapkan peran akun.';
+            addUserStatus.classList.remove('hidden');
+          }
+          notify(data.message || 'Gagal menetapkan peran akun.', true);
+          if (addUserBtn) {
+            addUserBtn.disabled = false;
+            addUserBtn.textContent = 'Simpan & Tetapkan Akun ➔';
+          }
+        }
+      } catch (err: any) {
+        notify(err.message || 'Terjadi kesalahan jaringan.', true);
+        if (addUserBtn) {
+          addUserBtn.disabled = false;
+          addUserBtn.textContent = 'Simpan & Tetapkan Akun ➔';
+        }
+      }
+    });
+
+    // Filter Direktori Pengguna
+    const searchInput = document.getElementById('user-directory-search') as HTMLInputElement | null;
+    const roleFilter = document.getElementById('user-directory-role-filter') as HTMLSelectElement | null;
+    const countLabel = document.getElementById('user-directory-count');
+    const userRows = Array.from(document.querySelectorAll<HTMLTableRowElement>('[data-user-row]'));
+
+    function filterUserRows() {
+      const q = (searchInput?.value || '').trim().toLowerCase();
+      const roleVal = roleFilter?.value || '';
+      let visible = 0;
+
+      userRows.forEach((row) => {
+        const rowSearch = row.dataset.search || '';
+        const rowRole = row.dataset.role || '';
+        const matchSearch = !q || rowSearch.includes(q);
+        const matchRole = !roleVal || rowRole === roleVal;
+        const show = matchSearch && matchRole;
+        row.classList.toggle('hidden', !show);
+        if (show) visible += 1;
+      });
+
+      if (countLabel) {
+        countLabel.textContent = `Menampilkan ${visible} dari ${userRows.length} akun`;
+      }
+    }
+
+    searchInput?.addEventListener('input', filterUserRows);
+    roleFilter?.addEventListener('change', filterUserRows);
+
+    // Simpan perubahan peran per baris
+    document.querySelectorAll<HTMLButtonElement>('[data-action="save-user-role"]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const userId = btn.dataset.id;
+        if (!userId) return;
+
+        const roleSelect = document.querySelector<HTMLSelectElement>(`[data-user-role-select][data-id="${userId}"]`);
+        const zoneSelect = document.querySelector<HTMLSelectElement>(`[data-user-zone-select][data-id="${userId}"]`);
+        const rantingInput = document.querySelector<HTMLInputElement>(`[data-user-ranting-input][data-id="${userId}"]`);
+        if (!roleSelect) return;
+
+        const role = roleSelect.value;
+        const zoneId = zoneSelect?.value || '';
+        const ranting = rantingInput?.value || '';
+
+        if ((role === 'ranting' || role === 'mwcnu') && !zoneId) {
+          notify('Pilih Wilayah MWC NU terlebih dahulu untuk Kader Ranting atau Pengurus MWC.', true);
+          zoneSelect?.focus();
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+
+        try {
+          const form = new FormData();
+          form.set('mode', 'update');
+          form.set('userId', userId);
+          form.set('role', role);
+          form.set('zoneId', zoneId);
+          form.set('ranting', ranting);
+
+          const res = await fetch('/api/admin/users/role', {
+            method: 'POST',
+            body: form,
+          });
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            notify(data.message || 'Peran pengguna berhasil diperbarui.');
+            setTimeout(() => window.location.reload(), 900);
+          } else {
+            notify(data.message || 'Gagal memperbarui peran pengguna.', true);
+            btn.disabled = false;
+            btn.textContent = 'Simpan';
+          }
+        } catch (err: any) {
+          notify(err.message || 'Terjadi kesalahan jaringan.', true);
+          btn.disabled = false;
+          btn.textContent = 'Simpan';
+        }
+      });
+    });
+  }
+  initAdminUserManagement();
 
   // Handle Verify Store
   document.querySelectorAll<HTMLButtonElement>('[data-action="verify-store"]').forEach((btn) => {

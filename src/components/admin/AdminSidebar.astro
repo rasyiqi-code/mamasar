@@ -8,6 +8,7 @@ interface Props {
     agent_ranting?: string | null;
   };
   isSuper?: boolean;
+  userRole?: string;
   assignedZoneName?: string;
   pendingPetugasCount: number;
   pendingStoresCount: number;
@@ -18,12 +19,27 @@ interface Props {
 const {
   user,
   isSuper = true,
+  userRole = 'pcnu',
   assignedZoneName = 'Sumenep',
   pendingPetugasCount,
   pendingStoresCount,
   zonesCount,
   pendingPromotionsCount = 0,
 } = Astro.props;
+
+const isMwcAdmin = !isSuper && userRole === 'mwcnu';
+const roleTitle = isSuper
+  ? 'Konsol Admin PCNU'
+  : isMwcAdmin
+    ? `Pengurus MWC ${assignedZoneName}`
+    : user.agent_ranting
+      ? `Kader Ranting ${user.agent_ranting}`
+      : `Kader MWC ${assignedZoneName}`;
+const roleSub = isSuper
+  ? 'Sumenep'
+  : isMwcAdmin
+    ? 'Moderasi & Agenda MWC'
+    : `MWC ${assignedZoneName}`;
 ---
 
 <!-- MOBILE TOP HEADER (Compact bar for mobile) -->
@@ -41,9 +57,9 @@ const {
     </button>
     <div class="min-w-0">
       <h2 class="text-xs font-bold text-slate-900 truncate">
-        {isSuper ? 'Pusat Kendali PCNU' : user.agent_ranting ? `Kader Ranting ${user.agent_ranting}` : `Kader MWC ${assignedZoneName}`}
+        {roleTitle}
       </h2>
-      <p class="text-[10px] text-slate-500 truncate">{user.name}</p>
+      <p class="text-[10px] text-slate-600 truncate">{user.name}</p>
     </div>
   </div>
 
@@ -74,10 +90,10 @@ const {
         </div>
         <div class="min-w-0">
           <div class="text-xs font-bold text-slate-900 truncate">
-            {isSuper ? 'Konsol Admin PCNU' : user.agent_ranting ? `Kader Ranting ${user.agent_ranting}` : `Kader MWC`}
+            {roleTitle}
           </div>
-          <p class="text-[10px] text-slate-500 truncate">
-            {isSuper ? 'Sumenep' : `MWC ${assignedZoneName}`}
+          <p class="text-[10px] text-slate-600 truncate">
+            {roleSub}
           </p>
         </div>
       </div>
@@ -85,7 +101,7 @@ const {
       <button
         type="button"
         id="btn-close-admin-sidebar"
-        class="md:hidden text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+        class="md:hidden text-slate-600 hover:text-slate-900 p-1 cursor-pointer"
         aria-label="Tutup Menu Admin"
       >
         ✕
@@ -102,7 +118,7 @@ const {
         >
           <div class="flex items-center gap-2.5">
             <span class="text-sm">🛡️</span>
-            <span>Petugas Lapangan</span>
+            <span>Pengguna & Peran</span>
           </div>
           {pendingPetugasCount > 0 ? (
             <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
@@ -238,13 +254,13 @@ const {
       <div class="flex items-center justify-between text-xs">
         <div class="min-w-0">
           <span class="font-semibold text-slate-900 block truncate text-[11px]">{user.name}</span>
-          <span class="text-[9px] text-slate-400 block truncate">
-            {isSuper ? 'Superadmin PCNU' : user.agent_ranting ? `Kader Ranting ${user.agent_ranting} • MWC ${assignedZoneName}` : `Kader MWC ${assignedZoneName}`}
+          <span class="text-[10px] text-slate-600 block truncate">
+            {isSuper ? 'Superadmin PCNU' : isMwcAdmin ? `Pengurus MWC ${assignedZoneName}` : user.agent_ranting ? `Kader Ranting ${user.agent_ranting} • MWC ${assignedZoneName}` : `Kader MWC ${assignedZoneName}`}
           </span>
         </div>
         <a
           href="/api/auth/logout"
-          class="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition"
+          class="p-1.5 text-slate-600 hover:text-rose-700 rounded-md transition"
           title="Keluar"
         >
           🚪

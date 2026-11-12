@@ -5,7 +5,7 @@ import {
   isSuperadmin,
   isPetugas,
   getPendingPetugas,
-  getAllPetugas,
+  getAllUsersForAdmin,
   getUMKMForVerification,
   getAllZones,
   getEvents,
@@ -33,10 +33,10 @@ const zones = await getAllZones();
 const assignedZone = zones.find((z) => z.id === user.assigned_zone_id);
 
 const pendingPetugas = isSuper ? await getPendingPetugas() : [];
-const allPetugas = isSuper ? await getAllPetugas() : [];
+const allUsers = isSuper ? await getAllUsersForAdmin() : [];
 const allStores = await getUMKMForVerification();
 
-// Jika petugas lapangan, batasi daftar toko ke MWC penugasannya
+// Jika petugas/pengurus MWC, batasi daftar toko ke MWC penugasannya
 const stores = isSuper
   ? allStores
   : (user.assigned_zone_id ? allStores.filter((s) => s.zone_id === user.assigned_zone_id) : allStores);
@@ -48,17 +48,23 @@ const events = isSuper
 const pendingStores = stores.filter((s) => !s.is_verified);
 const verifiedStores = stores.filter((s) => s.is_verified);
 const pendingPromotions = await getAllPendingAdOrders();
+const portalHeading = isSuper
+  ? 'Pusat Kendali Admin PCNU Sumenep'
+  : user.role === 'mwcnu'
+    ? `Portal Pengurus MWC ${assignedZone?.name || 'Sumenep'}`
+    : `Portal Kader MWC ${assignedZone?.name || 'Sumenep'}`;
 ---
 
 <AppLayout
-  title={isSuper ? "Pusat Kendali Admin PCNU | Mamasar" : `Portal Petugas MWC ${assignedZone?.name || 'Sumenep'} | Mamasar`}
-  description="Panel kendali operasional terpadu PCNU untuk persetujuan petugas lapangan MWC, moderasi toko, dan pendataan UMKM jemput bola."
+  title={`${portalHeading} | Mamasar`}
+  description="Panel kendali operasional terpadu PCNU untuk manajemen akun & peran, persetujuan kader MWC, moderasi toko, dan pendataan UMKM jemput bola."
 >
   <div class="min-h-screen bg-white flex flex-col md:flex-row">
-    <!-- Sidebar Navigasi Admin / Petugas -->
+    <!-- Sidebar Navigasi Admin / Pengurus / Petugas -->
     <AdminSidebar
       user={user}
       isSuper={isSuper}
+      userRole={user.role}
       assignedZoneName={assignedZone?.name}
       pendingPetugasCount={pendingPetugas.length}
       pendingStoresCount={pendingStores.length}
@@ -68,13 +74,13 @@ const pendingPromotions = await getAllPendingAdOrders();
 
     <!-- Workspace Utama Admin / Petugas (Fullwidth & Compact) -->
     <main class="flex-1 min-w-0 overflow-y-auto p-4 sm:p-6 w-full space-y-6">
-      <h1 class="sr-only">{isSuper ? 'Pusat Kendali Admin PCNU Sumenep' : `Portal Petugas MWC ${assignedZone?.name || 'Sumenep'}`}</h1>
+      <h1 class="sr-only">{portalHeading}</h1>
 
       <!-- Status Box Fallback -->
-      <div id="admin-status-box" class="hidden mb-4 p-2.5 rounded-lg text-xs font-semibold"></div>
+      <div id="admin-status-box" role="status" aria-live="polite" class="hidden mb-4 p-2.5 rounded-lg text-xs font-semibold"></div>
 
-      <!-- Tab: Persetujuan Petugas Lapangan MWC (Khusus Superadmin) -->
-      {isSuper && <AgentsPanel pendingPetugas={pendingPetugas} allPetugas={allPetugas} />}
+      <!-- Tab: Manajemen Akun, Peran & Persetujuan Kader/MWC (Khusus Superadmin) -->
+      {isSuper && <AgentsPanel pendingPetugas={pendingPetugas} allUsers={allUsers} zones={zones} />}
 
       <!-- Tab: Kurasi & Moderasi Toko Warga -->
       <StoresPanel pendingStores={pendingStores} verifiedStores={verifiedStores} />
