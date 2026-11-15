@@ -562,6 +562,41 @@ export async function getProductsByIds(productIds: number[]): Promise<Product[]>
   return rows.map(toProduct);
 }
 
+export async function getMostFavoritedProducts(limit = 4): Promise<Product[]> {
+  return getOrSetCache(`products:most_favorited:${limit}`, 60_000, async () => {
+    const rows = await getDb()
+      .select({
+        ...getTableColumns(schema.products),
+        umkm_slug: schema.umkm.slug,
+        umkm_name: schema.umkm.name,
+        umkm_phone: schema.umkm.phone,
+        umkm_address: schema.umkm.address,
+        umkm_ranting: schema.umkm.ranting,
+        umkm_nib: schema.umkm.nib,
+        umkm_halal_cert: schema.umkm.halal_cert,
+        umkm_pirt: schema.umkm.pirt,
+        umkm_bpom: schema.umkm.bpom,
+        is_verified: schema.umkm.is_verified,
+        zone_id: schema.zones.id,
+        zone_name: schema.zones.name,
+        zone_slug: schema.zones.slug,
+      })
+      .from(schema.products)
+      .innerJoin(schema.umkm, eq(schema.products.umkm_id, schema.umkm.id))
+      .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+      .leftJoin(schema.favorites, eq(schema.favorites.product_id, schema.products.id))
+      .groupBy(schema.products.id, schema.umkm.id, schema.zones.id)
+      .orderBy(
+        desc(sql`count(${schema.favorites.id})`),
+        desc(schema.products.views),
+        desc(schema.products.id)
+      )
+      .limit(limit);
+
+    return rows.map(toProduct);
+  });
+}
+
 export async function isProductOwnedByUMKM(productId: number, umkmId: number): Promise<boolean> {
   const [row] = await getDb()
     .select({ id: schema.products.id })

@@ -30,6 +30,10 @@ export const GET: APIRoute = async ({ request }) => {
       zone_name: p.zone_name,
       umkm_name: p.umkm_name,
       umkm_phone: p.umkm_phone,
+      is_featured: Boolean(p.is_featured),
+      is_sold_out: Boolean(p.is_sold_out),
+      views: p.views ?? 0,
+      photo_count: 1 + (Array.isArray(p.gallery_images) ? p.gallery_images.length : 0),
     }));
 
     return new Response(JSON.stringify({ success: true, products: slimProducts }), {

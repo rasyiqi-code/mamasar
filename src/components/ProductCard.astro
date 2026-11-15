@@ -6,15 +6,22 @@ import AppIcon from './common/AppIcon.astro';
 
 interface Props {
   product: Product;
+  variant?: 'default' | 'spotlight' | 'compact';
+  highlight?: boolean;
+  hidePhotoCount?: boolean;
+  showWaButton?: boolean;
   badge?: string;
   badgeColor?: 'indigo' | 'amber' | 'emerald' | 'rose';
   isSoldOut?: boolean;
-  sellerAvatar?: string;
   views?: number;
 }
 
 const {
   product,
+  variant = 'default',
+  highlight = false,
+  hidePhotoCount = false,
+  showWaButton = variant === 'default',
   badge,
   badgeColor = 'emerald',
   isSoldOut = Boolean(product.is_sold_out),
@@ -34,14 +41,26 @@ const baseImgSrc = product.image_url || DEFAULT_PRODUCT_IMAGE;
 const optimizedImgSrc = getOptimizedImageUrl(baseImgSrc, 400);
 const imgSrcSet = getImageSrcSet(product.image_url);
 
+const galleryCount = Array.isArray(product.gallery_images) ? product.gallery_images.length : 0;
+const photoCount = 1 + galleryCount;
+
 const hasDiscount = Boolean(product.original_price && product.original_price > product.price);
-const discountPercent = hasDiscount
-  ? Math.round(((product.original_price! - product.price) / product.original_price!) * 100)
-  : 0;
 const isFeatured =
   Boolean(product.is_featured) &&
   (!product.featured_until || new Date(product.featured_until) > new Date());
 const isVerifiedStore = Boolean(product.is_verified);
+
+function formatRelativeDate(isoDate?: string): string {
+  if (!isoDate) return 'Baru';
+  const diffMs = Date.now() - new Date(isoDate).getTime();
+  const days = Math.max(0, Math.floor(diffMs / 86_400_000));
+  if (days === 0) return 'Hari ini';
+  if (days === 1) return 'Kemarin';
+  if (days < 30) return `${days} hari lalu`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months} bln lalu`;
+  return `${Math.floor(months / 12)} thn lalu`;
+}
 
 const badgeStyles: Record<string, string> = {
   indigo: 'bg-emerald-700 text-white',
@@ -50,65 +69,84 @@ const badgeStyles: Record<string, string> = {
   rose: 'bg-rose-700 text-white',
 };
 
-const showSingleTopBadge = !isSoldOut && (isFeatured || product.stock_status === 'po' || Boolean(badge));
+const isSpotlight = variant === 'spotlight';
+const isCompact = variant === 'compact';
+const showTopLeftBadge =
+  !isSpotlight && !isCompact && !isSoldOut && (isFeatured || product.stock_status === 'po' || Boolean(badge));
+const spotlightPill = badge || (highlight ? 'Pilihan Hari Ini' : isFeatured ? 'Unggulan' : 'Pilihan Warga');
+const spotlightPillClass = highlight
+  ? 'bg-emerald-700 text-white'
+  : isFeatured
+    ? 'bg-amber-400 text-slate-950 font-extrabold'
+    : 'bg-white/95 text-slate-900';
 ---
 
 <article
-  class={`bg-white border rounded-xl overflow-hidden shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between group relative ${
-    isFeatured ? 'border-amber-300 ring-1 ring-amber-300/40 shadow-xs' : 'border-slate-200 hover:border-slate-300'
-  } ${isSoldOut ? 'opacity-90' : ''}`}
+  class={`bg-white border rounded-xl overflow-hidden transition duration-200 flex flex-col justify-between group relative ${
+    highlight
+      ? 'border-2 border-emerald-600 shadow-sm'
+      : isFeatured
+        ? 'border-emerald-300 shadow-xs'
+        : 'border-slate-200 hover:border-slate-300 shadow-xs hover:shadow-md'
+  } ${isSoldOut ? 'opacity-80' : ''}`}
 >
-  <!-- Card Top Media & Details -->
   <div>
-    <div class="relative aspect-4/3 sm:aspect-16/10 bg-slate-100 overflow-hidden">
-      <a
-        href={productHref}
-        class="block w-full h-full"
-        title={product.name}
-      >
+    <div class="relative aspect-4/3 bg-slate-100 overflow-hidden">
+      <a href={productHref} class="block w-full h-full" title={product.name}>
         <img
           src={optimizedImgSrc}
           srcset={imgSrcSet}
-          sizes="(max-width: 640px) 50vw, 25vw"
+          sizes={isCompact ? '(max-width: 640px) 50vw, 20vw' : '(max-width: 640px) 100vw, 25vw'}
           width="400"
           height="300"
           alt={product.name}
           loading="lazy"
           decoding="async"
           class={`w-full h-full object-cover group-hover:scale-105 transition duration-300 ${
-            isSoldOut ? 'grayscale-40' : ''
+            isSoldOut ? 'grayscale-60 opacity-75' : ''
           }`}
         />
 
-        <!-- Price Overlay Bar at Bottom of Image -->
-        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/55 to-transparent pt-6 pb-2 px-2.5 sm:px-3 flex items-end justify-between pointer-events-none">
-          <div class="flex items-baseline gap-1.5 flex-wrap min-w-0">
-            <span class="text-sm sm:text-base font-semibold font-mono tracking-tight text-white drop-shadow-sm">
-              {formatRupiah(product.price)}
-            </span>
-            {hasDiscount && (
-              <span class="text-xs text-slate-200 line-through font-mono drop-shadow-sm">
-                {formatRupiah(product.original_price!)}
+        <!-- Bottom Scrim: Stacked Badge (Spotlight) + Price + Photo Count -->
+        <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent pt-7 pb-2.5 px-3 flex items-end justify-between gap-2 pointer-events-none">
+          <div class="min-w-0 space-y-1">
+            {isSpotlight && (
+              <span class={`inline-block text-xs font-bold px-2 py-0.5 rounded-md shadow-xs ${spotlightPillClass}`}>
+                {spotlightPill}
               </span>
             )}
+            <div class="flex items-baseline gap-1.5 flex-wrap">
+              <span class="text-sm sm:text-base font-extrabold font-mono tracking-tight text-white drop-shadow-sm">
+                {formatRupiah(product.price)}
+              </span>
+              {hasDiscount && (
+                <span class="text-xs text-slate-200 line-through font-mono">
+                  {formatRupiah(product.original_price!)}
+                </span>
+              )}
+            </div>
           </div>
-          {hasDiscount && (
-            <span class="text-xs font-extrabold bg-rose-700 text-white px-1.5 py-0.5 rounded shadow-xs tracking-wide shrink-0">
-              -{discountPercent}%
+
+          {!hidePhotoCount && (
+            <span class="inline-flex items-center gap-1 text-xs font-semibold bg-black/65 text-white px-2 py-0.5 rounded-md shrink-0 tabular-nums">
+              <AppIcon name="camera" size="xs" />
+              <span>{photoCount}x</span>
             </span>
           )}
         </div>
       </a>
 
-      <!-- Diagonal "Habis" Ribbon -->
+      <!-- Diagonal Sold-Out Banner matching reference layout -->
       {isSoldOut && (
-        <div class="absolute -left-10 top-5 -rotate-45 bg-rose-700 text-white font-extrabold text-xs uppercase tracking-wider py-1 w-36 text-center shadow-md z-20 pointer-events-none">
+        <div
+          class="absolute top-1/2 -translate-y-1/2 -inset-x-8 -rotate-12 bg-rose-700/95 text-white font-extrabold text-xs uppercase tracking-wider py-1.5 text-center shadow-md z-20 pointer-events-none"
+        >
           Habis
         </div>
       )}
 
-      <!-- Max 1 Top-Left Status Badge -->
-      {showSingleTopBadge && (
+      <!-- Default Card Single Top-Left Badge -->
+      {showTopLeftBadge && (
         <div class="absolute top-2 left-2 z-10">
           {isFeatured ? (
             <span class="text-xs font-extrabold px-2 py-0.5 rounded shadow-xs tracking-wide bg-amber-400 text-slate-950 border border-amber-300 flex items-center gap-1">
@@ -120,18 +158,14 @@ const showSingleTopBadge = !isSoldOut && (isFeatured || product.stock_status ===
               Pre-Order
             </span>
           ) : badge ? (
-            <span
-              class={`text-xs font-bold px-2 py-0.5 rounded shadow-xs tracking-wide ${
-                badgeStyles[badgeColor] || badgeStyles.emerald
-              }`}
-            >
+            <span class={`text-xs font-bold px-2 py-0.5 rounded shadow-xs tracking-wide ${badgeStyles[badgeColor] || badgeStyles.emerald}`}>
               {badge}
             </span>
           ) : null}
         </div>
       )}
 
-      <!-- Favorite Button Top-Right (>= 44px touch target) -->
+      <!-- Favorite Star Button (>= 44px touch target) -->
       <div class="absolute top-1 right-1 z-20">
         <button
           type="button"
@@ -148,58 +182,85 @@ const showSingleTopBadge = !isSoldOut && (isFeatured || product.stock_status ===
       </div>
     </div>
 
-    <!-- Card Body: Location, Title, Seller -->
-    <div class="p-3 space-y-1.5">
-      <div class="text-xs text-slate-600 flex items-center gap-1 truncate font-medium">
-        <AppIcon name="map-pin" size="xs" class="text-slate-400 shrink-0" />
-        <span class="truncate">{product.umkm_ranting ? `${product.umkm_ranting}, ` : ''}{product.zone_name}</span>
+    <!-- Card Body -->
+    <div class="p-3 space-y-1">
+      <div class="text-xs text-slate-500 flex items-center gap-1 truncate">
+        <span class="truncate">{product.zone_name}, Sumenep</span>
       </div>
 
       <a
         href={productHref}
-        class="font-bold text-sm text-slate-900 line-clamp-2 group-hover:text-emerald-700 leading-snug block"
+        class="font-bold text-sm text-slate-900 line-clamp-1 group-hover:text-emerald-700 leading-snug block"
         title={product.name}
       >
         {product.name}
       </a>
 
-      <div class="text-xs text-slate-600 flex items-center justify-between pt-0.5 truncate">
-        <span class="truncate">{product.category}</span>
-        {views > 0 && <span class="shrink-0 tabular-nums">{views} dilihat</span>}
-      </div>
-
-      <!-- Seller Identity Strip -->
-      <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
-        <a
-          href={storeHref}
-          class="text-slate-700 hover:text-emerald-700 font-medium truncate hover:underline transition cursor-pointer flex items-center gap-1 min-w-0"
-          title={`Lihat Profil Toko ${product.umkm_name}`}
-        >
-          <AppIcon name="store" size="xs" class="text-slate-400 shrink-0" />
-          <span class="truncate">{product.umkm_name}</span>
-        </a>
-        {isVerifiedStore && (
-          <span class="text-emerald-700 shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold" title="Toko Terverifikasi MWC NU">
-            <AppIcon name="verified" size="xs" />
-          </span>
-        )}
-      </div>
+      {isSpotlight ? (
+        <p class="text-xs text-slate-500 pt-0.5 line-clamp-2">
+          {formatRelativeDate(product.bumped_at || product.created_at)} • {product.category}
+          {views > 0 ? ` • ${views} dilihat` : ''}
+        </p>
+      ) : isCompact ? (
+        <div class="pt-1 flex items-center justify-between gap-2 text-xs text-slate-600">
+          <a
+            href={storeHref}
+            class="inline-flex items-center gap-1 truncate hover:text-emerald-700 hover:underline min-w-0"
+            title={`Toko ${product.umkm_name}`}
+          >
+            {isVerifiedStore && <AppIcon name="verified" size="xs" class="text-emerald-700 shrink-0" />}
+            <span class="truncate">{product.umkm_name}</span>
+          </a>
+          <a
+            href={waLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={`Hubungi WhatsApp ${product.umkm_name} untuk ${product.name}`}
+            class="shrink-0 text-emerald-700 hover:text-emerald-800 font-bold whitespace-nowrap"
+          >
+            WA →
+          </a>
+        </div>
+      ) : (
+        <>
+          <div class="text-xs text-slate-600 flex items-center justify-between pt-0.5 truncate">
+            <span class="truncate">{product.category}</span>
+            {views > 0 && <span class="shrink-0 tabular-nums">{views} dilihat</span>}
+          </div>
+          <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between gap-2 text-xs">
+            <a
+              href={storeHref}
+              class="text-slate-700 hover:text-emerald-700 font-medium truncate hover:underline transition cursor-pointer flex items-center gap-1 min-w-0"
+              title={`Lihat Profil Toko ${product.umkm_name}`}
+            >
+              <AppIcon name="store" size="xs" class="text-slate-400 shrink-0" />
+              <span class="truncate">{product.umkm_name}</span>
+            </a>
+            {isVerifiedStore && (
+              <span class="text-emerald-700 shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold" title="Toko Terverifikasi MWC NU">
+                <AppIcon name="verified" size="xs" />
+              </span>
+            )}
+          </div>
+        </>
+      )}
     </div>
   </div>
 
-  <!-- Card Action Bottom: WhatsApp CTA -->
-  <div class="p-3 pt-0">
-    <a
-      href={waLink}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={`Hubungi WhatsApp ${product.umkm_name} untuk produk ${product.name}`}
-      class="w-full min-h-[44px] py-2 px-3 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition active:scale-98"
-    >
-      <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"></path>
-      </svg>
-      <span>Chat Penjual</span>
-    </a>
-  </div>
+  {showWaButton && (
+    <div class="p-3 pt-0">
+      <a
+        href={waLink}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Hubungi WhatsApp ${product.umkm_name} untuk produk ${product.name}`}
+        class="w-full min-h-[44px] py-2 px-3 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 shadow-xs transition active:scale-98"
+      >
+        <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"></path>
+        </svg>
+        <span>Chat Penjual</span>
+      </a>
+    </div>
+  )}
 </article>

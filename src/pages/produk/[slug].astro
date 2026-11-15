@@ -175,6 +175,7 @@ const pageDescription = product
                 <div class="relative w-full aspect-4/3 sm:aspect-16/10 bg-slate-100 rounded-xl overflow-hidden group">
                   <img
                     id="main-product-image"
+                    data-recent-product-id={product.id}
                     src={getOptimizedImageUrl(primaryImage, 800)}
                     srcset={getImageSrcSet(primaryImage)}
                     sizes="(max-width: 768px) 100vw, 800px"
@@ -872,6 +873,16 @@ const pageDescription = product
         window.addEventListener('afterprint', () => {
           document.body.classList.remove('printing-label');
         });
+
+        try {
+          const viewedId = Number(mainImg?.getAttribute('data-recent-product-id') || '0');
+          if (viewedId > 0) {
+            const raw = localStorage.getItem('mamasar_recent_viewed');
+            const parsed = raw ? JSON.parse(raw) : [];
+            const prev = Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'number' && id > 0 && id !== viewedId) : [];
+            localStorage.setItem('mamasar_recent_viewed', JSON.stringify([viewedId, ...prev].slice(0, 8)));
+          }
+        } catch (_) {}
       </script>
     </>
   )}
