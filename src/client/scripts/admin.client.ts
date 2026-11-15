@@ -67,7 +67,9 @@ export function initAdminClient() {
       }
 
       if (quickEntryBtn && canShowQuickEntry) {
-        quickEntryBtn.classList.toggle('hidden', targetName === 'entry');
+        const showBtn = targetName !== 'entry';
+        quickEntryBtn.classList.toggle('hidden', !showBtn);
+        quickEntryBtn.classList.toggle('inline-flex', showBtn);
       }
 
       if (syncUrl) {
@@ -698,7 +700,7 @@ export function initAdminClient() {
   const step2Indicator = document.getElementById('step2-indicator');
   const step2Badge = document.getElementById('step2-badge');
   const step2Title = document.getElementById('step2-title');
-  const step2Desc = document.getElementById('step2-desc');
+  const entryModeBar = document.getElementById('entry-mode-bar');
 
   const step1Container = document.getElementById('jemput-step-1');
   const step2Container = document.getElementById('jemput-step-2');
@@ -706,8 +708,10 @@ export function initAdminClient() {
 
   const btnModeNewStore = document.getElementById('btn-mode-new-store');
   const btnModeExistingStore = document.getElementById('btn-mode-existing-store');
+  const railChooseExistingBtn = document.getElementById('rail-choose-existing-store');
   const formStep1Store = document.getElementById('form-petugas-step1-store') as HTMLFormElement | null;
   const sectionChooseExistingStore = document.getElementById('section-choose-existing-store');
+  const existingStoreFilterInput = document.getElementById('existing-store-filter') as HTMLInputElement | null;
   const selectExistingStore = document.getElementById('select-existing-store') as HTMLSelectElement | null;
   const btnUseExistingStore = document.getElementById('btn-use-existing-store');
   const btnSubmitStep1 = document.getElementById('btn-submit-step1') as HTMLButtonElement | null;
@@ -741,9 +745,9 @@ export function initAdminClient() {
     jemputAlertBox.textContent = msg;
     jemputAlertBox.classList.remove('hidden', 'bg-rose-50', 'text-rose-900', 'border-rose-200', 'bg-emerald-50', 'text-emerald-950', 'border-emerald-200');
     if (isError) {
-      jemputAlertBox.classList.add('bg-rose-50', 'text-rose-900', 'border', 'border-rose-200');
+      jemputAlertBox.classList.add('bg-rose-50', 'text-rose-900', 'border-rose-200');
     } else {
-      jemputAlertBox.classList.add('bg-emerald-50', 'text-emerald-950', 'border', 'border-emerald-200');
+      jemputAlertBox.classList.add('bg-emerald-50', 'text-emerald-950', 'border-emerald-200');
     }
     jemputAlertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -751,23 +755,23 @@ export function initAdminClient() {
   function goToStep1() {
     step1Container?.classList.remove('hidden');
     step2Container?.classList.add('hidden');
+    entryModeBar?.classList.remove('hidden');
 
     // Step 1 Active Indicator
     step1Indicator?.classList.remove('bg-emerald-50/60', 'border-emerald-200', 'bg-slate-50', 'border-slate-200');
-    step1Indicator?.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'font-bold');
+    step1Indicator?.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'font-semibold');
     if (step1Badge) {
       step1Badge.textContent = '1';
-      step1Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-xs shrink-0';
+      step1Badge.className = 'w-5 h-5 rounded-md bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-[11px] shrink-0';
     }
 
     // Step 2 Inactive Indicator
-    step2Indicator?.classList.remove('bg-emerald-50', 'border-emerald-300', 'border-emerald-600', 'text-emerald-950', 'font-bold');
-    step2Indicator?.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-600');
+    step2Indicator?.classList.remove('bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'font-semibold');
+    step2Indicator?.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-600', 'font-medium');
     if (step2Badge) {
-      step2Badge.className = 'w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-mono font-bold text-xs shrink-0';
+      step2Badge.className = 'w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center font-mono font-bold text-[11px] shrink-0';
     }
-    if (step2Title) step2Title.className = 'text-xs font-bold leading-tight text-slate-700 truncate';
-    if (step2Desc) step2Desc.className = 'hidden sm:block text-[11px] text-slate-600 font-medium truncate mt-0.5';
+    if (step2Title) step2Title.className = 'truncate';
   }
 
   function goToStep2(store: { id: number; name: string; phone: string; zoneName: string; ranting?: string }) {
@@ -781,46 +785,67 @@ export function initAdminClient() {
 
     step1Container?.classList.add('hidden');
     step2Container?.classList.remove('hidden');
+    entryModeBar?.classList.add('hidden');
 
     // Step 1 Completed Indicator
     step1Indicator?.classList.remove('bg-emerald-50', 'border-emerald-300');
     step1Indicator?.classList.add('bg-emerald-50/60', 'border-emerald-200');
     if (step1Badge) {
-      step1Badge.innerHTML = '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-      step1Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-xs shrink-0';
+      step1Badge.innerHTML = '<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+      step1Badge.className = 'w-5 h-5 rounded-md bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-[11px] shrink-0';
     }
 
     // Step 2 Active Indicator
-    step2Indicator?.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-600');
-    step2Indicator?.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'font-bold');
+    step2Indicator?.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-600', 'font-medium');
+    step2Indicator?.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'font-semibold');
     if (step2Badge) {
-      step2Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-xs shrink-0';
+      step2Badge.className = 'w-5 h-5 rounded-md bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-[11px] shrink-0';
     }
-    if (step2Title) step2Title.className = 'text-xs font-bold leading-tight text-emerald-950 truncate';
-    if (step2Desc) step2Desc.className = 'hidden sm:block text-[11px] text-emerald-800 font-medium truncate mt-0.5';
+    if (step2Title) step2Title.className = 'truncate';
 
     step2Container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
-  // Toggle Step 1 Mode: Daftarkan Baru vs Pilih Terdaftar
-  btnModeNewStore?.addEventListener('click', () => {
-    btnModeNewStore.classList.add('bg-white', 'text-slate-900', 'border', 'border-slate-200');
-    btnModeNewStore.classList.remove('text-slate-600');
-    btnModeExistingStore?.classList.remove('bg-white', 'text-slate-900', 'border', 'border-slate-200');
-    btnModeExistingStore?.classList.add('text-slate-600');
+  function setStep1Mode(mode: 'new' | 'existing') {
+    const isNew = mode === 'new';
+    btnModeNewStore?.classList.toggle('bg-white', isNew);
+    btnModeNewStore?.classList.toggle('text-slate-900', isNew);
+    btnModeNewStore?.classList.toggle('border', isNew);
+    btnModeNewStore?.classList.toggle('border-slate-200', isNew);
+    btnModeNewStore?.classList.toggle('text-slate-600', !isNew);
 
-    formStep1Store?.classList.remove('hidden');
-    sectionChooseExistingStore?.classList.add('hidden');
+    btnModeExistingStore?.classList.toggle('bg-white', !isNew);
+    btnModeExistingStore?.classList.toggle('text-slate-900', !isNew);
+    btnModeExistingStore?.classList.toggle('border', !isNew);
+    btnModeExistingStore?.classList.toggle('border-slate-200', !isNew);
+    btnModeExistingStore?.classList.toggle('text-slate-600', isNew);
+
+    formStep1Store?.classList.toggle('hidden', !isNew);
+    sectionChooseExistingStore?.classList.toggle('hidden', isNew);
+  }
+
+  // Toggle Step 1 Mode: Daftarkan Baru vs Pilih Terdaftar
+  btnModeNewStore?.addEventListener('click', () => setStep1Mode('new'));
+  btnModeExistingStore?.addEventListener('click', () => setStep1Mode('existing'));
+  railChooseExistingBtn?.addEventListener('click', () => {
+    setStep1Mode('existing');
+    existingStoreFilterInput?.focus();
   });
 
-  btnModeExistingStore?.addEventListener('click', () => {
-    btnModeExistingStore.classList.add('bg-white', 'text-slate-900', 'border', 'border-slate-200');
-    btnModeExistingStore.classList.remove('text-slate-600');
-    btnModeNewStore?.classList.remove('bg-white', 'text-slate-900', 'border', 'border-slate-200');
-    btnModeNewStore?.classList.add('text-slate-600');
-
-    formStep1Store?.classList.add('hidden');
-    sectionChooseExistingStore?.classList.remove('hidden');
+  existingStoreFilterInput?.addEventListener('input', () => {
+    if (!selectExistingStore) return;
+    const q = existingStoreFilterInput.value.trim().toLowerCase();
+    let firstMatchValue = '';
+    Array.from(selectExistingStore.options).forEach((opt) => {
+      if (!opt.value) return;
+      const hay = opt.getAttribute('data-search') || opt.textContent?.toLowerCase() || '';
+      const matched = !q || hay.includes(q);
+      opt.hidden = !matched;
+      if (matched && !firstMatchValue) firstMatchValue = opt.value;
+    });
+    if (q && firstMatchValue) {
+      selectExistingStore.value = firstMatchValue;
+    }
   });
 
   // Step 1: Submit Form Daftarkan Toko Baru
@@ -897,11 +922,9 @@ export function initAdminClient() {
     }
 
     if (uploadBoxes) {
-      if (petugasPhotos.length >= 4) {
-        uploadBoxes.classList.add('hidden');
-      } else {
-        uploadBoxes.classList.remove('hidden');
-      }
+      const isFull = petugasPhotos.length >= 4;
+      uploadBoxes.classList.toggle('hidden', isFull);
+      uploadBoxes.classList.toggle('grid', !isFull);
     }
 
     renderPetugasPhotosGrid();

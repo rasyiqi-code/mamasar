@@ -30,291 +30,349 @@ interface Props {
 }
 
 const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astro.props;
+const scopeText = assignedZone ? `MWC ${assignedZone.name}` : 'PCNU Sumenep';
 ---
 
 <section id="panel-entry" class={`admin-tab-panel ${isDefaultActive ? '' : 'hidden'}`}>
-  {/* Top Operational Header & 2-Step Hairline Bar */}
-  <div class="border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8 py-4 space-y-4">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-      <div>
-        <h2 class="text-sm sm:text-base font-bold text-slate-900">Pendataan Lapangan (Jemput Bola)</h2>
-        <p class="hidden sm:block text-xs text-slate-600 mt-0.5">
-          Daftarkan identitas toko warga terlebih dahulu, lalu foto dan masukkan barang dagangan ke katalog.
-        </p>
-      </div>
-
-      {assignedZone && (
-        <div class="text-xs text-slate-700 font-medium shrink-0 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 self-start sm:self-auto">
-          <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
-          <span>MWC</span>
-          <strong class="text-emerald-800">{assignedZone.name}</strong>
-        </div>
-      )}
-    </div>
-
-    {/* 2-Step Indicator Strip */}
-    <div class="grid grid-cols-2 gap-2.5 max-w-4xl">
+  {/* Unified Top Control Strip: 2-Step Progress + Mode Switcher */}
+  <div class="border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+    {/* Compact Stepper */}
+    <div class="grid grid-cols-2 sm:inline-flex items-center gap-2 min-w-0">
       <div
         id="step1-indicator"
-        class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-950 font-bold transition"
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-300 text-emerald-950 font-semibold text-xs transition min-w-0"
       >
-        <span id="step1-badge" class="w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-xs shrink-0">
+        <span
+          id="step1-badge"
+          class="w-5 h-5 rounded-md bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-[11px] shrink-0"
+        >
           1
         </span>
-        <div class="min-w-0">
-          <p class="text-xs font-bold leading-tight text-emerald-950 truncate">Daftarkan Toko</p>
-          <p class="hidden sm:block text-[11px] text-emerald-800 font-medium truncate mt-0.5">
-            Nama usaha, WhatsApp, MWC &amp; legalitas
-          </p>
-        </div>
+        <span class="truncate">Identitas Toko</span>
       </div>
 
       <div
         id="step2-indicator"
-        class="flex items-center gap-2.5 p-2.5 sm:p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 transition"
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 font-medium text-xs transition min-w-0"
       >
-        <span id="step2-badge" class="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-mono font-bold text-xs shrink-0">
+        <span
+          id="step2-badge"
+          class="w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center font-mono font-bold text-[11px] shrink-0"
+        >
           2
         </span>
-        <div class="min-w-0">
-          <p id="step2-title" class="text-xs font-bold leading-tight text-slate-700 truncate">Daftarkan Produk</p>
-          <p id="step2-desc" class="hidden sm:block text-[11px] text-slate-600 font-medium truncate mt-0.5">
-            Foto kamera, harga, stok &amp; etalase
-          </p>
-        </div>
+        <span id="step2-title" class="truncate">Input Produk</span>
       </div>
     </div>
-  </div>
 
-  {/* Alert Box */}
-  <div id="jemput-alert-box" role="status" aria-live="polite" class="hidden max-w-4xl mx-4 sm:mx-6 lg:mx-8 my-4 p-3.5 rounded-lg text-xs font-semibold"></div>
-
-  {/* ========================================== */}
-  {/* STEP 1: DAFTARKAN TOKO UMKM                 */}
-  {/* ========================================== */}
-  <div id="jemput-step-1">
-    {/* Mode Selection Bar */}
-    <div class="px-4 sm:px-6 lg:px-8 py-3.5 border-b border-slate-200 bg-slate-50/40">
-      <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg max-w-full sm:max-w-md border border-slate-200 text-xs font-semibold">
+    {/* Step 1 Mode Switcher (Hidden automatically when Step 2 active) */}
+    <div id="entry-mode-bar" class="shrink-0">
+      <div class="grid grid-cols-2 sm:inline-flex items-center gap-1 p-1 bg-slate-100 rounded-lg border border-slate-200 text-xs font-semibold">
         <button
           type="button"
           id="btn-mode-new-store"
-          class="flex-1 min-h-[44px] sm:min-h-[38px] py-1.5 px-3 rounded-md bg-white text-slate-900 border border-slate-200 transition cursor-pointer text-center"
+          class="min-h-[40px] sm:min-h-[34px] px-3.5 py-1 rounded-md bg-white text-slate-900 border border-slate-200 transition cursor-pointer text-center whitespace-nowrap"
         >
           + Toko Baru
         </button>
         <button
           type="button"
           id="btn-mode-existing-store"
-          class="flex-1 min-h-[44px] sm:min-h-[38px] py-1.5 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer text-center font-mono tabular-nums"
+          class="min-h-[40px] sm:min-h-[34px] px-3.5 py-1 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer text-center font-mono tabular-nums whitespace-nowrap"
         >
           Pilih Toko ({stores.length})
         </button>
       </div>
     </div>
+  </div>
 
-    {/* Section A: Form Toko Baru */}
-    <form id="form-petugas-step1-store" class="max-w-4xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-5 bg-white border-b border-slate-200">
-      <div class="pb-2.5 border-b border-slate-200 flex items-center justify-between">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
-          Informasi Usaha &amp; Kontak Penjual
-        </h3>
-        <span class="text-xs text-slate-600">* Wajib diisi</span>
-      </div>
+  {/* Full-Bleed Status Alert Banner */}
+  <div id="jemput-alert-box" role="status" aria-live="polite" class="hidden px-4 sm:px-6 lg:px-8 py-3 border-b text-xs font-semibold"></div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="space-y-1.5">
-          <label for="umkmName" class="block text-xs font-semibold text-slate-800">
-            Nama Usaha / Toko <span class="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="umkmName"
-            name="name"
-            placeholder="Contoh: Dapur Barokah Bu Fatimah"
-            required
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
-          />
+  {/* ========================================== */}
+  {/* STEP 1: IDENTITAS TOKO / PILIH TOKO         */}
+  {/* ========================================== */}
+  <div id="jemput-step-1">
+    <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_300px] xl:grid-cols-[minmax(0,1fr)_340px] bg-white border-b border-slate-200">
+    {/* Main Form Column (Full Width Edge-to-Edge) */}
+    <div class="min-w-0 lg:border-r lg:border-slate-200">
+      {/* Section A: Form Toko Baru */}
+      <form id="form-petugas-step1-store" class="divide-y divide-slate-200 bg-white">
+        {/* Identitas & Wilayah */}
+        <div class="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+              Identitas &amp; Kontak Usaha
+            </h2>
+            <span class="text-xs text-slate-600">Tanda * wajib diisi</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label for="umkmName" class="block text-xs font-semibold text-slate-800">
+                Nama Usaha / Toko <span class="text-rose-600" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="text"
+                id="umkmName"
+                name="name"
+                placeholder="Contoh: Dapur Barokah Bu Fatimah"
+                required
+                class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="storePhone" class="block text-xs font-semibold text-slate-800">
+                Nomor WhatsApp Penjual <span class="text-rose-600" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="tel"
+                id="storePhone"
+                name="phone"
+                inputmode="tel"
+                placeholder="08xxxxxxxxxx (aktif WhatsApp)"
+                required
+                class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-mono text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label for="entryZoneId" class="block text-xs font-semibold text-slate-800">
+                Wilayah MWC Kecamatan <span class="text-rose-600" aria-hidden="true">*</span>
+              </label>
+              <select
+                id="entryZoneId"
+                name="zoneId"
+                required
+                class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 cursor-pointer transition"
+              >
+                {zones.map((z) => (
+                  <option value={z.id} selected={z.id === user.assigned_zone_id}>
+                    {z.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="entryRanting" class="block text-xs font-semibold text-slate-800">
+                Ranting NU (Desa / Kelurahan) <span class="text-rose-600" aria-hidden="true">*</span>
+              </label>
+              <input
+                type="text"
+                id="entryRanting"
+                name="ranting"
+                value={user.agent_ranting || ''}
+                placeholder="Nama desa / kelurahan"
+                required
+                class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="entryAddress" class="block text-xs font-semibold text-slate-800">
+              Alamat Lengkap / Dusun / RT &amp; RW (Opsional)
+            </label>
+            <input
+              type="text"
+              id="entryAddress"
+              name="address"
+              placeholder="Dusun, RT/RW, atau patokan lokasi usaha"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+            />
+          </div>
         </div>
 
-        <div class="space-y-1.5">
-          <label for="storePhone" class="block text-xs font-semibold text-slate-800">
-            Nomor WhatsApp Penjual <span class="text-rose-500">*</span>
-          </label>
-          <input
-            type="tel"
-            id="storePhone"
-            name="phone"
-            inputmode="tel"
-            placeholder="08xxxxxxxxxx"
-            required
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 font-mono focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
-          />
-          <p class="text-xs text-slate-600">Pastikan nomor aktif WhatsApp untuk menerima pesanan.</p>
-        </div>
-      </div>
+        {/* Legalitas Usaha (Hairline Strip) */}
+        <div class="px-4 sm:px-6 lg:px-8 py-5 bg-slate-50/40 space-y-3">
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-800 inline-flex items-center gap-1.5">
+              <AppIcon name="shield-check" size="xs" class="text-emerald-700" />
+              <span>Legalitas &amp; Perizinan (Opsional)</span>
+            </span>
+            <span class="text-xs text-slate-600">Kosongkan jika belum ada</span>
+          </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="space-y-1.5">
-          <label for="entryZoneId" class="block text-xs font-semibold text-slate-800">
-            Wilayah MWC Kecamatan <span class="text-rose-500">*</span>
-          </label>
-          <select
-            id="entryZoneId"
-            name="zoneId"
-            required
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 cursor-pointer transition"
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3">
+            <div class="space-y-1">
+              <label for="storeNib" class="block text-xs font-medium text-slate-700">Nomor NIB OSS</label>
+              <input
+                type="text"
+                id="storeNib"
+                name="nib"
+                placeholder="13 digit NIB"
+                class="w-full min-h-[44px] sm:min-h-[38px] bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none transition"
+              />
+            </div>
+
+            <div class="space-y-1">
+              <label for="storeHalal" class="block text-xs font-medium text-slate-700">Sertifikat Halal</label>
+              <input
+                type="text"
+                id="storeHalal"
+                name="halalCert"
+                placeholder="Nomor BPJPH"
+                class="w-full min-h-[44px] sm:min-h-[38px] bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none transition"
+              />
+            </div>
+
+            <div class="space-y-1">
+              <label for="storePirt" class="block text-xs font-medium text-slate-700">Nomor P-IRT</label>
+              <input
+                type="text"
+                id="storePirt"
+                name="pirt"
+                placeholder="Nomor Dinkes"
+                class="w-full min-h-[44px] sm:min-h-[38px] bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none transition"
+              />
+            </div>
+
+            <div class="space-y-1">
+              <label for="storeBpom" class="block text-xs font-medium text-slate-700">Izin BPOM</label>
+              <input
+                type="text"
+                id="storeBpom"
+                name="bpom"
+                placeholder="MD / ML"
+                class="w-full min-h-[44px] sm:min-h-[38px] bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Step 1 Submit Footer */}
+        <div class="px-4 sm:px-6 lg:px-8 py-4 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <p class="text-xs text-slate-600">
+            Entri petugas lapangan otomatis terverifikasi di etalase publik.
+          </p>
+
+          <button
+            type="submit"
+            id="btn-submit-step1"
+            class="w-full sm:w-auto min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-semibold text-xs rounded-lg transition inline-flex items-center justify-center gap-2 cursor-pointer shrink-0"
           >
-            {zones.map((z) => (
-              <option value={z.id} selected={z.id === user.assigned_zone_id}>
-                {z.name}
-              </option>
-            ))}
-          </select>
+            <span>Lanjut ke Step 2: Produk</span>
+          </button>
+        </div>
+      </form>
+
+      {/* Section B: Pilih Toko Terdaftar */}
+      <div id="section-choose-existing-store" class="hidden divide-y divide-slate-200 bg-white">
+        <div class="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+              Pilih Toko Sudah Terdata
+            </h2>
+            <span class="text-xs font-mono tabular-nums text-slate-600">{stores.length} toko tersedia</span>
+          </div>
+
+          <div class="space-y-3">
+            <div class="space-y-1.5">
+              <label for="existing-store-filter" class="block text-xs font-semibold text-slate-800">
+                Cari Cepat Nama / Wilayah / WhatsApp
+              </label>
+              <input
+                type="search"
+                id="existing-store-filter"
+                autocorrect="off"
+                autocapitalize="none"
+                spellcheck="false"
+                placeholder="Ketik kata kunci untuk menyaring daftar..."
+                class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="select-existing-store" class="block text-xs font-semibold text-slate-800">
+                Daftar Toko UMKM
+              </label>
+              <select
+                id="select-existing-store"
+                class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 cursor-pointer transition"
+              >
+                <option value="" disabled selected>Pilih salah satu toko UMKM...</option>
+                {stores.map((s) => (
+                  <option
+                    value={s.id}
+                    data-name={s.name}
+                    data-phone={s.phone}
+                    data-zone={s.zone_name}
+                    data-search={`${s.name} ${s.zone_name} ${s.phone}`.toLowerCase()}
+                  >
+                    {s.name} ({s.zone_name}, WA: {s.phone})
+                  </option>
+                ))}
+              </select>
+              <p class="text-xs text-slate-600">
+                Gunakan mode ini untuk menambah barang baru ke toko warga yang sudah terdaftar.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div class="space-y-1.5">
-          <label for="entryRanting" class="block text-xs font-semibold text-slate-800">
-            Ranting NU (Desa / Kelurahan) <span class="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="entryRanting"
-            name="ranting"
-            value={user.agent_ranting || ''}
-            placeholder="Nama desa / kelurahan"
-            required
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
-          />
-        </div>
-      </div>
-
-      <div class="space-y-1.5">
-        <label for="entryAddress" class="block text-xs font-semibold text-slate-800">
-          Alamat Lengkap / Dusun / RT &amp; RW (Opsional)
-        </label>
-        <input
-          type="text"
-          id="entryAddress"
-          name="address"
-          placeholder="Dusun, RT/RW, atau patokan lokasi"
-          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
-        />
-      </div>
-
-      {/* Legalitas Usaha Lapangan */}
-      <div class="pt-4 border-t border-slate-200 space-y-3">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <span class="text-xs font-bold text-slate-800 inline-flex items-center gap-1.5">
-            <AppIcon name="shield-check" size="xs" class="text-emerald-700" />
-            <span>Legalitas &amp; Perizinan Usaha (Opsional)</span>
-          </span>
-          <span class="text-xs text-slate-600">Isi jika warga memiliki dokumen</span>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          <div class="space-y-1">
-            <label for="storeNib" class="block text-xs font-medium text-slate-700">Nomor NIB OSS</label>
-            <input
-              type="text"
-              id="storeNib"
-              name="nib"
-              placeholder="13 digit NIB"
-              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none transition"
-            />
-          </div>
-
-          <div class="space-y-1">
-            <label for="storeHalal" class="block text-xs font-medium text-slate-700">Sertifikat Halal</label>
-            <input
-              type="text"
-              id="storeHalal"
-              name="halalCert"
-              placeholder="Nomor BPJPH"
-              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none transition"
-            />
-          </div>
-
-          <div class="space-y-1">
-            <label for="storePirt" class="block text-xs font-medium text-slate-700">Nomor P-IRT</label>
-            <input
-              type="text"
-              id="storePirt"
-              name="pirt"
-              placeholder="Nomor Dinkes"
-              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none transition"
-            />
-          </div>
-
-          <div class="space-y-1">
-            <label for="storeBpom" class="block text-xs font-medium text-slate-700">Izin BPOM</label>
-            <input
-              type="text"
-              id="storeBpom"
-              name="bpom"
-              placeholder="MD / ML"
-              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none transition"
-            />
-          </div>
+        <div class="px-4 sm:px-6 lg:px-8 py-4 bg-white flex justify-end">
+          <button
+            type="button"
+            id="btn-use-existing-store"
+            class="w-full sm:w-auto min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-semibold text-xs rounded-lg transition inline-flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <span>Gunakan Toko Ini &amp; Lanjut</span>
+          </button>
         </div>
       </div>
+    </div>
 
-      <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <p class="text-xs text-slate-600">
-          Toko yang didaftarkan petugas MWC langsung berstatus terverifikasi.
+    {/* Right Operational Context Rail (Desktop Only — Fills Wide Workspace Purposefully) */}
+    <aside class="hidden lg:flex lg:flex-col divide-y divide-slate-200 bg-slate-50/40 text-xs">
+      <div class="p-6 space-y-2.5">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+          Petugas &amp; Cakupan
+        </span>
+        <div class="space-y-1">
+          <p class="font-bold text-sm text-slate-900 truncate">{user.name}</p>
+          <div class="inline-flex items-center gap-1.5 text-xs text-slate-700 font-medium">
+            <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+            <span>{scopeText}</span>
+          </div>
+        </div>
+        <p class="text-xs text-slate-600 leading-relaxed pt-1">
+          Data usaha dan produk yang dimasukkan petugas lapangan langsung aktif dan tayang di katalog tanpa menunggu antrean moderasi.
         </p>
-
-        <button
-          type="submit"
-          id="btn-submit-step1"
-          class="w-full sm:w-auto min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-semibold text-xs rounded-lg transition inline-flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <span>Lanjut ke Step 2: Produk</span>
-        </button>
-      </div>
-    </form>
-
-    {/* Section B: Pilih Toko Terdaftar */}
-    <div id="section-choose-existing-store" class="hidden max-w-4xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 bg-white border-b border-slate-200 space-y-4">
-      <div class="pb-2.5 border-b border-slate-200 flex items-center justify-between">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
-          Pilih Toko Sudah Terdata
-        </h3>
-        <span class="text-xs font-mono tabular-nums text-slate-600">{stores.length} toko</span>
       </div>
 
-      <div class="space-y-1.5">
-        <label for="select-existing-store" class="block text-xs font-semibold text-slate-800">
-          Daftar Toko UMKM
-        </label>
-        <select
-          id="select-existing-store"
-          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 cursor-pointer transition"
-        >
-          <option value="" disabled selected>Pilih salah satu toko UMKM...</option>
-          {stores.map((s) => (
-            <option
-              value={s.id}
-              data-name={s.name}
-              data-phone={s.phone}
-              data-zone={s.zone_name}
-            >
-              {s.name} ({s.zone_name}, WA: {s.phone})
-            </option>
-          ))}
-        </select>
-        <p class="text-xs text-slate-600">Pilih toko apabila ingin menambah barang dagangan baru ke etalase yang sudah ada.</p>
+      <div class="p-6 space-y-3">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+          Standar Pendataan Lapangan
+        </span>
+        <ol class="space-y-2 text-xs text-slate-700 list-decimal list-inside">
+          <li>Pastikan nomor WhatsApp penjual aktif agar tombol beli langsung terhubung.</li>
+          <li>Siapkan 1 sampai 4 foto produk yang jelas di Langkah 2.</li>
+          <li>Satu toko dapat langsung diisi beberapa produk dalam satu sesi.</li>
+        </ol>
       </div>
 
-      <div class="pt-2 flex justify-end">
-        <button
-          type="button"
-          id="btn-use-existing-store"
-          class="w-full sm:w-auto min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-semibold text-xs rounded-lg transition inline-flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <span>Gunakan Toko Ini &amp; Lanjut</span>
-        </button>
-      </div>
+      {stores.length > 0 && (
+        <div class="p-6 space-y-2.5">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-600 block">
+            Toko Sudah Terdata
+          </span>
+          <p class="text-xs text-slate-600">
+            Ada <strong class="font-mono tabular-nums text-slate-900">{stores.length}</strong> toko di cakupan Anda yang siap ditambah katalog produk baru.
+          </p>
+          <button
+            type="button"
+            id="rail-choose-existing-store"
+            class="w-full min-h-[38px] px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-300 text-slate-800 font-semibold text-xs transition cursor-pointer"
+          >
+            Pilih dari {stores.length} Toko Terdata
+          </button>
+        </div>
+      )}
+    </aside>
     </div>
   </div>
 
@@ -322,10 +380,10 @@ const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astr
   {/* STEP 2: DAFTARKAN PRODUK UNTUK TOKO        */}
   {/* ========================================== */}
   <div id="jemput-step-2" class="hidden">
-    {/* Active Store Context Banner */}
-    <div class="px-4 sm:px-6 lg:px-8 py-4 bg-emerald-50/80 border-b border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+    {/* Active Store Context Bar */}
+    <div class="px-4 sm:px-6 lg:px-8 py-3.5 bg-emerald-50/70 border-b border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
       <div class="flex items-center gap-3 min-w-0">
-        <div class="w-10 h-10 rounded-lg bg-emerald-700 text-white flex items-center justify-center shrink-0">
+        <div class="w-9 h-9 rounded-lg bg-emerald-700 text-white flex items-center justify-center shrink-0">
           <AppIcon name="store" size="sm" />
         </div>
         <div class="min-w-0">
@@ -351,7 +409,7 @@ const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astr
         <button
           type="button"
           id="btn-back-to-step1"
-          class="inline-flex items-center gap-1 min-h-[44px] sm:min-h-[38px] px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-xs font-semibold text-emerald-800 hover:bg-emerald-100/60 cursor-pointer transition"
+          class="inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] px-3 py-1.5 rounded-lg bg-white border border-emerald-300 text-xs font-semibold text-emerald-800 hover:bg-emerald-100/60 cursor-pointer transition"
         >
           <AppIcon name="arrow-left" size="xs" />
           <span>Ganti Toko</span>
@@ -359,209 +417,216 @@ const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astr
       </div>
     </div>
 
-    {/* Product Form */}
-    <form id="form-petugas-step2-product" class="max-w-4xl px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-5 bg-white border-b border-slate-200">
+    {/* Step 2 Product Form: 2-Column Split on Desktop (Fields Left, Photos & Publish Right) */}
+    <form id="form-petugas-step2-product" class="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_340px] xl:grid-cols-[minmax(0,1fr)_380px] bg-white border-b border-slate-200">
       <input type="hidden" id="step2UmkmId" name="umkmId" />
       <input type="hidden" id="entryImageBase64" name="imageBase64" />
       <input type="hidden" id="entryGalleryImages" name="galleryImages" value="[]" />
 
-      <div class="pb-2.5 border-b border-slate-200 flex items-center justify-between">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
-          Detail Barang Dagangan
-        </h3>
-        <span class="text-xs text-slate-600">* Wajib diisi</span>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="space-y-1.5">
-          <label for="productName" class="block text-xs font-semibold text-slate-800">
-            Nama Barang / Judul Iklan <span class="text-rose-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="productName"
-            name="productName"
-            placeholder="Contoh: Rengginang Lorjuk Super Gurih"
-            required
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
-          />
+      {/* Left Column: Product Details */}
+      <div class="min-w-0 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-5 lg:border-r lg:border-slate-200">
+        <div class="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+            Detail Barang Dagangan
+          </h2>
+          <span class="text-xs text-slate-600">Tanda * wajib diisi</span>
         </div>
 
-        <div class="space-y-1.5">
-          <label for="prodCategory" class="block text-xs font-semibold text-slate-800">
-            Kategori Produk <span class="text-rose-500">*</span>
-          </label>
-          <select
-            id="prodCategory"
-            name="category"
-            required
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 cursor-pointer transition"
-          >
-            {PRODUCT_CATEGORIES.map((cat) => (
-              <option value={cat}>{cat}</option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div class="space-y-1.5">
-          <label for="prodPrice" class="block text-xs font-semibold text-slate-800">
-            Harga Jual Satuan (Rp) <span class="text-rose-500">*</span>
-          </label>
-          <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-600">Rp</span>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label for="productName" class="block text-xs font-semibold text-slate-800">
+              Nama Barang / Judul Iklan <span class="text-rose-600" aria-hidden="true">*</span>
+            </label>
             <input
-              type="number"
-              id="prodPrice"
-              name="price"
-              placeholder="25000"
+              type="text"
+              id="productName"
+              name="productName"
+              placeholder="Contoh: Rengginang Lorjuk Super Gurih"
               required
-              min="500"
-              step="500"
-              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg py-2 pr-3 pl-9 text-sm font-mono tabular-nums font-bold text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
             />
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="prodCategory" class="block text-xs font-semibold text-slate-800">
+              Kategori Produk <span class="text-rose-600" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="prodCategory"
+              name="category"
+              required
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 cursor-pointer transition"
+            >
+              {PRODUCT_CATEGORIES.map((cat) => (
+                <option value={cat}>{cat}</option>
+              ))}
+            </select>
           </div>
         </div>
 
-        <div class="space-y-1.5">
-          <label for="prodOriginalPrice" class="block text-xs font-semibold text-slate-800">
-            Harga Coret (Opsional)
-          </label>
-          <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-600">Rp</span>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="space-y-1.5">
+            <label for="prodPrice" class="block text-xs font-semibold text-slate-800">
+              Harga Jual (Rp) <span class="text-rose-600" aria-hidden="true">*</span>
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-600">Rp</span>
+              <input
+                type="number"
+                id="prodPrice"
+                name="price"
+                placeholder="25000"
+                required
+                min="500"
+                step="500"
+                class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg py-2 pr-3 pl-9 text-sm font-mono tabular-nums font-bold text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="prodOriginalPrice" class="block text-xs font-semibold text-slate-800">
+              Harga Coret (Opsional)
+            </label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-600">Rp</span>
+              <input
+                type="number"
+                id="prodOriginalPrice"
+                name="originalPrice"
+                placeholder="30000"
+                min="500"
+                step="500"
+                class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg py-2 pr-3 pl-9 text-sm font-mono tabular-nums text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="prodShopee" class="block text-xs font-semibold text-slate-800">
+              Tautan Marketplace
+            </label>
             <input
-              type="number"
-              id="prodOriginalPrice"
-              name="originalPrice"
-              placeholder="30000"
-              min="500"
-              step="500"
-              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg py-2 pr-3 pl-9 text-sm font-mono tabular-nums text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+              type="url"
+              id="prodShopee"
+              name="shopeeUrl"
+              placeholder="https://..."
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+            />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-1.5">
+            <label for="prodStockStatus" class="block text-xs font-semibold text-slate-800">
+              Ketersediaan Stok <span class="text-rose-600" aria-hidden="true">*</span>
+            </label>
+            <select
+              id="prodStockStatus"
+              name="stockStatus"
+              required
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-medium text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 cursor-pointer transition"
+            >
+              <option value="ready" selected>Ready Stock (Siap Kirim)</option>
+              <option value="po">Pre-Order (PO)</option>
+              <option value="sold_out">Habis</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="prodProductionCapacity" class="block text-xs font-semibold text-slate-800">
+              Kapasitas / Estimasi PO (Opsional)
+            </label>
+            <input
+              type="text"
+              id="prodProductionCapacity"
+              name="productionCapacity"
+              placeholder="Misal: 50 bungkus/hari"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
             />
           </div>
         </div>
 
         <div class="space-y-1.5">
-          <label for="prodShopee" class="block text-xs font-semibold text-slate-800">
-            Tautan Marketplace (Opsional)
+          <label for="prodDesc" class="block text-xs font-semibold text-slate-800">
+            Deskripsi Produk
           </label>
-          <input
-            type="url"
-            id="prodShopee"
-            name="shopeeUrl"
-            placeholder="https://..."
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
-          />
+          <textarea
+            id="prodDesc"
+            name="description"
+            rows="4"
+            placeholder="Rasa, berat kemasan, varian, atau ketentuan pesanan..."
+            class="w-full bg-white border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
+          ></textarea>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="space-y-1.5">
-          <label for="prodStockStatus" class="block text-xs font-semibold text-slate-800">
-            Ketersediaan Stok <span class="text-rose-500">*</span>
-          </label>
-          <select
-            id="prodStockStatus"
-            name="stockStatus"
-            required
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 cursor-pointer transition"
+      {/* Right Column: Photos Upload + Publish Controls */}
+      <div class="min-w-0 divide-y divide-slate-200 bg-slate-50/40 flex flex-col justify-between">
+        <div class="p-4 sm:p-6 space-y-4">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-800 inline-flex items-center gap-1.5">
+              <AppIcon name="camera" size="xs" class="text-slate-600" />
+              <span>Foto Produk</span>
+            </span>
+            <span id="petugas-photo-counter" class="text-xs font-mono tabular-nums text-slate-600 font-semibold">
+              0 dari 4 foto
+            </span>
+          </div>
+
+          <div id="petugas-upload-boxes" class="grid grid-cols-2 lg:grid-cols-1 gap-2.5">
+            <label class="min-h-[82px] flex flex-col items-center justify-center border border-dashed border-slate-300 hover:border-emerald-700 rounded-lg p-3.5 text-center cursor-pointer transition bg-white group">
+              <input
+                type="file"
+                id="petugas-camera-input"
+                accept="image/*"
+                capture="environment"
+                class="sr-only"
+              />
+              <AppIcon name="camera" size="sm" class="text-slate-600 group-hover:text-emerald-700 transition" />
+              <span class="mt-1 text-xs font-bold text-slate-800 group-hover:text-emerald-800">Jepret Kamera</span>
+              <span class="text-[11px] text-slate-600">Langsung dari HP</span>
+            </label>
+
+            <label class="min-h-[82px] flex flex-col items-center justify-center border border-dashed border-slate-300 hover:border-teal-700 rounded-lg p-3.5 text-center cursor-pointer transition bg-white group">
+              <input
+                type="file"
+                id="petugas-gallery-input"
+                accept="image/*"
+                multiple
+                class="sr-only"
+              />
+              <AppIcon name="image" size="sm" class="text-slate-600 group-hover:text-teal-700 transition" />
+              <span class="mt-1 text-xs font-bold text-slate-800 group-hover:text-teal-800">Pilih Galeri</span>
+              <span class="text-[11px] text-slate-600">JPG, PNG, atau WEBP</span>
+            </label>
+          </div>
+
+          <p id="petugas-compress-info" role="status" aria-live="polite" class="hidden text-xs font-semibold text-emerald-700"></p>
+
+          {/* Dynamic Photos Grid */}
+          <div id="petugas-photos-grid" class="grid grid-cols-2 gap-2.5"></div>
+        </div>
+
+        {/* Publish Actions Sticky-like Footer inside Right Column */}
+        <div class="p-4 sm:p-6 bg-white space-y-2.5">
+          <button
+            type="submit"
+            id="btn-submit-step2"
+            class="w-full min-h-[44px] py-2.5 px-5 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-semibold text-xs rounded-lg transition inline-flex items-center justify-center gap-2 cursor-pointer"
           >
-            <option value="ready" selected>Ready Stock (Siap Kirim)</option>
-            <option value="po">Pre-Order (PO)</option>
-            <option value="sold_out">Habis</option>
-          </select>
+            <span>Terbitkan Produk ke Katalog</span>
+          </button>
+
+          <button
+            type="button"
+            id="btn-save-and-add-more"
+            class="w-full min-h-[44px] py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center justify-center gap-1.5"
+          >
+            <AppIcon name="plus" size="xs" />
+            <span>Simpan &amp; Tambah Produk Lain</span>
+          </button>
         </div>
-
-        <div class="space-y-1.5">
-          <label for="prodProductionCapacity" class="block text-xs font-semibold text-slate-800">
-            Kapasitas / Estimasi PO (Opsional)
-          </label>
-          <input
-            type="text"
-            id="prodProductionCapacity"
-            name="productionCapacity"
-            placeholder="Misal: 50 bungkus/hari"
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
-          />
-        </div>
-      </div>
-
-      {/* Foto Produk */}
-      <div class="space-y-3 pt-2 border-t border-slate-200">
-        <div class="flex items-center justify-between pt-2">
-          <span class="text-xs font-bold text-slate-800 inline-flex items-center gap-1.5">
-            <AppIcon name="camera" size="xs" class="text-slate-600" />
-            <span>Foto Produk (Maks. 4 Foto)</span>
-          </span>
-          <span id="petugas-photo-counter" class="text-xs font-mono tabular-nums text-slate-600 font-semibold">0 dari 4 foto dipilih</span>
-        </div>
-
-        <div id="petugas-upload-boxes" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <label class="min-h-[88px] flex flex-col items-center justify-center border border-dashed border-slate-300 hover:border-emerald-700 rounded-lg p-4 text-center cursor-pointer transition bg-slate-50/70 hover:bg-white group">
-            <input
-              type="file"
-              id="petugas-camera-input"
-              accept="image/*"
-              capture="environment"
-              class="sr-only"
-            />
-            <AppIcon name="camera" size="md" class="text-slate-600 group-hover:text-emerald-700 transition" />
-            <span class="mt-1 text-xs font-bold text-slate-800 group-hover:text-emerald-800">Jepret Kamera HP</span>
-            <span class="text-[11px] text-slate-600">Foto produk langsung di lokasi</span>
-          </label>
-
-          <label class="min-h-[88px] flex flex-col items-center justify-center border border-dashed border-slate-300 hover:border-teal-700 rounded-lg p-4 text-center cursor-pointer transition bg-slate-50/70 hover:bg-white group">
-            <input
-              type="file"
-              id="petugas-gallery-input"
-              accept="image/*"
-              multiple
-              class="sr-only"
-            />
-            <AppIcon name="image" size="md" class="text-slate-600 group-hover:text-teal-700 transition" />
-            <span class="mt-1 text-xs font-bold text-slate-800 group-hover:text-teal-800">Pilih dari Galeri</span>
-            <span class="text-[11px] text-slate-600">JPG, PNG, atau WEBP</span>
-          </label>
-        </div>
-
-        <p id="petugas-compress-info" role="status" aria-live="polite" class="hidden text-xs font-semibold text-emerald-700"></p>
-
-        {/* Dynamic Photos Grid */}
-        <div id="petugas-photos-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
-      </div>
-
-      <div class="space-y-1.5">
-        <label for="prodDesc" class="block text-xs font-semibold text-slate-800">
-          Deskripsi Produk
-        </label>
-        <textarea
-          id="prodDesc"
-          name="description"
-          rows="3"
-          placeholder="Rasa, berat kemasan, varian, atau ketentuan pesanan..."
-          class="w-full bg-white border border-slate-300 rounded-lg p-3 text-sm text-slate-900 focus:outline-none focus:border-emerald-700 focus:ring-2 focus:ring-emerald-700/15 transition"
-        ></textarea>
-      </div>
-
-      {/* Action Buttons */}
-      <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <button
-          type="button"
-          id="btn-save-and-add-more"
-          class="w-full sm:w-auto min-h-[44px] py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center justify-center gap-1.5"
-        >
-          <AppIcon name="plus" size="xs" />
-          <span>Simpan &amp; Tambah Lain</span>
-        </button>
-
-        <button
-          type="submit"
-          id="btn-submit-step2"
-          class="w-full sm:w-auto min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-semibold text-xs rounded-lg transition inline-flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <span>Terbitkan Produk ke Katalog</span>
-        </button>
       </div>
     </form>
   </div>
