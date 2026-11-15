@@ -10,6 +10,7 @@ interface Props {
   highlight?: boolean;
   hidePhotoCount?: boolean;
   showWaButton?: boolean;
+  showSellerAvatar?: boolean;
   badge?: string;
   badgeColor?: 'indigo' | 'amber' | 'emerald' | 'rose';
   isSoldOut?: boolean;
@@ -22,6 +23,7 @@ const {
   highlight = false,
   hidePhotoCount = false,
   showWaButton = variant === 'default',
+  showSellerAvatar = variant === 'spotlight' || variant === 'compact',
   badge,
   badgeColor = 'emerald',
   isSoldOut = Boolean(product.is_sold_out),
@@ -72,22 +74,28 @@ const badgeStyles: Record<string, string> = {
 const isSpotlight = variant === 'spotlight';
 const isCompact = variant === 'compact';
 const showTopLeftBadge =
-  !isSpotlight && !isCompact && !isSoldOut && (isFeatured || product.stock_status === 'po' || Boolean(badge));
-const spotlightPill = badge || (highlight ? 'Pilihan Hari Ini' : isFeatured ? 'Unggulan' : 'Pilihan Warga');
+  !isSpotlight && !isCompact && !showSellerAvatar && !isSoldOut && (isFeatured || product.stock_status === 'po' || Boolean(badge));
+const spotlightPill = badge || (highlight ? 'Pilihan Hari Ini' : 'Unggulan');
 const spotlightPillClass = highlight
   ? 'bg-emerald-700 text-white'
-  : isFeatured
-    ? 'bg-amber-400 text-slate-950 font-extrabold'
-    : 'bg-white/95 text-slate-900';
+  : 'bg-amber-400 text-slate-950 font-extrabold';
+const storeInitials =
+  (product.umkm_name || 'UM')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() || '')
+    .join('')
+    .slice(0, 2) || 'UM';
 ---
 
 <article
-  class={`bg-white border rounded-xl overflow-hidden transition duration-200 flex flex-col justify-between group relative ${
+  class={`h-full bg-white rounded-xl overflow-hidden transition duration-200 flex flex-col justify-between group relative ${
     highlight
       ? 'border-2 border-emerald-600 shadow-sm'
-      : isFeatured
-        ? 'border-emerald-300 shadow-xs'
-        : 'border-slate-200 hover:border-slate-300 shadow-xs hover:shadow-md'
+      : isFeatured && !isSpotlight
+        ? 'border border-emerald-300 shadow-xs'
+        : 'border border-slate-200 hover:border-emerald-400 shadow-xs hover:shadow-md'
   } ${isSoldOut ? 'opacity-80' : ''}`}
 >
   <div>
@@ -145,6 +153,25 @@ const spotlightPillClass = highlight
         </div>
       )}
 
+      <!-- Top-Left Circular Seller Avatar (Spotlight & Popular cards matching reference) -->
+      {showSellerAvatar && (
+        <a
+          href={storeHref}
+          title={`Toko ${product.umkm_name}`}
+          aria-label={`Lihat toko ${product.umkm_name}`}
+          class="absolute top-2.5 left-2.5 z-20 inline-flex items-center justify-center group/avatar"
+        >
+          <span class="w-9 h-9 rounded-full bg-emerald-900 text-white border-2 border-white ring-2 ring-emerald-600 shadow-sm flex items-center justify-center text-xs font-black tracking-tight group-hover/avatar:scale-105 transition">
+            {storeInitials}
+          </span>
+          {(isVerifiedStore || isFeatured) && (
+            <span class="absolute -bottom-1 -right-1.5 bg-emerald-700 text-white text-[9px] font-black uppercase px-1 py-0.5 rounded leading-none ring-1 ring-white shadow-xs">
+              {isVerifiedStore ? 'VERIF' : 'PRO'}
+            </span>
+          )}
+        </a>
+      )}
+
       <!-- Default Card Single Top-Left Badge -->
       {showTopLeftBadge && (
         <div class="absolute top-2 left-2 z-10">
@@ -183,23 +210,24 @@ const spotlightPillClass = highlight
     </div>
 
     <!-- Card Body -->
-    <div class="p-3 space-y-1">
+    <div class={isSpotlight ? 'p-3.5 space-y-1' : 'p-3 space-y-1'}>
       <div class="text-xs text-slate-500 flex items-center gap-1 truncate">
         <span class="truncate">{product.zone_name}, Sumenep</span>
       </div>
 
       <a
         href={productHref}
-        class="font-bold text-sm text-slate-900 line-clamp-1 group-hover:text-emerald-700 leading-snug block"
+        class={`font-bold text-slate-900 line-clamp-1 group-hover:text-emerald-700 leading-snug block ${
+          isSpotlight ? 'text-sm sm:text-[15px]' : 'text-sm'
+        }`}
         title={product.name}
       >
         {product.name}
       </a>
 
       {isSpotlight ? (
-        <p class="text-xs text-slate-500 pt-0.5 line-clamp-2">
-          {formatRelativeDate(product.bumped_at || product.created_at)} • {product.category}
-          {views > 0 ? ` • ${views} dilihat` : ''}
+        <p class="text-xs text-slate-500 pt-0.5 line-clamp-2 leading-snug">
+          {formatRelativeDate(product.bumped_at || product.created_at)} • {product.category} • {views} dilihat
         </p>
       ) : isCompact ? (
         <div class="pt-1 flex items-center justify-between gap-2 text-xs text-slate-600">

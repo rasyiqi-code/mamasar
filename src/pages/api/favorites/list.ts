@@ -30,6 +30,7 @@ export const GET: APIRoute = async ({ request }) => {
       zone_name: p.zone_name,
       umkm_name: p.umkm_name,
       umkm_phone: p.umkm_phone,
+      is_verified: Boolean(p.is_verified),
       is_featured: Boolean(p.is_featured),
       is_sold_out: Boolean(p.is_sold_out),
       views: p.views ?? 0,
