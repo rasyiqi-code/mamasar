@@ -246,8 +246,8 @@ export function initDashboardClient() {
 
         const compressedSizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
         if (editCompressInfo) {
-          editCompressInfo.textContent = `✓ Foto baru dikompres: ${originalSizeKB} KB ➔ ~${compressedSizeKB} KB`;
-          editCompressInfo.className = 'text-[10px] font-bold text-emerald-600';
+          editCompressInfo.textContent = `Foto baru dikompres: ${originalSizeKB} KB ke ~${compressedSizeKB} KB`;
+          editCompressInfo.className = 'text-xs font-bold text-emerald-700';
         }
       };
       img.src = e.target?.result as string;
@@ -563,13 +563,13 @@ export function initDashboardClient() {
       nameFieldGroup?.classList.remove('hidden');
       if (neonPasswordInput) neonPasswordInput.autocomplete = 'new-password';
       if (neonSubmitBtn) neonSubmitBtn.textContent = 'Daftar Akun Baru';
-      toggleAuthModeBtn.textContent = 'Sudah punya akun? Masuk di sini ➔';
+      toggleAuthModeBtn.textContent = 'Sudah punya akun? Masuk di sini';
     } else {
       neonAuthAction.value = 'signin';
       nameFieldGroup?.classList.add('hidden');
       if (neonPasswordInput) neonPasswordInput.autocomplete = 'current-password';
       if (neonSubmitBtn) neonSubmitBtn.textContent = 'Masuk dengan Email';
-      toggleAuthModeBtn.textContent = 'Belum punya akun? Daftar Baru di sini ➔';
+      toggleAuthModeBtn.textContent = 'Belum punya akun? Daftar Baru di sini';
     }
     if (neonAuthMsg) neonAuthMsg.classList.add('hidden');
   });
@@ -723,14 +723,14 @@ export function initDashboardClient() {
         notify(data.message || 'Gagal mengajukan permohonan.', true);
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Kirim Pengajuan ➔';
+          submitBtn.textContent = 'Kirim Pengajuan';
         }
       }
     } catch (err: any) {
       notify(err.message || 'Terjadi kesalahan jaringan.', true);
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Kirim Pengajuan ➔';
+        submitBtn.textContent = 'Kirim Pengajuan';
       }
     }
   });
@@ -855,7 +855,7 @@ export function initDashboardClient() {
 
       if (compressInfo) {
         compressInfo.textContent = 'Mengompres foto bukti pembayaran...';
-        compressInfo.className = 'text-[10px] text-amber-600 font-medium';
+        compressInfo.className = 'text-xs text-amber-700 font-medium';
       }
 
       const reader = new FileReader();
@@ -889,8 +889,8 @@ export function initDashboardClient() {
           const originalSizeKB = Math.round(file.size / 1024);
           const compressedSizeKB = Math.round((compressedBase64.length * 3) / 4 / 1024);
           if (compressInfo) {
-            compressInfo.textContent = `✓ Bukti siap dikirim (${originalSizeKB} KB ➔ ${compressedSizeKB} KB)`;
-            compressInfo.className = 'text-[10px] text-emerald-600 font-bold';
+            compressInfo.textContent = `Bukti siap dikirim (${originalSizeKB} KB ke ${compressedSizeKB} KB)`;
+            compressInfo.className = 'text-xs text-emerald-700 font-bold';
           }
         };
         img.src = e.target?.result as string;
@@ -948,7 +948,7 @@ export function initDashboardClient() {
       } finally {
         if (submitBtn) {
           submitBtn.disabled = false;
-          submitBtn.textContent = 'Konfirmasi & Ajukan Iklan ➔';
+          submitBtn.textContent = 'Konfirmasi & Ajukan Iklan';
         }
       }
     });

@@ -169,7 +169,7 @@ const storeInitials =
             {storeInitials}
           </span>
           {(isVerifiedStore || isFeatured) && (
-            <span class="absolute -bottom-1 -right-1.5 bg-emerald-700 text-white text-[9px] font-black uppercase px-1 py-0.5 rounded leading-none ring-1 ring-white shadow-xs">
+            <span class="absolute -bottom-1 -right-1.5 bg-emerald-700 text-white text-xs font-black uppercase px-1 py-0.5 rounded leading-none ring-1 ring-white">
               {isVerifiedStore ? 'VERIF' : 'PRO'}
             </span>
           )}
@@ -181,7 +181,7 @@ const storeInitials =
         <div class="absolute top-2 left-2 z-10">
           {isFeatured ? (
             <span class="text-xs font-extrabold px-2 py-0.5 rounded shadow-xs tracking-wide bg-amber-400 text-slate-950 border border-amber-300 flex items-center gap-1">
-              <span aria-hidden="true">★</span>
+              <AppIcon name="star" size="xs" />
               <span>Unggulan</span>
             </span>
           ) : product.stock_status === 'po' ? (

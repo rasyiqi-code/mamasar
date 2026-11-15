@@ -29,7 +29,7 @@ export const AD_PACKAGES: AdPackage[] = [
     price: 10000,
     formattedPrice: 'Rp 10.000',
     description: 'Tampil teratas di halaman beranda & hasil pencarian selama 7 hari.',
-    badgeLabel: '★ Iklan Pilihan',
+    badgeLabel: 'Iklan Pilihan',
   },
   {
     id: 'featured_14d',
@@ -39,7 +39,7 @@ export const AD_PACKAGES: AdPackage[] = [
     price: 18000,
     formattedPrice: 'Rp 18.000',
     description: 'Prioritas tertinggi beranda + pencarian selama 14 hari penuh.',
-    badgeLabel: '★ Rekomendasi MWC',
+    badgeLabel: 'Rekomendasi MWC',
     popular: true,
   },
   {
@@ -50,7 +50,7 @@ export const AD_PACKAGES: AdPackage[] = [
     price: 35000,
     formattedPrice: 'Rp 35.000',
     description: 'Promosi eksklusif sebulan penuh untuk akselerasi transaksi maksimal.',
-    badgeLabel: '★ Mitra Unggulan NU',
+    badgeLabel: 'Mitra Unggulan NU',
   },
 
   // Paket Token Sundul (Bump Packs)
@@ -62,7 +62,7 @@ export const AD_PACKAGES: AdPackage[] = [
     price: 5000,
     formattedPrice: 'Rp 5.000',
     description: '5 token untuk menaikkan posisi iklan ke urutan pertama seketika tanpa batas kedaluwarsa.',
-    badgeLabel: '⚡ 5x Sundul',
+    badgeLabel: '5x Sundul',
   },
   {
     id: 'bump_pack_12',
@@ -72,7 +72,7 @@ export const AD_PACKAGES: AdPackage[] = [
     price: 10000,
     formattedPrice: 'Rp 10.000',
     description: '12 token sundul (Hemat 2 token) untuk menaikkan iklan setiap hari.',
-    badgeLabel: '⚡ 12x Sundul',
+    badgeLabel: '12x Sundul',
     popular: true,
   },
   {
@@ -83,7 +83,7 @@ export const AD_PACKAGES: AdPackage[] = [
     price: 20000,
     formattedPrice: 'Rp 20.000',
     description: '30 token sundul untuk toko dengan aktivitas penjualan intensif harian.',
-    badgeLabel: '⚡ 30x Sundul',
+    badgeLabel: '30x Sundul',
   },
 ];
 

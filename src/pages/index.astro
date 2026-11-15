@@ -226,7 +226,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
                   <AppIcon name={icon} size="lg" class={isActive ? 'text-emerald-700' : 'text-slate-600'} />
                   {badge && (
                     <span
-                      class={`absolute -top-1 -right-1 text-[10px] font-black uppercase px-1.5 py-0.5 rounded-full shadow-2xs ${badge.color}`}
+                      class={`absolute -top-1 -right-1 text-xs font-black uppercase px-1.5 py-0.5 rounded-full ${badge.color}`}
                     >
                       {badge.label}
                     </span>
@@ -401,8 +401,9 @@ function buildFilterUrl(updates: Record<string, string | null>) {
                   )}
 
                   {Boolean(seller.is_verified) && (
-                    <span class="absolute top-2.5 left-2.5 bg-emerald-700 text-white text-xs font-bold px-2.5 py-0.5 rounded-md shadow-xs">
-                      ✓ Verified
+                    <span class="absolute top-2.5 left-2.5 bg-emerald-700 text-white text-xs font-bold px-2.5 py-0.5 rounded-md shadow-xs inline-flex items-center gap-1">
+                      <AppIcon name="check" size="xs" />
+                      <span>Terverifikasi</span>
                     </span>
                   )}
 
@@ -763,7 +764,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           if (p.is_verified || p.is_featured) {
             const verifTag = document.createElement('span');
             verifTag.className =
-              'absolute -bottom-1 -right-1.5 bg-emerald-700 text-white text-[9px] font-black uppercase px-1 py-0.5 rounded leading-none ring-1 ring-white shadow-xs';
+              'absolute -bottom-1 -right-1.5 bg-emerald-700 text-white text-xs font-black uppercase px-1 py-0.5 rounded leading-none ring-1 ring-white';
             verifTag.textContent = p.is_verified ? 'VERIF' : 'PRO';
             avatarWrap.appendChild(verifTag);
           }

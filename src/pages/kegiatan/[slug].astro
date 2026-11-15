@@ -101,279 +101,295 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
   canonicalUrl={currentUrl}
   schema={eventSchema}
 >
-  <div class="max-w-7xl mx-auto space-y-6 sm:space-y-8 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
-    <div class="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
-      <nav aria-label="Breadcrumb" class="flex items-center gap-2 truncate">
-        <a href="/" class="hover:text-emerald-700">Beranda</a>
-        <span>›</span>
-        <a href="/kegiatan" class="hover:text-emerald-700">Kegiatan NU</a>
-        <span>›</span>
-        <a href={`/kegiatan?zona=${event.zone_slug}`} class="hover:text-emerald-700 truncate">{event.zone_name}</a>
-        <span>›</span>
-        <span class="text-slate-900 font-bold truncate max-w-xs">{event.title}</span>
-      </nav>
+  <div class="pb-12 space-y-8">
+    {/* Full-bleed Event Hero & Swiss 3-Col Summary Strip */}
+    <header class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-7 space-y-5">
+        <div class="flex items-center justify-between text-xs text-slate-600 pb-3 border-b border-slate-100">
+          <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 min-w-0">
+            <a href="/" class="hover:text-emerald-700 font-medium shrink-0">Beranda</a>
+            <AppIcon name="chevron-right" size="xs" class="text-slate-400 shrink-0" />
+            <a href="/kegiatan" class="hover:text-emerald-700 font-medium shrink-0">Kegiatan NU</a>
+            <AppIcon name="chevron-right" size="xs" class="text-slate-400 shrink-0" />
+            <a href={`/kegiatan?zona=${event.zone_slug}`} class="hover:text-emerald-700 font-medium truncate">{event.zone_name}</a>
+            <AppIcon name="chevron-right" size="xs" class="text-slate-400 shrink-0" />
+            <span class="text-slate-900 font-bold truncate max-w-[160px] sm:max-w-xs">{event.title}</span>
+          </nav>
 
-      <a
-        href="/kegiatan"
-        class="hidden sm:inline-flex text-xs font-semibold text-slate-500 hover:text-slate-900 transition items-center gap-1"
-      >
-        <span>← Semua Kegiatan</span>
-      </a>
-    </div>
-
-    <div class="bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
-      <div class="flex flex-wrap items-center justify-between gap-3">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-xs font-black uppercase tracking-wider bg-emerald-100 text-emerald-800 border border-emerald-300 px-3 py-1 rounded-full">
-            📍 Wilayah {event.zone_name}
-          </span>
-          <span class="text-xs font-bold bg-slate-100 text-slate-700 border border-slate-200 px-3 py-1 rounded-full">
-            Penyelenggara: {event.organizer}
-          </span>
+          <a
+            href="/kegiatan"
+            class="hidden sm:inline-flex text-xs font-bold text-slate-700 hover:text-emerald-700 transition items-center gap-1 shrink-0"
+          >
+            <span>Semua Kegiatan</span>
+          </a>
         </div>
 
-        {Boolean(event.allow_stalls) && (
-          <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full flex items-center gap-1.5">
-            <span>✓</span>
-            <span>Warga Boleh Buka Lapak Jualan</span>
-          </span>
-        )}
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="inline-flex items-center gap-1 text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-md">
+              <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+              <span>{event.zone_name}</span>
+            </span>
+            <span class="text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 px-2.5 py-1 rounded-md">
+              Penyelenggara: {event.organizer}
+            </span>
+          </div>
+
+          {Boolean(event.allow_stalls) && (
+            <span class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-md inline-flex items-center gap-1.5">
+              <AppIcon name="check" size="xs" class="text-emerald-700" />
+              <span>Buka Lapak Diizinkan</span>
+            </span>
+          )}
+        </div>
+
+        <div class="space-y-1.5 max-w-4xl">
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+            {event.title}
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-600">
+            Setiap kegiatan jam&apos;iyyah adalah kesempatan perputaran rezeki bagi tetangga dan UMKM nahdliyin sekitar.
+          </p>
+        </div>
+
+        <dl class="grid grid-cols-1 sm:grid-cols-3 bg-slate-50 border border-slate-200 rounded-lg divide-y sm:divide-y-0 sm:divide-x divide-slate-200 text-xs">
+          <div class="p-3.5 sm:p-4 space-y-0.5">
+            <dt class="text-slate-600 font-bold uppercase tracking-wider text-xs">Hari &amp; Tanggal</dt>
+            <dd class="font-bold text-slate-900 text-sm">{formattedDate}</dd>
+            <dd class="text-slate-600">{event.time_description}</dd>
+          </div>
+
+          <div class="p-3.5 sm:p-4 space-y-0.5">
+            <dt class="text-slate-600 font-bold uppercase tracking-wider text-xs">Lokasi Acara</dt>
+            <dd class="font-bold text-slate-900 text-sm">{event.location_name}</dd>
+            <dd class="text-slate-600 truncate">{event.location_address || event.zone_name}</dd>
+          </div>
+
+          <div class="p-3.5 sm:p-4 space-y-0.5">
+            <dt class="text-slate-600 font-bold uppercase tracking-wider text-xs">Estimasi Jamaah</dt>
+            <dd class="font-bold text-emerald-700 text-sm font-mono tabular-nums">~{event.estimated_attendance} Orang</dd>
+            <dd class="text-slate-600">Potensi pasar konsumsi &amp; jamaah hadir</dd>
+          </div>
+        </dl>
       </div>
+    </header>
 
-      <div class="space-y-2">
-        <h1 class="text-xl sm:text-3xl lg:text-4xl font-black text-slate-900 leading-tight">
-          {event.title}
-        </h1>
-        <p class="text-xs sm:text-sm text-slate-500">
-          Setiap kegiatan jam'iyyah adalah kesempatan berputar rezeki bagi tetangga dan UMKM nahdliyin sekitar.
-        </p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs">
-        <div class="space-y-0.5">
-          <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">Hari & Tanggal</span>
-          <p class="font-extrabold text-slate-900 text-sm">{formattedDate}</p>
-          <p class="text-slate-500 text-[11px]">{event.time_description}</p>
-        </div>
-
-        <div class="space-y-0.5">
-          <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">Lokasi Acara</span>
-          <p class="font-extrabold text-slate-900 text-sm">{event.location_name}</p>
-          <p class="text-slate-500 text-[11px] truncate">{event.location_address || event.zone_name}</p>
-        </div>
-
-        <div class="space-y-0.5">
-          <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">Estimasi Jamaah</span>
-          <p class="font-extrabold text-emerald-700 text-sm">~{event.estimated_attendance} Orang</p>
-          <p class="text-slate-500 text-[11px]">Potensi pasar konsumsi & kerumunan pembeli</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-      <div class="lg:col-span-8 space-y-6">
-        <div class="bg-amber-50/80 border-2 border-amber-300/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-4">
-          <div class="flex items-start gap-3">
-            <div class="w-12 h-12 rounded-xl bg-amber-200/60 text-amber-900 flex items-center justify-center text-2xl shrink-0">
-              🍲
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="lg:col-span-8 space-y-6">
+          <div class="-mx-3 sm:mx-0 bg-amber-50/80 border-y sm:border border-amber-300 sm:rounded-lg p-5 space-y-4">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-amber-200/70 text-amber-900 flex items-center justify-center shrink-0">
+                <AppIcon name="food" size="md" />
+              </div>
+              <div class="space-y-1 flex-1">
+                <span class="inline-block text-xs font-bold uppercase tracking-wider bg-amber-200 text-amber-950 px-2 py-0.5 rounded-md">
+                  Kebutuhan Konsumsi Panitia
+                </span>
+                <h2 class="text-base sm:text-lg font-black text-amber-950">
+                  Pesan Konsumsi dari UMKM MWC {event.zone_name}
+                </h2>
+                <p class="text-xs sm:text-sm text-amber-900 leading-relaxed">
+                  {event.consumption_needed || 'Panitia membutuhkan snack box kue basah tradisional dan paket nasi berkat jamuan jamaah.'}
+                </p>
+              </div>
             </div>
-            <div class="space-y-1 flex-1">
-              <span class="text-[10px] font-black uppercase tracking-wider bg-amber-200 text-amber-950 px-2 py-0.5 rounded">
-                Kebutuhan Konsumsi Acara Panitia
+
+            <div class="pt-3 border-t border-amber-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <span class="text-amber-950 font-medium">
+                Daftar toko kuliner warga berikut siap menerima pesanan acara ini:
               </span>
-              <h2 class="text-base sm:text-lg font-black text-amber-950">
-                Pesan Konsumsi dari UMKM MWC {event.zone_name}
+              <a
+                href={`/?zona=${event.zone_slug}&kategori=Makanan%20%26%20Minuman`}
+                class="min-h-[44px] bg-amber-900 hover:bg-amber-950 text-white font-bold px-4 py-2 rounded-lg transition text-xs inline-flex items-center justify-center gap-1.5 shrink-0"
+              >
+                <span>Semua Kuliner MWC</span>
+                <AppIcon name="arrow-right" size="xs" />
+              </a>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-200 pb-2.5">
+              <h2 class="font-black text-sm sm:text-base text-slate-900 flex items-center gap-2">
+                <AppIcon name="food" size="sm" class="text-emerald-700" />
+                <span>Rekomendasi Katering &amp; Snack Box Warga NU</span>
               </h2>
-              <p class="text-xs text-amber-900 leading-relaxed">
-                {event.consumption_needed || 'Panitia membutuhkan snack box kue basah tradisional dan paket nasi berkat jamuan jamaah.'}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {foodVendors.map((p) => {
+                const orderWaLink = `https://wa.me/${p.umkm_phone}?text=${encodeURIComponent(
+                  `Assalamu'alaikum ${p.umkm_name}, kami dari panitia kegiatan *${event.title}* di ${event.zone_name} ingin bertanya mengenai pesanan konsumsi produk *${p.name}* untuk acara tanggal ${formattedDate}. Apakah melayani pesanan jumlah banyak?`
+                )}`;
+
+                return (
+                  <div class="bg-white border border-slate-200 rounded-lg p-3.5 space-y-3 flex flex-col justify-between">
+                    <div class="space-y-2.5">
+                      <img src={p.image_url} alt={p.name} class="w-full aspect-16/10 rounded-md object-cover bg-slate-100" />
+                      <div class="space-y-0.5">
+                        <span class="text-xs text-slate-600 font-medium inline-flex items-center gap-1">
+                          <AppIcon name="store" size="xs" class="text-slate-500" />
+                          <span>{p.umkm_name}</span>
+                        </span>
+                        <h3 class="font-bold text-sm text-slate-900 line-clamp-1">{p.name}</h3>
+                        <p class="text-sm font-black text-emerald-700 font-mono tabular-nums">
+                          Rp {p.price.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+                    <a
+                      href={orderWaLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="w-full min-h-[44px] py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition"
+                    >
+                      <AppIcon name="phone" size="xs" />
+                      <span>Pesan</span>
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Docked Sidebar */}
+        <aside class="lg:col-span-4 space-y-6 border-t border-slate-200 pt-6 lg:border-t-0 lg:pt-0 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20">
+          <div class="bg-white border border-slate-200 rounded-lg p-5 space-y-4">
+            <div class="space-y-1.5">
+              <span class="inline-block text-xs font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                Peluang Jualan &amp; Konsumsi
+              </span>
+              <h2 class="text-base font-black text-slate-900">Ajukan Konsumsi / Daftar Lapak</h2>
+              <p class="text-xs text-slate-600 leading-relaxed">
+                Tawarkan paket snack box atau ajukan izin buka lapak dagang untuk ~<span class="font-mono tabular-nums">{event.estimated_attendance}</span> jamaah.
               </p>
             </div>
-          </div>
 
-          <div class="pt-2 border-t border-amber-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-            <span class="text-amber-900 font-semibold text-[11px]">
-              Daftar toko kuliner terverifikasi di bawah siap menerima pesanan acara ini:
-            </span>
+            <dl class="border-y border-slate-200 divide-y divide-slate-100 text-xs">
+              <div class="py-2 flex items-center justify-between gap-2">
+                <dt class="text-slate-600">Izin Lapak Bazar</dt>
+                <dd class="font-bold text-emerald-700 text-right">{Boolean(event.allow_stalls) ? 'Diizinkan Panitia' : 'Khusus Konsumsi'}</dd>
+              </div>
+              <div class="py-2 flex items-center justify-between gap-2">
+                <dt class="text-slate-600">Biaya Lapak</dt>
+                <dd class="font-bold text-slate-900">Gratis / Infaq Sukarela</dd>
+              </div>
+              <div class="py-2 flex items-center justify-between gap-2">
+                <dt class="text-slate-600">Koordinator</dt>
+                <dd class="font-bold text-slate-900">{event.coordinator_name || 'Seksi Acara'}</dd>
+              </div>
+            </dl>
+
+            <form id="event-order-form" class="space-y-3 text-xs">
+              <input type="hidden" name="eventId" value={event.id} />
+
+              <div class="space-y-1">
+                <label for="evOrderType" class="block font-bold text-slate-700">Jenis Pengajuan</label>
+                <select
+                  id="evOrderType"
+                  name="type"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+                >
+                  <option value="consumption">Penawaran Konsumsi / Snack Box</option>
+                  {Boolean(event.allow_stalls) && (
+                    <option value="stall">Daftar Buka Lapak Bazar UMKM</option>
+                  )}
+                </select>
+              </div>
+
+              <div class="space-y-1">
+                <label for="evSenderName" class="block font-bold text-slate-700">Nama / Nama Toko</label>
+                <input
+                  type="text"
+                  id="evSenderName"
+                  name="senderName"
+                  required
+                  minlength="2"
+                  maxlength="80"
+                  value={currentUser?.umkm?.name || currentUser?.name || ''}
+                  placeholder="Contoh: Dapur Kue Bu Siti"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evSenderPhone" class="block font-bold text-slate-700">Nomor WhatsApp Aktif</label>
+                <input
+                  type="tel"
+                  id="evSenderPhone"
+                  name="senderPhone"
+                  required
+                  value={currentUser?.umkm?.phone || ''}
+                  placeholder="Contoh: 081234567890"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evOrderQty" class="block font-bold text-slate-700">Estimasi Jumlah / Ukuran Lapak</label>
+                <input
+                  type="text"
+                  id="evOrderQty"
+                  name="quantityOrSlots"
+                  maxlength="100"
+                  placeholder="Contoh: 200 kotak atau 1 meja lipat"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+                />
+              </div>
+
+              <div class="space-y-1">
+                <label for="evOrderDesc" class="block font-bold text-slate-700">Menu / Barang yang Ditawarkan</label>
+                <textarea
+                  id="evOrderDesc"
+                  name="itemDescription"
+                  required
+                  minlength="5"
+                  maxlength="400"
+                  rows="3"
+                  placeholder="Contoh: Snack box Rp 8.000 (kue lumpur, lemper, air mineral) siap antar pagi."
+                  class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+                ></textarea>
+              </div>
+
+              <div id="event-order-status" role="status" aria-live="polite" class="hidden p-2.5 rounded-lg text-xs font-semibold"></div>
+
+              <button
+                type="submit"
+                id="btn-submit-event-order"
+                class="w-full min-h-[44px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+              >
+                <span>Kirim Pengajuan</span>
+                <AppIcon name="arrow-right" size="xs" />
+              </button>
+            </form>
+
             <a
-              href={`/?zona=${event.zone_slug}&kategori=Makanan%20%26%20Minuman`}
-              class="bg-amber-900 hover:bg-amber-950 text-white font-black px-4 py-2 rounded-xl transition shadow-xs text-xs shrink-0"
+              href={coordinatorWaLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full min-h-[44px] py-2.5 px-4 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition"
             >
-              Lihat Semua Kuliner di MWC Ini ➔
+              <AppIcon name="phone" size="sm" />
+              <span>Hubungi Koordinator</span>
             </a>
           </div>
-        </div>
 
-        <div class="space-y-4">
-          <div class="flex items-center justify-between">
-            <h3 class="font-black text-sm sm:text-base text-slate-900 flex items-center gap-2">
-              <span>🍱</span> Rekomendasi Katering & Snack Box Warga NU Terdekat
-            </h3>
-          </div>
-
-          <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 gap-3 sm:gap-4">
-            {foodVendors.map((p) => {
-              const orderWaLink = `https://wa.me/${p.umkm_phone}?text=${encodeURIComponent(
-                `Assalamu'alaikum ${p.umkm_name}, kami dari panitia kegiatan *${event.title}* di ${event.zone_name} ingin bertanya mengenai pesanan konsumsi produk *${p.name}* untuk acara tanggal ${formattedDate}. Apakah melayani pesanan jumlah banyak?`
-              )}`;
-
-              return (
-                <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-xs space-y-2 flex flex-col justify-between">
-                  <div class="space-y-2">
-                    <img src={p.image_url} alt={p.name} class="w-full aspect-16/10 rounded-lg object-cover" />
-                    <div>
-                      <span class="text-[10px] text-slate-500 font-medium">🏪 {p.umkm_name}</span>
-                      <h4 class="font-bold text-xs sm:text-sm text-slate-900 line-clamp-1">{p.name}</h4>
-                      <p class="text-xs font-black text-emerald-700">Rp {p.price.toLocaleString('id-ID')}</p>
-                    </div>
-                  </div>
-                  <a
-                    href={orderWaLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
-                  >
-                    <AppIcon name="phone" size="xs" />
-                    <span>Pesan Konsumsi</span>
-                  </a>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <aside class="lg:col-span-4 space-y-5 lg:sticky lg:top-20">
-        <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
-          <div class="space-y-1">
-            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
-              Peluang Jualan & Konsumsi
-            </span>
-            <h3 class="text-base font-black text-slate-900">Ajukan Penawaran Konsumsi / Daftar Lapak</h3>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              Tawarkan paket konsumsi/snack box atau ajukan izin buka lapak dagang untuk ~{event.estimated_attendance} jamaah di lokasi acara.
-            </p>
-          </div>
-
-          <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-slate-600">Izin Lapak Bazar:</span>
-              <span class="font-bold text-emerald-700">{Boolean(event.allow_stalls) ? 'Diizinkan Panitia' : 'Khusus Penawaran Konsumsi'}</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-600">Biaya Lapak:</span>
-              <span class="font-bold text-slate-800">Gratis / Infaq Sukarela</span>
-            </div>
-            <div class="flex items-center justify-between">
-              <span class="text-slate-600">Koordinator:</span>
-              <span class="font-bold text-slate-800">{event.coordinator_name || 'Seksi Acara'}</span>
-            </div>
-          </div>
-
-          <form id="event-order-form" class="space-y-3 pt-2 border-t border-slate-100 text-xs">
-            <input type="hidden" name="eventId" value={event.id} />
-
-            <div class="space-y-1">
-              <label for="evOrderType" class="block font-semibold text-slate-700">Jenis Pengajuan</label>
-              <select
-                id="evOrderType"
-                name="type"
-                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
-              >
-                <option value="consumption">Penawaran Konsumsi / Snack Box</option>
-                {Boolean(event.allow_stalls) && (
-                  <option value="stall">Daftar Buka Lapak Bazar UMKM</option>
-                )}
-              </select>
-            </div>
-
-            <div class="space-y-1">
-              <label for="evSenderName" class="block font-semibold text-slate-700">Nama / Nama Toko</label>
-              <input
-                type="text"
-                id="evSenderName"
-                name="senderName"
-                required
-                minlength="2"
-                maxlength="80"
-                value={currentUser?.umkm?.name || currentUser?.name || ''}
-                placeholder="Contoh: Dapur Kue Bu Siti"
-                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
-              />
-            </div>
-
-            <div class="space-y-1">
-              <label for="evSenderPhone" class="block font-semibold text-slate-700">Nomor WhatsApp Aktif</label>
-              <input
-                type="tel"
-                id="evSenderPhone"
-                name="senderPhone"
-                required
-                value={currentUser?.umkm?.phone || ''}
-                placeholder="Contoh: 081234567890"
-                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
-              />
-            </div>
-
-            <div class="space-y-1">
-              <label for="evOrderQty" class="block font-semibold text-slate-700">Estimasi Jumlah / Ukuran Lapak</label>
-              <input
-                type="text"
-                id="evOrderQty"
-                name="quantityOrSlots"
-                maxlength="100"
-                placeholder="Contoh: 200 kotak atau 1 meja lipat"
-                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
-              />
-            </div>
-
-            <div class="space-y-1">
-              <label for="evOrderDesc" class="block font-semibold text-slate-700">Menu / Barang yang Ditawarkan</label>
-              <textarea
-                id="evOrderDesc"
-                name="itemDescription"
-                required
-                minlength="5"
-                maxlength="400"
-                rows="3"
-                placeholder="Contoh: Snack box Rp 8.000 (kue lumpur, lemper, air mineral) siap antar pagi."
-                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
-              ></textarea>
-            </div>
-
-            <div id="event-order-status" role="status" aria-live="polite" class="hidden p-2.5 rounded-lg text-xs font-semibold"></div>
-
-            <button
-              type="submit"
-              id="btn-submit-event-order"
-              class="w-full min-h-[44px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
+          <div class="bg-white border border-slate-200 rounded-lg p-4 text-xs space-y-2.5">
+            <span class="font-bold text-slate-800 block">Sebarkan agenda ini ke grup WhatsApp warga:</span>
+            <a
+              href={`https://wa.me/?text=${encodeURIComponent(`*${event.title}*\nTanggal: ${formattedDate} (${event.time_description})\nLokasi: ${event.location_name}\n\nInfo lengkap & peluang pesanan konsumsi/lapak:\n${currentUrl}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full min-h-[44px] py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-lg flex items-center justify-center gap-2 transition"
             >
-              <span>Kirim Pengajuan ke Panitia ➔</span>
-            </button>
-          </form>
-
-          <a
-            href={coordinatorWaLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="w-full min-h-[44px] py-2.5 px-4 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition"
-          >
-            <AppIcon name="phone" size="sm" />
-            <span>Atau Hubungi Koordinator via WA</span>
-          </a>
-        </div>
-
-        <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs text-xs space-y-2.5">
-          <span class="font-bold text-slate-800 block">Sebarkan agenda ini ke grup WhatsApp warga:</span>
-          <a
-            href={`https://wa.me/?text=${encodeURIComponent(`*${event.title}*\n📅 ${formattedDate} (${event.time_description})\n📍 ${event.location_name}\n\nInfo lengkap & peluang pesanan konsumsi/lapak:\n${currentUrl}`)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="w-full min-h-[44px] py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-xl flex items-center justify-center gap-2 transition"
-          >
-            <span>Bagikan ke WhatsApp ➔</span>
-          </a>
-        </div>
-      </aside>
+              <AppIcon name="share" size="xs" />
+              <span>Bagikan WhatsApp</span>
+            </a>
+          </div>
+        </aside>
+      </div>
     </div>
   </div>
 

@@ -61,16 +61,17 @@ const roleSub = isSuper
       <h2 class="text-xs font-bold text-slate-900 truncate">
         {roleTitle}
       </h2>
-      <p class="text-[10px] text-slate-600 truncate">{user.name}</p>
+      <p class="text-xs text-slate-600 truncate">{user.name}</p>
     </div>
   </div>
 
   <div class="flex items-center gap-2">
     <a
       href="/dashboard"
-      class="text-xs font-medium text-slate-700 hover:text-slate-900 px-2 py-1 transition"
+      class="inline-flex items-center gap-1 text-xs font-medium text-slate-700 hover:text-slate-900 px-2 py-1 transition"
     >
-      Toko Saya ➔
+      <span>Toko Saya</span>
+      <AppIcon name="arrow-right" size="xs" />
     </a>
   </div>
 </div>
@@ -94,7 +95,7 @@ const roleSub = isSuper
           <div class="text-xs font-bold text-slate-900 truncate">
             {roleTitle}
           </div>
-          <p class="text-[10px] text-slate-600 truncate">
+          <p class="text-xs text-slate-600 truncate">
             {roleSub}
           </p>
         </div>
@@ -283,8 +284,8 @@ const roleSub = isSuper
     <div class="p-3 border-t border-slate-200/70">
       <div class="flex items-center justify-between text-xs">
         <div class="min-w-0">
-          <span class="font-semibold text-slate-900 block truncate text-[11px]">{user.name}</span>
-          <span class="text-[10px] text-slate-600 block truncate">
+          <span class="font-semibold text-slate-900 block truncate text-xs">{user.name}</span>
+          <span class="text-xs text-slate-600 block truncate">
             {isSuper ? 'Superadmin PCNU' : isMwcAdmin ? `Pengurus MWC ${assignedZoneName}` : user.agent_ranting ? `Kader Ranting ${user.agent_ranting} • MWC ${assignedZoneName}` : `Kader MWC ${assignedZoneName}`}
           </span>
         </div>

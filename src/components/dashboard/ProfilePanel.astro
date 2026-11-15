@@ -38,10 +38,10 @@ const { store, zones } = Astro.props;
     <div class="space-y-4">
       <div class="pb-1 border-b border-slate-100 flex items-center justify-between">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-          <AppIcon name="store" size="xs" class="text-slate-500" />
-          <span>Informasi Usaha & Kontak</span>
+          <AppIcon name="store" size="xs" class="text-slate-600" />
+          <span>Informasi Usaha &amp; Kontak</span>
         </h3>
-        <span class="text-[11px] text-slate-400">* Wajib diisi</span>
+        <span class="text-xs text-slate-600">* Wajib diisi</span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -125,17 +125,17 @@ const { store, zones } = Astro.props;
 
     <!-- SECTION 2: Legalitas & Sertifikasi Usaha -->
     <div class="space-y-4 pt-2">
-      <div class="pb-1 border-b border-slate-100 flex items-center justify-between">
+      <div class="pb-1 border-b border-slate-100 flex items-center justify-between gap-2">
         <div>
           <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-            <AppIcon name="shield" size="xs" class="text-slate-500" />
-            <span>Legalitas & Izin Usaha</span>
+            <AppIcon name="shield" size="xs" class="text-slate-600" />
+            <span>Legalitas &amp; Izin Usaha</span>
           </h3>
-          <p class="text-[11px] text-slate-500 mt-0.5">
+          <p class="text-xs text-slate-600 mt-0.5">
             Lengkapi nomor legalitas untuk memperkuat kredibilitas toko Anda di mata pembeli dan jejaring warga NU.
           </p>
         </div>
-        <span class="text-[11px] text-slate-400">Opsional</span>
+        <span class="text-xs text-slate-600 shrink-0">Opsional</span>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -152,10 +152,10 @@ const { store, zones } = Astro.props;
             placeholder="Contoh: 1234567890123"
             class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           />
-          <p class="text-[10px] text-slate-400">Nomor induk resmi dari sistem OSS Republik Indonesia.</p>
+          <p class="text-xs text-slate-600">Nomor induk resmi dari sistem OSS Republik Indonesia.</p>
         </div>
 
-        <!-- Sertifikat Halal -->
+        {/* Sertifikat Halal */}
         <div class="space-y-1">
           <label for="editStoreHalal" class="block text-xs font-medium text-slate-700">
             Sertifikat Halal (BPJPH / Kemenag)
@@ -168,12 +168,12 @@ const { store, zones } = Astro.props;
             placeholder="Contoh: ID35110001234560723"
             class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           />
-          <p class="text-[10px] text-slate-400">Penting untuk komoditas olahan makanan, minuman, dan kosmetik.</p>
+          <p class="text-xs text-slate-600">Penting untuk komoditas olahan makanan, minuman, dan kosmetik.</p>
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Izin P-IRT -->
+        {/* Izin P-IRT */}
         <div class="space-y-1">
           <label for="editStorePirt" class="block text-xs font-medium text-slate-700">
             Izin Pangan Industri Rumah Tangga (P-IRT)
@@ -186,10 +186,10 @@ const { store, zones } = Astro.props;
             placeholder="Contoh: P-IRT 2063529010123-26"
             class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           />
-          <p class="text-[10px] text-slate-400">Izin edar produk pangan olahan dari Dinas Kesehatan.</p>
+          <p class="text-xs text-slate-600">Izin edar produk pangan olahan dari Dinas Kesehatan.</p>
         </div>
 
-        <!-- Izin BPOM -->
+        {/* Izin BPOM */}
         <div class="space-y-1">
           <label for="editStoreBpom" class="block text-xs font-medium text-slate-700">
             Izin Edar BPOM (MD / ML)
@@ -202,11 +202,11 @@ const { store, zones } = Astro.props;
             placeholder="Contoh: BPOM MD 867012345678"
             class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-mono text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
           />
-          <p class="text-[10px] text-slate-400">Nomor registrasi resmi Badan Pengawas Obat dan Makanan.</p>
+          <p class="text-xs text-slate-600">Nomor registrasi resmi Badan Pengawas Obat dan Makanan.</p>
         </div>
       </div>
 
-      <!-- Legalitas Lainnya -->
+      {/* Legalitas Lainnya */}
       <div class="space-y-1">
         <label for="editStoreOtherLegalities" class="block text-xs font-medium text-slate-700">
           Izin Tambahan / Legalitas Lainnya
@@ -219,21 +219,22 @@ const { store, zones } = Astro.props;
           placeholder="Contoh: HAKI Merek Dagang IDM000123456, Surat Keterangan Usaha (SKU) Desa, atau NPWP Usaha"
           class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
         />
-        <p class="text-[10px] text-slate-400">Bisa mencakup sertifikat HAKI DJKI, SKU dari Kepala Desa, atau kelengkapan legalitas lainnya.</p>
+        <p class="text-xs text-slate-600">Bisa mencakup sertifikat HAKI DJKI, SKU dari Kepala Desa, atau kelengkapan legalitas lainnya.</p>
       </div>
     </div>
 
-    <!-- Tombol Simpan -->
-    <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
-      <p class="text-[11px] text-slate-400">
+    {/* Tombol Simpan */}
+    <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <p class="text-xs text-slate-600">
         Data yang disimpan akan langsung diperbarui di halaman etalase toko Anda.
       </p>
       <button
         type="submit"
         id="btn-submit-edit-store"
-        class="min-h-[44px] py-2 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
+        class="min-h-[44px] py-2 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center justify-center gap-1.5 shrink-0"
       >
-        Simpan Profil & Legalitas Toko ➔
+        <span>Simpan</span>
+        <AppIcon name="arrow-right" size="xs" />
       </button>
     </div>
   </form>

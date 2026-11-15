@@ -54,9 +54,10 @@ const { user, zones, assignedZone } = Astro.props;
           href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent("Assalamu'alaikum LPNU PCNU Sumenep, saya pemilik UMKM warga NU ingin konsultasi akses permodalan BMTNU / Lazisnu")}`}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-800"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
         >
-          <span>Konsultasi Permodalan ➔</span>
+          <span>Konsultasi Permodalan</span>
+          <AppIcon name="arrow-right" size="xs" />
         </a>
       </div>
     </div>
@@ -83,9 +84,10 @@ const { user, zones, assignedZone } = Astro.props;
           href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent("Assalamu'alaikum LPNU Sumenep, saya butuh bantuan pendampingan NIB dan Sertifikasi Halal")}`}
           target="_blank"
           rel="noopener noreferrer"
-          class="text-xs font-medium text-emerald-700 hover:text-emerald-800"
+          class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800"
         >
-          Dampingi Halal ➔
+          <span>Dampingi Halal</span>
+          <AppIcon name="arrow-right" size="xs" />
         </a>
       </div>
     </div>

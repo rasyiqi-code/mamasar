@@ -7,12 +7,15 @@ import AppIcon from '../common/AppIcon.astro';
 <dialog
   id="modal-edit-product"
   aria-labelledby="modal-edit-product-title"
-  class="w-[calc(100%-1.5rem)] max-w-lg rounded-2xl bg-white border border-slate-200 shadow-2xl p-0 text-slate-900 overflow-hidden"
+  class="w-full sm:w-[calc(100%-1.5rem)] max-w-lg rounded-t-2xl sm:rounded-lg bg-white border border-slate-200 shadow-lg p-0 text-slate-900 overflow-hidden"
 >
+  <div class="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
+    <span class="w-10 h-1 rounded-full bg-slate-300" aria-hidden="true"></span>
+  </div>
   <div class="flex flex-col max-h-[88dvh]">
     <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between shrink-0">
       <h3 id="modal-edit-product-title" class="font-bold text-sm sm:text-base text-slate-900">Edit Iklan Produk</h3>
-      <button type="button" data-close-modal="edit-product" autofocus aria-label="Tutup modal edit produk" class="min-w-[40px] min-h-[40px] rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer flex items-center justify-center">
+      <button type="button" data-close-modal="edit-product" autofocus aria-label="Tutup modal edit produk" class="min-w-[40px] min-h-[40px] rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 cursor-pointer flex items-center justify-center">
         <AppIcon name="close" size="xs" />
       </button>
     </div>
@@ -72,7 +75,7 @@ import AppIcon from '../common/AppIcon.astro';
           placeholder="Contoh: 20000 (jika sedang promo diskon)"
           class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
         />
-        <p class="text-[10px] text-slate-500">Jika diisi lebih besar dari harga jual, sistem otomatis menampilkan harga coret dan badge diskon.</p>
+        <p class="text-xs text-slate-600">Jika diisi lebih besar dari harga jual, sistem otomatis menampilkan harga coret dan label diskon.</p>
       </div>
 
       <div class="space-y-1.5">
@@ -83,7 +86,7 @@ import AppIcon from '../common/AppIcon.astro';
           accept="image/*"
           class="w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200 cursor-pointer"
         />
-        <p id="edit-dash-compress-info" class="text-[11px] text-slate-500 font-medium"></p>
+        <p id="edit-dash-compress-info" class="text-xs text-slate-600 font-medium"></p>
       </div>
 
       <div class="space-y-1.5">
@@ -144,9 +147,10 @@ import AppIcon from '../common/AppIcon.astro';
         <button
           type="submit"
           id="btn-submit-edit-product"
-          class="flex-1 min-h-[44px] py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition shadow-xs cursor-pointer"
+          class="flex-1 min-h-[44px] py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition cursor-pointer inline-flex items-center justify-center gap-1.5"
         >
-          Simpan Perubahan Produk ➔
+          <span>Simpan</span>
+          <AppIcon name="arrow-right" size="xs" />
         </button>
       </div>
     </form>

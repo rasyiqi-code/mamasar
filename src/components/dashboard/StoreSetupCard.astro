@@ -1,6 +1,7 @@
 ---
 import KaderRegisterForm from './KaderRegisterForm.astro';
 import PrivacyAccountPanel from './PrivacyAccountPanel.astro';
+import AppIcon from '../common/AppIcon.astro';
 
 interface Zone {
   id: number;
@@ -55,7 +56,7 @@ const showKaderFirst = initialTab === 'kader';
     <div class="min-w-0 space-y-0.5">
       <div class="flex items-center gap-2 flex-wrap">
         <span class="text-sm font-bold text-slate-900 truncate">{user.name}</span>
-        <span class={`text-[11px] font-semibold px-2 py-0.5 rounded border ${
+        <span class={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
           isSuper
             ? 'bg-rose-50 text-rose-800 border-rose-200'
             : isCadre
@@ -94,7 +95,7 @@ const showKaderFirst = initialTab === 'kader';
 
   <!-- Quick Portal Banner for Superadmin / Active Pengurus / Active Kader -->
   {(isSuper || isCadre) && (
-    <div class={`p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+    <div class={`p-4 rounded-lg border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
       isSuper ? 'bg-rose-50/70 border-rose-200' : 'bg-emerald-50/70 border-emerald-200'
     }`}>
       <div class="space-y-0.5">
@@ -113,16 +114,17 @@ const showKaderFirst = initialTab === 'kader';
       </div>
       <a
         href={isSuper ? '/admin' : '/admin#entry'}
-        class={`inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold text-white shadow-xs transition shrink-0 ${
+        class={`inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold text-white transition shrink-0 ${
           isSuper ? 'bg-rose-700 hover:bg-rose-800' : 'bg-emerald-700 hover:bg-emerald-800'
         }`}
       >
-        {isSuper ? 'Buka Konsol Admin PCNU ➔' : 'Buka Portal Tugas ➔'}
+        <span>{isSuper ? 'Konsol Admin' : 'Portal Tugas'}</span>
+        <AppIcon name="arrow-right" size="xs" />
       </a>
     </div>
   )}
 
-  <!-- Role Onboarding Header + Accessible Tab Switcher -->
+  {/* Role Onboarding Header + Accessible Tab Switcher */}
   <div class="space-y-4">
     <div class="space-y-1">
       <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
@@ -145,13 +147,14 @@ const showKaderFirst = initialTab === 'kader';
         data-onboard-tab="store"
         aria-selected={showKaderFirst ? 'false' : 'true'}
         tabindex={showKaderFirst ? '-1' : '0'}
-        class={`relative flex-1 min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap cursor-pointer transition border-b-2 ${
+        class={`relative flex-1 min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap cursor-pointer transition border-b-2 inline-flex items-center justify-center gap-2 ${
           !showKaderFirst
             ? 'border-emerald-700 text-emerald-800 bg-emerald-50/50'
             : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
         }`}
       >
-        🏪 Buka / Klaim Toko UMKM
+        <AppIcon name="store" size="xs" />
+        <span>Buka / Klaim Toko</span>
       </button>
       <button
         type="button"
@@ -160,13 +163,14 @@ const showKaderFirst = initialTab === 'kader';
         data-onboard-tab="kader"
         aria-selected={showKaderFirst ? 'true' : 'false'}
         tabindex={showKaderFirst ? '0' : '-1'}
-        class={`relative flex-1 min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap cursor-pointer transition border-b-2 ${
+        class={`relative flex-1 min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap cursor-pointer transition border-b-2 inline-flex items-center justify-center gap-2 ${
           showKaderFirst
             ? 'border-emerald-700 text-emerald-800 bg-emerald-50/50'
             : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
         }`}
       >
-        🤝 Daftar Kader / Pengurus NU
+        <AppIcon name="users" size="xs" />
+        <span>Daftar Kader / Pengurus</span>
       </button>
     </div>
   </div>
@@ -207,27 +211,28 @@ const showKaderFirst = initialTab === 'kader';
           required
           class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
         />
-        <p class="text-[11px] text-slate-400">Pastikan nomor ini aktif di WhatsApp untuk menerima pesanan dari jamaah.</p>
+        <p class="text-xs text-slate-600">Pastikan nomor ini aktif di WhatsApp untuk menerima pesanan dari jamaah.</p>
       </div>
 
-      <!-- Pending Claim Card (Shown if phone matches an orphan store) -->
+      {/* Pending Claim Card (Shown if phone matches an orphan store) */}
       <div id="claim-offer" class="hidden p-4 rounded-lg bg-amber-50 border border-amber-300 space-y-3">
-        <span class="text-[10px] font-semibold uppercase tracking-wider text-amber-900">Toko Terdeteksi</span>
+        <span class="text-xs font-semibold uppercase tracking-wider text-amber-900">Toko Terdeteksi</span>
         <p id="claim-offer-text" class="text-xs text-amber-950 leading-relaxed font-medium"></p>
-        <div class="flex items-center gap-2 pt-1">
+        <div class="flex flex-wrap items-center gap-2 pt-1">
           <button
             type="button"
             id="btn-claim-store"
-            class="py-1.5 px-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs rounded-md shadow-2xs transition cursor-pointer"
+            class="min-h-[40px] py-1.5 px-3 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs rounded-md transition cursor-pointer inline-flex items-center gap-1.5"
           >
-            ✓ Ya, Ini Toko Saya (Klaim)
+            <AppIcon name="check" size="xs" />
+            <span>Klaim Toko Ini</span>
           </button>
           <button
             type="button"
             id="btn-skip-claim"
-            class="py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium text-xs rounded-md transition cursor-pointer"
+            class="min-h-[40px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium text-xs rounded-md transition cursor-pointer"
           >
-            Bukan, Buat Profil Baru
+            Buat Baru
           </button>
         </div>
       </div>
@@ -287,9 +292,10 @@ const showKaderFirst = initialTab === 'kader';
         <button
           type="submit"
           id="btn-save-store"
-          class="w-full min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-xs transition cursor-pointer"
+          class="w-full min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition cursor-pointer inline-flex items-center justify-center gap-2"
         >
-          Buka Toko Saya Sekarang ➔
+          <span>Buka Toko</span>
+          <AppIcon name="arrow-right" size="xs" />
         </button>
       </div>
     </form>

@@ -1,4 +1,5 @@
 ---
+import AppIcon from '../common/AppIcon.astro';
 import type { AdminUserRow, PendingPetugasRow, Zone } from '../../lib/db';
 
 interface Props {
@@ -11,7 +12,7 @@ const { pendingPetugas, allUsers, zones } = Astro.props;
 
 const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
   pcnu: { label: 'Admin PCNU', cls: 'bg-rose-50 text-rose-800 border-rose-200' },
-  mwcnu: { label: 'Pengurus MWC', cls: 'bg-indigo-50 text-indigo-800 border-indigo-200' },
+  mwcnu: { label: 'Pengurus MWC', cls: 'bg-teal-50 text-teal-800 border-teal-200' },
   ranting: { label: 'Kader Ranting', cls: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
   warga: { label: 'Warga', cls: 'bg-slate-100 text-slate-700 border-slate-200' },
 };
@@ -50,18 +51,19 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
               <div class="min-w-0 space-y-1">
                 <div class="flex items-center gap-2 flex-wrap">
                   <strong class="font-bold text-sm text-slate-900">{kader.name}</strong>
-                  <span class={`text-[11px] font-semibold px-2 py-0.5 rounded border ${
+                  <span class={`text-xs font-semibold px-2 py-0.5 rounded border ${
                     isMwcReq
-                      ? 'bg-indigo-50 text-indigo-800 border-indigo-200'
+                      ? 'bg-teal-50 text-teal-800 border-teal-200'
                       : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                   }`}>
                     {isMwcReq ? 'Ajukan: Pengurus MWC NU' : 'Ajukan: Kader Ranting'}
                   </span>
-                  <span class="text-[11px] font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-                    📍 MWC {kader.zone_name || 'Sumenep'}
+                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                    <AppIcon name="map-pin" size="xs" />
+                    <span>MWC {kader.zone_name || 'Sumenep'}</span>
                   </span>
                   {kader.agent_ranting && (
-                    <span class="text-[11px] font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    <span class="text-xs font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
                       Ranting {kader.agent_ranting}
                     </span>
                   )}
@@ -79,10 +81,11 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                     href={`https://wa.me/${kader.agent_phone}?text=${encodeURIComponent(`Assalamu'alaikum Sahabat ${kader.name}, kami dari Admin PCNU Sumenep mengonfirmasi pengajuan peran di Mamasar untuk wilayah MWC ${kader.zone_name || 'Sumenep'}.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex items-center min-h-[36px] px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded text-xs font-medium transition"
+                    class="inline-flex items-center gap-1 min-h-[38px] px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded text-xs font-medium transition"
                     title="Hubungi via WhatsApp"
                   >
-                    💬 WA
+                    <AppIcon name="phone" size="xs" />
+                    <span>WA</span>
                   </a>
                 )}
 
@@ -100,18 +103,20 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                   data-action="review-agent"
                   data-id={kader.id}
                   data-decision="approve"
-                  class="min-h-[36px] py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition cursor-pointer"
+                  class="inline-flex items-center gap-1 min-h-[38px] py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition cursor-pointer"
                 >
-                  ✓ Setujui
+                  <AppIcon name="check" size="xs" />
+                  <span>Setujui</span>
                 </button>
                 <button
                   type="button"
                   data-action="review-agent"
                   data-id={kader.id}
                   data-decision="reject"
-                  class="min-h-[36px] py-1 px-3 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-semibold text-xs rounded transition cursor-pointer"
+                  class="inline-flex items-center gap-1 min-h-[38px] py-1 px-3 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-semibold text-xs rounded transition cursor-pointer"
                 >
-                  ✕ Tolak
+                  <AppIcon name="x" size="xs" />
+                  <span>Tolak</span>
                 </button>
               </div>
             </div>
@@ -122,7 +127,7 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
   </div>
 
   <!-- Section 2: Daftarkan / Tetapkan Akun Peran Khusus (via Email) -->
-  <div class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-xl p-4 sm:p-5">
+  <div class="space-y-3 bg-slate-50/70 border border-slate-200 rounded-lg p-4 sm:p-5">
     <div class="space-y-1">
       <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
         2. Daftarkan atau Tetapkan Akun Peran Khusus (via Email)
@@ -253,9 +258,10 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
         <button
           type="submit"
           id="btn-admin-add-user"
-          class="min-h-[40px] py-2 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
+          class="inline-flex items-center gap-1.5 min-h-[40px] py-2 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
         >
-          Simpan & Tetapkan Akun ➔
+          <span>Simpan &amp; Tetapkan Akun</span>
+          <AppIcon name="arrow-right" size="xs" />
         </button>
       </div>
     </form>
@@ -304,7 +310,7 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
       tabindex="0"
       role="region"
       aria-labelledby="users-directory-heading"
-      class="users-table-wrapper border border-slate-200 rounded-xl bg-white"
+      class="users-table-wrapper border border-slate-200 rounded-lg bg-white"
     >
       <table class="users-directory-table w-full text-left border-collapse text-xs">
         <thead class="bg-slate-50 border-b border-slate-200 text-slate-700">
@@ -332,20 +338,21 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                     <div class="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                       <span>{u.name}</span>
                       {u.is_env_superadmin && (
-                        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-200">
+                        <span class="text-xs font-semibold px-1.5 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-200">
                           Superadmin Utama (Env)
                         </span>
                       )}
                       {u.is_pending_login && (
-                        <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
+                        <span class="text-xs font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
                           Belum Login
                         </span>
                       )}
                     </div>
-                    <div class="font-mono text-[11px] text-slate-600 break-all">{u.email}</div>
+                    <div class="font-mono text-xs text-slate-600 break-all">{u.email}</div>
                     {u.umkm_name && (
-                      <div class="text-[11px] text-emerald-800 font-medium">
-                        🏪 Toko: {u.umkm_name}
+                      <div class="inline-flex items-center gap-1 text-xs text-emerald-800 font-medium">
+                        <AppIcon name="store" size="xs" />
+                        <span>Toko: {u.umkm_name}</span>
                       </div>
                     )}
                   </div>
@@ -353,11 +360,11 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
 
                 <td class="py-3 px-3 align-top">
                   <div class="space-y-1">
-                    <span class={`inline-block text-[11px] font-semibold px-2 py-0.5 rounded border ${badge.cls}`}>
+                    <span class={`inline-block text-xs font-semibold px-2 py-0.5 rounded border ${badge.cls}`}>
                       {badge.label}
                     </span>
                     {u.zone_name && (
-                      <div class="text-[11px] text-slate-600">
+                      <div class="text-xs text-slate-600">
                         MWC {u.zone_name}{u.agent_ranting ? ` • ${u.agent_ranting}` : ''}
                       </div>
                     )}
@@ -411,7 +418,7 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
 
                 <td class="py-3 px-3 align-top text-right">
                   {u.is_env_superadmin ? (
-                    <span class="text-[11px] font-medium text-slate-600">Terkunci</span>
+                    <span class="text-xs font-medium text-slate-600">Terkunci</span>
                   ) : (
                     <button
                       type="button"

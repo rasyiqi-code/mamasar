@@ -49,69 +49,73 @@ function formatRupiah(amount: number) {
   description="Daftar produk UMKM Nahdliyin yang Anda simpan untuk dibeli atau dihubungi via WhatsApp."
   noindex={true}
 >
-  <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
-    
-    <!-- Top Breadcrumb -->
-    <div class="flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
-      <nav aria-label="Breadcrumb" class="flex items-center gap-2">
-        <a href="/" class="hover:text-emerald-700">Beranda</a>
-        <span>›</span>
-        <span class="text-slate-900 font-bold">Produk Favorit Tersimpan</span>
-      </nav>
+  <div class="pb-10">
+    <!-- Full-Bleed Top Header -->
+    <section class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4">
+        <div class="flex items-center justify-between text-xs text-slate-600">
+          <nav aria-label="Breadcrumb" class="flex items-center gap-2">
+            <a href="/" class="hover:text-emerald-700">Beranda</a>
+            <span aria-hidden="true">›</span>
+            <span class="text-slate-900 font-bold">Favorit</span>
+          </nav>
 
-      <a
-        href="/"
-        class="text-xs font-semibold text-slate-500 hover:text-slate-900 transition flex items-center gap-1"
-      >
-        <span>← Kembali ke Katalog</span>
-      </a>
-    </div>
+          <a
+            href="/"
+            class="text-xs font-semibold text-slate-600 hover:text-emerald-700 transition inline-flex items-center gap-1"
+          >
+            <span>← Katalog</span>
+          </a>
+        </div>
 
-    <!-- Header -->
-    <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-      <div class="space-y-1">
-        <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-          <AppIcon name="star" size="lg" class="text-amber-500" />
-          <span>Produk yang Anda Simpan</span>
-        </h1>
-        <p class="text-xs text-slate-600">
-          {user ? (
-            <span>Tersimpan di akun Anda (<strong>{user.email || user.name}</strong>) dan tersinkronisasi di semua perangkat.</span>
-          ) : (
-            <span>Tersimpan di perangkat ini (lokal browser). Masuk ke akun untuk menyimpan ke cloud.</span>
-          )}
-        </p>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div class="space-y-1">
+            <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <AppIcon name="star" size="lg" class="text-amber-500" />
+              <span>Produk Tersimpan</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-600">
+              {user ? (
+                <span>Tersimpan di akun <strong>{user.email || user.name}</strong> dan tersinkronisasi lintas perangkat.</span>
+              ) : (
+                <span>Tersimpan di browser perangkat ini. Masuk ke akun untuk sinkronisasi lintas perangkat.</span>
+              )}
+            </p>
+          </div>
+
+          <button
+            id="btn-clear-favorites"
+            type="button"
+            class={`min-h-[44px] px-3.5 py-2 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs text-rose-700 font-bold cursor-pointer inline-flex items-center gap-1.5 transition ${
+              serverFavorites.length === 0 ? 'hidden' : ''
+            }`}
+          >
+            <AppIcon name="trash" size="xs" />
+            <span>Kosongkan</span>
+          </button>
+        </div>
       </div>
+    </section>
 
-      <button
-        id="btn-clear-favorites"
-        type="button"
-        class={`text-xs text-rose-600 hover:text-rose-800 font-bold underline cursor-pointer ${
-          serverFavorites.length === 0 ? 'hidden' : ''
-        }`}
-      >
-        Hapus Semua Simpanan
-      </button>
-    </div>
-
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-6 space-y-6">
     <!-- Container Grid: Server Rendered when logged in, or populated via client script -->
     <div id="favorites-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
       {serverFavorites.map((p) => {
         const formattedPrice = formatRupiah(p.price);
         const waMsg = encodeURIComponent(
-          `Halo *${p.umkm_name}*, saya tertarik dengan produk Anda di Mamasar:\n📦 *${p.name}* (${formattedPrice})\nApakah barang masih tersedia?`
+          `Halo *${p.umkm_name}*, saya tertarik dengan produk Anda di Mamasar: *${p.name}* (${formattedPrice}). Apakah masih tersedia?`
         );
         return (
           <div
             id={`fav-card-${p.id}`}
-            class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between group relative"
+            class="bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-emerald-400 transition flex flex-col justify-between group relative"
           >
             <button
               type="button"
               title="Hapus dari simpanan"
               aria-label={`Hapus ${p.name} dari favorit`}
               data-remove-fav={p.id}
-              class="absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-rose-600 border border-slate-200 flex items-center justify-center text-xs shadow-xs cursor-pointer"
+              class="absolute top-1.5 right-1.5 z-20 min-w-[36px] min-h-[36px] rounded-full bg-white/95 hover:bg-white text-rose-700 border border-slate-200 flex items-center justify-center shadow-xs cursor-pointer"
             >
               <AppIcon name="x" size="xs" />
             </button>
@@ -124,37 +128,37 @@ function formatRupiah(amount: number) {
                   loading="lazy"
                   class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                 />
-                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white font-black text-xs font-mono">
+                <div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 to-transparent p-2.5 text-white font-extrabold text-xs font-mono tabular-nums">
                   {formattedPrice}
                 </div>
               </a>
 
-              <div class="p-2.5 space-y-1">
-                <span class="text-[10px] text-slate-500 font-medium truncate flex items-center gap-1">
+              <div class="p-3 space-y-1">
+                <span class="text-xs text-slate-600 truncate flex items-center gap-1">
                   <AppIcon name="map-pin" size="xs" class="text-slate-500" />
                   <span class="truncate">{p.zone_name}</span>
                 </span>
                 <a
                   href={`/produk/${p.slug}`}
-                  class="font-bold text-xs text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-tight block"
+                  class="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-tight block"
                 >
                   {p.name}
                 </a>
-                <span class="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                <span class="text-xs text-slate-600 truncate flex items-center gap-1">
                   <AppIcon name="store" size="xs" class="text-slate-500" />
                   <span class="truncate">{p.umkm_name}</span>
                 </span>
               </div>
             </div>
 
-            <div class="p-2.5 pt-0">
+            <div class="p-3 pt-0">
               <a
                 href={`https://wa.me/${p.umkm_phone}?text=${waMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="w-full py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition"
+                class="w-full min-h-[40px] py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition"
               >
-                <span>Chat WA</span>
+                <span>WhatsApp</span>
               </a>
             </div>
           </div>
@@ -165,22 +169,23 @@ function formatRupiah(amount: number) {
     <!-- Empty State (Shown if no favorites) -->
     <div
       id="empty-favorites"
-      class={`bg-white border border-slate-200 rounded-3xl p-10 text-center space-y-3 ${
+      class={`bg-white border-y sm:border border-slate-200 sm:rounded-lg p-8 sm:p-10 text-center space-y-3 ${
         serverFavorites.length > 0 ? 'hidden' : ''
       }`}
     >
-      <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
+      <div class="w-12 h-12 mx-auto rounded-lg bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center">
         <AppIcon name="star" size="lg" />
       </div>
-      <h3 class="font-extrabold text-slate-900 text-base">Belum Ada Produk yang Disimpan</h3>
-      <p class="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
-        Jelajahi produk UMKM warga Nahdliyin di beranda, lalu klik ikon bintang pada produk yang Anda minati.
+      <h3 class="font-extrabold text-slate-900 text-base">Belum Ada Produk Tersimpan</h3>
+      <p class="text-xs sm:text-sm text-slate-600 max-w-sm mx-auto leading-relaxed">
+        Jelajahi katalog produk warga NU di beranda dan simpan produk yang Anda minati.
       </p>
       <a
         href="/"
-        class="inline-flex min-h-[44px] items-center justify-center mt-2 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl transition shadow-xs"
+        class="inline-flex min-h-[44px] items-center justify-center mt-2 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-lg transition gap-1.5"
       >
-        Mulai Jelajahi Produk ➔
+        <span>Jelajahi Katalog</span>
+        <AppIcon name="arrow-right" size="xs" />
       </a>
     </div>
 
@@ -192,6 +197,7 @@ function formatRupiah(amount: number) {
       aria-hidden="true"
     ></div>
 
+    </div>
   </div>
 
   <!-- Client Script for Favorites management & Guest Sync -->
@@ -227,26 +233,28 @@ function formatRupiah(amount: number) {
     function createFavCard(p: { id: number; slug: string; name: string; price: number; image_url?: string; zone_name?: string; umkm_name?: string; umkm_phone?: string }) {
       const formattedPrice = formatPriceIDR(p.price);
       const waMsg = encodeURIComponent(
-        'Halo *' + (p.umkm_name || 'Penjual') + '*, saya tertarik dengan produk Anda di Mamasar:\n📦 *' +
+        'Halo *' + (p.umkm_name || 'Penjual') + '*, saya tertarik dengan produk Anda di Mamasar: *' +
           p.name +
           '* (' +
           formattedPrice +
-          ')\nApakah barang masih tersedia?'
+          '). Apakah masih tersedia?'
       );
       const detailHref = '/produk/' + encodeURIComponent(p.slug);
 
       const card = document.createElement('div');
       card.id = 'fav-card-' + p.id;
       card.className =
-        'bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs hover:shadow-md transition flex flex-col justify-between group relative';
+        'bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-emerald-400 transition flex flex-col justify-between group relative';
 
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.title = 'Hapus dari simpanan';
+      removeBtn.setAttribute('aria-label', 'Hapus ' + p.name + ' dari favorit');
       removeBtn.setAttribute('data-remove-fav', String(p.id));
       removeBtn.className =
-        'absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-rose-600 border border-slate-200 flex items-center justify-center text-xs shadow-xs cursor-pointer';
-      removeBtn.textContent = '✕';
+        'absolute top-1.5 right-1.5 z-20 min-w-[36px] min-h-[36px] rounded-full bg-white/95 hover:bg-white text-rose-700 border border-slate-200 flex items-center justify-center shadow-xs cursor-pointer';
+      removeBtn.innerHTML =
+        '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg>';
       card.appendChild(removeBtn);
 
       const top = document.createElement('div');
@@ -264,45 +272,45 @@ function formatRupiah(amount: number) {
 
       const priceOverlay = document.createElement('div');
       priceOverlay.className =
-        'absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white font-black text-xs font-mono';
+        'absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/85 to-transparent p-2.5 text-white font-extrabold text-xs font-mono tabular-nums';
       priceOverlay.textContent = formattedPrice;
       imgLink.appendChild(priceOverlay);
 
       top.appendChild(imgLink);
 
       const body = document.createElement('div');
-      body.className = 'p-2.5 space-y-1';
+      body.className = 'p-3 space-y-1';
 
       const zone = document.createElement('span');
-      zone.className = 'text-[10px] text-slate-500 font-medium truncate block';
-      zone.textContent = '📍 ' + (p.zone_name || 'Sumenep');
+      zone.className = 'text-xs text-slate-600 truncate block';
+      zone.textContent = p.zone_name || 'Sumenep';
 
       const titleLink = document.createElement('a');
       titleLink.href = detailHref;
       titleLink.className =
-        'font-bold text-xs text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-tight block';
+        'font-bold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-tight block';
       titleLink.textContent = p.name;
 
       const seller = document.createElement('span');
-      seller.className = 'text-[10px] text-slate-500 block truncate';
-      seller.textContent = '🏪 ' + (p.umkm_name || 'Toko Warga NU');
+      seller.className = 'text-xs text-slate-600 block truncate';
+      seller.textContent = p.umkm_name || 'Toko Warga NU';
 
       body.append(zone, titleLink, seller);
       top.appendChild(body);
       card.appendChild(top);
 
       const foot = document.createElement('div');
-      foot.className = 'p-2.5 pt-0';
+      foot.className = 'p-3 pt-0';
 
       const waLink = document.createElement('a');
       waLink.href = 'https://wa.me/' + encodeURIComponent(String(p.umkm_phone || '')) + '?text=' + waMsg;
       waLink.target = '_blank';
       waLink.rel = 'noopener noreferrer';
       waLink.className =
-        'w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition';
+        'w-full min-h-[40px] py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition';
 
       const waLabel = document.createElement('span');
-      waLabel.textContent = 'Chat WA';
+      waLabel.textContent = 'WhatsApp';
       waLink.appendChild(waLabel);
 
       foot.appendChild(waLink);

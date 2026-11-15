@@ -1,5 +1,6 @@
 ---
 import { SITE_CONFIG } from '../../lib/constants';
+import AppIcon from '../common/AppIcon.astro';
 
 interface Zone {
   id: number;
@@ -38,7 +39,7 @@ const isRejected = user.agent_status === 'rejected';
   <div class="py-3 border-b border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
     <div class="space-y-1">
       <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-900 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
           {isSuper ? 'Superadmin PCNU' : isMwcAdmin ? 'Pengurus MWC Aktif' : 'Kader Ranting Aktif'}
         </span>
         <span class="text-xs text-slate-700 font-medium">
@@ -58,15 +59,16 @@ const isRejected = user.agent_status === 'rejected';
 
     <a
       href={isSuper ? '/admin' : '/admin#entry'}
-      class="inline-flex items-center justify-center min-h-[40px] py-2 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-xs transition shrink-0"
+      class="inline-flex items-center justify-center gap-1.5 min-h-[44px] py-2 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition shrink-0"
     >
-      {isSuper ? 'Buka Konsol Admin ➔' : 'Buka Portal Tugas ➔'}
+      <span>{isSuper ? 'Konsol Admin' : 'Portal Tugas'}</span>
+      <AppIcon name="arrow-right" size="xs" />
     </a>
   </div>
 ) : isPending ? (
   <div class="py-3 border-b border-slate-200 space-y-2.5">
     <div class="flex items-center gap-2 flex-wrap">
-      <span class="text-[11px] font-semibold uppercase tracking-wider text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+      <span class="text-xs font-semibold uppercase tracking-wider text-amber-900 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-md">
         Menunggu Konfirmasi
       </span>
       <span class="text-xs text-slate-800 font-medium">
@@ -81,7 +83,9 @@ const isRejected = user.agent_status === 'rejected';
         rel="noopener noreferrer"
         class="inline-flex items-center gap-1.5 text-xs text-emerald-700 hover:text-emerald-800 font-semibold underline underline-offset-2"
       >
-        <span>💬 Konfirmasi via WhatsApp Admin PCNU ➔</span>
+        <AppIcon name="phone" size="xs" />
+        <span>Konfirmasi Admin PCNU</span>
+        <AppIcon name="arrow-right" size="xs" />
       </a>
     </div>
   </div>
@@ -177,7 +181,7 @@ const isRejected = user.agent_status === 'rejected';
             aria-invalid="false"
             class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-2.5 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
-          <p id="regRantingHelp" class="text-[11px] text-slate-600">
+          <p id="regRantingHelp" class="text-xs text-slate-600">
             Wajib diisi untuk Kader Ranting. Untuk Pengurus MWC boleh dikosongkan.
           </p>
         </div>
@@ -234,9 +238,10 @@ const isRejected = user.agent_status === 'rejected';
       <button
         type="submit"
         id="btn-submit-petugas-reg"
-        class="min-h-[44px] py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg shadow-xs transition cursor-pointer"
+        class="min-h-[44px] py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition cursor-pointer inline-flex items-center gap-2"
       >
-        Kirim Pengajuan ➔
+        <span>Kirim</span>
+        <AppIcon name="arrow-right" size="xs" />
       </button>
     </form>
   </div>

@@ -23,6 +23,7 @@ import ProfilePanel from '../../components/dashboard/ProfilePanel.astro';
 import ServicesPanel from '../../components/dashboard/ServicesPanel.astro';
 import ProductModals from '../../components/dashboard/ProductModals.astro';
 import AdPromotionModal from '../../components/dashboard/AdPromotionModal.astro';
+import AppIcon from '../../components/common/AppIcon.astro';
 
 const user = await resolveUser(Astro.request);
 const store = user ? await getUMKMByUserId(user.id) : undefined;
@@ -57,8 +58,9 @@ const assignedZone = user ? zones.find((z) => z.id === user.assigned_zone_id) : 
         <p class="font-semibold">
           Halaman Portal Admin & Kader (<code>/admin</code>) khusus untuk Kader Ranting, Pengurus MWC, atau Admin PCNU yang sudah disetujui.
         </p>
-        <a href="/petugas" class="shrink-0 font-bold text-emerald-800 underline hover:text-emerald-900">
-          Ajukan Peran Kader MWC ➔
+        <a href="/petugas" class="shrink-0 font-bold text-emerald-800 underline hover:text-emerald-900 inline-flex items-center gap-1">
+          <span>Ajukan Peran Kader MWC</span>
+          <AppIcon name="arrow-right" size="xs" />
         </a>
       </div>
     </div>
@@ -146,7 +148,8 @@ const assignedZone = user ? zones.find((z) => z.id === user.assigned_zone_id) : 
       color: #0f172a;
       font-weight: 600;
     }
-    .nav-tab-btn.active span[class*="text-[10px]"] {
+    .nav-tab-btn.active .nav-badge,
+    .nav-tab-btn.active span[class*="text-xs"] {
       background-color: #e2e8f0;
       color: #0f172a;
       border-color: transparent;

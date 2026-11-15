@@ -28,13 +28,13 @@ const slides: Slide[] = [
   {
     id: 2,
     tag: 'Batik & Kerajinan',
-    tagColor: 'bg-indigo-500/20 text-indigo-200 border-indigo-400/30',
-    title: 'Batik Tulis Asli & Kerajinan Santri Sumenep',
+    tagColor: 'bg-teal-500/20 text-teal-100 border-teal-400/30',
+    title: 'Batik Tulis Asli & Kerajinan Warga NU Sumenep',
     description: 'Karya tangan perajin dari MWC Gapura, Kalianget, dan Kota. Motif khas Madura bergaransi kualitas otentik.',
     ctaText: 'Lihat Batik & Kerajinan',
     ctaUrl: '/?kategori=Batik%20%26%20Kerajinan',
     icon: 'craft',
-    bgGradient: 'from-indigo-950 via-indigo-900 to-slate-900',
+    bgGradient: 'from-slate-900 via-emerald-950 to-teal-900',
   },
   {
     id: 3,
@@ -50,11 +50,11 @@ const slides: Slide[] = [
 ];
 ---
 
-<div class="relative max-w-7xl mx-auto px-3 sm:px-0 group" id="promo-slider-root">
+<div class="relative max-w-7xl mx-auto px-0 sm:px-0 group" id="promo-slider-root">
   <!-- Slides Container with CSS Scroll Snap -->
   <div
     id="promo-slider-track"
-    class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar rounded-2xl border border-slate-200/80 shadow-sm"
+    class="flex overflow-x-auto snap-x snap-mandatory scroll-smooth no-scrollbar rounded-none sm:rounded-lg border-y sm:border border-slate-200/80 shadow-xs"
     style="scroll-snap-type: x mandatory;"
   >
     {slides.map((s, idx) => (
@@ -62,20 +62,17 @@ const slides: Slide[] = [
         class={`w-full shrink-0 snap-center bg-gradient-to-r ${s.bgGradient} p-5 sm:p-8 text-white relative overflow-hidden flex flex-col justify-between min-h-[200px] sm:min-h-[220px]`}
         data-slide-index={idx}
       >
-        <!-- Background subtle pattern -->
-        <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
-
         <!-- Top Badges & Numbering -->
         <div class="flex items-center justify-between z-10">
           <div class="flex items-center gap-2">
-            <span class={`text-[10px] sm:text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${s.tagColor}`}>
+            <span class={`text-xs font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border ${s.tagColor}`}>
               {s.tag}
             </span>
-            <span class="text-[10px] text-white/70 font-semibold hidden sm:inline">
+            <span class="text-xs text-white/80 font-medium hidden sm:inline">
               Kabupaten Sumenep
             </span>
           </div>
-          <span class="text-xs font-bold text-white/60">
+          <span class="text-xs font-mono font-bold text-white/75 tabular-nums">
             {idx + 1} / {slides.length}
           </span>
         </div>
@@ -95,13 +92,13 @@ const slides: Slide[] = [
         <div class="z-10 flex items-center justify-between pt-1">
           <a
             href={s.ctaUrl}
-            class="bg-white hover:bg-slate-100 text-slate-900 font-black text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-xl transition shadow-xs flex items-center gap-1.5 active:scale-98"
+            class="min-h-[44px] bg-white hover:bg-slate-100 text-slate-900 font-extrabold text-xs sm:text-sm px-4 sm:px-5 py-2 sm:py-2.5 rounded-lg transition shadow-xs inline-flex items-center gap-1.5 active:scale-98"
           >
             <span>{s.ctaText}</span>
             <AppIcon name="arrow-right" size="xs" />
           </a>
 
-          <div class="hidden sm:flex items-center gap-2 text-[11px] text-white/70">
+          <div class="hidden sm:flex items-center gap-2 text-xs text-white/80">
             <span>Geser untuk info lainnya</span>
             <AppIcon name="arrow-right" size="xs" />
           </div>

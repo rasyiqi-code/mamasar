@@ -2,6 +2,7 @@
 import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import NotFoundView from '../../components/common/NotFoundView.astro';
+import AppIcon from '../../components/common/AppIcon.astro';
 import { getProductBySlug, getProducts, incrementProductViews } from '../../lib/db';
 import { formatRupiah, createProductWhatsAppUrl, getOptimizedImageUrl, getImageSrcSet } from '../../lib/utils';
 import { DEFAULT_PRODUCT_IMAGE, SITE_CONFIG } from '../../lib/constants';
@@ -151,445 +152,413 @@ const pageDescription = product
     />
   ) : (
     <>
-      <div class="pb-24 md:pb-12 py-3 sm:py-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
-        <!-- Top Breadcrumb -->
-        <div class="px-3 sm:px-0 flex items-center justify-between text-xs text-slate-500 pb-2 border-b border-slate-200">
-          <nav aria-label="Breadcrumb" class="flex items-center gap-2 truncate">
-            <a href="/" class="hover:text-emerald-700">Beranda</a>
-            <span aria-hidden="true">›</span>
-            <a href={`/?zona=${product.zone_slug}`} class="hover:text-emerald-700 truncate">{product.zone_name}</a>
-            <span aria-hidden="true">›</span>
-            <a href={`/?kategori=${encodeURIComponent(product.category)}`} class="hover:text-emerald-700 truncate">{product.category}</a>
-            <span aria-hidden="true">›</span>
-            <span class="text-slate-800 font-bold truncate max-w-xs">{product.name}</span>
-          </nav>
+      <div class="pb-24 md:pb-12">
+        <!-- Full-Bleed Top Breadcrumb Strip -->
+        <div class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
+          <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-3 flex items-center justify-between text-xs text-slate-600">
+            <nav aria-label="Breadcrumb" class="flex items-center gap-2 truncate">
+              <a href="/" class="hover:text-emerald-700 transition">Beranda</a>
+              <span aria-hidden="true">›</span>
+              <a href={`/?zona=${product.zone_slug}`} class="hover:text-emerald-700 truncate transition">{product.zone_name}</a>
+              <span aria-hidden="true">›</span>
+              <a href={`/?kategori=${encodeURIComponent(product.category)}`} class="hover:text-emerald-700 truncate transition">{product.category}</a>
+              <span aria-hidden="true">›</span>
+              <span class="text-slate-900 font-bold truncate max-w-xs">{product.name}</span>
+            </nav>
+          </div>
         </div>
 
-        <!-- Main Classified 2-Column Grid -->
-        <div class="md:grid md:grid-cols-12 md:gap-8 items-start">
-          <!-- LEFT COLUMN -->
-          <div class="md:col-span-7 lg:col-span-8">
-            <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl shadow-xs overflow-hidden divide-y divide-slate-100">
-              <!-- 1. Large Photo Container with Multi-Photo Thumbnails -->
-              <div class="p-3 sm:p-5 space-y-3">
-                <div class="relative w-full aspect-4/3 sm:aspect-16/10 bg-slate-100 rounded-xl overflow-hidden group">
-                  <img
-                    id="main-product-image"
-                    data-recent-product-id={product.id}
-                    src={getOptimizedImageUrl(primaryImage, 800)}
-                    srcset={getImageSrcSet(primaryImage)}
-                    sizes="(max-width: 768px) 100vw, 800px"
-                    width="800"
-                    height="500"
-                    alt={product.name}
-                    fetchpriority="high"
-                    class="w-full h-full object-cover transition duration-300"
-                  />
+        <!-- Main Hairline 2-Column Editorial Layout -->
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-6">
+        <div class="md:grid md:grid-cols-12 md:gap-8 lg:gap-10 items-start space-y-6 md:space-y-0">
+          <!-- LEFT COLUMN (Open Canvas + Hairline Dividers, Zero Outer Box Container) -->
+          <div class="md:col-span-7 lg:col-span-8 space-y-6">
+            <!-- 1. Large Photo Gallery -->
+            <div class="space-y-3 -mx-3 sm:mx-0">
+              <div class="relative w-full aspect-4/3 sm:aspect-16/10 bg-slate-100 sm:rounded-lg overflow-hidden border-y sm:border border-slate-200 group">
+                <img
+                  id="main-product-image"
+                  data-recent-product-id={product.id}
+                  src={getOptimizedImageUrl(primaryImage, 800)}
+                  srcset={getImageSrcSet(primaryImage)}
+                  sizes="(max-width: 768px) 100vw, 800px"
+                  width="800"
+                  height="500"
+                  alt={product.name}
+                  fetchpriority="high"
+                  class="w-full h-full object-cover transition duration-300"
+                />
 
-                  <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
-                    <span class="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-lg shadow-sm border border-slate-200">
-                      📍 {product.umkm_ranting ? `Ranting ${product.umkm_ranting}, ` : ''}{product.zone_name}
+                <div class="absolute top-3 left-3 flex flex-wrap gap-1.5">
+                  <span class="bg-white/95 backdrop-blur-md text-slate-900 text-xs font-bold px-2.5 py-1 rounded-md shadow-xs border border-slate-200 inline-flex items-center gap-1">
+                    <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+                    <span>{product.umkm_ranting ? `Ranting ${product.umkm_ranting}, ` : ''}{product.zone_name}</span>
+                  </span>
+                  {Boolean(product.is_featured) && (
+                    <span class="bg-amber-400 text-slate-950 border border-amber-300 text-xs font-extrabold px-2.5 py-1 rounded-md shadow-xs inline-flex items-center gap-1">
+                      <AppIcon name="star" size="xs" />
+                      <span>Unggulan</span>
                     </span>
-                    {Boolean(product.is_featured) && (
-                      <span class="bg-amber-400 text-slate-950 border border-amber-300 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm flex items-center gap-1">
-                        <span>★</span>
-                        <span>Iklan Unggulan</span>
-                      </span>
-                    )}
-                    {Boolean(product.is_verified) && (
-                      <span class="bg-emerald-50 text-emerald-800 border border-emerald-300 text-xs font-black px-2.5 py-1 rounded-lg shadow-sm">
-                        Terverifikasi
-                      </span>
-                    )}
-                    {hasDiscount && (
-                      <span class="bg-rose-600 text-white text-xs font-black px-2.5 py-1 rounded-lg shadow-sm">
-                        Diskon {discountPercent}%
-                      </span>
-                    )}
-                  </div>
-
-                  {Boolean(product.is_sold_out) && (
-                    <div class="absolute -left-12 top-6 -rotate-45 bg-rose-600 text-white font-black text-xs uppercase tracking-wider py-1.5 w-48 text-center shadow-lg z-20 pointer-events-none">
-                      Habis Terjual
-                    </div>
+                  )}
+                  {Boolean(product.is_verified) && (
+                    <span class="bg-emerald-700 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-xs inline-flex items-center gap-1">
+                      <AppIcon name="check" size="xs" />
+                      <span>Terverifikasi</span>
+                    </span>
+                  )}
+                  {hasDiscount && (
+                    <span class="bg-rose-700 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-xs tabular-nums">
+                      Diskon {discountPercent}%
+                    </span>
                   )}
                 </div>
 
-                {allImages.length > 1 && (
-                  <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-1 scrollbar-none">
-                    {allImages.map((imgUrl, idx) => (
-                      <button
-                        type="button"
-                        class={`gallery-thumb relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition cursor-pointer shrink-0 ${
-                          idx === 0 ? 'border-emerald-700 ring-2 ring-emerald-700/30' : 'border-slate-200 hover:border-slate-400 opacity-75 hover:opacity-100'
-                        }`}
-                        data-img-src={getOptimizedImageUrl(imgUrl, 800)}
-                        aria-label={`Lihat Foto ${idx + 1}`}
-                      >
-                        <img src={getOptimizedImageUrl(imgUrl, 200)} alt={`Thumbnail ${idx + 1}`} width="80" height="80" decoding="async" class="w-full h-full object-cover" />
-                        <span class="absolute bottom-0.5 right-0.5 text-[10px] font-bold px-1 rounded bg-black/60 text-white">
-                          {idx + 1}
-                        </span>
-                      </button>
-                    ))}
+                {Boolean(product.is_sold_out) && (
+                  <div class="absolute top-1/2 -translate-y-1/2 -inset-x-8 -rotate-12 bg-rose-700/95 text-white font-black text-xs uppercase tracking-wider py-2 text-center shadow-md z-20 pointer-events-none">
+                    Habis Terjual
                   </div>
                 )}
               </div>
 
-              <!-- 2. Product Title & Price Header -->
-              <div class="p-4 sm:p-6 space-y-4">
-                <div class="flex items-start justify-between gap-4">
-                  <div class="space-y-1.5 flex-1">
-                    <div class="flex items-center gap-2">
-                      <span class="text-xs text-slate-500 font-medium">
-                        {product.category}
+              {allImages.length > 1 && (
+                <div class="flex items-center gap-2 overflow-x-auto pb-1 px-3 sm:px-0 no-scrollbar">
+                  {allImages.map((imgUrl, idx) => (
+                    <button
+                      type="button"
+                      class={`gallery-thumb relative w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition cursor-pointer shrink-0 ${
+                        idx === 0 ? 'border-emerald-700 ring-2 ring-emerald-700/25' : 'border-slate-200 hover:border-slate-400 opacity-80 hover:opacity-100'
+                      }`}
+                      data-img-src={getOptimizedImageUrl(imgUrl, 800)}
+                      aria-label={`Lihat Foto ${idx + 1}`}
+                    >
+                      <img src={getOptimizedImageUrl(imgUrl, 200)} alt={`Thumbnail ${idx + 1}`} width="80" height="80" decoding="async" class="w-full h-full object-cover" />
+                      <span class="absolute bottom-1 right-1 text-xs font-mono font-bold px-1 rounded bg-black/70 text-white leading-tight">
+                        {idx + 1}
                       </span>
-                    </div>
-                    <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 leading-tight">
-                      {product.name}
-                    </h1>
-                    <div class="text-xs text-slate-600 flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
-                      <span>📍 {product.zone_name}, Sumenep</span>
-                      <span>•</span>
-                      <span>{currentViews} kali dilihat</span>
-                      <span>•</span>
-                      <span>ID Iklan: #{product.id}</span>
-                    </div>
-                  </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
 
-                  <button
-                    type="button"
-                    data-fav-btn
-                    data-id={product.id}
-                    data-name={product.name}
-                    aria-label="Simpan Iklan Favorit"
-                    class="w-11 h-11 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-amber-600 flex items-center justify-center text-lg transition shrink-0 shadow-2xs cursor-pointer select-none"
-                  >
-                    ★
-                  </button>
+            <!-- 2. Title, Price & Specs (Open Editorial Hairline Dividers) -->
+            <div class="space-y-5 pt-2">
+              <div class="flex items-start justify-between gap-4">
+                <div class="space-y-1.5 flex-1 min-w-0">
+                  <span class="text-xs text-emerald-700 font-bold uppercase tracking-wider block">
+                    {product.category}
+                  </span>
+                  <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                    {product.name}
+                  </h1>
+                  <div class="text-xs text-slate-600 flex flex-wrap items-center gap-x-3 gap-y-1 pt-0.5">
+                    <span class="inline-flex items-center gap-1">
+                      <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+                      <span>{product.zone_name}, Sumenep</span>
+                    </span>
+                    <span aria-hidden="true">•</span>
+                    <span class="tabular-nums">{currentViews} dilihat</span>
+                    <span aria-hidden="true">•</span>
+                    <span class="font-mono">ID #{product.id}</span>
+                  </div>
                 </div>
 
-                <div class="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
-                  <div>
-                    <div class="flex items-baseline gap-2.5 flex-wrap">
-                      <span class="text-2xl sm:text-3xl font-black text-emerald-700 font-mono">
-                        {formatRupiah(product.price)}
-                      </span>
-                      {hasDiscount && (
-                        <>
-                          <span class="text-sm sm:text-base font-bold text-slate-500 line-through font-mono">
-                            {formatRupiah(product.original_price!)}
-                          </span>
-                          <span class="bg-rose-100 text-rose-800 text-xs font-black px-2 py-0.5 rounded-lg border border-rose-200">
-                            Diskon {discountPercent}%
-                          </span>
-                        </>
-                      )}
-                    </div>
-                    <span class="block text-xs text-slate-600 mt-0.5">
-                      Harga langsung dari pengrajin/produsen (bisa tawar-menawar langsung via WhatsApp)
+                <button
+                  type="button"
+                  data-fav-btn
+                  data-id={product.id}
+                  data-name={product.name}
+                  aria-label="Simpan Iklan Favorit"
+                  class="min-w-[44px] min-h-[44px] rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-amber-600 flex items-center justify-center transition shrink-0 cursor-pointer select-none"
+                >
+                  <AppIcon name="star" size="md" />
+                </button>
+              </div>
+
+              <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-baseline justify-between gap-2">
+                <div>
+                  <div class="flex items-baseline gap-2.5 flex-wrap">
+                    <span class="text-2xl sm:text-3xl font-black text-emerald-700 font-mono tabular-nums tracking-tight">
+                      {formatRupiah(product.price)}
                     </span>
+                    {hasDiscount && (
+                      <>
+                        <span class="text-sm sm:text-base font-bold text-slate-500 line-through font-mono tabular-nums">
+                          {formatRupiah(product.original_price!)}
+                        </span>
+                        <span class="bg-rose-50 text-rose-800 text-xs font-bold px-2 py-0.5 rounded-md border border-rose-200">
+                          Diskon {discountPercent}%
+                        </span>
+                      </>
+                    )}
                   </div>
-                  <span class="text-xs text-slate-500">
-                    Diterbitkan: {new Date(product.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  <span class="block text-xs text-slate-600 mt-1">
+                    Harga langsung dari pengrajin (0% komisi perantara).
                   </span>
                 </div>
-
-                <!-- Attributes / Specs Grid -->
-                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                  <div>
-                    <span class="text-slate-500 block text-[11px] uppercase font-bold">Wilayah MWC</span>
-                    <span class="font-bold text-slate-800">{product.zone_name}</span>
-                  </div>
-                  <div>
-                    <span class="text-slate-500 block text-[11px] uppercase font-bold">Kategori</span>
-                    <span class="font-bold text-slate-800">{product.category}</span>
-                  </div>
-                  <div>
-                    <span class="text-slate-500 block text-[11px] uppercase font-bold">Status Stok</span>
-                    <span class={`font-bold ${
-                      product.is_sold_out ? 'text-rose-700' :
-                      product.stock_status === 'po' ? 'text-amber-700' : 'text-emerald-700'
-                    }`}>
-                      {product.is_sold_out ? 'Habis / Penuh' :
-                       product.stock_status === 'po' ? 'Pre-Order' : 'Ready Stock'}
-                    </span>
-                  </div>
-                  <div>
-                    <span class="text-slate-500 block text-[11px] uppercase font-bold">Kapasitas</span>
-                    <span class="font-bold text-slate-800">
-                      {product.production_capacity || (product.stock_status === 'po' ? 'Sesuai Antrean PO' : 'Siap Kirim')}
-                    </span>
-                  </div>
-                  <div>
-                    <span class="text-slate-500 block text-[11px] uppercase font-bold">Status Toko</span>
-                    <span class="font-bold text-emerald-700">{product.is_verified ? 'Terverifikasi MWC' : 'Terdaftar'}</span>
-                  </div>
-                </div>
+                <span class="text-xs text-slate-600 tabular-nums shrink-0">
+                  {new Date(product.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
               </div>
 
-              <!-- 3. Middle Callout Banner -->
-              <div class="p-4 sm:p-5 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div class="space-y-0.5">
-                  <h2 class="font-black text-xs sm:text-sm text-white">
-                    Gerakan Belanja Produk Tetangga Nahdliyin
-                  </h2>
-                  <p class="text-xs text-emerald-100">
-                    0% komisi transaksi. Kesepakatan harga dan pengiriman berlangsung langsung dengan pengrajin.
-                  </p>
+              <!-- Hairline Specifications Row (No Gray Box) -->
+              <dl class="py-3.5 border-y border-slate-200 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-0 sm:divide-x sm:divide-slate-200 text-xs">
+                <div class="sm:pr-3">
+                  <dt class="text-slate-500">Wilayah MWC</dt>
+                  <dd class="font-bold text-slate-900 mt-0.5 truncate">{product.zone_name}</dd>
+                </div>
+                <div class="sm:px-3">
+                  <dt class="text-slate-500">Kategori</dt>
+                  <dd class="font-bold text-slate-900 mt-0.5 truncate">{product.category}</dd>
+                </div>
+                <div class="sm:px-3">
+                  <dt class="text-slate-500">Stok</dt>
+                  <dd class={`font-bold mt-0.5 ${
+                    product.is_sold_out ? 'text-rose-700' :
+                    product.stock_status === 'po' ? 'text-amber-800' : 'text-emerald-700'
+                  }`}>
+                    {product.is_sold_out ? 'Habis' :
+                     product.stock_status === 'po' ? 'Pre-Order' : 'Ready'}
+                  </dd>
+                </div>
+                <div class="sm:px-3">
+                  <dt class="text-slate-500">Kapasitas</dt>
+                  <dd class="font-bold text-slate-900 mt-0.5 truncate">
+                    {product.production_capacity || (product.stock_status === 'po' ? 'Antrean PO' : 'Siap Kirim')}
+                  </dd>
+                </div>
+                <div class="sm:pl-3">
+                  <dt class="text-slate-500">Toko</dt>
+                  <dd class="font-bold text-emerald-700 mt-0.5">{product.is_verified ? 'Terverifikasi' : 'Terdaftar'}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <!-- 3. Description Section -->
+            <div class="space-y-4">
+              <h2 class="text-base font-black text-slate-900 tracking-tight">
+                Deskripsi Produk
+              </h2>
+
+              <div class="text-sm text-slate-700 leading-relaxed whitespace-pre-line space-y-3">
+                <p>{product.description}</p>
+              </div>
+
+              <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600">
+                <div class="flex items-start gap-2">
+                  <AppIcon name="map-pin" size="xs" class="text-emerald-700 shrink-0 mt-0.5" />
+                  <div>
+                    <strong class="text-slate-900">Alamat Usaha:</strong>
+                    <span> {product.umkm_address || `${product.zone_name}, Kabupaten Sumenep, Jawa Timur`}</span>
+                  </div>
                 </div>
                 <a
-                  href={waLink}
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.umkm_name} ${product.zone_name} Sumenep`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="shrink-0 min-h-[44px] inline-flex items-center bg-white hover:bg-slate-100 text-emerald-900 font-extrabold text-xs px-4 py-2 rounded-xl shadow-xs transition cursor-pointer"
+                  class="text-emerald-700 hover:text-emerald-900 font-bold inline-flex items-center gap-1 shrink-0"
                 >
-                  Hubungi Penjual
+                  <span>Google Maps</span>
+                  <AppIcon name="arrow-right" size="xs" />
                 </a>
               </div>
+            </div>
 
-              <!-- 4. Description Box -->
-              <div class="p-4 sm:p-6 space-y-4">
-                <h2 class="text-sm font-black uppercase tracking-wider text-slate-800">
-                  Deskripsi Iklan Produk
-                </h2>
-
-                <div class="flex flex-col sm:flex-row gap-6 items-start">
-                  <div class="flex-1 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line space-y-3">
-                    <p>{product.description}</p>
-                    <p class="text-slate-600 text-xs">
-                      Diproduksi oleh pelaku usaha warga NU Sumenep. Pembelian dapat dilakukan secara langsung (COD) atau dikirim sesuai kesepakatan dengan penjual.
-                    </p>
-                  </div>
-                </div>
-
-                <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600">
-                  <div class="flex items-center gap-2">
-                    <span class="text-base text-emerald-700" aria-hidden="true">📍</span>
-                    <div>
-                      <strong class="text-slate-800">Alamat Usaha:</strong>
-                      <span>{product.umkm_address || `${product.zone_name}, Kabupaten Sumenep, Jawa Timur`}</span>
-                    </div>
-                  </div>
-                  <a
-                    href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.umkm_name} ${product.zone_name} Sumenep`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-emerald-700 hover:text-emerald-900 font-bold underline shrink-0"
-                  >
-                    Petunjuk Arah Maps ➔
-                  </a>
-                </div>
+            <!-- 4. Utilities & Print Strip -->
+            <div class="py-3 border-y border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
+              <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
+                <button
+                  type="button"
+                  id="btn-open-label-modal"
+                  class="min-h-[44px] text-emerald-700 hover:text-emerald-900 font-bold inline-flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <AppIcon name="clipboard" size="xs" />
+                  <span>Cetak Label QR</span>
+                </button>
+                <span aria-hidden="true">•</span>
+                <button
+                  type="button"
+                  onclick="window.print()"
+                  class="min-h-[44px] hover:text-slate-900 font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <span>Cetak Halaman</span>
+                </button>
               </div>
 
-              <!-- 5. Page Actions Strip -->
-              <div class="px-4 py-3.5 sm:px-6 bg-slate-50/70 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-600">
-                <div class="flex items-center gap-3 sm:gap-4 flex-wrap">
-                  <button
-                    type="button"
-                    id="btn-open-label-modal"
-                    class="min-h-[40px] text-emerald-700 hover:text-emerald-900 font-bold flex items-center gap-1.5 transition cursor-pointer"
-                  >
-                    <span>Cetak Label QR Iklan</span>
-                  </button>
-                  <span aria-hidden="true">•</span>
-                  <button
-                    type="button"
-                    onclick="window.print()"
-                    class="min-h-[40px] hover:text-slate-900 flex items-center gap-1.5 transition cursor-pointer"
-                  >
-                    <span>Cetak Halaman</span>
-                  </button>
-                  <span aria-hidden="true">•</span>
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="min-h-[40px] hover:text-emerald-700 flex items-center gap-1.5 transition cursor-pointer"
-                  >
-                    <span>Bagikan via WhatsApp</span>
-                  </a>
-                </div>
-
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-600 text-xs">Bagikan:</span>
-                  <a
-                    href={`https://wa.me/?text=${encodeURIComponent(`${product.name} - ${currentUrl}`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Bagikan ke WhatsApp"
-                    class="w-9 h-9 rounded-full bg-white hover:bg-emerald-700 border border-slate-200 text-slate-700 hover:text-white flex items-center justify-center text-xs transition shadow-2xs"
-                  >
-                    WA
-                  </a>
-                  <a
-                    href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    aria-label="Bagikan ke Facebook"
-                    class="w-9 h-9 rounded-full bg-white hover:bg-blue-600 border border-slate-200 text-slate-700 hover:text-white flex items-center justify-center text-xs transition shadow-2xs"
-                  >
-                    FB
-                  </a>
-                </div>
+              <div class="flex items-center gap-2">
+                <span class="text-slate-600">Bagikan:</span>
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(`${product.name} - ${currentUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Bagikan ke WhatsApp"
+                  class="min-w-[40px] min-h-[40px] rounded-lg bg-white hover:bg-emerald-700 border border-slate-300 text-slate-700 hover:text-white flex items-center justify-center text-xs font-bold transition"
+                >
+                  WA
+                </a>
+                <a
+                  href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Bagikan ke Facebook"
+                  class="min-w-[40px] min-h-[40px] rounded-lg bg-white hover:bg-slate-900 border border-slate-300 text-slate-700 hover:text-white flex items-center justify-center text-xs font-bold transition"
+                >
+                  FB
+                </a>
               </div>
             </div>
           </div>
 
-          <!-- RIGHT COLUMN: Sticky Unified Seller Sidebar -->
-          <aside class="md:col-span-5 lg:col-span-4 md:sticky md:top-20 self-start space-y-4 px-3 sm:px-0 mt-4 md:mt-0">
-            <div class="bg-white border border-slate-200 rounded-2xl shadow-xs overflow-hidden">
-              <div class="p-4 sm:p-5 bg-gradient-to-b from-emerald-50/70 via-emerald-50/20 to-white border-b border-slate-100 space-y-2.5">
+          <!-- RIGHT COLUMN: Docked Hairline Seller Sidebar (No Box Container) -->
+          <aside class="md:col-span-5 lg:col-span-4 md:sticky md:top-20 self-start md:border-l md:border-slate-200 md:pl-8 pt-6 md:pt-0 border-t md:border-t-0 border-slate-200 space-y-6">
+            <div class="space-y-2.5">
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="w-full min-h-[48px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white rounded-lg font-bold text-sm sm:text-base flex items-center justify-center gap-2.5 transition cursor-pointer"
+              >
+                <svg class="w-5 h-5 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
+                </svg>
+                <span>Kirim Pesan WhatsApp</span>
+              </a>
+
+              {product.shopee_url && (
+                <a
+                  href={product.shopee_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="w-full min-h-[44px] py-2.5 px-4 bg-[#ee4d2d] hover:bg-[#d73211] active:scale-[0.98] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                >
+                  <span>Checkout di Shopee</span>
+                </a>
+              )}
+            </div>
+
+            <!-- Seller Profile Section -->
+            <div class="pt-5 border-t border-slate-200 space-y-4">
+              <div class="flex items-start gap-3">
+                <a href={storeHref} class="shrink-0 block group">
+                  <div class="w-12 h-12 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-black text-base group-hover:bg-emerald-900 transition">
+                    {product.umkm_name.slice(0, 2).toUpperCase()}
+                  </div>
+                </a>
+                <div class="space-y-0.5 min-w-0">
+                  <a
+                    href={storeHref}
+                    class="font-extrabold text-sm sm:text-base text-slate-900 hover:text-emerald-700 transition truncate block"
+                    title={`Kunjungi Toko ${product.umkm_name}`}
+                  >
+                    {product.umkm_name}
+                  </a>
+                  <p class="text-xs text-slate-600 truncate">
+                    {product.zone_name}
+                  </p>
+                </div>
+              </div>
+
+              <dl class="pt-3 border-t border-slate-200 space-y-2 text-xs text-slate-600">
+                <div class="flex items-center justify-between gap-2">
+                  <dt>Status Penjual</dt>
+                  <dd class={product.is_verified ? 'text-emerald-700 font-bold' : 'text-slate-700 font-semibold'}>
+                    {product.is_verified ? 'Terverifikasi MWC' : 'Terdaftar'}
+                  </dd>
+                </div>
+                <div class="flex items-center justify-between gap-2">
+                  <dt>Wilayah MWC</dt>
+                  <dd class="text-slate-900 font-medium">{product.zone_name}</dd>
+                </div>
+                {product.umkm_ranting && (
+                  <div class="flex items-center justify-between gap-2">
+                    <dt>Ranting NU</dt>
+                    <dd class="text-emerald-800 font-bold">Desa {product.umkm_ranting}</dd>
+                  </div>
+                )}
+                {Boolean(product.umkm_halal_cert || product.umkm_nib || product.umkm_pirt || product.umkm_bpom) && (
+                  <div class="pt-1 flex items-center justify-between gap-2">
+                    <dt>Legalitas</dt>
+                    <dd class="flex flex-wrap gap-1 justify-end">
+                      {product.umkm_halal_cert && (
+                        <span class="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded" title={`Halal: ${product.umkm_halal_cert}`}>
+                          Halal
+                        </span>
+                      )}
+                      {product.umkm_nib && (
+                        <span class="text-xs font-bold text-slate-800 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded" title={`NIB: ${product.umkm_nib}`}>
+                          NIB
+                        </span>
+                      )}
+                      {product.umkm_pirt && (
+                        <span class="text-xs font-bold text-amber-900 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded" title={`P-IRT: ${product.umkm_pirt}`}>
+                          P-IRT
+                        </span>
+                      )}
+                      {product.umkm_bpom && (
+                        <span class="text-xs font-bold text-sky-900 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded" title={`BPOM: ${product.umkm_bpom}`}>
+                          BPOM
+                        </span>
+                      )}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+
+              <div class="pt-2 space-y-2">
                 <a
                   href={waLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="w-full min-h-[48px] py-3.5 px-4 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white rounded-xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition active:scale-95 cursor-pointer"
+                  class="w-full min-h-[44px] py-2 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-900 rounded-lg text-xs font-bold font-mono flex items-center justify-center gap-2 transition cursor-pointer"
                 >
-                  <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
-                  </svg>
-                  <span>Kirim Pesan WhatsApp</span>
+                  <AppIcon name="phone" size="xs" class="text-emerald-700" />
+                  <span>+62 {product.umkm_phone.slice(2, 6)}••••</span>
                 </a>
 
-                {product.shopee_url && (
-                  <a
-                    href={product.shopee_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="w-full min-h-[44px] py-2.5 px-4 bg-[#ee4d2d] hover:bg-[#d73211] active:bg-[#c22a0a] text-white rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition active:scale-95 cursor-pointer"
-                  >
-                    <span>Checkout di Shopee</span>
-                  </a>
-                )}
+                <a
+                  href={storeHref}
+                  class="w-full min-h-[44px] py-2 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
+                >
+                  <span>Etalase Toko</span>
+                  <AppIcon name="arrow-right" size="xs" />
+                </a>
+
+                <a
+                  href={`/?zona=${product.zone_slug}`}
+                  class="w-full min-h-[44px] py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg flex items-center justify-center transition cursor-pointer"
+                >
+                  Semua Iklan {product.zone_name}
+                </a>
+
+                <button
+                  type="button"
+                  id="btn-sidebar-label"
+                  class="w-full min-h-[44px] py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
+                >
+                  <AppIcon name="clipboard" size="xs" />
+                  <span>Label QR</span>
+                </button>
               </div>
+            </div>
 
-              <!-- Seller Profile Section -->
-              <div class="p-4 sm:p-5 space-y-4">
-                <div class="flex items-start gap-3">
-                  <a href={storeHref} class="shrink-0 block group">
-                    <div class="w-14 h-14 rounded-full bg-emerald-50 text-emerald-800 border-2 border-emerald-300 flex items-center justify-center font-black text-lg shadow-inner group-hover:border-emerald-500 transition">
-                      {product.umkm_name.slice(0, 2).toUpperCase()}
-                    </div>
-                  </a>
-                  <div class="space-y-0.5 min-w-0">
-                    <a
-                      href={storeHref}
-                      class="font-extrabold text-sm sm:text-base text-slate-900 hover:text-emerald-700 transition truncate block"
-                      title={`Kunjungi Toko ${product.umkm_name}`}
-                    >
-                      {product.umkm_name}
-                    </a>
-                    <p class="text-xs text-slate-600 truncate">
-                      Penjual Terdaftar di {product.zone_name}
-                    </p>
-                  </div>
-                </div>
-
-                <div class="pt-3 border-t border-slate-100 space-y-1.5 text-xs text-slate-600">
-                  <div class="flex items-center justify-between">
-                    <span>Status Penjual:</span>
-                    {product.is_verified ? (
-                      <span class="text-emerald-700 font-bold">Terverifikasi MWC</span>
-                    ) : (
-                      <span class="text-slate-600 font-semibold">Belum Verifikasi</span>
-                    )}
-                  </div>
-                  <div class="flex items-center justify-between">
-                    <span>Wilayah MWC:</span>
-                    <span class="text-slate-800">{product.zone_name}</span>
-                  </div>
-                  {product.umkm_ranting && (
-                    <div class="flex items-center justify-between">
-                      <span>Ranting NU:</span>
-                      <span class="text-emerald-800 font-bold">Desa {product.umkm_ranting}</span>
-                    </div>
-                  )}
-                  {Boolean(product.umkm_halal_cert || product.umkm_nib || product.umkm_pirt || product.umkm_bpom) && (
-                    <div class="pt-1 flex items-center justify-between">
-                      <span>Legalitas:</span>
-                      <div class="flex flex-wrap gap-1 justify-end">
-                        {product.umkm_halal_cert && (
-                          <span class="text-[11px] font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded" title={`Halal: ${product.umkm_halal_cert}`}>
-                            Halal
-                          </span>
-                        )}
-                        {product.umkm_nib && (
-                          <span class="text-[11px] font-bold text-slate-800 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded" title={`NIB: ${product.umkm_nib}`}>
-                            NIB
-                          </span>
-                        )}
-                        {product.umkm_pirt && (
-                          <span class="text-[11px] font-bold text-amber-800 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded" title={`P-IRT: ${product.umkm_pirt}`}>
-                            P-IRT
-                          </span>
-                        )}
-                        {product.umkm_bpom && (
-                          <span class="text-[11px] font-bold text-sky-800 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded" title={`BPOM: ${product.umkm_bpom}`}>
-                            BPOM
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div class="pt-2 space-y-2">
-                  <a
-                    href={waLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="w-full min-h-[44px] py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer"
-                  >
-                    <span>+62 {product.umkm_phone.slice(2, 6)}•••• (Hubungi WA)</span>
-                  </a>
-
-                  <a
-                    href={storeHref}
-                    class="w-full min-h-[44px] py-2 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 hover:text-emerald-950 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
-                  >
-                    <span>Kunjungi Profil Toko Ini →</span>
-                  </a>
-
-                  <a
-                    href={`/?zona=${product.zone_slug}`}
-                    class="w-full min-h-[44px] py-2 px-3 bg-transparent hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 text-xs font-semibold rounded-xl flex items-center justify-center transition cursor-pointer"
-                  >
-                    Lihat Semua Iklan di {product.zone_name}
-                  </a>
-
-                  <button
-                    type="button"
-                    id="btn-sidebar-label"
-                    class="w-full min-h-[44px] py-2 px-3 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
-                  >
-                    <span>Cetak Label QR Produk</span>
-                  </button>
-                </div>
-              </div>
-
-              <!-- Safety Tips -->
-              <div class="p-4 sm:p-5 bg-amber-50/80 border-t border-amber-200/80 space-y-3">
-                <h3 class="text-xs font-black text-amber-900 uppercase tracking-wider">
-                  Tips Transaksi Aman Warga NU
+            <!-- Safety Tips -->
+            <div class="pt-5 border-t border-slate-200">
+              <div class="border-l-2 border-amber-500 pl-3.5 space-y-2">
+                <h3 class="text-xs font-black text-slate-900 uppercase tracking-wider">
+                  Transaksi Aman
                 </h3>
-
-                <ul class="text-xs text-amber-950 space-y-2 leading-relaxed">
-                  <li>• Utamakan transaksi COD (Cash on Delivery) atau bayar di tempat setelah barang diterima dan diperiksa.</li>
-                  <li>• Pastikan keaslian penjual dan detail produk via WhatsApp sebelum melakukan transfer pembayaran.</li>
-                  <li>• Kunjungi alamat toko UMKM jika ingin melihat langsung proses produksi di Sumenep.</li>
+                <ul class="text-xs text-slate-600 space-y-1.5 leading-relaxed">
+                  <li>Utamakan COD atau bayar setelah barang diperiksa.</li>
+                  <li>Pastikan detail pesanan via WhatsApp sebelum transfer.</li>
                 </ul>
-
-                <div class="pt-2 border-t border-amber-200/70">
-                  <a
-                    href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent(`Halo Pengurus PCNU, saya ingin melaporkan iklan mencurigakan: ${currentUrl}`)}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="text-xs font-bold text-slate-600 hover:text-rose-700 inline-flex items-center gap-1 transition cursor-pointer"
-                  >
-                    <span>Laporkan Iklan Ini</span>
-                  </a>
-                </div>
+                <a
+                  href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent(`Halo Pengurus PCNU, saya ingin melaporkan iklan mencurigakan: ${currentUrl}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="text-xs font-bold text-slate-600 hover:text-rose-700 inline-flex items-center gap-1 pt-1 transition cursor-pointer"
+                >
+                  <span>Laporkan Iklan</span>
+                </a>
               </div>
             </div>
           </aside>
@@ -597,35 +566,37 @@ const pageDescription = product
 
         <!-- Related Items Section -->
         {relatedProducts.length > 0 && (
-          <section class="space-y-4 px-3 sm:px-0 pt-6 border-t border-slate-200/80 mt-6">
+          <section class="space-y-4 pt-8 border-t border-slate-200 mt-8">
             <div class="flex items-center justify-between">
               <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight">
-                Iklan Terkait Lainnya
+                Iklan Terkait
               </h2>
-              <a href={`/?kategori=${encodeURIComponent(product.category)}`} class="text-xs text-emerald-700 hover:text-emerald-900 font-semibold cursor-pointer">
-                Lihat Kategori Ini ➔
+              <a href={`/?kategori=${encodeURIComponent(product.category)}`} class="text-xs text-emerald-700 hover:text-emerald-900 font-bold inline-flex items-center gap-1 cursor-pointer">
+                <span>Kategori Ini</span>
+                <AppIcon name="arrow-right" size="xs" />
               </a>
             </div>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
               {relatedProducts.map((rp) => (
-                <ProductCard product={rp} />
+                <ProductCard product={rp} showSellerAvatar={false} />
               ))}
             </div>
           </section>
         )}
+        </div>
 
         <!-- Mobile Sticky Bottom Action Bar -->
-        <div class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-2xl">
+        <div class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] shadow-lg">
           <div class="flex items-center gap-2">
             <div class="shrink-0 pl-1">
-              <span class="text-[11px] text-slate-500 block leading-tight">Harga Iklan</span>
+              <span class="text-xs text-slate-600 block leading-tight">Harga</span>
               {hasDiscount && (
-                <span class="text-[11px] text-slate-500 line-through block leading-tight font-mono">
+                <span class="text-xs text-slate-500 line-through block leading-tight font-mono tabular-nums">
                   {formatRupiah(product.original_price!)}
                 </span>
               )}
-              <span class="text-sm font-black text-emerald-700 block leading-tight font-mono">
+              <span class="text-sm font-black text-emerald-700 block leading-tight font-mono tabular-nums">
                 {formatRupiah(product.price)}
               </span>
             </div>
@@ -634,7 +605,7 @@ const pageDescription = product
                 href={product.shopee_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="min-h-[44px] py-2.5 px-3 bg-[#ee4d2d] active:bg-[#d73211] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-1 shadow-xs transition active:scale-95 shrink-0"
+                class="min-h-[44px] py-2.5 px-3 bg-[#ee4d2d] active:bg-[#d73211] text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1 transition shrink-0"
                 title="Beli di Shopee"
               >
                 <span>Shopee</span>
@@ -644,46 +615,49 @@ const pageDescription = product
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              class="flex-1 min-h-[44px] py-2.5 px-3 bg-emerald-700 active:bg-emerald-800 text-white rounded-xl font-black text-xs flex items-center justify-center gap-1.5 shadow-md transition active:scale-95"
+              class="flex-1 min-h-[44px] py-2.5 px-3 bg-emerald-700 active:bg-emerald-800 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition"
             >
               <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
               </svg>
-              <span class="truncate">Chat WA Penjual</span>
+              <span class="truncate">Chat WhatsApp</span>
             </a>
           </div>
         </div>
       </div>
 
-      <!-- Native <dialog> Printable Label & QR Code Modal -->
+      <!-- Native <dialog> Printable Label & QR Code Modal (Bottom Sheet on Mobile) -->
       <dialog
         id="label-modal"
         aria-labelledby="modal-label-title"
-        class="m-auto p-0 bg-transparent border-0 max-w-md w-[calc(100%-2rem)] overflow-visible"
+        class="p-0 bg-transparent border-0 max-w-md w-full sm:w-[calc(100%-2rem)] overflow-visible"
       >
-        <div class="bg-white rounded-2xl w-full shadow-2xl border border-slate-200 overflow-hidden">
+        <div class="bg-white rounded-t-2xl sm:rounded-xl w-full shadow-lg border border-slate-200 overflow-hidden">
+          <div class="pt-2.5 sm:hidden">
+            <div class="w-10 h-1 rounded-full bg-slate-300 mx-auto" aria-hidden="true"></div>
+          </div>
           <div class="p-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
             <h3 id="modal-label-title" class="text-sm font-black text-slate-900">
-              Label QR Iklan Produk UMKM
+              Label QR Iklan UMKM
             </h3>
             <button
               type="button"
               id="btn-close-label-modal"
               autofocus
-              class="w-10 h-10 rounded-lg hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center font-bold text-sm cursor-pointer transition"
+              class="min-w-[44px] min-h-[44px] rounded-lg hover:bg-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center cursor-pointer transition"
               aria-label="Tutup"
             >
-              ✕
+              <AppIcon name="x" size="sm" />
             </button>
           </div>
 
           <div class="p-4 sm:p-6 bg-slate-100/70 flex justify-center">
             <div
               id="printable-label-card"
-              class="w-full max-w-sm bg-white border-2 border-dashed border-slate-400 rounded-2xl p-5 shadow-sm space-y-4 text-slate-900"
+              class="w-full max-w-sm bg-white border-2 border-dashed border-slate-400 rounded-xl p-5 space-y-4 text-slate-900"
             >
               <div class="text-center pb-3 border-b-2 border-slate-800 space-y-1">
-                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-800 text-white text-[11px] font-black uppercase tracking-widest">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-800 text-white text-xs font-black uppercase tracking-wider">
                   <span>MAMASAR SUMENEP</span>
                 </div>
                 <p class="text-xs font-semibold text-slate-600">

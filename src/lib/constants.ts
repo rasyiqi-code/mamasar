@@ -27,7 +27,7 @@ export const CATEGORY_BADGES: Record<string, { label: string; color: string }> =
   'Semua': { label: 'Semua', color: 'bg-slate-100 text-slate-700 border border-slate-300' },
   'Makanan & Minuman': { label: 'Populer', color: 'bg-emerald-100 text-emerald-800 border border-emerald-300' },
   'Batik & Kerajinan': { label: 'Pilihan', color: 'bg-amber-100 text-amber-900 border border-amber-300' },
-  'Hasil Laut & Olahan': { label: 'Baru', color: 'bg-indigo-100 text-indigo-800 border border-indigo-300' },
+  'Hasil Laut & Olahan': { label: 'Baru', color: 'bg-teal-100 text-teal-800 border border-teal-300' },
   'Pertanian & Perkebunan': { label: 'Ternak', color: 'bg-lime-100 text-lime-900 border border-lime-300' },
   'Fashion Muslim': { label: 'Hot', color: 'bg-rose-100 text-rose-800 border border-rose-300' },
   'Herbal & Jamu': { label: 'Tradisional', color: 'bg-violet-100 text-violet-800 border border-violet-300' },

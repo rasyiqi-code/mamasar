@@ -195,14 +195,14 @@ export function initAdminClient() {
           notify(data.message || 'Gagal menetapkan peran akun.', true);
           if (addUserBtn) {
             addUserBtn.disabled = false;
-            addUserBtn.textContent = 'Simpan & Tetapkan Akun ➔';
+            addUserBtn.textContent = 'Simpan & Tetapkan Akun';
           }
         }
       } catch (err: any) {
         notify(err.message || 'Terjadi kesalahan jaringan.', true);
         if (addUserBtn) {
           addUserBtn.disabled = false;
-          addUserBtn.textContent = 'Simpan & Tetapkan Akun ➔';
+          addUserBtn.textContent = 'Simpan & Tetapkan Akun';
         }
       }
     });
@@ -634,18 +634,18 @@ export function initAdminClient() {
     step1Indicator?.classList.remove('border-2', 'border-emerald-500', 'shadow-2xs');
     step1Indicator?.classList.add('bg-emerald-50/60', 'border', 'border-emerald-200');
     if (step1Badge) {
-      step1Badge.textContent = '✓';
-      step1Badge.className = 'w-7 h-7 rounded-full bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';
+      step1Badge.innerHTML = '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
+      step1Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';
     }
 
     // Step 2 Active Indicator
-    step2Indicator?.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-500');
-    step2Indicator?.classList.add('bg-emerald-50', 'border-2', 'border-emerald-500', 'shadow-2xs');
+    step2Indicator?.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-600');
+    step2Indicator?.classList.add('bg-emerald-50', 'border-2', 'border-emerald-600');
     if (step2Badge) {
-      step2Badge.className = 'w-7 h-7 rounded-full bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';
+      step2Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-black text-xs shrink-0';
     }
     if (step2Title) step2Title.className = 'text-xs font-black leading-tight text-emerald-950';
-    if (step2Desc) step2Desc.className = 'text-[11px] text-emerald-700 font-medium truncate mt-0.5';
+    if (step2Desc) step2Desc.className = 'text-xs text-emerald-800 font-medium truncate mt-0.5';
 
     step2Container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
@@ -698,7 +698,7 @@ export function initAdminClient() {
     } finally {
       if (btnSubmitStep1) {
         btnSubmitStep1.disabled = false;
-        btnSubmitStep1.innerHTML = '<span>Lanjut ke Step 2: Daftarkan Produk</span><span>➔</span>';
+        btnSubmitStep1.innerHTML = '<span>Lanjut ke Step 2: Daftarkan Produk</span><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
       }
     }
   });
@@ -761,7 +761,7 @@ export function initAdminClient() {
 
     petugasPhotos.forEach((dataUrl, idx) => {
       const item = document.createElement('div');
-      item.className = 'relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-50 aspect-square flex items-center justify-center';
+      item.className = 'relative group rounded-lg overflow-hidden border border-slate-200 bg-slate-50 aspect-square flex items-center justify-center';
 
       const img = document.createElement('img');
       img.src = dataUrl;
@@ -770,7 +770,7 @@ export function initAdminClient() {
       item.appendChild(img);
 
       const badge = document.createElement('span');
-      badge.className = `absolute bottom-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs ${
+      badge.className = `absolute bottom-1.5 left-1.5 text-xs font-bold px-1.5 py-0.5 rounded ${
         idx === 0 ? 'bg-emerald-700 text-white' : 'bg-slate-900/80 text-white backdrop-blur-xs'
       }`;
       badge.textContent = idx === 0 ? 'Foto Utama' : `Foto ${idx + 1}`;
@@ -778,8 +778,9 @@ export function initAdminClient() {
 
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
-      removeBtn.className = 'absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs flex items-center justify-center shadow-sm cursor-pointer transition';
-      removeBtn.textContent = '✕';
+      removeBtn.setAttribute('aria-label', `Hapus foto ${idx + 1}`);
+      removeBtn.className = 'absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-bold flex items-center justify-center shadow-sm cursor-pointer transition';
+      removeBtn.innerHTML = '<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
       removeBtn.onclick = (e) => {
         e.preventDefault();
         petugasPhotos.splice(idx, 1);

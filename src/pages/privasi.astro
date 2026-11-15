@@ -79,29 +79,30 @@ import { SITE_CONFIG } from '../lib/constants';
       </ul>
     </section>
 
-    <section class="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-sm text-slate-700">
-      <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+    <section class="pt-6 border-t border-slate-200 space-y-2 text-sm text-slate-700">
+      <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
         <AppIcon name="shield" size="sm" class="text-emerald-700" />
         <span>Kontak Pengelola Data Mamasar</span>
       </h2>
-      <p class="text-xs sm:text-sm">
+      <p class="text-xs sm:text-sm text-slate-600">
         Apabila Anda ingin mengajukan pembaruan atau penghapusan data toko yang didaftarkan oleh Kader MWC NU atas nama usaha Anda, hubungi pengelola resmi melalui WhatsApp:
       </p>
-      <div class="pt-1 flex flex-wrap items-center gap-3">
+      <div class="pt-2 flex flex-wrap items-center gap-3">
         <a
           href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent("Assalamu'alaikum Admin Mamasar, saya ingin konsultasi terkait data toko / privasi akun.")}`}
           target="_blank"
           rel="noopener noreferrer"
-          class="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition"
+          class="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold transition"
         >
           <AppIcon name="phone" size="xs" />
-          <span>Hubungi Pengelola via WhatsApp</span>
+          <span>WhatsApp Pengelola</span>
         </a>
         <a
           href="/dashboard"
-          class="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 text-xs font-semibold transition"
+          class="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition"
         >
-          <span>Kelola Data di Dashboard ➔</span>
+          <span>Kelola di Dashboard</span>
+          <AppIcon name="arrow-right" size="xs" />
         </a>
       </div>
     </section>
