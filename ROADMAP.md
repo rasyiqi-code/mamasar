@@ -162,7 +162,7 @@ gantt
   - [x] Form edit profil toko UMKM (Nama toko, nomor WA, wilayah MWC, alamat).
   - [x] Form edit iklan produk lengkap dengan opsi ganti foto ber-kompresi.
   - [x] Tombol quick action per produk: `✏️ Edit`, `+ Kas`, `⚡ Sundul`, `Tersedia/Habis`, `Hapus`.
-  - [x] Integrasi Buku Kas Penjualan Santri: dropdown pemilihan produk langsung mengisi nama dan harga jual secara otomatis.
+  - [x] Integrasi Buku Kas Usaha: dropdown pemilihan produk langsung mengisi nama dan harga jual secara otomatis.
   - [x] Dukungan pencatatan tanggal mundur/kemarin (`transactionDate`).
   - [x] **Fitur Ekspor Buku Kas ke CSV**: Tombol `📊 Unduh CSV` untuk mengekspor rekap keuangan toko ke format Excel.
   - [x] Pembersihan label mentah slide presentasi (`Slide 4`, `Slide 5`, `Slide 9`) menjadi label profesional.

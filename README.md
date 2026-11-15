@@ -37,7 +37,7 @@ Sistem menggunakan arsitektur *Role-Based Access Control* (RBAC) 4 peran berjenj
   - Autentikasi ganda via Neon Auth (Google Social Login & Email/Kata Sandi).
   - Pengaturan profil usaha: perbarui nama toko, WhatsApp aktif, zona MWC, dan alamat toko.
   - Manajemen etalase produk: tambah produk baru, edit nama/harga/kategori/deskripsi/foto, ubah status ketersediaan (*Tersedia / Habis*), sundul iklan (*bump to top*), dan hapus iklan.
-  - **Buku Kas Penjualan Santri**:
+  - **Buku Kas Usaha**:
     - Dropdown *Isi Cepat Produk* yang otomatis mengisi nama transaksi dan nominal harga barang.
     - Input tanggal transaksi mundur/kemarin (`transactionDate`).
     - **Ekspor Laporan Kas ke CSV (`.csv`)**: Tombol `📊 Unduh CSV` untuk mengekspor rekap pembukuan toko ke format Excel.
