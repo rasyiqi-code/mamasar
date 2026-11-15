@@ -19,6 +19,7 @@ interface Props {
   avatarUrl?: string | null;
   isSuper?: boolean;
   isCadre?: boolean;
+  activeSection?: 'overview' | 'products' | 'cashbook' | 'profile' | 'services';
   productCount?: number;
   cashbookCount?: number;
 }
@@ -29,6 +30,7 @@ const {
   avatarUrl,
   isSuper = false,
   isCadre = false,
+  activeSection = 'overview',
   productCount = 0,
   cashbookCount = 0,
 } = Astro.props;
@@ -136,16 +138,26 @@ const {
       </div>
     )}
 
-    <!-- Navigation Items -->
+    <!-- Navigation Items (Dedicated URL Routes) -->
     <nav aria-label="Menu Dashboard Toko" class="p-3 space-y-1 flex-1 text-xs">
-      <div role="tablist" aria-orientation="vertical" class="space-y-1">
-        <button
-          type="button"
-          role="tab"
-          aria-selected="true"
-          aria-controls="panel-products"
-          data-nav-tab="products"
-          class="nav-tab-btn active w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+      <div class="space-y-1">
+        <a
+          href="/dashboard"
+          aria-current={activeSection === 'overview' ? 'page' : undefined}
+          class={`nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-left ${
+            activeSection === 'overview' ? 'active' : ''
+          }`}
+        >
+          <AppIcon name="sliders" size="sm" />
+          <span>Ringkasan</span>
+        </a>
+
+        <a
+          href="/dashboard/produk"
+          aria-current={activeSection === 'products' ? 'page' : undefined}
+          class={`nav-tab-btn w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg text-left ${
+            activeSection === 'products' ? 'active' : ''
+          }`}
         >
           <div class="flex items-center gap-2.5">
             <AppIcon name="package" size="sm" />
@@ -154,15 +166,14 @@ const {
           <span class="nav-badge text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 tabular-nums">
             {productCount}
           </span>
-        </button>
+        </a>
 
-        <button
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panel-cashbook"
-          data-nav-tab="cashbook"
-          class="nav-tab-btn w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        <a
+          href="/dashboard/kas"
+          aria-current={activeSection === 'cashbook' ? 'page' : undefined}
+          class={`nav-tab-btn w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg text-left ${
+            activeSection === 'cashbook' ? 'active' : ''
+          }`}
         >
           <div class="flex items-center gap-2.5">
             <AppIcon name="book" size="sm" />
@@ -171,31 +182,29 @@ const {
           <span class="nav-badge text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 tabular-nums">
             {cashbookCount}
           </span>
-        </button>
+        </a>
 
-        <button
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panel-profile"
-          data-nav-tab="profile"
-          class="nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+        <a
+          href="/dashboard/profil"
+          aria-current={activeSection === 'profile' ? 'page' : undefined}
+          class={`nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-left ${
+            activeSection === 'profile' ? 'active' : ''
+          }`}
         >
           <AppIcon name="store" size="sm" />
           <span>Profil Usaha</span>
-        </button>
+        </a>
 
-        <button
-          type="button"
-          role="tab"
-          aria-selected="false"
-          aria-controls="panel-services"
-          data-nav-tab="services"
-          class="nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+        <a
+          href="/dashboard/kemitraan"
+          aria-current={activeSection === 'services' ? 'page' : undefined}
+          class={`nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-left ${
+            activeSection === 'services' ? 'active' : ''
+          }`}
         >
           <AppIcon name="award" size="sm" />
           <span>Layanan Kemitraan</span>
-        </button>
+        </a>
       </div>
 
       <div class="pt-3 mt-3 border-t border-slate-200 space-y-1">

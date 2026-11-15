@@ -1,0 +1,293 @@
+---
+import { formatRupiah } from '../../../lib/utils';
+import type { NotificationItem } from '../../../lib/db';
+import AppIcon from '../common/AppIcon.astro';
+
+interface Product {
+  id: number;
+  name: string;
+  slug: string;
+  price: number;
+  category: string;
+  image_url: string;
+  is_sold_out?: boolean | number | null;
+  stock_status?: string | null;
+  views?: number;
+  is_featured?: number | null;
+  featured_until?: string | null;
+}
+
+interface CashEntry {
+  id: number;
+  transaction_date: string;
+  title: string;
+  type: string;
+  amount: number;
+}
+
+interface Props {
+  store: {
+    id: number;
+    slug?: string;
+    name: string;
+    zone_name: string;
+    is_verified?: boolean | number | null;
+    bump_credits?: number;
+    products?: Product[];
+  };
+  cashbookSummary: {
+    totalIncome: number;
+    totalExpense: number;
+    balance: number;
+  };
+  cashbookEntries: CashEntry[];
+  notifications?: NotificationItem[];
+}
+
+const {
+  store,
+  cashbookSummary,
+  cashbookEntries = [],
+  notifications = [],
+} = Astro.props;
+
+const products = store.products || [];
+const bumpCredits = store.bump_credits ?? 3;
+const activeCount = products.filter((p) => !p.is_sold_out).length;
+const totalViews = products.reduce((sum, p) => sum + (Number(p.views) || 0), 0);
+const topProducts = products.slice(0, 5);
+const recentCash = cashbookEntries.slice(0, 4);
+---
+
+<section id="panel-overview" class="space-y-6">
+  {/* Top Header & Quick Actions */}
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+    <div class="space-y-0.5">
+      <h2 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Ringkasan Toko</h2>
+      <p class="text-xs text-slate-600">
+        Pantau performa produk, saldo kas usaha, dan pintasan pengelolaan {store.name}.
+      </p>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      <a
+        href="/dashboard/produk"
+        class="min-h-[40px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-lg border border-slate-300 transition inline-flex items-center gap-1.5"
+      >
+        <AppIcon name="package" size="xs" />
+        <span>Kelola Produk</span>
+      </a>
+      <a
+        href="/pasang-iklan"
+        class="min-h-[40px] py-1.5 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition inline-flex items-center gap-1.5"
+      >
+        <AppIcon name="plus" size="xs" />
+        <span>Pasang Iklan</span>
+      </a>
+    </div>
+  </div>
+
+  {/* 4-Column Hairline KPI Strip */}
+  <div class="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 border-y border-slate-200 py-3">
+    <div class="pb-3 lg:pb-0 lg:pr-5">
+      <span class="text-xs font-medium text-slate-600 block">Produk Tayang</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5">
+        <span class="text-xl font-bold text-slate-900 font-mono tabular-nums">{products.length}</span>
+        <span class="text-xs text-slate-600 font-mono tabular-nums">({activeCount} aktif)</span>
+      </div>
+    </div>
+
+    <div class="pb-3 pl-4 lg:pb-0 lg:px-5">
+      <span class="text-xs font-medium text-slate-600 block">Total Dilihat</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">
+        {totalViews.toLocaleString('id-ID')}
+      </span>
+    </div>
+
+    <div class="pt-3 lg:pt-0 lg:px-5">
+      <span class="text-xs font-medium text-slate-600 block">Saldo Kas</span>
+      <span class="mt-0.5 text-xl font-bold text-emerald-700 font-mono tabular-nums block truncate">
+        {formatRupiah(cashbookSummary.balance)}
+      </span>
+    </div>
+
+    <div class="pt-3 pl-4 lg:pt-0 lg:pl-5">
+      <span class="text-xs font-medium text-slate-600 block">Token Sundul</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5">
+        <span class="text-xl font-bold text-slate-900 font-mono tabular-nums">{bumpCredits}</span>
+        <span class="text-xs text-slate-600">kuota</span>
+      </div>
+    </div>
+  </div>
+
+  {/* Notifications Strip */}
+  {notifications.length > 0 && (
+    <div class="space-y-2 pb-4 border-b border-slate-200">
+      <div class="flex items-center justify-between">
+        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wider">Pemberitahuan Terbaru</h3>
+        <span class="text-xs text-slate-600 font-mono tabular-nums">{notifications.length} pesan</span>
+      </div>
+      <ul class="divide-y divide-slate-100">
+        {notifications.map((n) => (
+          <li class="text-xs py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+            <div>
+              <span class="font-semibold text-slate-900">{n.title}: </span>
+              <span class="text-slate-600">{n.body}</span>
+            </div>
+            <span class="text-xs text-slate-500 shrink-0 font-mono tabular-nums">
+              {new Date(n.created_at).toLocaleDateString('id-ID')}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )}
+
+  {/* Main 2-Column Operational Summary */}
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    {/* Kolom Kiri: Produk Terbaru */}
+    <div class="lg:col-span-7 space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Produk di Etalase</h3>
+        <a
+          href="/dashboard/produk"
+          class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
+        >
+          <span>Semua ({products.length})</span>
+          <AppIcon name="arrow-right" size="xs" />
+        </a>
+      </div>
+
+      {topProducts.length > 0 ? (
+        <div class="divide-y divide-slate-200/80 border-b border-slate-200">
+          {topProducts.map((prod) => (
+            <div class="py-3 flex items-center justify-between gap-3">
+              <div class="flex items-center gap-3 min-w-0">
+                <img
+                  src={prod.image_url}
+                  alt={prod.name}
+                  class={`w-11 h-11 rounded-lg object-cover border border-slate-200 shrink-0 bg-slate-50 ${
+                    prod.is_sold_out ? 'grayscale opacity-75' : ''
+                  }`}
+                />
+                <div class="min-w-0 space-y-0.5">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs sm:text-sm font-bold text-slate-900 truncate">{prod.name}</span>
+                    {prod.is_sold_out ? (
+                      <span class="text-[11px] font-semibold bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 rounded-md shrink-0">
+                        Habis
+                      </span>
+                    ) : prod.stock_status === 'po' ? (
+                      <span class="text-[11px] font-semibold bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded-md shrink-0">
+                        PO
+                      </span>
+                    ) : null}
+                  </div>
+                  <div class="flex items-center gap-2 text-xs text-slate-600">
+                    <span class="font-bold text-slate-900 font-mono tabular-nums">{formatRupiah(prod.price)}</span>
+                    <span class="text-slate-300" aria-hidden="true">·</span>
+                    <span>{prod.category}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 shrink-0 text-xs">
+                {typeof prod.views === 'number' && (
+                  <span class="hidden sm:inline-flex items-center gap-1 text-slate-600 font-mono tabular-nums">
+                    <AppIcon name="eye" size="xs" />
+                    <span>{prod.views}</span>
+                  </span>
+                )}
+                <a
+                  href="/dashboard/produk"
+                  class="min-h-[36px] px-2.5 py-1 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium inline-flex items-center transition"
+                >
+                  Kelola
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div class="py-10 text-center border border-dashed border-slate-200 rounded-lg space-y-2.5">
+          <p class="text-xs text-slate-600">Belum ada produk tayang di etalase toko Anda.</p>
+          <a
+            href="/pasang-iklan"
+            class="min-h-[40px] px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition"
+          >
+            <AppIcon name="plus" size="xs" />
+            <span>Tambah Produk Pertama</span>
+          </a>
+        </div>
+      )}
+    </div>
+
+    {/* Kolom Kanan: Ringkasan Kas & Pintasan */}
+    <div class="lg:col-span-5 space-y-6">
+      <div class="space-y-3">
+        <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Buku Kas Terakhir</h3>
+          <a
+            href="/dashboard/kas"
+            class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
+          >
+            <span>Buka Buku Kas</span>
+            <AppIcon name="arrow-right" size="xs" />
+          </a>
+        </div>
+
+        {recentCash.length > 0 ? (
+          <div class="divide-y divide-slate-100 border-b border-slate-200">
+            {recentCash.map((c) => (
+              <div class="py-2.5 flex items-center justify-between gap-3 text-xs">
+                <div class="min-w-0">
+                  <span class="font-medium text-slate-900 block truncate">{c.title}</span>
+                  <span class="text-slate-500 font-mono tabular-nums">{c.transaction_date}</span>
+                </div>
+                <span class={`font-bold font-mono tabular-nums shrink-0 ${c.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
+                  {c.type === 'income' ? '+' : '-'} {formatRupiah(c.amount)}
+                </span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div class="py-6 border-b border-slate-200 flex items-center justify-between gap-3 text-xs">
+            <span class="text-slate-600">Belum ada catatan transaksi kas.</span>
+            <a href="/dashboard/kas" class="font-semibold text-emerald-700 hover:text-emerald-800 shrink-0">
+              + Catat
+            </a>
+          </div>
+        )}
+      </div>
+
+      <div class="space-y-2.5">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 pb-2 border-b border-slate-200">
+          Pintasan Pengaturan
+        </h3>
+        <div class="divide-y divide-slate-100 border-b border-slate-200 text-xs">
+          <a href="/dashboard/profil" class="py-2.5 flex items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
+            <span class="flex items-center gap-2 font-medium">
+              <AppIcon name="store" size="xs" class="text-slate-500" />
+              <span>Profil, WhatsApp &amp; Legalitas Usaha</span>
+            </span>
+            <AppIcon name="arrow-right" size="xs" />
+          </a>
+          <a href="/dashboard/kemitraan" class="py-2.5 flex items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
+            <span class="flex items-center gap-2 font-medium">
+              <AppIcon name="award" size="xs" class="text-slate-500" />
+              <span>Modal Syariah, Sertifikasi Halal &amp; Kader</span>
+            </span>
+            <AppIcon name="arrow-right" size="xs" />
+          </a>
+          <a href={`/toko/${store.slug || store.id}`} target="_blank" class="py-2.5 flex items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
+            <span class="flex items-center gap-2 font-medium">
+              <AppIcon name="external-link" size="xs" class="text-slate-500" />
+              <span>Pratinjau Etalase Toko Publik</span>
+            </span>
+            <AppIcon name="arrow-right" size="xs" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

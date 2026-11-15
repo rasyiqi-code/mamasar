@@ -2,10 +2,23 @@
 import { confirmAction, openNativeDialog, closeNativeDialog } from '../../lib/dialog';
 
 export function initDashboardClient() {
-  // Tab switching logic via Sidebar, keyboard arrows & URL hash (history.replaceState)
+  // Support legacy /dashboard#section hashes via dedicated routes
   function initTabs() {
+    const hashRouteMap: Record<string, string> = {
+      products: '/dashboard/produk',
+      cashbook: '/dashboard/kas',
+      profile: '/dashboard/profil',
+      services: '/dashboard/kemitraan',
+    };
+    const currentHash = window.location.hash.replace('#', '');
+    if (hashRouteMap[currentHash] && document.getElementById('dashboard-sidebar')) {
+      window.location.replace(hashRouteMap[currentHash]);
+      return;
+    }
+
     const tabBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-nav-tab]'));
     const panels = document.querySelectorAll<HTMLElement>('.tab-panel');
+    if (tabBtns.length === 0) return;
 
     function switchTab(targetName: string, syncUrl = false) {
       tabBtns.forEach((btn) => {
@@ -55,11 +68,6 @@ export function initDashboardClient() {
         }
       });
     });
-
-    const currentHash = window.location.hash.replace('#', '');
-    if (['products', 'cashbook', 'profile', 'services'].includes(currentHash)) {
-      switchTab(currentHash, false);
-    }
   }
 
   // Mobile Sidebar Toggle
@@ -419,9 +427,6 @@ export function initDashboardClient() {
 
   document.querySelectorAll<HTMLButtonElement>('[data-action="record-sale"]').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const cashTabBtn = document.querySelector<HTMLButtonElement>('[data-nav-tab="cashbook"]');
-      cashTabBtn?.click();
-
       const title = btn.getAttribute('data-title') || '';
       const amount = btn.getAttribute('data-amount') || '';
 
@@ -429,15 +434,43 @@ export function initDashboardClient() {
       const cashAmount = document.getElementById('cashAmount') as HTMLInputElement | null;
       const cashType = document.getElementById('cashType') as HTMLSelectElement | null;
 
-      if (cashTitle) cashTitle.value = title;
-      if (cashAmount) cashAmount.value = amount;
+      if (!cashTitle || !cashAmount) {
+        const params = new URLSearchParams();
+        if (title) params.set('new_title', title);
+        if (amount) params.set('new_amount', amount);
+        window.location.href = `/dashboard/kas?${params.toString()}`;
+        return;
+      }
+
+      const cashTabBtn = document.querySelector<HTMLButtonElement>('[data-nav-tab="cashbook"]');
+      cashTabBtn?.click();
+
+      cashTitle.value = title;
+      cashAmount.value = amount;
       if (cashType) cashType.value = 'income';
 
       cashContainer?.classList.remove('hidden');
       cashContainer?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      cashAmount?.focus();
+      cashAmount.focus();
     });
   });
+
+  if (cashContainer && window.location.pathname === '/dashboard/kas') {
+    const kasParams = new URLSearchParams(window.location.search);
+    const newTitle = kasParams.get('new_title');
+    const newAmount = kasParams.get('new_amount');
+    if (newTitle || newAmount) {
+      const cashTitle = document.getElementById('cashTitle') as HTMLInputElement | null;
+      const cashAmount = document.getElementById('cashAmount') as HTMLInputElement | null;
+      const cashType = document.getElementById('cashType') as HTMLSelectElement | null;
+      if (cashTitle && newTitle) cashTitle.value = newTitle;
+      if (cashAmount && newAmount) cashAmount.value = newAmount;
+      if (cashType) cashType.value = 'income';
+      cashContainer.classList.remove('hidden');
+      history.replaceState(null, '', '/dashboard/kas');
+      cashAmount?.focus();
+    }
+  }
 
   btnToggleCash?.addEventListener('click', () => {
     cashContainer?.classList.toggle('hidden');

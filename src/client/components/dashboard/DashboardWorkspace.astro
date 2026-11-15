@@ -1,0 +1,252 @@
+---
+import AppLayout from '../../layouts/AppLayout.astro';
+import {
+  getUMKMByUserId,
+  getAllZones,
+  getCashbookSummary,
+  getCashbookEntries,
+  getAdOrdersByUmkm,
+  getBumpLedgerByUmkm,
+  getNotificationsForUser,
+  isSuperadmin,
+  isPetugas,
+} from '../../../lib/db';
+import { resolveUser } from '../../../lib/neon-auth';
+import { resolveAvatarUrl } from '../../../lib/storage';
+
+import AuthCard from './AuthCard.astro';
+import StoreSetupCard from './StoreSetupCard.astro';
+import DashboardSidebar from './DashboardSidebar.astro';
+import OverviewPanel from './OverviewPanel.astro';
+import ProductsPanel from './ProductsPanel.astro';
+import CashbookPanel from './CashbookPanel.astro';
+import ProfilePanel from './ProfilePanel.astro';
+import ServicesPanel from './ServicesPanel.astro';
+import ProductModals from './ProductModals.astro';
+import AdPromotionModal from './AdPromotionModal.astro';
+import AppIcon from '../common/AppIcon.astro';
+
+export type DashboardSection = 'overview' | 'products' | 'cashbook' | 'profile' | 'services';
+
+interface Props {
+  activeSection?: DashboardSection;
+}
+
+const { activeSection = 'overview' } = Astro.props;
+
+const user = await resolveUser(Astro.request);
+const store = user ? await getUMKMByUserId(user.id) : undefined;
+const zones = await getAllZones();
+const avatarUrl = await resolveAvatarUrl(user?.avatar_url);
+
+const cashbookSummary = user
+  ? await getCashbookSummary(user.id, store?.id)
+  : { totalIncome: 0, totalExpense: 0, balance: 0 };
+const cashbookEntries = user ? await getCashbookEntries(user.id, 50, store?.id) : [];
+const adOrders = store && activeSection === 'products' ? await getAdOrdersByUmkm(store.id) : [];
+const bumpLedger = store && activeSection === 'products' ? await getBumpLedgerByUmkm(store.id, 10) : [];
+const notifications =
+  user && (activeSection === 'overview' || activeSection === 'products')
+    ? await getNotificationsForUser(user.id, 5)
+    : [];
+
+const authError = Astro.url.searchParams.get('error');
+const isLoggedOut = Astro.url.searchParams.get('logged_out') === '1';
+const intent = Astro.url.searchParams.get('intent');
+const initialOnboardTab = intent === 'daftar-kader' || activeSection === 'services' ? 'kader' : 'store';
+const isSuper = isSuperadmin(user);
+const isCadre = isPetugas(user);
+const assignedZone = user ? zones.find((z) => z.id === user.assigned_zone_id) : undefined;
+
+const sectionTitleMap: Record<DashboardSection, string> = {
+  overview: 'Ringkasan',
+  products: 'Katalog Produk',
+  cashbook: 'Buku Kas Usaha',
+  profile: 'Profil Usaha',
+  services: 'Layanan Kemitraan',
+};
+
+const activeLabel = sectionTitleMap[activeSection];
+const pageTitle = user
+  ? store
+    ? `${activeLabel} — ${store.name} | Mamasar`
+    : `Akun & Pendaftaran Peran: ${user.name} | Mamasar`
+  : 'Masuk atau Daftar Akun | Mamasar';
+---
+
+<AppLayout
+  title={pageTitle}
+  description="Portal swalayan pemilik UMKM Nahdliyin, Kader Ranting, Pengurus MWC, dan Admin PCNU Sumenep."
+>
+  <!-- Banner Akses Terbatas /admin -->
+  {user && authError === 'unauthorized_admin' && (
+    <div role="alert" class="bg-amber-50 border-b border-amber-300 px-4 py-3 text-xs text-amber-950">
+      <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <p class="font-semibold">
+          Halaman Portal Admin & Kader (<code>/admin</code>) khusus untuk Kader Ranting, Pengurus MWC, atau Admin PCNU yang sudah disetujui.
+        </p>
+        <a href="/petugas" class="shrink-0 font-bold text-emerald-800 underline hover:text-emerald-900 inline-flex items-center gap-1">
+          <span>Ajukan Peran Kader MWC</span>
+          <AppIcon name="arrow-right" size="xs" />
+        </a>
+      </div>
+    </div>
+  )}
+
+  <!-- KONDISI 1: Belum Login -->
+  {!user && <AuthCard authError={authError} isLoggedOut={isLoggedOut} intent={intent} />}
+
+  <!-- KONDISI 2: Sudah Login, Belum Punya Profil Toko -->
+  {user && !store && (
+    <StoreSetupCard
+      user={user}
+      zones={zones}
+      assignedZone={assignedZone}
+      isSuper={isSuper}
+      isCadre={isCadre}
+      initialTab={initialOnboardTab}
+    />
+  )}
+
+  <!-- KONDISI 3: Workspace Toko Siap (Full-Viewport App Shell with Sticky App Header) -->
+  {user && store && (
+    <div class="min-h-screen w-full bg-white flex flex-col md:flex-row">
+      <!-- Sidebar Navigasi -->
+      <DashboardSidebar
+        user={user}
+        store={store}
+        avatarUrl={avatarUrl}
+        isSuper={isSuper}
+        isCadre={isCadre}
+        activeSection={activeSection}
+        productCount={store.products?.length || 0}
+        cashbookCount={cashbookEntries.length}
+      />
+
+      <!-- Kolom Kanan: App Header + Workspace Utama (Full Viewport Width) -->
+      <div class="flex-1 min-w-0 w-full flex flex-col">
+        <header class="hidden md:flex sticky top-0 z-30 h-14 bg-white/95 backdrop-blur-xs border-b border-slate-200 px-6 lg:px-8 items-center justify-between gap-4">
+          <div class="flex items-center gap-2 min-w-0 text-xs">
+            <a href="/" class="inline-flex items-center gap-1.5 font-bold text-slate-900 hover:text-emerald-800 transition shrink-0">
+              <span class="w-5 h-5 rounded bg-emerald-700 text-white text-[10px] font-extrabold inline-flex items-center justify-center">
+                NU
+              </span>
+              <span>Mamasar</span>
+            </a>
+            <span class="text-slate-300" aria-hidden="true">/</span>
+            <a href="/dashboard" class="font-medium text-slate-600 hover:text-slate-900 transition shrink-0">
+              Dashboard
+            </a>
+            <span class="text-slate-300" aria-hidden="true">/</span>
+            <span class="font-semibold text-slate-900 truncate">{activeLabel}</span>
+            <span class="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium shrink-0 ml-1">
+              <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+              <span>{store.zone_name}</span>
+            </span>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0">
+            <a
+              href="/"
+              class="min-h-[36px] px-3 py-1.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition inline-flex items-center gap-1.5"
+            >
+              <AppIcon name="globe" size="xs" />
+              <span>Katalog Publik</span>
+            </a>
+            <a
+              href={`/toko/${store.slug || store.id}`}
+              target="_blank"
+              class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5"
+            >
+              <span>Lihat Etalase</span>
+              <AppIcon name="external-link" size="xs" />
+            </a>
+          </div>
+        </header>
+
+        <main id="main" tabindex="-1" class="flex-1 min-w-0 w-full p-4 sm:p-6 lg:p-8 space-y-6">
+          <h1 class="sr-only">{activeLabel} — {store.name}</h1>
+
+          <!-- Status Notification Box -->
+          <div id="action-status" role="status" aria-live="polite" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+
+          {activeSection === 'overview' && (
+            <OverviewPanel
+              store={store}
+              cashbookSummary={cashbookSummary}
+              cashbookEntries={cashbookEntries}
+              notifications={notifications}
+            />
+          )}
+
+          {activeSection === 'products' && (
+            <ProductsPanel
+              store={store}
+              adOrders={adOrders}
+              bumpLedger={bumpLedger}
+              notifications={notifications}
+            />
+          )}
+
+          {activeSection === 'cashbook' && (
+            <CashbookPanel
+              summary={cashbookSummary}
+              entries={cashbookEntries}
+              products={store.products}
+            />
+          )}
+
+          {activeSection === 'profile' && (
+            <ProfilePanel store={store} zones={zones} />
+          )}
+
+          {activeSection === 'services' && (
+            <ServicesPanel
+              user={user}
+              zones={zones}
+              assignedZone={zones.find((z) => z.id === user.assigned_zone_id)}
+            />
+          )}
+        </main>
+      </div>
+
+      {activeSection === 'products' && (
+        <>
+          <ProductModals />
+          <AdPromotionModal store={store} />
+        </>
+      )}
+    </div>
+  )}
+
+  <style is:global>
+    .nav-tab-btn {
+      color: #475569;
+      border: 1px solid transparent;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+    }
+    .nav-tab-btn:hover {
+      background-color: #f8fafc;
+      color: #0f172a;
+    }
+    .nav-tab-btn.active {
+      background-color: #ecfdf5;
+      color: #064e3b;
+      border-color: #a7f3d0;
+      font-weight: 600;
+    }
+    .nav-tab-btn.active .nav-badge {
+      background-color: #d1fae5;
+      color: #065f46;
+      border-color: transparent;
+    }
+  </style>
+
+  {isLoggedOut && (
+    <script is:inline>
+      try { localStorage.removeItem('mamasar_favorites'); } catch {}
+    </script>
+  )}
+</AppLayout>
+
+<script src="../../scripts/dashboard.client.ts"></script>
