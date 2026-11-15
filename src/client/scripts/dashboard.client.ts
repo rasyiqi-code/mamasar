@@ -204,16 +204,31 @@ export function initDashboardClient() {
 
   const applyStoreLogoDom = (url: string | null) => {
     const hasImg = Boolean(url);
-    [storeLogoPreviewImg, sidebarLogoImg].forEach((img) => {
+    const mobileImgs = Array.from(document.querySelectorAll<HTMLImageElement>('[data-store-logo-img]'));
+    const mobileFallbacks = Array.from(document.querySelectorAll<HTMLElement>('[data-store-logo-fallback]'));
+
+    [storeLogoPreviewImg, sidebarLogoImg, ...mobileImgs].forEach((img) => {
       if (!img) return;
       if (url) img.src = url;
       else img.removeAttribute('src');
       img.classList.toggle('hidden', !hasImg);
     });
-    [storeLogoPreviewFallback, sidebarLogoFallback].forEach((fb) => {
+    [storeLogoPreviewFallback, sidebarLogoFallback, ...mobileFallbacks].forEach((fb) => {
       fb?.classList.toggle('hidden', hasImg);
     });
   };
+
+  // Mobile collapsible Legalitas & Izin Usaha toggle in ProfilePanel
+  const btnToggleLegalities = document.getElementById('btn-toggle-legalities');
+  const legalitiesFields = document.getElementById('legalities-fields');
+  btnToggleLegalities?.addEventListener('click', () => {
+    if (!legalitiesFields) return;
+    const isHidden = legalitiesFields.classList.contains('hidden');
+    legalitiesFields.classList.toggle('hidden', !isHidden);
+    btnToggleLegalities.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+    const icon = btnToggleLegalities.querySelector('[data-legalities-chevron]');
+    if (icon) icon.classList.toggle('rotate-180', isHidden);
+  });
 
   storeLogoInput?.addEventListener('change', () => {
     const file = storeLogoInput.files?.[0];

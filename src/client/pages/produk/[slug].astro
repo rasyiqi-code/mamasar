@@ -327,7 +327,7 @@ const pageDescription = product
                     {product.production_capacity || (product.stock_status === 'po' ? 'Antrean PO' : 'Siap Kirim')}
                   </dd>
                 </div>
-                <div class="sm:pl-3">
+                <div class="hidden sm:block sm:pl-3">
                   <dt class="text-slate-500">Toko</dt>
                   <dd class="font-bold text-emerald-700 mt-0.5">{product.is_verified ? 'Terverifikasi' : 'Terdaftar'}</dd>
                 </div>
@@ -375,11 +375,11 @@ const pageDescription = product
                   <AppIcon name="clipboard" size="xs" />
                   <span>Cetak Label QR</span>
                 </button>
-                <span aria-hidden="true">•</span>
+                <span class="hidden sm:inline" aria-hidden="true">•</span>
                 <button
                   type="button"
                   onclick="window.print()"
-                  class="min-h-[44px] hover:text-slate-900 font-semibold inline-flex items-center gap-1.5 transition cursor-pointer"
+                  class="hidden sm:inline-flex min-h-[44px] hover:text-slate-900 font-semibold items-center gap-1.5 transition cursor-pointer"
                 >
                   <span>Cetak Halaman</span>
                 </button>
@@ -392,7 +392,7 @@ const pageDescription = product
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bagikan ke WhatsApp"
-                  class="min-w-[40px] min-h-[40px] rounded-lg bg-white hover:bg-emerald-700 border border-slate-300 text-slate-700 hover:text-white flex items-center justify-center text-xs font-bold transition"
+                  class="min-w-[44px] min-h-[44px] rounded-lg bg-white hover:bg-emerald-700 border border-slate-300 text-slate-700 hover:text-white flex items-center justify-center text-xs font-bold transition"
                 >
                   WA
                 </a>
@@ -401,7 +401,7 @@ const pageDescription = product
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bagikan ke Facebook"
-                  class="min-w-[40px] min-h-[40px] rounded-lg bg-white hover:bg-slate-900 border border-slate-300 text-slate-700 hover:text-white flex items-center justify-center text-xs font-bold transition"
+                  class="min-w-[44px] min-h-[44px] rounded-lg bg-white hover:bg-slate-900 border border-slate-300 text-slate-700 hover:text-white flex items-center justify-center text-xs font-bold transition"
                 >
                   FB
                 </a>
@@ -409,9 +409,9 @@ const pageDescription = product
             </div>
           </div>
 
-          <!-- RIGHT COLUMN: Docked Hairline Seller Sidebar (No Box Container) -->
-          <aside class="md:col-span-5 lg:col-span-4 md:sticky md:top-20 self-start md:border-l md:border-slate-200 md:pl-8 pt-6 md:pt-0 border-t md:border-t-0 border-slate-200 space-y-6">
-            <div class="space-y-2.5">
+          <!-- RIGHT COLUMN: Docked Hairline Seller Sidebar (Primary CTAs hidden on mobile: sticky bottom bar handles them) -->
+          <aside class="md:col-span-5 lg:col-span-4 md:sticky md:top-20 self-start md:border-l md:border-slate-200 md:pl-8 pt-5 md:pt-0 border-t md:border-t-0 border-slate-200 space-y-5 md:space-y-6">
+            <div class="hidden md:block space-y-2.5">
               <a
                 href={waLink}
                 target="_blank"

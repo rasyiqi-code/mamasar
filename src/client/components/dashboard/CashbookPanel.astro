@@ -26,47 +26,23 @@ const { summary, entries, products = [] } = Astro.props;
 ---
 
 <section id="panel-cashbook" class="tab-panel">
-  <!-- Mobile Quick Actions (Desktop actions live in sticky header) -->
-  <div class="flex md:hidden items-center justify-between gap-2 px-4 py-3 border-b border-slate-200">
-    <h2 class="text-base font-bold text-slate-900">Buku Kas Usaha</h2>
-    <div class="flex items-center gap-2 shrink-0">
-      <button
-        type="button"
-        data-trigger="export-csv"
-        class="min-h-[38px] py-1.5 px-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition cursor-pointer inline-flex items-center gap-1"
-        title="Unduh CSV"
-      >
-        <AppIcon name="download" size="xs" />
-        <span>Ekspor</span>
-      </button>
-      <button
-        type="button"
-        data-trigger="toggle-cashbook"
-        class="min-h-[38px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center gap-1"
-      >
-        <AppIcon name="plus" size="xs" />
-        <span>Catat</span>
-      </button>
-    </div>
-  </div>
-
-  {/* Summary Metric Strip: Full-bleed 3-Column with Hairline Dividers */}
-  <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border-b border-slate-200 text-xs">
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+  {/* Summary Metric Strip: Saldo Bersih Full Row on Mobile + 2-Col Income/Expense Underneath */}
+  <div class="grid grid-cols-2 sm:grid-cols-3 border-b border-slate-200 text-xs">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
       <span class="text-xs font-medium text-slate-600 block">Pemasukan</span>
-      <span class="text-lg font-bold text-slate-900 block font-mono tabular-nums mt-0.5" id="cash-income-display">
+      <span class="text-base sm:text-lg font-bold text-slate-900 block font-mono tabular-nums mt-0.5 truncate" id="cash-income-display">
         {formatRupiah(summary.totalIncome)}
       </span>
     </div>
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 sm:border-r border-slate-200">
       <span class="text-xs font-medium text-slate-600 block">Pengeluaran</span>
-      <span class="text-lg font-bold text-slate-900 block font-mono tabular-nums mt-0.5" id="cash-expense-display">
+      <span class="text-base sm:text-lg font-bold text-slate-900 block font-mono tabular-nums mt-0.5 truncate" id="cash-expense-display">
         {formatRupiah(summary.totalExpense)}
       </span>
     </div>
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+    <div class="col-span-2 sm:col-span-1 order-first sm:order-last border-b sm:border-b-0 border-slate-200 px-4 sm:px-6 lg:px-8 py-4 bg-emerald-50/40 sm:bg-transparent">
       <span class="text-xs font-medium text-slate-600 block">Saldo Bersih</span>
-      <span class="text-lg font-bold text-emerald-700 block font-mono tabular-nums mt-0.5" id="cash-balance-display">
+      <span class="text-xl sm:text-lg font-bold text-emerald-700 block font-mono tabular-nums mt-0.5" id="cash-balance-display">
         {formatRupiah(summary.balance)}
       </span>
     </div>
@@ -156,38 +132,44 @@ const { summary, entries, products = [] } = Astro.props;
     </form>
   </div>
 
-  {/* Cashbook Table: Full-bleed edge-to-edge */}
+  {/* Mobile Table Horizontal-Scroll Hint */}
+  <div class="sm:hidden px-4 py-1.5 bg-slate-50 border-b border-slate-200 text-[11px] text-slate-600 flex items-center justify-between">
+    <span>Riwayat Transaksi Kas</span>
+    <span class="font-medium text-slate-500">Geser ke samping →</span>
+  </div>
+
+  {/* Cashbook Table: Preserved Table with Clean Horizontal Scroll on Mobile */}
   <div class="w-full overflow-x-auto">
-    <table class="w-full text-left text-xs border-b border-slate-200">
+    <table class="w-full min-w-[600px] text-left text-xs border-b border-slate-200">
       <thead class="bg-slate-50/70">
         <tr class="border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-xs">
-          <th class="py-3 pl-4 sm:pl-6 lg:pl-8 pr-3">Tanggal</th>
+          <th class="py-3 pl-4 sm:pl-6 lg:pl-8 pr-3 whitespace-nowrap">Tanggal</th>
           <th class="py-3 px-3">Keterangan</th>
-          <th class="py-3 px-3">Jenis</th>
-          <th class="py-3 px-3 text-right">Nominal</th>
-          <th class="py-3 pl-3 pr-4 sm:pr-6 lg:pr-8 text-center">Aksi</th>
+          <th class="py-3 px-3 whitespace-nowrap">Jenis</th>
+          <th class="py-3 px-3 text-right whitespace-nowrap">Nominal</th>
+          <th class="py-3 pl-3 pr-4 sm:pr-6 lg:pr-8 text-center whitespace-nowrap">Aksi</th>
         </tr>
       </thead>
       <tbody id="cashbook-rows" class="divide-y divide-slate-100">
         {entries.length > 0 ? (
           entries.map((c) => (
             <tr class="hover:bg-slate-50/60 transition" id={`cash-row-${c.id}`}>
-              <td class="py-3 pl-4 sm:pl-6 lg:pl-8 pr-3 text-slate-600 font-mono tabular-nums text-xs whitespace-nowrap">{c.transaction_date}</td>
-              <td class="py-3 px-3 text-slate-900 font-medium">{c.title}</td>
-              <td class="py-3 px-3">
+              <td class="py-2.5 pl-4 sm:pl-6 lg:pl-8 pr-3 text-slate-600 font-mono tabular-nums text-xs whitespace-nowrap">{c.transaction_date}</td>
+              <td class="py-2.5 px-3 text-slate-900 font-medium">{c.title}</td>
+              <td class="py-2.5 px-3 whitespace-nowrap">
                 <span class={`inline-block px-2 py-0.5 rounded-md text-xs font-semibold ${
                   c.type === 'income' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-rose-50 text-rose-700 border border-rose-200'
                 }`}>
                   {c.type === 'income' ? 'Masuk' : 'Keluar'}
                 </span>
               </td>
-              <td class={`py-3 px-3 text-right font-bold font-mono tabular-nums ${c.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
+              <td class={`py-2.5 px-3 text-right font-bold font-mono tabular-nums whitespace-nowrap ${c.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}`}>
                 {c.type === 'income' ? '+' : '-'} {formatRupiah(c.amount)}
               </td>
-              <td class="py-3 pl-3 pr-4 sm:pr-6 lg:pr-8 text-center">
+              <td class="py-1.5 pl-3 pr-4 sm:pr-6 lg:pr-8 text-center">
                 <button
                   type="button"
-                  class="btn-delete-cash text-slate-500 hover:text-rose-600 p-1 cursor-pointer transition"
+                  class="btn-delete-cash min-w-[44px] min-h-[44px] inline-flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition"
                   data-id={c.id}
                   title="Hapus"
                   aria-label={`Hapus catatan ${c.title}`}

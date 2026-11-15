@@ -78,9 +78,9 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
     </div>
   </div>
 
-  {/* Events Management Table: Compact Table with Line Dividers */}
-  <div class="overflow-x-auto">
-    <table class="w-full text-left text-xs border-b border-slate-200">
+  {/* Events Management Table: Preserved Table with Horizontal Scroll */}
+  <div class="w-full overflow-x-auto">
+    <table class="w-full min-w-[640px] text-left text-xs border-b border-slate-200">
       <thead>
         <tr class="border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-xs">
           <th class="py-2.5 px-2">Tanggal</th>

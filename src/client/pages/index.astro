@@ -104,15 +104,15 @@ function buildFilterUrl(updates: Record<string, string | null>) {
   noindex={isFiltered || safePage > 1}
   canonicalUrl={`${Astro.url.origin}/`}
 >
-  <div class="space-y-8 sm:space-y-12 py-3 sm:py-6">
+  <div class="space-y-6 sm:space-y-12 py-2 sm:py-6">
 
     <!-- HERO SEARCH & CATEGORY STRIP -->
-    <section class="text-center space-y-5 pt-2 sm:pt-4 px-3 sm:px-0">
-      <div class="space-y-2">
-        <h1 class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight">
+    <section class="text-center space-y-3.5 sm:space-y-5 pt-1 sm:pt-4 px-3 sm:px-0">
+      <div class="space-y-1.5 sm:space-y-2">
+        <h1 class="text-xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-snug">
           Mau beli apa dari <span class="text-emerald-700 underline decoration-emerald-300">warga NU?</span>
         </h1>
-        <p class="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
+        <p class="hidden sm:block text-xs sm:text-sm text-slate-600 max-w-xl mx-auto">
           Temukan produk asli warga nahdliyin se-Kabupaten Sumenep. Transaksi langsung via WhatsApp tanpa komisi perantara.
         </p>
       </div>
@@ -120,13 +120,13 @@ function buildFilterUrl(updates: Record<string, string | null>) {
       <form
         method="GET"
         action="/"
-        class="max-w-3xl mx-auto bg-white border border-slate-300 rounded-2xl p-1.5 sm:p-2 shadow-sm flex flex-col sm:flex-row items-center gap-2"
+        class="max-w-3xl mx-auto bg-white border border-slate-300 rounded-2xl p-1.5 sm:p-2 shadow-sm flex flex-wrap sm:flex-nowrap items-center gap-1.5 sm:gap-2"
       >
-        <div class="w-full sm:w-56 relative border-b sm:border-b-0 sm:border-r border-slate-200 shrink-0">
+        <div class="order-2 basis-full sm:basis-auto sm:order-1 sm:w-56 relative border-t sm:border-t-0 sm:border-r border-slate-200 pt-1 sm:pt-0 shrink-0">
           <select
             name="zona"
             aria-label="Pilih Wilayah MWC"
-            class="w-full min-h-[44px] appearance-none bg-transparent pl-8 pr-7 py-2.5 text-xs sm:text-sm font-bold text-slate-800 cursor-pointer"
+            class="w-full min-h-[40px] sm:min-h-[44px] appearance-none bg-transparent pl-8 pr-7 py-1.5 sm:py-2.5 text-xs sm:text-sm font-bold text-slate-800 cursor-pointer"
           >
             <option value="semua" class="bg-white text-slate-900">Semua Wilayah MWC</option>
             {zones.map((z) => (
@@ -143,20 +143,21 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           </span>
         </div>
 
-        <div class="relative w-full flex-1">
+        <div class="order-1 sm:order-2 relative flex-1 min-w-0">
           <input
             type="text"
+            id="hero-q"
             name="q"
             value={searchQuery}
             aria-label="Kata kunci produk"
-            placeholder="Cari rengginang, batik, siwalan, petis, jamu..."
-            class="w-full min-h-[44px] py-2.5 px-3 text-xs sm:text-sm text-slate-900 placeholder-slate-500 bg-transparent focus:outline-none"
+            placeholder="Cari rengginang, batik, petis..."
+            class="w-full min-h-[44px] py-2 sm:py-2.5 px-2.5 sm:px-3 text-xs sm:text-sm text-slate-900 placeholder-slate-500 bg-transparent focus:outline-none"
           />
           {searchQuery && (
             <a
               href={buildFilterUrl({ q: null })}
               aria-label="Hapus kata kunci"
-              class="absolute right-2 top-1/2 -translate-y-1/2 min-w-[36px] min-h-[36px] text-slate-500 hover:text-slate-900 font-bold text-xs flex items-center justify-center"
+              class="absolute right-1 top-1/2 -translate-y-1/2 min-w-[40px] min-h-[40px] text-slate-500 hover:text-slate-900 font-bold text-xs flex items-center justify-center"
             >
               <AppIcon name="close" size="xs" />
             </a>
@@ -165,14 +166,17 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
         <button
           type="submit"
-          class="w-full sm:w-auto min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs sm:text-sm px-7 py-2.5 rounded-xl transition flex items-center justify-center gap-2 shrink-0 cursor-pointer shadow-xs active:scale-98"
+          class="order-1 sm:order-3 w-auto min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs sm:text-sm px-4 sm:px-7 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer shadow-xs active:scale-98"
         >
           <AppIcon name="search" size="xs" />
           <span>Cari</span>
         </button>
       </form>
 
-      <div class="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xs text-slate-600 max-w-2xl mx-auto">
+      <div
+        id="hero-popular-tags"
+        class={`${searchQuery ? 'flex' : 'hidden sm:flex'} flex-wrap items-center justify-center gap-1.5 sm:gap-2 text-xs text-slate-600 max-w-2xl mx-auto`}
+      >
         <span class="font-bold text-slate-500">Populer:</span>
         {POPULAR_TAGS.map((tag) => (
           <a
@@ -184,25 +188,25 @@ function buildFilterUrl(updates: Record<string, string | null>) {
         ))}
       </div>
 
-      <div class="pt-2 max-w-5xl mx-auto">
-        <div class="text-left text-xs font-bold uppercase tracking-wider text-slate-600 mb-3 px-2 sm:px-0">
+      <div class="pt-1 sm:pt-2 max-w-5xl mx-auto">
+        <div class="text-left text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 sm:mb-3 px-1 sm:px-0">
           Kategori Iklan
         </div>
-        <div class="flex items-center justify-start sm:justify-center gap-3 sm:gap-6 overflow-x-auto pb-2 no-scrollbar px-2 sm:px-0">
+        <div class="flex items-start sm:items-center justify-start sm:justify-center gap-2.5 sm:gap-6 overflow-x-auto pb-1.5 sm:pb-2 no-scrollbar px-1 sm:px-0">
           <a
             href={`/?kategori=semua${currentZone !== 'semua' ? `&zona=${currentZone}` : ''}`}
-            class="group flex flex-col items-center gap-2 shrink-0 text-center"
+            class="group flex flex-col items-center gap-1.5 sm:gap-2 shrink-0 text-center"
           >
             <div
-              class={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition border-2 ${
+              class={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition border-2 ${
                 currentCategory === 'semua'
                   ? 'bg-emerald-50 border-emerald-700 text-emerald-800 shadow-sm'
                   : 'bg-white border-slate-200 text-slate-700 group-hover:border-emerald-400 group-hover:scale-105 shadow-2xs'
               }`}
             >
-              <AppIcon name="shopping-bag" size="lg" class={currentCategory === 'semua' ? 'text-emerald-700' : 'text-slate-600'} />
+              <AppIcon name="shopping-bag" size="md" class={`sm:scale-125 ${currentCategory === 'semua' ? 'text-emerald-700' : 'text-slate-600'}`} />
             </div>
-            <span class={`text-xs font-bold ${currentCategory === 'semua' ? 'text-emerald-800' : 'text-slate-700 group-hover:text-slate-900'}`}>
+            <span class={`text-[11px] sm:text-xs font-bold ${currentCategory === 'semua' ? 'text-emerald-800' : 'text-slate-700 group-hover:text-slate-900'}`}>
               Semua
             </span>
           </a>
@@ -214,25 +218,25 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             return (
               <a
                 href={`/?kategori=${encodeURIComponent(cat)}${currentZone !== 'semua' ? `&zona=${currentZone}` : ''}`}
-                class="group flex flex-col items-center gap-2 shrink-0 text-center"
+                class="group flex flex-col items-center gap-1.5 sm:gap-2 shrink-0 text-center"
               >
                 <div
-                  class={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition border-2 ${
+                  class={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition border-2 ${
                     isActive
                       ? 'bg-emerald-50 border-emerald-700 text-emerald-800 shadow-sm'
                       : 'bg-white border-slate-200 text-slate-700 group-hover:border-emerald-400 group-hover:scale-105 shadow-2xs'
                   }`}
                 >
-                  <AppIcon name={icon} size="lg" class={isActive ? 'text-emerald-700' : 'text-slate-600'} />
+                  <AppIcon name={icon} size="md" class={`sm:scale-125 ${isActive ? 'text-emerald-700' : 'text-slate-600'}`} />
                   {badge && (
                     <span
-                      class={`absolute -top-1 -right-1 text-xs font-black uppercase px-1.5 py-0.5 rounded-full ${badge.color}`}
+                      class={`hidden sm:inline-block absolute -top-1 -right-1 text-xs font-black uppercase px-1.5 py-0.5 rounded-full ${badge.color}`}
                     >
                       {badge.label}
                     </span>
                   )}
                 </div>
-                <span class={`text-xs font-bold max-w-[92px] leading-tight truncate ${isActive ? 'text-emerald-800' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                <span class={`text-[11px] sm:text-xs font-bold max-w-[74px] sm:max-w-[92px] leading-tight line-clamp-2 sm:truncate ${isActive ? 'text-emerald-800' : 'text-slate-700 group-hover:text-slate-900'}`}>
                   {cat}
                 </span>
               </a>
@@ -242,46 +246,48 @@ function buildFilterUrl(updates: Record<string, string | null>) {
       </div>
     </section>
 
-    {/* 1. TODAY'S FEATURED SELECTION (Full-Bleed Band + 4-Col Spotlight Cards) */}
+    {/* 1. TODAY'S FEATURED SELECTION (Mobile Swipe Carousel + Desktop 4-Col Grid) */}
     {showDiscoverySections && spotlightProducts.length > 0 && (
-      <section class="w-screen relative left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-100/75 border-y border-emerald-200/70 py-7 sm:py-9">
-        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-4">
-          <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+      <section class="w-screen relative left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-100/75 border-y border-emerald-200/70 py-5 sm:py-9">
+        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
+          <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
             Pilihan Unggulan Hari Ini
           </h2>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 sm:overflow-visible no-scrollbar">
             {spotlightProducts.map((p, idx) => (
-              <ProductCard product={p} variant="spotlight" highlight={idx === 0} />
+              <div class="w-[74vw] max-w-[270px] shrink-0 snap-start sm:w-auto sm:max-w-none">
+                <ProductCard product={p} variant="spotlight" highlight={idx === 0} />
+              </div>
             ))}
           </div>
         </div>
       </section>
     )}
 
-    {/* 2. KABAR & PANDUAN UMKM (3-Col Horizontal Thumbnail+Excerpt) + SLIM PROMO BANNER */}
+    {/* 2. KABAR & PANDUAN UMKM + SLIM PROMO BANNER (Banner hidden on mobile: Bottom Nav already carries + CTA) */}
     {showDiscoverySections && (
-      <section class="space-y-6 px-3 sm:px-0">
+      <section class="space-y-5 sm:space-y-6 px-3 sm:px-0">
         {articles.length > 0 && (
-          <div class="space-y-4">
+          <div class="space-y-3.5 sm:space-y-4">
             <div class="flex items-center justify-between gap-3">
-              <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+              <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
                 Kabar &amp; Panduan Usaha
               </h2>
               <a
                 href="/edukasi"
-                class="min-h-[40px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-emerald-600 text-emerald-800 hover:bg-emerald-50 text-xs font-bold transition shrink-0"
+                class="min-h-[40px] inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl border border-emerald-600 text-emerald-800 hover:bg-emerald-50 text-xs font-bold transition shrink-0"
               >
                 <AppIcon name="book" size="xs" />
-                <span>Jelajahi Edukasi</span>
+                <span>Edukasi</span>
               </a>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-              {articles.slice(0, 3).map((art) => (
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+              {articles.slice(0, 3).map((art, artIdx) => (
                 <a
                   href={`/edukasi/${art.slug}`}
-                  class="flex items-start gap-3.5 rounded-2xl p-2 -m-2 hover:bg-white transition group cursor-pointer"
+                  class={`${artIdx >= 2 ? 'hidden md:flex' : 'flex'} items-start gap-3 rounded-2xl p-2 -m-2 hover:bg-white transition group cursor-pointer`}
                 >
                   <img
                     src={getOptimizedImageUrl(art.image_url, 240)}
@@ -290,7 +296,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
                     height="90"
                     loading="lazy"
                     decoding="async"
-                    class="w-28 sm:w-32 aspect-4/3 rounded-xl object-cover shrink-0 bg-slate-100 border border-slate-200 group-hover:scale-102 transition"
+                    class="w-24 sm:w-32 aspect-4/3 rounded-xl object-cover shrink-0 bg-slate-100 border border-slate-200 group-hover:scale-102 transition"
                   />
                   <div class="min-w-0 space-y-1">
                     <h3 class="font-extrabold text-sm text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-snug">
@@ -306,8 +312,8 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           </div>
         )}
 
-        <!-- Centered Slim Promo Banner -->
-        <div class="max-w-3xl mx-auto">
+        <!-- Centered Slim Promo Banner (Hidden on mobile: redundant with center + Bottom Nav) -->
+        <div class="hidden sm:block max-w-3xl mx-auto">
           <div class="bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-700 border border-emerald-600 rounded-2xl px-5 py-4 sm:px-7 sm:py-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm text-white">
             <div class="flex items-center gap-3.5 text-center sm:text-left">
               <div class="w-10 h-10 rounded-xl bg-white/15 border border-white/25 flex items-center justify-center shrink-0">
@@ -333,56 +339,58 @@ function buildFilterUrl(updates: Record<string, string | null>) {
       </section>
     )}
 
-    {/* 3. MOST FAVORITED / POPULAR LISTINGS (4-Col Row) */}
+    {/* 3. MOST FAVORITED / POPULAR LISTINGS (Mobile Horizontal Carousel + Desktop 4-Col Row) */}
     {showDiscoverySections && popularProducts.length > 0 && (
-      <section class="space-y-4 px-3 sm:px-0">
+      <section class="space-y-3 sm:space-y-4 px-3 sm:px-0">
         <div class="flex items-center justify-between gap-3">
-          <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+          <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
             Produk Paling Diminati
           </h2>
           <a
             id="home-favorites-count-link"
             href="/favorit"
             data-ssr-fav-count={ssrFavCount !== null ? String(ssrFavCount) : ''}
-            class="min-h-[40px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-emerald-600 text-emerald-800 hover:bg-emerald-50 text-xs font-bold transition shrink-0"
+            class="hidden sm:inline-flex min-h-[40px] items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-emerald-600 text-emerald-800 hover:bg-emerald-50 text-xs font-bold transition shrink-0"
           >
             <AppIcon name="star" size="xs" />
             <span>Kelola Favorit (<span id="home-fav-count-num">{ssrFavCount ?? 0}</span>)</span>
           </a>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 sm:overflow-visible no-scrollbar">
           {popularProducts.map((p) => (
-            <ProductCard product={p} variant="compact" hidePhotoCount={true} />
+            <div class="w-[68vw] max-w-[250px] shrink-0 snap-start sm:w-auto sm:max-w-none">
+              <ProductCard product={p} variant="compact" hidePhotoCount={true} />
+            </div>
           ))}
         </div>
       </section>
     )}
 
-    {/* 4. BEST SELLERS / TOP UMKM PORTRAIT SHOWCASE (Full-Bleed Band + 4-Col Portrait Cards) */}
+    {/* 4. BEST SELLERS / TOP UMKM PORTRAIT SHOWCASE (Full-Bleed Band) */}
     {showDiscoverySections && verifiedSellers.length > 0 && (
-      <section id="toko-warga" class="w-screen relative left-1/2 -translate-x-1/2 bg-slate-100/90 border-y border-slate-200/80 py-7 sm:py-9">
-        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-4">
+      <section id="toko-warga" class="w-screen relative left-1/2 -translate-x-1/2 bg-slate-100/90 border-y border-slate-200/80 py-5 sm:py-9">
+        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
           <div class="flex items-center justify-between gap-3">
-            <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">
+            <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
               Toko &amp; Pengrajin Unggulan
             </h2>
             <a
               href="/toko"
-              class="text-xs font-bold text-emerald-700 hover:text-emerald-900 transition inline-flex items-center gap-1 shrink-0"
+              class="min-h-[40px] sm:min-h-0 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition inline-flex items-center gap-1 shrink-0"
             >
-              <span>Lihat Semua Toko ({sellers.length})</span>
+              <span>Semua ({sellers.length})</span>
               <AppIcon name="arrow-right" size="xs" />
             </a>
           </div>
 
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-4">
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             {verifiedSellers.slice(0, 4).map((seller) => {
               const coverImg = seller.sample_images[0] ? getOptimizedImageUrl(seller.sample_images[0], 500) : null;
               return (
                 <a
                   href={`/toko/${seller.slug || seller.id}`}
-                  class="relative aspect-3/4 rounded-lg overflow-hidden border border-slate-200 hover:border-emerald-500 shadow-xs hover:shadow-md transition group bg-emerald-950 block"
+                  class="relative aspect-square sm:aspect-3/4 rounded-lg overflow-hidden border border-slate-200 hover:border-emerald-500 shadow-xs hover:shadow-md transition group bg-emerald-950 block"
                 >
                   {coverImg ? (
                     <img
@@ -395,19 +403,19 @@ function buildFilterUrl(updates: Record<string, string | null>) {
                       class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
                     />
                   ) : (
-                    <div class="w-full h-full bg-gradient-to-br from-emerald-800 to-teal-950 flex items-center justify-center text-white/90 font-black text-4xl">
+                    <div class="w-full h-full bg-gradient-to-br from-emerald-800 to-teal-950 flex items-center justify-center text-white/90 font-black text-3xl sm:text-4xl">
                       {seller.name.slice(0, 2).toUpperCase()}
                     </div>
                   )}
 
                   {Boolean(seller.is_verified) && (
-                    <span class="absolute top-2.5 left-2.5 bg-emerald-700 text-white text-xs font-bold px-2.5 py-0.5 rounded-md shadow-xs inline-flex items-center gap-1">
+                    <span class="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-emerald-700 text-white text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-md shadow-xs inline-flex items-center gap-1">
                       <AppIcon name="check" size="xs" />
                       <span>Terverifikasi</span>
                     </span>
                   )}
 
-                  <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-3.5 sm:p-4 text-left">
+                  <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-3 sm:p-4 text-left">
                     <h3 class="font-black text-sm sm:text-base text-white line-clamp-1 leading-tight">
                       {seller.name}
                     </h3>
@@ -424,14 +432,14 @@ function buildFilterUrl(updates: Record<string, string | null>) {
     )}
 
     <!-- 5. MAIN CATALOG GRID (5-Column Desktop Dense Marketplace Grid + Pagination) -->
-    <section id="katalog-terbaru" class="space-y-4 px-3 sm:px-0 pt-1">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
+    <section id="katalog-terbaru" class="space-y-3.5 sm:space-y-4 px-3 sm:px-0 pt-1">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pb-2.5 sm:pb-3 border-b border-slate-200">
         <div>
-          <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+          <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <AppIcon name="clipboard" size="sm" class="text-emerald-700" />
             <span>{isFiltered ? 'Hasil Pencarian Produk' : 'Katalog Produk Warga NU'}</span>
           </h2>
-          <p class="text-xs text-slate-600 mt-0.5">
+          <p class={`${isFiltered ? 'block' : 'hidden sm:block'} text-xs text-slate-600 mt-0.5`}>
             Menampilkan <strong>{products.length}</strong> dari <strong>{totalProducts}</strong> produk aktif (Halaman {safePage} / {totalPages})
           </p>
         </div>
@@ -617,7 +625,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             Bersihkan Riwayat
           </button>
         </div>
-        <div id="recent-viewed-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        <div id="recent-viewed-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"></div>
       </section>
     )}
 
@@ -636,6 +644,16 @@ function buildFilterUrl(updates: Record<string, string | null>) {
   </button>
 
   <script>
+    // Reveal popular tags when mobile user focuses the search field
+    const heroQInput = document.getElementById('hero-q') as HTMLInputElement | null;
+    const heroPopularTags = document.getElementById('hero-popular-tags');
+    heroQInput?.addEventListener('focus', () => {
+      if (heroPopularTags) {
+        heroPopularTags.classList.remove('hidden');
+        heroPopularTags.classList.add('flex');
+      }
+    });
+
     // Sync favorite count badge on "Kelola Favorit (N)"
     const favLink = document.getElementById('home-favorites-count-link');
     const favNumEl = document.getElementById('home-fav-count-num');

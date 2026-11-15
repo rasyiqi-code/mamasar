@@ -54,45 +54,22 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
 ---
 
 <section id="panel-products" class="tab-panel">
-  {/* Mobile Quick Actions (Desktop actions live in sticky header) */}
-  <div class="flex md:hidden items-center justify-between gap-2 px-4 py-3 border-b border-slate-200">
-    <h2 class="text-base font-bold text-slate-900">Katalog Produk</h2>
-    <div class="flex items-center gap-2 shrink-0">
-      <button
-        type="button"
-        data-trigger="open-promo"
-        class="min-h-[38px] py-1.5 px-2.5 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-lg border border-slate-300 transition inline-flex items-center gap-1 cursor-pointer"
-      >
-        <AppIcon name="zap" size="xs" class="text-amber-600" />
-        <span>Promosi</span>
-      </button>
-
-      <a
-        href="/pasang-iklan"
-        class="min-h-[38px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition inline-flex items-center gap-1"
-      >
-        <AppIcon name="plus" size="xs" />
-        <span>Tambah</span>
-      </a>
-    </div>
-  </div>
-
-  {/* Hairline Store Summary Metric Strip: Full-bleed edge-to-edge */}
-  <div class="grid grid-cols-2 sm:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 border-b border-slate-200">
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+  {/* Hairline Store Summary Metric Strip: 2x2 on Mobile, 4x1 on Desktop */}
+  <div class="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r sm:border-b-0 border-slate-200">
       <span class="text-xs font-medium text-slate-600 block">Produk Tayang</span>
       <div class="mt-0.5 flex items-baseline gap-1.5">
         <span class="text-lg font-bold text-slate-900 font-mono tabular-nums">{products.length}</span>
         <span class="text-xs text-slate-600 font-mono tabular-nums">({activeCount} aktif)</span>
       </div>
     </div>
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b sm:border-b-0 sm:border-r border-slate-200">
       <span class="text-xs font-medium text-slate-600 block">Total Dilihat</span>
       <span class="mt-0.5 text-lg font-bold text-slate-900 font-mono tabular-nums block">
         {totalViews.toLocaleString('id-ID')}
       </span>
     </div>
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
       <span class="text-xs font-medium text-slate-600 block">Token Sundul</span>
       <div class="mt-0.5 flex items-baseline gap-1.5">
         <span class="text-lg font-bold text-emerald-700 font-mono tabular-nums">{bumpCredits}</span>
@@ -112,8 +89,8 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
         <span class="text-xs text-slate-600 font-mono tabular-nums">{notifications.length} pesan</span>
       </div>
       <ul class="divide-y divide-slate-100">
-        {notifications.map((n) => (
-          <li class="text-xs py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+        {notifications.map((n, nIdx) => (
+          <li class={`text-xs py-2 flex-col sm:flex-row sm:items-center justify-between gap-1 ${nIdx >= 1 ? 'hidden sm:flex' : 'flex'}`}>
             <div>
               <span class="font-semibold text-slate-900">{n.title}: </span>
               <span class="text-slate-600">{n.body}</span>
@@ -168,12 +145,12 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
                 <span class="text-slate-300" aria-hidden="true">·</span>
                 <span class="font-bold text-slate-900 font-mono tabular-nums">{formatRupiah(prod.price)}</span>
                 {prod.original_price && prod.original_price > prod.price ? (
-                  <span class="text-slate-500 line-through font-mono tabular-nums">
+                  <span class="hidden sm:inline text-slate-500 line-through font-mono tabular-nums">
                     {formatRupiah(prod.original_price)}
                   </span>
                 ) : null}
                 {prod.production_capacity ? (
-                  <span class="text-slate-600">
+                  <span class="hidden sm:inline text-slate-600">
                     · {prod.production_capacity}
                   </span>
                 ) : null}
@@ -188,14 +165,14 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+          {/* Quick Actions: Crisp 3-Col Strip on Mobile, Inline Row on Desktop */}
+          <div class="grid grid-cols-3 sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
             <button
               type="button"
               data-action="bump"
               data-id={prod.id}
               title="Sundul ke posisi teratas"
-              class="min-h-[40px] px-2.5 py-1 bg-slate-50 hover:bg-amber-50 text-slate-700 hover:text-amber-950 font-medium text-xs rounded-lg border border-slate-200 hover:border-amber-300 transition cursor-pointer inline-flex items-center gap-1"
+              class="min-h-[44px] sm:min-h-[40px] px-2.5 py-1 bg-slate-50 hover:bg-amber-50 text-slate-700 hover:text-amber-950 font-medium text-xs rounded-lg border border-slate-200 hover:border-amber-300 transition cursor-pointer inline-flex items-center justify-center gap-1"
             >
               <AppIcon name="zap" size="xs" />
               <span>Sundul</span>
@@ -213,13 +190,13 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
               data-shopee={prod.shopee_url || ''}
               data-stock-status={prod.stock_status || (prod.is_sold_out ? 'sold_out' : 'ready')}
               data-capacity={prod.production_capacity || ''}
-              class="min-h-[40px] px-3 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition cursor-pointer"
+              class="min-h-[44px] sm:min-h-[40px] px-3 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition cursor-pointer inline-flex items-center justify-center"
             >
               Edit
             </button>
 
             <details class="relative">
-              <summary class="min-h-[40px] list-none px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition cursor-pointer inline-flex items-center gap-1 select-none">
+              <summary class="min-h-[44px] sm:min-h-[40px] w-full list-none px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition cursor-pointer inline-flex items-center justify-center gap-1 select-none">
                 <span>Lainnya</span>
                 <AppIcon name="chevron-down" size="xs" />
               </summary>

@@ -310,9 +310,9 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
       tabindex="0"
       role="region"
       aria-labelledby="users-directory-heading"
-      class="users-table-wrapper border border-slate-200 rounded-lg bg-white"
+      class="users-table-wrapper overflow-x-auto border border-slate-200 rounded-lg bg-white"
     >
-      <table class="users-directory-table w-full text-left border-collapse text-xs">
+      <table class="users-directory-table w-full min-w-[780px] text-left border-collapse text-xs">
         <thead class="bg-slate-50 border-b border-slate-200 text-slate-700">
           <tr>
             <th scope="col" class="py-2.5 px-3 font-bold">Pengguna</th>
@@ -441,64 +441,14 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
 
 <style>
   .users-table-wrapper {
-    overflow: auto;
+    overflow-x: auto;
     max-inline-size: 100%;
-    container-type: inline-size;
+    -webkit-overflow-scrolling: touch;
   }
 
   .users-directory-table thead {
     position: sticky;
     inset-block-start: 0;
     z-index: 1;
-  }
-
-  @container (width < 760px) {
-    .users-directory-table,
-    .users-directory-table thead,
-    .users-directory-table tbody,
-    .users-directory-table tr,
-    .users-directory-table th,
-    .users-directory-table td {
-      display: block;
-    }
-
-    .users-directory-table thead {
-      display: none;
-    }
-
-    .users-directory-table tr {
-      padding: 0.75rem;
-      border-bottom: 1px solid #e2e8f0;
-    }
-
-    .users-directory-table tbody th,
-    .users-directory-table tbody td {
-      padding: 0.35rem 0;
-      text-align: left;
-    }
-
-    .users-directory-table tbody td:nth-child(2)::before {
-      content: "Peran Saat Ini: ";
-      font-weight: 700;
-      color: #475569;
-      display: block;
-      margin-bottom: 0.2rem;
-    }
-
-    .users-directory-table tbody td:nth-child(3)::before {
-      content: "Ubah Peran: ";
-      font-weight: 700;
-      color: #475569;
-      display: block;
-      margin-bottom: 0.2rem;
-    }
-
-    .users-directory-table tbody td:nth-child(4)::before {
-      content: "Wilayah MWC & Ranting: ";
-      font-weight: 700;
-      color: #475569;
-      display: block;
-      margin-bottom: 0.2rem;
-    }
   }
 </style>

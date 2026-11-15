@@ -35,37 +35,125 @@ const {
   productCount = 0,
   cashbookCount = 0,
 } = Astro.props;
+
+const activeMobileTitleMap: Record<NonNullable<Props['activeSection']>, string> = {
+  overview: 'Ringkasan Toko',
+  products: 'Katalog Produk',
+  cashbook: 'Buku Kas Usaha',
+  profile: 'Profil & Data Toko',
+  services: 'Layanan Kemitraan',
+};
+const activeMobileTitle = activeMobileTitleMap[activeSection];
 ---
 
-<!-- MOBILE TOP HEADER (Compact bar for mobile) -->
-<div class="md:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between gap-2">
-  <div class="flex items-center gap-2.5 min-w-0">
+<!-- MOBILE TOP HEADER (Unified Single Header with Context-Aware Actions) -->
+<div class="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-xs border-b border-slate-200 px-3 py-2 flex items-center justify-between gap-2">
+  <div class="flex items-center gap-2 min-w-0">
     <button
       type="button"
       id="btn-toggle-sidebar"
-      class="min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg border border-slate-200 focus:outline-none cursor-pointer shrink-0"
+      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg border border-slate-200 focus:outline-none cursor-pointer shrink-0"
       aria-label="Buka Menu Sidebar"
     >
       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
       </svg>
     </button>
+
+    <a
+      href="/dashboard/profil#store-logo-section"
+      title="Ubah Logo Toko"
+      aria-label="Ubah Logo Toko"
+      class="shrink-0 block rounded-lg"
+    >
+      <img
+        data-store-logo-img
+        src={store.logo_url || ''}
+        alt={`Logo ${store.name}`}
+        class={`w-8 h-8 rounded-lg object-cover border border-slate-200 bg-white ${store.logo_url ? '' : 'hidden'}`}
+      />
+      <div
+        data-store-logo-fallback
+        class={`w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-xs ${store.logo_url ? 'hidden' : ''}`}
+      >
+        {store.name.slice(0, 2).toUpperCase()}
+      </div>
+    </a>
+
     <div class="min-w-0">
-      <h2 class="text-xs font-bold text-slate-900 truncate">{store.name}</h2>
-      <p class="text-xs text-slate-600 truncate flex items-center gap-1">
-        <AppIcon name="map-pin" size="xs" class="text-emerald-700 shrink-0" />
-        <span class="truncate">{store.zone_name}</span>
+      <h2 class="text-xs font-bold text-slate-900 truncate leading-tight">{activeMobileTitle}</h2>
+      <p class="text-[11px] text-slate-600 truncate leading-tight">
+        {store.name} · {store.zone_name}
       </p>
     </div>
   </div>
 
-  <a
-    href="/pasang-iklan"
-    class="min-h-[40px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shrink-0 transition inline-flex items-center gap-1"
-  >
-    <AppIcon name="plus" size="xs" />
-    <span>Produk</span>
-  </a>
+  <div class="flex items-center gap-1.5 shrink-0">
+    {activeSection === 'products' && (
+      <>
+        <button
+          type="button"
+          data-trigger="open-promo"
+          aria-label="Promosi dan Sundul"
+          class="min-w-[44px] min-h-[44px] px-2.5 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-lg border border-slate-300 transition inline-flex items-center justify-center gap-1 cursor-pointer"
+        >
+          <AppIcon name="zap" size="xs" class="text-amber-600" />
+          <span class="hidden min-[390px]:inline">Promosi</span>
+        </button>
+        <a
+          href="/pasang-iklan"
+          class="min-h-[44px] py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shrink-0 transition inline-flex items-center gap-1"
+        >
+          <AppIcon name="plus" size="xs" />
+          <span>Produk</span>
+        </a>
+      </>
+    )}
+
+    {activeSection === 'cashbook' && (
+      <>
+        <button
+          type="button"
+          data-trigger="export-csv"
+          aria-label="Unduh CSV Buku Kas"
+          title="Unduh CSV"
+          class="min-w-[44px] min-h-[44px] px-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition cursor-pointer inline-flex items-center justify-center gap-1"
+        >
+          <AppIcon name="download" size="xs" />
+          <span class="hidden min-[390px]:inline">CSV</span>
+        </button>
+        <button
+          type="button"
+          data-trigger="toggle-cashbook"
+          class="min-h-[44px] py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center gap-1"
+        >
+          <AppIcon name="plus" size="xs" />
+          <span>Catat</span>
+        </button>
+      </>
+    )}
+
+    {activeSection === 'overview' && (
+      <a
+        href="/pasang-iklan"
+        class="min-h-[44px] py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shrink-0 transition inline-flex items-center gap-1"
+      >
+        <AppIcon name="plus" size="xs" />
+        <span>Iklan</span>
+      </a>
+    )}
+
+    {(activeSection === 'profile' || activeSection === 'services') && (
+      <a
+        href={`/toko/${store.slug || store.id}`}
+        target="_blank"
+        class="min-h-[44px] py-2 px-2.5 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-lg border border-slate-300 shrink-0 transition inline-flex items-center gap-1"
+      >
+        <span>Etalase</span>
+        <AppIcon name="external-link" size="xs" />
+      </a>
+    )}
+  </div>
 </div>
 
 <!-- SIDEBAR BACKDROP ON MOBILE -->
@@ -119,7 +207,7 @@ const {
       <button
         type="button"
         id="btn-close-sidebar"
-        class="md:hidden min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
+        class="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
         aria-label="Tutup Menu Sidebar"
       >
         <AppIcon name="x" size="sm" />
@@ -289,3 +377,69 @@ const {
     </div>
   </div>
 </aside>
+
+<!-- MOBILE DASHBOARD BOTTOM TAB BAR (1-Tap Thumb Navigation Across Core Store Views) -->
+<nav
+  aria-label="Navigasi Bawah Dashboard"
+  class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xs border-t border-slate-200 px-1 py-1 pb-[calc(0.35rem+env(safe-area-inset-bottom,0px))] grid grid-cols-5 items-center text-[11px]"
+>
+  <a
+    href="/dashboard"
+    aria-current={activeSection === 'overview' ? 'page' : undefined}
+    class={`min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold transition ${
+      activeSection === 'overview' ? 'text-emerald-700 bg-emerald-50/70' : 'text-slate-600 hover:text-emerald-700'
+    }`}
+  >
+    <AppIcon name="sliders" size="sm" />
+    <span class="truncate max-w-full">Ringkasan</span>
+  </a>
+
+  <a
+    href="/dashboard/produk"
+    aria-current={activeSection === 'products' ? 'page' : undefined}
+    class={`relative min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold transition ${
+      activeSection === 'products' ? 'text-emerald-700 bg-emerald-50/70' : 'text-slate-600 hover:text-emerald-700'
+    }`}
+  >
+    <AppIcon name="package" size="sm" />
+    <span class="truncate max-w-full">Produk</span>
+    {productCount > 0 && (
+      <span class="absolute top-1 right-2.5 min-w-[16px] h-4 px-1 rounded-full bg-slate-200 text-slate-800 text-[10px] font-mono font-bold flex items-center justify-center leading-none">
+        {productCount > 99 ? '99+' : productCount}
+      </span>
+    )}
+  </a>
+
+  <a
+    href="/dashboard/kas"
+    aria-current={activeSection === 'cashbook' ? 'page' : undefined}
+    class={`min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold transition ${
+      activeSection === 'cashbook' ? 'text-emerald-700 bg-emerald-50/70' : 'text-slate-600 hover:text-emerald-700'
+    }`}
+  >
+    <AppIcon name="book" size="sm" />
+    <span class="truncate max-w-full">Buku Kas</span>
+  </a>
+
+  <a
+    href="/dashboard/profil"
+    aria-current={activeSection === 'profile' ? 'page' : undefined}
+    class={`min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold transition ${
+      activeSection === 'profile' ? 'text-emerald-700 bg-emerald-50/70' : 'text-slate-600 hover:text-emerald-700'
+    }`}
+  >
+    <AppIcon name="store" size="sm" />
+    <span class="truncate max-w-full">Profil</span>
+  </a>
+
+  <a
+    href="/dashboard/kemitraan"
+    aria-current={activeSection === 'services' ? 'page' : undefined}
+    class={`min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold transition ${
+      activeSection === 'services' ? 'text-emerald-700 bg-emerald-50/70' : 'text-slate-600 hover:text-emerald-700'
+    }`}
+  >
+    <AppIcon name="award" size="sm" />
+    <span class="truncate max-w-full">Mitra</span>
+  </a>
+</nav>

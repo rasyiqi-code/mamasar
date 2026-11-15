@@ -60,30 +60,9 @@ const recentCash = cashbookEntries.slice(0, 4);
 ---
 
 <section id="panel-overview">
-  {/* Mobile Quick Actions (Desktop actions live in sticky header) */}
-  <div class="flex md:hidden items-center justify-between gap-2 px-4 py-3 border-b border-slate-200">
-    <h2 class="text-base font-bold text-slate-900">Ringkasan Toko</h2>
-    <div class="flex items-center gap-2 shrink-0">
-      <a
-        href="/dashboard/produk"
-        class="min-h-[38px] py-1.5 px-2.5 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-lg border border-slate-300 transition inline-flex items-center gap-1"
-      >
-        <AppIcon name="package" size="xs" />
-        <span>Produk</span>
-      </a>
-      <a
-        href="/pasang-iklan"
-        class="min-h-[38px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition inline-flex items-center gap-1"
-      >
-        <AppIcon name="plus" size="xs" />
-        <span>Iklan</span>
-      </a>
-    </div>
-  </div>
-
-  {/* 4-Column Hairline KPI Strip: Full-bleed edge-to-edge */}
-  <div class="grid grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-slate-200 border-b border-slate-200">
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+  {/* 4-Column Hairline KPI Strip: 2x2 Grid on Mobile, 4x1 on Desktop */}
+  <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r lg:border-b-0 border-slate-200">
       <span class="text-xs font-medium text-slate-600 block">Produk Tayang</span>
       <div class="mt-0.5 flex items-baseline gap-1.5">
         <span class="text-xl font-bold text-slate-900 font-mono tabular-nums">{products.length}</span>
@@ -91,16 +70,16 @@ const recentCash = cashbookEntries.slice(0, 4);
       </div>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b lg:border-b-0 lg:border-r border-slate-200">
       <span class="text-xs font-medium text-slate-600 block">Total Dilihat</span>
       <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">
         {totalViews.toLocaleString('id-ID')}
       </span>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
       <span class="text-xs font-medium text-slate-600 block">Saldo Kas</span>
-      <span class="mt-0.5 text-xl font-bold text-emerald-700 font-mono tabular-nums block truncate">
+      <span class="mt-0.5 text-lg sm:text-xl font-bold text-emerald-700 font-mono tabular-nums block truncate">
         {formatRupiah(cashbookSummary.balance)}
       </span>
     </div>
@@ -114,8 +93,8 @@ const recentCash = cashbookEntries.slice(0, 4);
     </div>
   </div>
 
-  <div class="px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-    {/* Notifications Strip */}
+  <div class="px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
+    {/* Notifications Strip (Collapsed to latest 1 on mobile) */}
     {notifications.length > 0 && (
       <div class="space-y-2 pb-4 border-b border-slate-200">
         <div class="flex items-center justify-between">
@@ -123,8 +102,8 @@ const recentCash = cashbookEntries.slice(0, 4);
           <span class="text-xs text-slate-600 font-mono tabular-nums">{notifications.length} pesan</span>
         </div>
         <ul class="divide-y divide-slate-100">
-          {notifications.map((n) => (
-            <li class="text-xs py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          {notifications.map((n, nIdx) => (
+            <li class={`text-xs py-2 flex-col sm:flex-row sm:items-center justify-between gap-1 ${nIdx >= 1 ? 'hidden sm:flex' : 'flex'}`}>
               <div>
                 <span class="font-semibold text-slate-900">{n.title}: </span>
                 <span class="text-slate-600">{n.body}</span>
@@ -260,21 +239,21 @@ const recentCash = cashbookEntries.slice(0, 4);
           Pintasan Pengaturan
         </h3>
         <div class="divide-y divide-slate-100 border-b border-slate-200 text-xs">
-          <a href="/dashboard/profil" class="py-2.5 flex items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
+          <a href="/dashboard/profil" class="hidden sm:flex py-2.5 items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
             <span class="flex items-center gap-2 font-medium">
               <AppIcon name="store" size="xs" class="text-slate-500" />
               <span>Profil, WhatsApp &amp; Legalitas Usaha</span>
             </span>
             <AppIcon name="arrow-right" size="xs" />
           </a>
-          <a href="/dashboard/kemitraan" class="py-2.5 flex items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
+          <a href="/dashboard/kemitraan" class="hidden sm:flex py-2.5 items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
             <span class="flex items-center gap-2 font-medium">
               <AppIcon name="award" size="xs" class="text-slate-500" />
               <span>Modal Syariah, Sertifikasi Halal &amp; Kader</span>
             </span>
             <AppIcon name="arrow-right" size="xs" />
           </a>
-          <a href={`/toko/${store.slug || store.id}`} target="_blank" class="py-2.5 flex items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
+          <a href={`/toko/${store.slug || store.id}`} target="_blank" class="min-h-[44px] py-2.5 flex items-center justify-between gap-2 text-slate-700 hover:text-emerald-800 transition">
             <span class="flex items-center gap-2 font-medium">
               <AppIcon name="external-link" size="xs" class="text-slate-500" />
               <span>Pratinjau Etalase Toko Publik</span>

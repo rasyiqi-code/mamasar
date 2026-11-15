@@ -140,7 +140,7 @@ const storeInitials =
           </div>
 
           {!hidePhotoCount && (
-            <span class="inline-flex items-center gap-1 text-xs font-bold text-white/95 shrink-0 tabular-nums drop-shadow-sm">
+            <span class={`${isCompact ? 'hidden sm:inline-flex' : 'inline-flex'} items-center gap-1 text-xs font-bold text-white/95 shrink-0 tabular-nums drop-shadow-sm`}>
               <AppIcon name="camera" size="xs" />
               <span>{photoCount}x</span>
             </span>
@@ -228,9 +228,9 @@ const storeInitials =
     </div>
 
     <!-- Card Body -->
-    <div class={isSpotlight ? 'p-3.5 space-y-1' : 'p-3 space-y-1'}>
+    <div class={isSpotlight ? 'p-3.5 space-y-1' : 'p-2.5 sm:p-3 space-y-1'}>
       <div class="text-xs text-slate-500 flex items-center gap-1 truncate">
-        <span class="truncate">{product.zone_name}, Sumenep</span>
+        <span class="truncate">{product.zone_name}<span class={isCompact ? 'hidden sm:inline' : ''}>, Sumenep</span></span>
       </div>
 
       <a
@@ -262,7 +262,7 @@ const storeInitials =
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Hubungi WhatsApp ${product.umkm_name} untuk ${product.name}`}
-            class="shrink-0 text-emerald-700 hover:text-emerald-800 font-bold whitespace-nowrap"
+            class="hidden sm:inline shrink-0 text-emerald-700 hover:text-emerald-800 font-bold whitespace-nowrap"
           >
             WA →
           </a>
