@@ -230,52 +230,47 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
                 data-search={searchKey}
                 class="hover:bg-slate-50/70 transition"
               >
-                <th scope="row" class="py-3 pl-4 sm:pl-6 lg:pl-8 pr-3 font-normal align-top">
-                  <div class="space-y-0.5">
-                    <div class="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
-                      <span>{u.name}</span>
+                <th scope="row" class="py-2 pl-4 sm:pl-6 lg:pl-8 pr-3 font-normal align-middle">
+                  <div class="max-w-[270px] space-y-0.5">
+                    <div class="font-bold text-slate-900 flex items-center gap-1.5 min-w-0">
+                      <span class="truncate">{u.name}</span>
                       {u.is_env_superadmin && (
-                        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-200">
-                          Superadmin Utama (Env)
+                        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-200 shrink-0">
+                          Superadmin (Env)
                         </span>
                       )}
                       {u.is_pending_login && (
-                        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
+                        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300 shrink-0">
                           Belum Login
                         </span>
                       )}
                     </div>
-                    <div class="font-mono text-xs text-slate-600 break-all">{u.email}</div>
-                    {u.umkm_name && (
-                      <div class="inline-flex items-center gap-1 text-xs text-emerald-800 font-medium">
-                        <AppIcon name="store" size="xs" />
-                        <span>Toko: {u.umkm_name}</span>
-                      </div>
-                    )}
+                    <div
+                      class="text-xs text-slate-600 truncate"
+                      title={u.umkm_name ? `${u.email} · Toko ${u.umkm_name}` : u.email}
+                    >
+                      <span class="font-mono">{u.email}</span>
+                      {u.umkm_name && (
+                        <span class="text-emerald-800 font-medium"> · Toko {u.umkm_name}</span>
+                      )}
+                    </div>
                   </div>
                 </th>
 
-                <td class="py-3 px-3 align-top">
-                  <div class="space-y-1">
-                    <span class={`inline-block text-xs font-semibold px-2 py-0.5 rounded border ${badge.cls}`}>
-                      {badge.label}
-                    </span>
-                    {u.zone_name && (
-                      <div class="text-xs text-slate-600">
-                        MWC {u.zone_name}{u.agent_ranting ? ` / ${u.agent_ranting}` : ''}
-                      </div>
-                    )}
-                  </div>
+                <td class="py-2 px-3 align-middle whitespace-nowrap">
+                  <span class={`inline-block text-xs font-semibold px-2 py-0.5 rounded border ${badge.cls}`}>
+                    {badge.label}
+                  </span>
                 </td>
 
-                <td class="py-3 px-3 align-top">
+                <td class="py-2 px-3 align-middle">
                   <label for={`user-role-${u.id}`} class="sr-only">Peran untuk {u.name}</label>
                   <select
                     id={`user-role-${u.id}`}
                     data-user-role-select
                     data-id={u.id}
                     disabled={u.is_env_superadmin}
-                    class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
+                    class="w-full min-h-[40px] sm:min-h-[34px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
                   >
                     <option value="warga" selected={u.role === 'warga'}>Warga Biasa</option>
                     <option value="ranting" selected={u.role === 'ranting'}>Kader Ranting</option>
@@ -284,7 +279,7 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
                   </select>
                 </td>
 
-                <td class="py-3 px-3 align-top">
+                <td class="py-2 px-3 align-middle">
                   <div class="flex flex-col sm:flex-row gap-1.5">
                     <label for={`user-zone-${u.id}`} class="sr-only">Wilayah MWC untuk {u.name}</label>
                     <select
@@ -292,7 +287,7 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
                       data-user-zone-select
                       data-id={u.id}
                       disabled={u.is_env_superadmin}
-                      class="flex-1 min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
+                      class="flex-1 min-h-[40px] sm:min-h-[34px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
                     >
                       <option value="">-- Semua / Tanpa MWC --</option>
                       {zones.map((z) => (
@@ -308,20 +303,20 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
                       value={u.agent_ranting || ''}
                       disabled={u.is_env_superadmin}
                       placeholder="Ranting/Desa"
-                      class="sm:w-32 min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
+                      class="sm:w-32 min-h-[40px] sm:min-h-[34px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
                     />
                   </div>
                 </td>
 
-                <td class="py-3 pl-3 pr-4 sm:pr-6 lg:pr-8 align-top text-right">
+                <td class="py-2 pl-3 pr-4 sm:pr-6 lg:pr-8 align-middle text-right">
                   {u.is_env_superadmin ? (
-                    <span class="inline-flex items-center min-h-[40px] text-xs font-medium text-slate-600">Terkunci</span>
+                    <span class="inline-flex items-center min-h-[40px] sm:min-h-[34px] text-xs font-medium text-slate-600">Terkunci</span>
                   ) : (
                     <button
                       type="button"
                       data-action="save-user-role"
                       data-id={u.id}
-                      class="min-h-[40px] px-3.5 py-1.5 bg-slate-900 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
+                      class="min-h-[40px] sm:min-h-[34px] px-3.5 py-1 bg-slate-900 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
                     >
                       Simpan
                     </button>
