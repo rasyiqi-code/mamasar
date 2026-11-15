@@ -8,6 +8,7 @@ const isVercel = Boolean(process.env.VERCEL);
 
 // https://astro.build/config
 export default defineConfig({
+  srcDir: './src/client',
   output: 'server',
   adapter: isVercel ? vercel() : node({ mode: 'standalone' }),
   vite: {

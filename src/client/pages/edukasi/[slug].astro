@@ -1,0 +1,288 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getArticleBySlug, getArticles, getProducts } from '../../../lib/db';
+import ProductCard from '../../components/ProductCard.astro';
+import AppIcon from '../../components/common/AppIcon.astro';
+import NotFoundView from '../../components/common/NotFoundView.astro';
+
+const { slug } = Astro.params;
+
+if (!slug) {
+  return Astro.redirect('/edukasi');
+}
+
+const article = await getArticleBySlug(slug);
+
+if (!article) {
+  Astro.response.status = 404;
+}
+
+const currentUrl = Astro.url.href;
+const allArticles = article ? await getArticles() : [];
+const relatedArticles = article ? allArticles.filter((a) => a.id !== article.id).slice(0, 3) : [];
+
+function inferProductCategoryFromArticle(category: string, title: string): string | undefined {
+  const haystack = `${category} ${title}`.toLowerCase();
+  if (/(kuliner|makanan|minuman|halal|katering|pirt|dapur|jajanan|snack)/.test(haystack)) {
+    return 'Makanan & Minuman';
+  }
+  if (/(batik|kriya|kerajinan|sarung|songkok|kopyah)/.test(haystack)) {
+    return 'Batik & Kerajinan';
+  }
+  if (/(busana|fashion|pakaian|hijab|muslim)/.test(haystack)) {
+    return 'Fashion & Busana';
+  }
+  if (/(herbal|jamu|madu|kesehatan)/.test(haystack)) {
+    return 'Herbal & Kesehatan';
+  }
+  if (/(pertanian|tani|nelayan|bibit|sembako|beras)/.test(haystack)) {
+    return 'Pertanian & Sembako';
+  }
+  if (/(jasa|cetak|digital|promosi|kemasan)/.test(haystack)) {
+    return 'Jasa & Karya';
+  }
+  return undefined;
+}
+
+const matchedCategory = article ? inferProductCategoryFromArticle(article.category, article.title) : undefined;
+const matchedProducts = article
+  ? await getProducts({ category: matchedCategory, verifiedOnly: matchedCategory ? false : true, limit: 4 })
+  : [];
+const sampleProducts = article
+  ? (matchedProducts.length > 0 ? matchedProducts : await getProducts({ limit: 4 }))
+  : [];
+
+// Schema.org Article Structured Data
+const articleSchema = article
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: article.title,
+      image: [article.image_url],
+      datePublished: article.created_at,
+      dateModified: article.created_at,
+      author: {
+        '@type': 'Organization',
+        name: 'PCNU Kabupaten Sumenep',
+        url: currentUrl,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Mamasar Sumenep',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${Astro.url.origin}/favicon.svg`,
+        },
+      },
+      description: article.summary,
+    }
+  : undefined;
+
+// Anti-XSS HTML escape helper for raw strings
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+// Simple Markdown to HTML formatter for headings and lists with anti-XSS sanitization
+function formatContent(text: string): string {
+  if (!text) return '';
+  const safeText = escapeHtml(text);
+  return safeText
+    .replace(/^### (.*$)/gim, '<h3 class="text-base sm:text-lg font-black text-slate-900 mt-6 mb-2">$1</h3>')
+    .replace(/^## (.*$)/gim, '<h2 class="text-lg sm:text-xl font-black text-slate-900 mt-8 mb-3">$1</h2>')
+    .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc text-slate-700 leading-relaxed">$1</li>')
+    .replace(/\*\*(.*?)\*\*/gim, '<strong class="text-slate-900 font-bold">$1</strong>')
+    .replace(/\*(.*?)\*/gim, '<em class="italic">$1</em>')
+    .replace(/\n\n/gim, '</p><p class="text-xs sm:text-sm text-slate-700 leading-relaxed mb-4">');
+}
+
+const renderedContent = article ? formatContent(article.content || article.summary) : '';
+---
+
+{!article ? (
+  <Layout
+    title="Artikel Edukasi Tidak Ditemukan | Mamasar"
+    description="Artikel panduan UMKM yang Anda cari belum tersedia atau sudah dipindahkan."
+    noindex={true}
+  >
+    <NotFoundView
+      code="404"
+      heading="Artikel Edukasi Tidak Ditemukan"
+      message="Artikel yang Anda buka mungkin salah alamat atau belum diterbitkan."
+      primaryHref="/edukasi"
+      primaryLabel="Ke Pusat Edukasi UMKM"
+    />
+  </Layout>
+) : (
+<Layout
+  title={`${article.title} | Edukasi UMKM NU Sumenep`}
+  description={article.summary}
+  image={article.image_url}
+  canonicalUrl={currentUrl}
+  schema={articleSchema}
+>
+  <div class="pb-12 space-y-8">
+    {/* Full-bleed Top Breadcrumb Strip */}
+    <div class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-11 flex items-center justify-between text-xs text-slate-600">
+        <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 min-w-0">
+          <a href="/" class="hover:text-emerald-700 shrink-0 font-medium">Beranda</a>
+          <AppIcon name="chevron-right" size="xs" class="text-slate-400 shrink-0" />
+          <a href="/edukasi" class="hover:text-emerald-700 shrink-0 font-medium">Pusat Edukasi</a>
+          <AppIcon name="chevron-right" size="xs" class="text-slate-400 shrink-0" />
+          <span class="text-slate-900 font-bold truncate max-w-[200px] sm:max-w-md">{article.title}</span>
+        </nav>
+
+        <a
+          href="/edukasi"
+          class="hidden sm:inline-flex text-xs font-bold text-slate-700 hover:text-emerald-700 transition items-center gap-1 shrink-0"
+        >
+          <span>Semua Artikel</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-10">
+      {/* Main Grid Layout: Open Editorial Column + Docked Hairline Sidebar */}
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div class="lg:col-span-8 space-y-6">
+          <header class="space-y-3 pb-5 border-b border-slate-200">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                {article.category}
+              </span>
+              <span class="text-xs text-slate-400">&bull;</span>
+              <span class="text-xs text-slate-600 font-medium">
+                Diterbitkan: {new Date(article.created_at).toLocaleDateString('id-ID', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}
+              </span>
+            </div>
+
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">
+              {article.title}
+            </h1>
+
+            <p class="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed border-l-4 border-emerald-700 pl-3.5 py-1 bg-white/70">
+              &ldquo;{article.summary}&rdquo;
+            </p>
+          </header>
+
+          <div class="-mx-3 sm:mx-0 aspect-16/9 sm:rounded-lg overflow-hidden bg-slate-100 border-y sm:border border-slate-200">
+            <img
+              src={article.image_url}
+              alt={article.title}
+              class="w-full h-full object-cover"
+              fetchpriority="high"
+            />
+          </div>
+
+          <article class="prose max-w-none text-xs sm:text-sm text-slate-700 leading-relaxed space-y-4">
+            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed mb-4" set:html={renderedContent} />
+          </article>
+
+          <footer class="pt-5 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <span class="font-bold text-slate-700">Bagikan panduan ini ke sesama warga:</span>
+            <div class="flex items-center gap-2">
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(`${article.title}\nBaca panduan lengkapnya di:\n${currentUrl}`)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-lg inline-flex items-center gap-1.5 transition"
+              >
+                <AppIcon name="phone" size="xs" />
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="min-h-[44px] bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg inline-flex items-center gap-1.5 transition"
+              >
+                <AppIcon name="share" size="xs" />
+                <span>Facebook</span>
+              </a>
+            </div>
+          </footer>
+        </div>
+
+        {/* Right Docked Sidebar */}
+        <aside class="lg:col-span-4 space-y-6 border-t border-slate-200 pt-6 lg:border-t-0 lg:pt-0 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20">
+          <div class="bg-emerald-800 text-white p-5 rounded-lg space-y-3 border border-emerald-900">
+            <div class="w-9 h-9 rounded-lg bg-white/15 border border-white/25 flex items-center justify-center">
+              <AppIcon name="store" size="sm" class="text-white" />
+            </div>
+            <h2 class="font-black text-sm sm:text-base">Punya Usaha di Sumenep?</h2>
+            <p class="text-xs text-emerald-100 leading-relaxed">
+              Daftarkan produk Anda secara gratis melalui petugas lapangan MWC terdekat atau langsung lewat dasbor toko.
+            </p>
+            <a
+              href="/pasang-iklan"
+              class="min-h-[44px] w-full py-2.5 px-4 bg-white hover:bg-slate-100 text-emerald-900 rounded-lg font-bold text-xs inline-flex items-center justify-center gap-1.5 transition"
+            >
+              <AppIcon name="plus" size="xs" />
+              <span>Pasang Iklan</span>
+            </a>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 space-y-3">
+            <h2 class="font-bold text-xs uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+              <AppIcon name="book" size="xs" class="text-emerald-700" />
+              <span>Panduan Terkait Lainnya</span>
+            </h2>
+            <div class="divide-y divide-slate-100 text-xs">
+              {relatedArticles.map((ra) => (
+                <a href={`/edukasi/${ra.slug}`} class="py-3 block group">
+                  <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">
+                    {ra.category}
+                  </span>
+                  <h3 class="font-bold text-slate-900 group-hover:text-emerald-700 transition line-clamp-2 mt-0.5">
+                    {ra.title}
+                  </h3>
+                </a>
+              ))}
+            </div>
+            <div class="pt-3 border-t border-slate-100">
+              <a href="/edukasi" class="min-h-[40px] text-xs font-bold text-emerald-700 hover:underline flex items-center justify-center gap-1.5">
+                <span>Semua Panduan (<span class="font-mono tabular-nums">{allArticles.length}</span>)</span>
+                <AppIcon name="arrow-right" size="xs" />
+              </a>
+            </div>
+          </div>
+        </aside>
+      </div>
+
+      {sampleProducts.length > 0 && (
+        <section class="space-y-4 pt-6 border-t border-slate-200">
+          <div class="flex items-center justify-between">
+            <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
+              <AppIcon name="bag" size="sm" class="text-emerald-700" />
+              <span>{matchedCategory ? `Produk ${matchedCategory} Warga NU` : 'Produk Warga Nahdliyin Sumenep'}</span>
+            </h2>
+            <a
+              href={matchedCategory ? `/?kategori=${encodeURIComponent(matchedCategory)}` : '/'}
+              class="text-xs font-bold text-emerald-700 hover:underline inline-flex items-center gap-1"
+            >
+              <span>Katalog Lengkap</span>
+              <AppIcon name="arrow-right" size="xs" />
+            </a>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+            {sampleProducts.map((p) => (
+              <ProductCard product={p} />
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
+  </div>
+</Layout>
+)}

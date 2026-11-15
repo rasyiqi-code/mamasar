@@ -1,0 +1,348 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getArticles } from '../../../lib/db';
+import AppIcon from '../../components/common/AppIcon.astro';
+
+const allArticles = await getArticles();
+const url = new URL(Astro.request.url);
+const currentCategory = url.searchParams.get('kategori') || 'semua';
+
+const categories = [
+  'Semua',
+  'Ekonomi Pekarangan',
+  'Panduan Usaha',
+  'Legalitas & Halal',
+  'Tips Transaksi',
+  'Gerakan Warga',
+];
+
+const filteredArticles =
+  currentCategory === 'semua'
+    ? allArticles
+    : allArticles.filter((art) => art.category.toLowerCase() === currentCategory.toLowerCase());
+
+const featuredArticle = allArticles[0];
+const otherArticles = filteredArticles.filter((art) => art.id !== featuredArticle?.id);
+---
+
+<Layout
+  title="Pusat Edukasi & Panduan Usaha Nahdliyin | Mamasar Sumenep"
+  description="Kumpulan panduan praktis ekonomi pekarangan, kiat merintis usaha UMKM warga NU, pengurusan sertifikasi halal gratis, dan panduan transaksi aman warga NU Sumenep."
+>
+  <div class="pb-12 space-y-8">
+    {/* Full-bleed Header & Category Filter Strip */}
+    <header class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
+      <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-4">
+        <div class="flex items-center justify-between text-xs text-slate-600 pb-3 border-b border-slate-100">
+          <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 flex-wrap">
+            <a href="/" class="hover:text-emerald-700 font-medium">Beranda</a>
+            <AppIcon name="chevron-right" size="xs" class="text-slate-400" />
+            <span class="text-slate-900 font-bold">Pusat Edukasi & Panduan Usaha</span>
+            {currentCategory !== 'semua' && (
+              <>
+                <AppIcon name="chevron-right" size="xs" class="text-slate-400" />
+                <span class="text-emerald-700 font-bold">{currentCategory}</span>
+              </>
+            )}
+          </nav>
+
+          <a
+            href="/dashboard"
+            class="hidden sm:inline-flex text-xs font-bold text-emerald-700 hover:text-emerald-800 transition items-center gap-1"
+          >
+            <AppIcon name="plus" size="xs" />
+            <span>Daftarkan Usaha</span>
+          </a>
+        </div>
+
+        <div class="space-y-2.5">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+            <AppIcon name="book" size="xs" class="text-emerald-700" />
+            <span>Literasi & Pemberdayaan Ekonomi Warga NU</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Pusat Edukasi & Panduan Usaha Warga NU
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">
+            Panduan taktis memajukan usaha nahdliyin di Sumenep: mulai dari optimalisasi ekonomi pekarangan, pendampingan sertifikasi halal gratis (SEHATI), kiat merintis UMKM mandiri, hingga etika transaksi antar-warga.
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 overflow-x-auto pt-1 no-scrollbar pb-1">
+          {categories.map((cat) => {
+            const isActive = currentCategory.toLowerCase() === cat.toLowerCase();
+            return (
+              <a
+                href={cat === 'Semua' ? '/edukasi' : `/edukasi?kategori=${encodeURIComponent(cat)}`}
+                class={`px-3.5 py-2 min-h-[40px] inline-flex items-center rounded-lg text-xs font-bold whitespace-nowrap transition shrink-0 ${
+                  isActive
+                    ? 'bg-emerald-700 text-white'
+                    : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-200'
+                }`}
+              >
+                {cat}
+              </a>
+            );
+          })}
+        </div>
+      </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-10">
+      {/* Featured Top Article */}
+      {currentCategory === 'semua' && featuredArticle && (
+        <section class="-mx-3 sm:mx-0 bg-white border-y sm:border border-slate-200 sm:rounded-lg overflow-hidden hover:border-slate-300 transition group">
+          <a href={`/edukasi/${featuredArticle.slug}`} class="grid grid-cols-1 md:grid-cols-12 gap-0 items-stretch">
+            <div class="md:col-span-6 lg:col-span-7 aspect-16/9 md:aspect-auto md:min-h-[280px] overflow-hidden bg-slate-100">
+              <img
+                src={featuredArticle.image_url}
+                alt={featuredArticle.title}
+                class="w-full h-full object-cover group-hover:scale-103 transition duration-300"
+              />
+            </div>
+            <div class="md:col-span-6 lg:col-span-5 p-5 sm:p-8 flex flex-col justify-center space-y-3 border-t md:border-t-0 md:border-l border-slate-200">
+              <div>
+                <span class="inline-block text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                  {featuredArticle.category}
+                </span>
+              </div>
+              <h2 class="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-emerald-700 transition leading-snug">
+                {featuredArticle.title}
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3">
+                {featuredArticle.summary}
+              </p>
+              <div class="pt-2 flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                <span>Baca Panduan</span>
+                <AppIcon name="arrow-right" size="xs" />
+              </div>
+            </div>
+          </a>
+        </section>
+      )}
+
+      {/* Articles Grid */}
+      <section class="space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+          <h2 class="text-sm sm:text-base font-black text-slate-900 tracking-tight flex items-center gap-2">
+            <AppIcon name="book" size="sm" class="text-emerald-700" />
+            <span>Daftar Artikel & Panduan (<span class="font-mono tabular-nums">{filteredArticles.length}</span>)</span>
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+          {(currentCategory === 'semua' ? otherArticles : filteredArticles).map((article) => (
+            <article class="bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-slate-300 transition flex flex-col justify-between group">
+              <div>
+                <a href={`/edukasi/${article.slug}`} class="block aspect-16/10 overflow-hidden bg-slate-100 relative">
+                  <img
+                    src={article.image_url}
+                    alt={article.title}
+                    loading="lazy"
+                    class="w-full h-full object-cover group-hover:scale-103 transition duration-300"
+                  />
+                  <span class="absolute top-2.5 left-2.5 bg-white/95 text-emerald-800 border border-emerald-200 text-xs font-bold px-2 py-0.5 rounded-md">
+                    {article.category}
+                  </span>
+                </a>
+
+                <div class="p-4 space-y-2">
+                  <a
+                    href={`/edukasi/${article.slug}`}
+                    class="font-black text-sm sm:text-base text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-snug transition block"
+                  >
+                    {article.title}
+                  </a>
+                  <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                    {article.summary}
+                  </p>
+                </div>
+              </div>
+
+              <div class="px-4 py-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span class="text-slate-600 font-medium">
+                  {new Date(article.created_at).toLocaleDateString('id-ID', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                  })}
+                </span>
+                <a
+                  href={`/edukasi/${article.slug}`}
+                  class="font-bold text-emerald-700 group-hover:underline flex items-center gap-1 min-h-[32px]"
+                >
+                  <span>Baca</span>
+                  <AppIcon name="arrow-right" size="xs" />
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      {/* Studi Kasus & Dokumentasi (Swiss Hairline Grid - 0 Container Inception) */}
+      <section class="space-y-4 pt-4 border-t border-slate-200">
+        <div class="space-y-1.5">
+          <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-amber-50 text-amber-900 border border-amber-200 text-xs font-bold">
+            <AppIcon name="eye" size="xs" class="text-amber-700" />
+            <span>Studi Kasus LPNU &bull; Dokumentasi</span>
+          </div>
+          <h2 class="text-lg sm:text-2xl font-black text-slate-900">
+            Inspirasi Nyata Ekonomi Pekarangan & UMKM Warga
+          </h2>
+          <p class="text-xs sm:text-sm text-slate-600 max-w-2xl">
+            Dokumentasi praktik lapangan mandiri pangan dan budidaya pekarangan sebagai percontohan unit usaha warga di lingkungan MWC NU Sumenep.
+          </p>
+        </div>
+
+        <div class="-mx-3 sm:mx-0 bg-white border-y sm:border border-slate-200 sm:rounded-lg grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+          {/* Video 01 */}
+          <div class="p-4 sm:p-5 flex flex-col justify-between space-y-4">
+            <div class="space-y-3">
+              <div class="relative aspect-16/9 rounded-lg overflow-hidden bg-slate-900 group">
+                <img
+                  src="https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=600&q=80"
+                  alt="Yoso Farm: Kebun & Ternak"
+                  class="w-full h-full object-cover opacity-85 group-hover:scale-103 transition duration-300"
+                />
+                <span class="absolute bottom-2 right-2 bg-slate-900/90 text-white text-xs font-mono tabular-nums px-2 py-0.5 rounded-md">
+                  22 Menit
+                </span>
+              </div>
+
+              <div class="space-y-1">
+                <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">Video 01 &bull; Integrasi Pangan</span>
+                <h3 class="font-black text-sm text-slate-900 leading-snug">
+                  Yoso Farm: Kebun Sayur & Ternak Mandiri
+                </h3>
+                <p class="text-xs text-slate-600 font-medium">Channel OASIS</p>
+              </div>
+
+              <div class="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                <p class="leading-relaxed">
+                  <strong class="text-slate-900">Praktik:</strong> Integrasi tanaman sayur pekarangan & ternak tanpa perlu belanja kebutuhan harian.
+                </p>
+                <p class="leading-relaxed">
+                  <strong class="text-slate-900">Peluang:</strong> Surplus panen segar & bibit diserap langsung oleh tetangga sekitar.
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="https://www.youtube.com/results?search_query=yoso+farm+kebun+ternak+oasis"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full min-h-[44px] py-2.5 px-3 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-2 transition"
+            >
+              <span>Tonton di YouTube</span>
+              <AppIcon name="external-link" size="xs" />
+            </a>
+          </div>
+
+          {/* Video 02 */}
+          <div class="p-4 sm:p-5 flex flex-col justify-between space-y-4">
+            <div class="space-y-3">
+              <div class="relative aspect-16/9 rounded-lg overflow-hidden bg-slate-900 group">
+                <img
+                  src="https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&w=600&q=80"
+                  alt="Kebun Galon: Hemat Siram"
+                  class="w-full h-full object-cover opacity-85 group-hover:scale-103 transition duration-300"
+                />
+                <span class="absolute bottom-2 right-2 bg-slate-900/90 text-white text-xs font-mono tabular-nums px-2 py-0.5 rounded-md">
+                  20 Menit
+                </span>
+              </div>
+
+              <div class="space-y-1">
+                <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">Video 02 &bull; Sistem Kapiler</span>
+                <h3 class="font-black text-sm text-slate-900 leading-snug">
+                  Kebun Galon: Sistem Kapiler Hemat Siram
+                </h3>
+                <p class="text-xs text-slate-600 font-medium">Channel OASIS</p>
+              </div>
+
+              <div class="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                <p class="leading-relaxed">
+                  <strong class="text-slate-900">Praktik:</strong> Daur ulang galon bekas air mineral dengan sumbu kapiler tanpa siram setiap hari.
+                </p>
+                <p class="leading-relaxed">
+                  <strong class="text-slate-900">Peluang:</strong> Solusi lahan sempit di perumahan warga dengan panen sayur bernilai jual tinggi.
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="https://www.youtube.com/results?search_query=kebun+galon+hemat+siram+oasis"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full min-h-[44px] py-2.5 px-3 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-2 transition"
+            >
+              <span>Tonton di YouTube</span>
+              <AppIcon name="external-link" size="xs" />
+            </a>
+          </div>
+
+          {/* Video 03 */}
+          <div class="p-4 sm:p-5 flex flex-col justify-between space-y-4">
+            <div class="space-y-3">
+              <div class="relative aspect-16/9 rounded-lg overflow-hidden bg-slate-900 group">
+                <img
+                  src="https://images.unsplash.com/photo-1592417817098-8f3d69104a47?auto=format&fit=crop&w=600&q=80"
+                  alt="Sayur Teras: Cuan Bulanan"
+                  class="w-full h-full object-cover opacity-85 group-hover:scale-103 transition duration-300"
+                />
+                <span class="absolute bottom-2 right-2 bg-slate-900/90 text-white text-xs font-mono tabular-nums px-2 py-0.5 rounded-md">
+                  12 Menit
+                </span>
+              </div>
+
+              <div class="space-y-1">
+                <span class="text-xs font-bold text-emerald-700 uppercase tracking-wider block">Video 03 &bull; Bisnis Sayur</span>
+                <h3 class="font-black text-sm text-slate-900 leading-snug">
+                  Sayur Teras: Panen Rutin Cuan Bulanan
+                </h3>
+                <p class="text-xs text-slate-600 font-medium">Channel Cerita Alam</p>
+              </div>
+
+              <div class="space-y-1.5 text-xs text-slate-600 pt-2 border-t border-slate-100">
+                <p class="leading-relaxed">
+                  <strong class="text-slate-900">Praktik:</strong> Budidaya aneka sayuran segar di teras rumah warga sebagai usaha sampingan produktif.
+                </p>
+                <p class="leading-relaxed">
+                  <strong class="text-slate-900">Peluang:</strong> Menghasilkan arus kas rutin mingguan dari pembeli tetangga komplek & warung terdekat.
+                </p>
+              </div>
+            </div>
+
+            <a
+              href="https://www.youtube.com/results?search_query=sayur+teras+cuan+bulanan+cerita+alam"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="w-full min-h-[44px] py-2.5 px-3 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-lg flex items-center justify-center gap-2 transition"
+            >
+              <span>Tonton di YouTube</span>
+              <AppIcon name="external-link" size="xs" />
+            </a>
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom Call to Action */}
+      <div class="-mx-3 sm:mx-0 bg-emerald-800 border-y sm:border border-emerald-900 sm:rounded-lg p-5 sm:p-8 text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="space-y-1">
+          <h2 class="text-base sm:text-xl font-black">Punya Usaha atau Produk Rumah Tangga di Sumenep?</h2>
+          <p class="text-xs sm:text-sm text-emerald-100 max-w-xl">
+            Terapkan panduan di atas dan pasang iklan produk Anda secara gratis. Terhubung langsung ke WhatsApp pembeli tanpa potongan biaya.
+          </p>
+        </div>
+        <a
+          href="/pasang-iklan"
+          class="shrink-0 min-h-[44px] bg-white hover:bg-slate-100 text-emerald-900 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-lg inline-flex items-center gap-2 transition"
+        >
+          <AppIcon name="plus" size="xs" />
+          <span>Pasang Iklan</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</Layout>
