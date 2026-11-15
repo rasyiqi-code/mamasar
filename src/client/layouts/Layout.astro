@@ -5,6 +5,7 @@ import { getAllZones, getUserFromSession, isPCNU, isRanting } from '../../lib/db
 import { safeJsonLd } from '../../lib/security';
 import AppIcon from '../components/common/AppIcon.astro';
 import ConfirmDialog from '../components/common/ConfirmDialog.astro';
+import MamasarLogo from '../components/common/MamasarLogo.astro';
 
 interface Props {
   title: string;
@@ -108,9 +109,7 @@ const navLinkClass = (active: boolean) =>
           </button>
 
           <a href="/" class="flex items-center gap-2.5 group">
-            <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-emerald-700 flex items-center justify-center font-black text-sm text-white shadow-sm group-hover:bg-emerald-800 transition">
-              NU
-            </div>
+            <MamasarLogo size="lg" class="shadow-sm group-hover:bg-emerald-800 transition" />
             <div>
               <div class="font-black text-sm sm:text-base tracking-tight leading-none text-slate-900 flex items-center gap-2">
                 <span>Mamasar</span>
@@ -218,9 +217,7 @@ const navLinkClass = (active: boolean) =>
       <!-- User / Brand Drawer Header -->
       <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-emerald-700 flex items-center justify-center font-black text-white text-xs shadow-sm">
-            NU
-          </div>
+          <MamasarLogo size="md" class="shadow-sm" />
           <div>
             <h3 class="text-xs font-black text-slate-900">
               {user ? (user.name || user.email) : 'Ahlan wa Sahlan!'}
@@ -322,9 +319,7 @@ const navLinkClass = (active: boolean) =>
         <!-- Col 1: About -->
         <div class="space-y-3">
           <div class="flex items-center gap-2">
-            <div class="w-7 h-7 rounded-lg bg-emerald-700 flex items-center justify-center font-bold text-xs text-white">
-              NU
-            </div>
+            <MamasarLogo size="xs" />
             <span class="font-extrabold text-sm text-slate-900">Mamasar</span>
           </div>
           <p class="text-xs text-slate-600 leading-relaxed">

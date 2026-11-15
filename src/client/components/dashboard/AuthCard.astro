@@ -1,5 +1,6 @@
 ---
 import AppIcon from '../common/AppIcon.astro';
+import MamasarLogo from '../common/MamasarLogo.astro';
 
 interface Props {
   authError?: string | null;
@@ -16,9 +17,7 @@ const isKaderIntent = intent === 'daftar-kader';
   <div class="lg:col-span-5 bg-[#fbfcfd] border-b lg:border-b-0 lg:border-r border-slate-200 p-6 sm:p-10 lg:p-12 flex flex-col justify-between gap-8">
     <div class="flex items-center justify-between gap-4">
       <a href="/" class="inline-flex items-center gap-2.5 group">
-        <span class="w-8 h-8 rounded-lg bg-emerald-700 text-white font-extrabold text-xs flex items-center justify-center group-hover:bg-emerald-800 transition">
-          NU
-        </span>
+        <MamasarLogo size="sm" class="group-hover:bg-emerald-800 transition" />
         <div class="leading-tight">
           <span class="font-bold text-sm text-slate-900 block">Mamasar Console</span>
           <span class="text-xs text-slate-600 block">Portal UMKM &amp; Kader</span>

@@ -1,5 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <rect width="512" height="512" rx="128" fill="#059669"/>
-  <text x="50%" y="52%" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" font-weight="900" font-size="220" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">NU</text>
-  <text x="50%" y="78%" font-family="system-ui, -apple-system, BlinkMacSystemFont, sans-serif" font-weight="700" font-size="42" fill="#a7f3d0" text-anchor="middle" letter-spacing="6">SUMENEP</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="512" height="512" fill="none">
+  <rect width="32" height="32" rx="8" fill="#047857" />
+  <path d="M6.4 23.2V11L9.4 8L11.1 9.7L14.7 16.2V20.6L10.2 14.6V23.2H6.4Z" fill="#ffffff" />
+  <path d="M25.6 23.2V11L22.6 8L20.9 9.7L17.3 16.2V20.6L21.8 14.6V23.2H25.6Z" fill="#ffffff" />
+  <path d="M16 7.8L18.9 11L16 15.2L13.1 11L16 7.8Z" fill="#fbbf24" />
 </svg>
