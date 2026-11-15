@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 @theme {
+  --container-site: 1080px;
   --color-brand-primary: #047857;
   --color-brand-primary-hover: #065f46;
   --color-action-primary: #047857;
