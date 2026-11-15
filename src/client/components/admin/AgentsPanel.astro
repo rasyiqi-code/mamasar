@@ -212,7 +212,7 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
       tabindex="0"
       role="region"
       aria-labelledby="users-directory-heading"
-      class="users-table-wrapper w-full max-w-full overflow-x-auto border-y border-slate-200 bg-white"
+      class="users-table-wrapper relative w-full max-w-full overflow-x-auto border-y border-slate-200 bg-white"
     >
       <table class="users-directory-table w-full min-w-[820px] text-left border-collapse text-xs">
         <thead class="bg-slate-50 border-b border-slate-200 text-slate-700">
@@ -269,9 +269,9 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
                 </td>
 
                 <td class="py-2 px-3 align-middle">
-                  <label for={`user-role-${u.id}`} class="sr-only">Peran untuk {u.name}</label>
                   <select
                     id={`user-role-${u.id}`}
+                    aria-label={`Peran untuk ${u.name}`}
                     data-user-role-select
                     data-id={u.id}
                     disabled={u.is_env_superadmin}
@@ -286,9 +286,9 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
 
                 <td class="py-2 px-3 align-middle">
                   <div class="flex flex-col sm:flex-row gap-1.5">
-                    <label for={`user-zone-${u.id}`} class="sr-only">Wilayah MWC untuk {u.name}</label>
                     <select
                       id={`user-zone-${u.id}`}
+                      aria-label={`Wilayah MWC untuk ${u.name}`}
                       data-user-zone-select
                       data-id={u.id}
                       disabled={u.is_env_superadmin}
@@ -299,10 +299,10 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
                         <option value={z.id} selected={u.assigned_zone_id === z.id}>{z.name}</option>
                       ))}
                     </select>
-                    <label for={`user-ranting-${u.id}`} class="sr-only">Ranting untuk {u.name}</label>
                     <input
                       type="text"
                       id={`user-ranting-${u.id}`}
+                      aria-label={`Ranting untuk ${u.name}`}
                       data-user-ranting-input
                       data-id={u.id}
                       value={u.agent_ranting || ''}
