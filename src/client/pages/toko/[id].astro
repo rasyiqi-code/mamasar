@@ -92,7 +92,7 @@ const storeSchema = store
       primaryLabel="Lihat Semua Toko Warga"
     />
   ) : (
-    <div class="pb-20 md:pb-10">
+    <div class="pb-24 md:pb-10">
       <!-- Full-Bleed Top Identity Header (Box-Free Hairline Layout) -->
       <header class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
         <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5">
@@ -218,24 +218,24 @@ const storeSchema = store
           </div>
 
           <!-- Hairline Store Summary Strip (No Box Tiles) -->
-          <dl class="pt-4 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-0 sm:divide-x sm:divide-slate-200">
-            <div class="sm:pr-5">
+          <dl class="pt-4 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-y-3 gap-x-0 sm:divide-x sm:divide-slate-200">
+            <div class="pr-3 sm:pr-5 border-r border-slate-200 sm:border-r-0">
               <dt class="text-xs text-slate-500">Produk Tayang</dt>
               <dd class="text-sm font-extrabold text-slate-900 tabular-nums mt-0.5">
                 {store.products.length} Produk
               </dd>
             </div>
-            <div class="sm:px-5">
+            <div class="pl-3 sm:px-5">
               <dt class="text-xs text-slate-500">Wilayah MWC</dt>
               <dd class="text-sm font-extrabold text-slate-900 mt-0.5 truncate">{store.zone_name}</dd>
             </div>
-            <div class="sm:px-5">
+            <div class="pr-3 sm:px-5 border-r border-slate-200 sm:border-r-0">
               <dt class="text-xs text-slate-500">Verifikasi</dt>
               <dd class={`text-sm font-extrabold mt-0.5 ${Boolean(store.is_verified) ? 'text-emerald-700' : 'text-slate-700'}`}>
                 {Boolean(store.is_verified) ? 'Terverifikasi' : 'Menunggu'}
               </dd>
             </div>
-            <div class="sm:pl-5">
+            <div class="pl-3 sm:pl-5">
               <dt class="text-xs text-slate-500">Transaksi</dt>
               <dd class="text-sm font-extrabold text-slate-900 mt-0.5">COD / Kirim Paket</dd>
             </div>
@@ -331,7 +331,7 @@ const storeSchema = store
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="w-full min-h-[44px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition"
+                class="hidden md:flex w-full min-h-[44px] py-3 px-4 bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white rounded-lg font-bold text-sm items-center justify-center gap-2 transition"
               >
                 <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
                   <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />

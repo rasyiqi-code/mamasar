@@ -32,26 +32,26 @@ interface Props {
 const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astro.props;
 ---
 
-<section id="panel-entry" class={`admin-tab-panel space-y-6 ${isDefaultActive ? '' : 'hidden'}`}>
+<section id="panel-entry" class={`admin-tab-panel space-y-5 sm:space-y-6 ${isDefaultActive ? '' : 'hidden'}`}>
   <!-- Top Bar: Header with Location Badge -->
   <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-200 gap-2">
     <div>
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-2 flex-wrap">
         <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
           <AppIcon name="store" size="sm" class="text-emerald-700" />
-          <span>Entri Jemput Bola Lapangan</span>
+          <span>Entri Jemput Bola</span>
         </h2>
         <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
-          2-Step Flow
+          2-Step
         </span>
       </div>
-      <p class="text-xs text-slate-600 mt-0.5">
+      <p class="hidden sm:block text-xs text-slate-600 mt-0.5">
         Pendataan jemput bola terstruktur: Daftarkan identitas toko terlebih dahulu, lalu masukkan produk barang dagangannya.
       </p>
     </div>
 
     {assignedZone && (
-      <div class="text-xs text-slate-700 font-medium shrink-0 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+      <div class="text-xs text-slate-700 font-medium shrink-0 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 self-start sm:self-auto">
         <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
         <span>MWC</span>
         <strong class="text-emerald-800">{assignedZone.name}</strong>
@@ -60,17 +60,17 @@ const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astr
   </div>
 
   {/* Stepper Indicator */}
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-4xl">
+  <div class="grid grid-cols-2 gap-2 sm:gap-3 max-w-4xl">
     <div
       id="step1-indicator"
-      class="flex items-center gap-3 p-3 rounded-lg bg-emerald-50 border-2 border-emerald-600 text-emerald-950 font-bold transition"
+      class="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg bg-emerald-50 border-2 border-emerald-600 text-emerald-950 font-bold transition"
     >
       <span id="step1-badge" class="w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-black text-xs shrink-0">
         1
       </span>
       <div class="min-w-0">
-        <p class="text-xs font-black leading-tight text-emerald-950">Step 1: Daftarkan Toko</p>
-        <p class="text-xs text-emerald-800 font-medium truncate mt-0.5">
+        <p class="text-xs font-black leading-tight text-emerald-950 truncate">Daftarkan Toko</p>
+        <p class="hidden sm:block text-xs text-emerald-800 font-medium truncate mt-0.5">
           Nama usaha, kontak WhatsApp, wilayah &amp; legalitas
         </p>
       </div>
@@ -78,14 +78,14 @@ const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astr
 
     <div
       id="step2-indicator"
-      class="flex items-center gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 transition"
+      class="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 rounded-lg bg-slate-50 border border-slate-200 text-slate-600 transition"
     >
       <span id="step2-badge" class="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-mono font-black text-xs shrink-0">
         2
       </span>
       <div class="min-w-0">
-        <p id="step2-title" class="text-xs font-bold leading-tight text-slate-700">Step 2: Daftarkan Produk</p>
-        <p id="step2-desc" class="text-xs text-slate-600 font-medium truncate mt-0.5">
+        <p id="step2-title" class="text-xs font-bold leading-tight text-slate-700 truncate">Daftarkan Produk</p>
+        <p id="step2-desc" class="hidden sm:block text-xs text-slate-600 font-medium truncate mt-0.5">
           Foto kamera HP, harga, stok, &amp; etalase barang
         </p>
       </div>
@@ -100,18 +100,18 @@ const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astr
   {/* ========================================== */}
   <div id="jemput-step-1" class="max-w-4xl space-y-5">
     {/* Mode Selection Pills */}
-    <div class="flex items-center gap-2 p-1 bg-slate-100 rounded-lg max-w-md border border-slate-200 text-xs font-bold">
+    <div class="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg max-w-full sm:max-w-md border border-slate-200 text-xs font-bold">
       <button
         type="button"
         id="btn-mode-new-store"
-        class="flex-1 min-h-[38px] py-1.5 px-3 rounded-md bg-white text-slate-900 border border-slate-200 transition cursor-pointer text-center"
+        class="flex-1 min-h-[44px] py-1.5 px-3 rounded-md bg-white text-slate-900 border border-slate-200 transition cursor-pointer text-center"
       >
-        + Daftarkan Toko Baru
+        + Toko Baru
       </button>
       <button
         type="button"
         id="btn-mode-existing-store"
-        class="flex-1 min-h-[38px] py-1.5 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer text-center font-mono tabular-nums"
+        class="flex-1 min-h-[44px] py-1.5 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer text-center font-mono tabular-nums"
       >
         Pilih Toko ({stores.length})
       </button>

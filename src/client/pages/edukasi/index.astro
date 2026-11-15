@@ -55,15 +55,15 @@ const otherArticles = filteredArticles.filter((art) => art.id !== featuredArticl
           </a>
         </div>
 
-        <div class="space-y-2.5">
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+        <div class="space-y-1.5 sm:space-y-2.5">
+          <div class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
             <AppIcon name="book" size="xs" class="text-emerald-700" />
             <span>Literasi & Pemberdayaan Ekonomi Warga NU</span>
           </div>
-          <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
             Pusat Edukasi & Panduan Usaha Warga NU
           </h1>
-          <p class="text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">
+          <p class="hidden sm:block text-xs sm:text-sm text-slate-600 max-w-3xl leading-relaxed">
             Panduan taktis memajukan usaha nahdliyin di Sumenep: mulai dari optimalisasi ekonomi pekarangan, pendampingan sertifikasi halal gratis (SEHATI), kiat merintis UMKM mandiri, hingga etika transaksi antar-warga.
           </p>
         </div>
@@ -74,7 +74,7 @@ const otherArticles = filteredArticles.filter((art) => art.id !== featuredArticl
             return (
               <a
                 href={cat === 'Semua' ? '/edukasi' : `/edukasi?kategori=${encodeURIComponent(cat)}`}
-                class={`px-3.5 py-2 min-h-[40px] inline-flex items-center rounded-lg text-xs font-bold whitespace-nowrap transition shrink-0 ${
+                class={`px-3.5 py-2 min-h-[44px] inline-flex items-center rounded-lg text-xs font-bold whitespace-nowrap transition shrink-0 ${
                   isActive
                     ? 'bg-emerald-700 text-white'
                     : 'bg-white text-slate-700 hover:bg-slate-50 hover:text-slate-900 border border-slate-200'
@@ -153,13 +153,13 @@ const otherArticles = filteredArticles.filter((art) => art.id !== featuredArticl
                   >
                     {article.title}
                   </a>
-                  <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                  <p class="hidden sm:block text-xs text-slate-600 line-clamp-2 leading-relaxed">
                     {article.summary}
                   </p>
                 </div>
               </div>
 
-              <div class="px-4 py-3 border-t border-slate-100 flex items-center justify-between text-xs">
+              <div class="px-4 py-2 sm:py-3 border-t border-slate-100 flex items-center justify-between text-xs">
                 <span class="text-slate-600 font-medium">
                   {new Date(article.created_at).toLocaleDateString('id-ID', {
                     day: 'numeric',
@@ -169,7 +169,7 @@ const otherArticles = filteredArticles.filter((art) => art.id !== featuredArticl
                 </span>
                 <a
                   href={`/edukasi/${article.slug}`}
-                  class="font-bold text-emerald-700 group-hover:underline flex items-center gap-1 min-h-[32px]"
+                  class="font-bold text-emerald-700 group-hover:underline flex items-center gap-1 min-h-[44px] sm:min-h-[32px]"
                 >
                   <span>Baca</span>
                   <AppIcon name="arrow-right" size="xs" />

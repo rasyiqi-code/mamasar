@@ -45,32 +45,32 @@ const roleSub = isSuper
 ---
 
 <!-- MOBILE TOP HEADER (Compact bar for mobile) -->
-<div class="md:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
-  <div class="flex items-center gap-2.5 min-w-0">
+<div class="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-xs border-b border-slate-200 px-3 py-2 flex items-center justify-between gap-2">
+  <div class="flex items-center gap-2 min-w-0">
     <button
       type="button"
       id="btn-toggle-admin-sidebar"
-      class="p-1.5 text-slate-700 hover:text-slate-900 rounded-lg border border-slate-200 focus:outline-none cursor-pointer"
+      class="min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg border border-slate-200 focus:outline-none cursor-pointer shrink-0"
       aria-label="Buka Menu Admin"
     >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
       </svg>
     </button>
     <div class="min-w-0">
-      <h2 class="text-xs font-bold text-slate-900 truncate">
+      <h2 class="text-xs font-bold text-slate-900 truncate leading-tight">
         {roleTitle}
       </h2>
-      <p class="text-xs text-slate-600 truncate">{user.name}</p>
+      <p class="text-[11px] text-slate-600 truncate leading-tight">{user.name}</p>
     </div>
   </div>
 
-  <div class="flex items-center gap-2">
+  <div class="flex items-center gap-1.5 shrink-0">
     <a
       href="/dashboard"
-      class="inline-flex items-center gap-1 text-xs font-medium text-slate-700 hover:text-slate-900 px-2 py-1 transition"
+      class="min-h-[44px] inline-flex items-center gap-1 text-xs font-semibold text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 rounded-lg px-2.5 transition"
     >
-      <span>Toko Saya</span>
+      <span>Toko</span>
       <AppIcon name="arrow-right" size="xs" />
     </a>
   </div>
@@ -104,7 +104,7 @@ const roleSub = isSuper
       <button
         type="button"
         id="btn-close-admin-sidebar"
-        class="md:hidden text-slate-600 hover:text-slate-900 p-1 cursor-pointer"
+        class="md:hidden min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-600 hover:text-slate-900 rounded-lg cursor-pointer"
         aria-label="Tutup Menu Admin"
       >
         <AppIcon name="x" size="sm" />
@@ -307,3 +307,118 @@ const roleSub = isSuper
     </div>
   </div>
 </aside>
+
+<!-- MOBILE ADMIN BOTTOM TAB BAR (1-Tap Thumb Navigation for Field Cadres & Admins) -->
+<nav
+  aria-label="Navigasi Bawah Portal Admin"
+  class={`md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-xs border-t border-slate-200 px-1 py-1 pb-[calc(0.35rem+env(safe-area-inset-bottom,0px))] grid items-center text-[11px] ${
+    isSuper || isMwcAdmin ? 'grid-cols-5' : 'grid-cols-4'
+  }`}
+>
+  {isSuper ? (
+    <button
+      type="button"
+      role="tab"
+      aria-selected="true"
+      aria-controls="panel-agents"
+      data-admin-tab="agents"
+      class="relative min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
+    >
+      <AppIcon name="shield" size="sm" />
+      <span class="truncate max-w-full">Akun</span>
+      {pendingPetugasCount > 0 && (
+        <span class="absolute top-1 right-2 min-w-[16px] h-4 px-1 rounded-full bg-amber-200 text-amber-950 text-[10px] font-mono font-bold flex items-center justify-center leading-none">
+          {pendingPetugasCount > 99 ? '99+' : pendingPetugasCount}
+        </span>
+      )}
+    </button>
+  ) : (
+    <button
+      type="button"
+      role="tab"
+      aria-selected="true"
+      aria-controls="panel-entry"
+      data-admin-tab="entry"
+      class="min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
+    >
+      <AppIcon name="clipboard" size="sm" />
+      <span class="truncate max-w-full">Entri</span>
+    </button>
+  )}
+
+  <button
+    type="button"
+    role="tab"
+    aria-selected="false"
+    aria-controls="panel-stores"
+    data-admin-tab="stores"
+    class="relative min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
+  >
+    <AppIcon name="store" size="sm" />
+    <span class="truncate max-w-full">Toko</span>
+    {pendingStoresCount > 0 && (
+      <span class="absolute top-1 right-2 min-w-[16px] h-4 px-1 rounded-full bg-emerald-200 text-emerald-950 text-[10px] font-mono font-bold flex items-center justify-center leading-none">
+        {pendingStoresCount > 99 ? '99+' : pendingStoresCount}
+      </span>
+    )}
+  </button>
+
+  {isSuper && (
+    <button
+      type="button"
+      role="tab"
+      aria-selected="false"
+      aria-controls="panel-entry"
+      data-admin-tab="entry"
+      class="min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
+    >
+      <AppIcon name="clipboard" size="sm" />
+      <span class="truncate max-w-full">Entri</span>
+    </button>
+  )}
+
+  <button
+    type="button"
+    role="tab"
+    aria-selected="false"
+    aria-controls="panel-events"
+    data-admin-tab="events"
+    class="min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
+  >
+    <AppIcon name="tent" size="sm" />
+    <span class="truncate max-w-full">Agenda</span>
+  </button>
+
+  {(isSuper || isMwcAdmin) && (
+    <button
+      type="button"
+      role="tab"
+      aria-selected="false"
+      aria-controls="panel-promotions"
+      data-admin-tab="promotions"
+      class="relative min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
+    >
+      <AppIcon name="star" size="sm" />
+      <span class="truncate max-w-full">Promosi</span>
+      {pendingPromotionsCount > 0 && (
+        <span class="absolute top-1 right-2 min-w-[16px] h-4 px-1 rounded-full bg-amber-200 text-amber-950 text-[10px] font-mono font-bold flex items-center justify-center leading-none">
+          {pendingPromotionsCount > 99 ? '99+' : pendingPromotionsCount}
+        </span>
+      )}
+    </button>
+  )}
+
+  {!isSuper && (
+    <button
+      type="button"
+      role="tab"
+      aria-selected="false"
+      aria-controls="panel-zones"
+      data-admin-tab="zones"
+      class="min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
+    >
+      <AppIcon name="map-pin" size="sm" />
+      <span class="truncate max-w-full">Peta</span>
+    </button>
+  )}
+</nav>

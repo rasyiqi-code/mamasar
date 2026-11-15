@@ -48,17 +48,17 @@ const activeZone = zones.find((z) => z.slug === currentZone);
           </a>
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+        <div class="flex flex-wrap items-baseline justify-between gap-2">
           <div class="space-y-1">
             <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Toko Warga NU
             </h1>
-            <p class="text-xs sm:text-sm text-slate-600">
+            <p class="hidden sm:block text-xs sm:text-sm text-slate-600">
               Sentra produksi dan pengrajin UMKM Sumenep terhubung langsung via WhatsApp.
             </p>
           </div>
           <span class="text-xs font-bold text-slate-700 tabular-nums shrink-0">
-            {totalStores} toko terdaftar
+            {totalStores} toko<span class="hidden sm:inline"> terdaftar</span>
           </span>
         </div>
 
@@ -181,7 +181,7 @@ const activeZone = zones.find((z) => z.slug === currentZone);
             return (
               <article class="bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-emerald-500 transition flex flex-col justify-between group">
                 <div>
-                  <a href={storeHref} class="block relative h-40 bg-slate-100 overflow-hidden border-b border-slate-200">
+                  <a href={storeHref} class="block relative h-32 sm:h-40 bg-slate-100 overflow-hidden border-b border-slate-200">
                     {samples.length >= 3 ? (
                       <div class="grid grid-cols-3 grid-rows-2 gap-0.5 w-full h-full bg-slate-200">
                         <img
@@ -317,10 +317,12 @@ const activeZone = zones.find((z) => z.slug === currentZone);
                             >
                               <AppIcon name="check" size="xs" />
                               <span>Terverifikasi</span>
-                              <span aria-hidden="true" class="text-slate-300 px-0.5">·</span>
+                              {(store.address || true) && (
+                                <span aria-hidden="true" class={`text-slate-300 px-0.5 ${store.address ? '' : 'hidden sm:inline'}`}>·</span>
+                              )}
                             </span>
                           )}
-                          <p class="truncate">
+                          <p class={`truncate ${store.address ? '' : 'hidden sm:block'}`}>
                             {store.address || 'Kabupaten Sumenep, Madura'}
                           </p>
                         </div>

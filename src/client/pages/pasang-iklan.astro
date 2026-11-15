@@ -35,10 +35,10 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
 
         <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
           <div>
-            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
               Pasang Iklan
             </h1>
-            <p class="text-xs sm:text-sm text-slate-600">
+            <p class="hidden sm:block text-xs sm:text-sm text-slate-600">
               Terbitkan produk ke katalog Mamasar Sumenep tanpa potongan komisi.
             </p>
           </div>
@@ -293,10 +293,10 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
           </div>
         </form>
 
-        {/* Right Docked Sidebar: Live Card Preview + Input Tips */}
+        {/* Right Docked Sidebar: Live Card Preview (Desktop) + Checklist & Collapsible Tips */}
         <aside class="lg:col-span-4 space-y-6 border-t border-slate-200 pt-6 lg:border-t-0 lg:pt-0 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20">
-          {/* Live Katalog Preview */}
-          <section aria-labelledby="preview-heading" class="space-y-3">
+          {/* Live Katalog Preview (Hidden on Mobile to Keep Form Compact) */}
+          <section aria-labelledby="preview-heading" class="hidden lg:block space-y-3">
             <div class="flex items-center justify-between">
               <h2 id="preview-heading" class="text-xs font-black uppercase tracking-wider text-slate-800">
                 Pratinjau Katalog
@@ -354,7 +354,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
           </section>
 
           {/* Checklist Kelengkapan Live */}
-          <section aria-labelledby="checklist-heading" class="pt-5 border-t border-slate-200 space-y-2.5">
+          <section aria-labelledby="checklist-heading" class="lg:pt-5 lg:border-t lg:border-slate-200 space-y-2.5">
             <h2 id="checklist-heading" class="text-xs font-black uppercase tracking-wider text-slate-800">
               Kelengkapan Iklan
             </h2>
@@ -378,13 +378,16 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
             </ul>
           </section>
 
-          {/* Tips Input */}
-          <section aria-labelledby="tips-heading" class="pt-5 border-t border-slate-200 space-y-2.5">
-            <h2 id="tips-heading" class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
-              <AppIcon name="info" size="xs" class="text-emerald-700" />
-              <span>Tips Input</span>
-            </h2>
-            <ul class="divide-y divide-slate-100 text-xs text-slate-700">
+          {/* Tips Input (Collapsible on Mobile, Auto-Open on Desktop) */}
+          <details id="tips-input-details" class="pt-5 border-t border-slate-200 group">
+            <summary class="min-h-[44px] flex items-center justify-between cursor-pointer list-none select-none text-xs font-black uppercase tracking-wider text-slate-800">
+              <span class="flex items-center gap-1.5">
+                <AppIcon name="info" size="xs" class="text-emerald-700" />
+                <span>Tips Input Produk</span>
+              </span>
+              <AppIcon name="chevron-down" size="xs" class="text-slate-500 transition-transform group-open:rotate-180 lg:hidden" />
+            </summary>
+            <ul class="mt-2 divide-y divide-slate-100 text-xs text-slate-700">
               <li class="py-2 first:pt-0 space-y-0.5">
                 <strong class="text-slate-900 block">Judul spesifik</strong>
                 <span>Cantumkan nama, varian, dan berat bersih (mis. 250gr / 1 liter).</span>
@@ -402,7 +405,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
                 <span>Sebutkan bahan, daya tahan, minimal pesan, dan area antar sekitar.</span>
               </li>
             </ul>
-          </section>
+          </details>
         </aside>
       </div>
     </div>
@@ -743,5 +746,10 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
         }
       }
     });
+
+    const tipsDetails = document.getElementById('tips-input-details') as HTMLDetailsElement | null;
+    if (tipsDetails && window.matchMedia('(min-width: 1024px)').matches) {
+      tipsDetails.open = true;
+    }
   </script>
 </Layout>
