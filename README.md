@@ -7,32 +7,32 @@ Aplikasi direktori dan marketplace mandiri UMKM Nahdliyin se-Kabupaten Sumenep. 
 ## 🚀 Fitur Utama & Rute Aplikasi
 
 ### 1. Halaman Publik & Katalog Warga
-- **Beranda [`/`](http://localhost:4321/)**: Katalog produk dengan filter 24 zona MWC (18 daratan & 6 kepulauan), kategori produk, pencarian bebas (`q`), dan opsi pengurutan (*Terbaru*, *Harga Terendah*, *Harga Tertinggi*). Dilengkapi slider kampanye gerakan belanja tetangga.
-- **Detail Produk [`/p/[slug]`](http://localhost:4321/p/rengginang-lorjuk-super-asli-gapura)**: Metadata Schema.org `Product`, kartu Open Graph, penghitung penayangan riil (*view counter*) dengan proteksi cookie debounce, status ketersediaan stok, tautan opsional Shopee, dan tombol WhatsApp otomatis berisi rincian nama barang, harga, dan tautan halaman.
-- **Direktori Toko [`/toko`](http://localhost:4321/toko) & Profil Toko [`/toko/[id]`](http://localhost:4321/toko/1)**: Direktori unit usaha UMKM per MWC dengan lencana resmi `✓ Verified MWC NU`, etalase katalog milik toko, informasi lokasi, dan tombol chat langsung ke pemilik toko.
-- **Kegiatan NU & Pasar Konsumsi [`/kegiatan`](http://localhost:4321/kegiatan) & [`/kegiatan/[slug]`](http://localhost:4321/kegiatan/lailatul-ijtima-mwc-gapura)**: Jadwal pengajian akbar, Lailatul Ijtima', dan Harlah se-Sumenep. Dilengkapi tombol pemesanan katering/snack box ke UMKM terdekat dan informasi pendaftaran lapak bazar warga.
-- **Panduan Usaha & Edukasi [`/edukasi`](http://localhost:4321/edukasi) & [`/edukasi/[slug]`](http://localhost:4321/edukasi/sertifikasi-halal-gratis-sehati-umkm-sumenep)**: Artikel literasi ekonomi santri, panduan sertifikasi halal gratis (SEHATI BPJPH), dan akses permodalan syariah BMTNU / Lazisnu.
+- **Beranda [`/`](http://localhost:4321/)**: Katalog produk dengan filter 24 zona MWC (18 daratan & 6 kepulauan), kategori produk, pencarian bebas (`q`), paginasi (`page`, `12` item/halaman), dan opsi pengurutan (*Terbaru*, *Harga Terendah*, *Harga Tertinggi*).
+- **Detail Produk [`/produk/[slug]`](http://localhost:4321/produk/rengginang-lorjuk-super-asli-gapura)**: Metadata Schema.org `Product`, galeri multi-foto, kartu Open Graph, penghitung penayangan riil (*view counter*) dengan proteksi cookie debounce, status ketersediaan stok, tautan opsional Shopee, dan tombol WhatsApp otomatis. Tautan lama `/p/[slug]` dialihkan permanen (`301`).
+- **Direktori Toko [`/toko`](http://localhost:4321/toko) & Profil Toko [`/toko/[slug]`](http://localhost:4321/toko/kerajinan-mwc-gapura)**: Direktori unit usaha UMKM per MWC dengan lencana resmi `✓ Verified MWC NU`, etalase katalog milik toko, informasi legalitas usaha, dan tombol chat langsung ke pemilik toko. Akses berbasis ID numerik (`/toko/1`) dialihkan `301` ke slug kanonik.
+- **Kegiatan NU & Pasar Konsumsi [`/kegiatan`](http://localhost:4321/kegiatan) & [`/kegiatan/[slug]`](http://localhost:4321/kegiatan/lailatul-ijtima-mwc-gapura)**: Jadwal pengajian akbar, Lailatul Ijtima', dan Harlah se-Sumenep. Dilengkapi formulir pengajuan pesanan konsumsi/lapak bazar warga (`/api/events/order`) dengan moderasi status oleh pengurus.
+- **Panduan Usaha & Edukasi [`/edukasi`](http://localhost:4321/edukasi) & [`/edukasi/[slug]`](http://localhost:4321/edukasi/sertifikasi-halal-gratis-sehati-umkm-sumenep)**: Artikel literasi ekonomi santri, panduan sertifikasi halal gratis (SEHATI BPJPH), dan akses permodalan syariah BMTNU / Lazisnu lengkap dengan produk terkait kontekstual.
 - **Produk Favorit [`/favorit`](http://localhost:4321/favorit)**: Penyimpanan produk favorit berbasis database Neon Postgres untuk pengguna terdaftar (SSR instan) serta sinkronisasi otomatis (*auto-sync*) dari `localStorage` browser pengguna tamu saat masuk/login.
-- **Halaman Error Kustom [`/404`](http://localhost:4321/404)**, `sitemap.xml`, dan `robots.txt`.
+- **Privasi & Hak Data [`/privasi`](http://localhost:4321/privasi)**, **Halaman Error [`/404`](http://localhost:4321/404)**, **`/500`**, `sitemap.xml`, dan `robots.txt`.
 
-### 2. Manajemen & Hak Akses (3 Core Roles & Single Identity)
-Sistem menggunakan arsitektur *Role-Based Access Control* (RBAC) 3 peran inti yang bersih mengikuti best practice marketplace modern, di mana status penjual (*merchant*) berbasis kepemilikan relasi data toko (`user.umkm`), sehingga warga maupun kader dapat membuka toko tanpa bentrok role:
-- **`superadmin`**: Akses penuh ke seluruh konsol administrasi [`/admin`](http://localhost:4321/admin), persetujuan kader, moderasi toko, dan kegiatan.
-- **`petugas`**: Relawan/kader lapangan MWC penugasan pendataan jemput bola via [`/petugas`](http://localhost:4321/petugas) yang telah disetujui Superadmin.
-- **`warga`**: Akun jamaah/warga umum. Berperan ganda secara alami: sebagai **Pembeli** (katalog & favorit) dan otomatis menjadi **Penjual (Merchant)** begitu mengisi profil toko di [`/dashboard`](http://localhost:4321/dashboard).
+### 2. Manajemen & Hak Akses (RBAC 4-Level & Single Identity)
+Sistem menggunakan arsitektur *Role-Based Access Control* (RBAC) 4 peran berjenjang dengan pembatasan zona MWC (`assigned_zone_id`), di mana status penjual (*merchant*) berbasis kepemilikan relasi data toko (`user.umkm`):
+- **`pcnu`**: Pengurus Cabang NU / Superadmin dengan akses global seluruh konsol administrasi [`/admin`](http://localhost:4321/admin), manajemen zona, persetujuan kader, moderasi toko/promosi, edukasi, dan agenda.
+- **`mwcnu`**: Pengurus Majelis Wakil Cabang tingkat kecamatan, terbatas pada wilayah tugas `assigned_zone_id` untuk verifikasi toko, peninjauan promosi, dan agenda kegiatan kecamatannya.
+- **`ranting`**: Kader pendata lapangan tingkat desa/ranting pada portal [`/petugas`](http://localhost:4321/petugas) untuk pendataan UMKM terverifikasi di kecamatannya.
+- **`warga`**: Akun jamaah/warga umum. Berperan sebagai **Pembeli** dan otomatis menjadi **Penjual (Merchant)** begitu membuka profil toko di [`/dashboard`](http://localhost:4321/dashboard) atau [`/pasang-iklan`](http://localhost:4321/pasang-iklan).
 
 #### Rincian Halaman Pengelolaan:
 - **Konsol Superadmin [`/admin`](http://localhost:4321/admin)**:
   - Panel persetujuan (*approval gate*) kader petugas lapangan MWC dengan aksi 1-klik Setujui / Tolak.
   - Moderasi toko UMKM: pemberian status verifikasi centang hijau resmi MWC NU dan penghapusan toko bermasalah.
   - Ringkasan statistik sistem: jumlah toko, produk aktif, perputaran kas, dan sebaran petugas per MWC.
-  - Rute lama `/pengurus` otomatis dialihkan (302 redirect) ke `/admin`.
+  - Rute lama `/pengurus`, `/agen`, dan `/daftar-toko` otomatis dialihkan permanen (`301 redirect`) masing-masing ke `/admin`, `/pasang-iklan`, dan `/dashboard`.
 - **Portal Petugas Lapangan [`/petugas`](http://localhost:4321/petugas)**:
   - Antarmuka relawan kader MWC bersih dan bebas template usang OsClass.
   - Alur pendaftaran mandiri kader dengan pilihan MWC penugasan dan nomor WhatsApp.
   - Pencegahan duplikasi toko: otomatis mendeteksi nomor WhatsApp toko yang sudah ada sebelum membuat toko baru.
   - Kompresi foto kamera HP otomatis di browser menggunakan HTML5 Canvas untuk menghemat kuota internet kader.
-  - Rute lama `/agen` otomatis dialihkan (302 redirect) ke `/petugas`.
 - **Dashboard Toko Mandiri [`/dashboard`](http://localhost:4321/dashboard)**:
   - Autentikasi ganda via Neon Auth (Google Social Login & Email/Kata Sandi).
   - Pengaturan profil usaha: perbarui nama toko, WhatsApp aktif, zona MWC, dan alamat toko.
@@ -106,6 +106,8 @@ node --env-file=.env scripts/migrate-neon.js
 | Perintah | Fungsi |
 | :--- | :--- |
 | `npm run dev` | Menjalankan Astro dev server interaktif |
+| `npm run check` | Menjalankan validasi tipe Astro & TypeScript (`astro check`) |
+| `npm test` | Menjalankan unit test keamanan, RBAC, upload, dan utilitas (`node --test`) |
 | `npm run build` | Melakukan build produksi server & aset klien ke folder `dist/` |
 | `npm run preview` | Melakukan pratinjau hasil build produksi |
 | `npm start` | Menjalankan server Node.js dari hasil build produksi |

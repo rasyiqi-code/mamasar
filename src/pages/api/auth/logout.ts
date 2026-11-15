@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { deleteSession, deleteUserSessions, getUserFromSession } from '../../../lib/db';
 import { getNeonAuthBaseUrl, parseCookieString } from '../../../lib/neon-auth';
+import { isHttpsRequest } from '../../../lib/security';
 
 export const POST: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
@@ -80,7 +81,7 @@ export const POST: APIRoute = async ({ request }) => {
     '__Secure-better-auth.state',
   ]);
 
-  const isHttps = url.protocol === 'https:';
+  const isHttps = isHttpsRequest(request);
 
   for (const name of allCookieNames) {
     // 1. Plain HTTP version (works reliably on localhost HTTP and across all browsers)
@@ -102,6 +103,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
   }
 
+  headers.set('Clear-Site-Data', '"cookies", "storage", "cache"');
   headers.set('Location', '/dashboard?logged_out=1');
 
   return new Response(null, {

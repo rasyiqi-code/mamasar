@@ -1,8 +1,8 @@
-import { and, asc, eq, getTableColumns, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, type SQL } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
 import { formatPhoneForWhatsApp, slugify } from '../utils';
-import type { EventItem } from './types';
+import type { EventItem, EventOrderItem } from './types';
 
 type EventRow = typeof schema.events.$inferSelect & { zone_name: string; zone_slug: string };
 
@@ -127,5 +127,94 @@ export async function deleteEvent(eventId: number): Promise<boolean> {
     .delete(schema.events)
     .where(eq(schema.events.id, eventId))
     .returning({ id: schema.events.id });
+  return rows.length > 0;
+}
+
+export async function createEventOrder(data: {
+  eventId: number;
+  umkmId?: number | null;
+  type: 'consumption' | 'stall';
+  senderName: string;
+  senderPhone: string;
+  itemDescription: string;
+  quantityOrSlots?: string;
+}): Promise<{ id: number }> {
+  const cleanPhone = formatPhoneForWhatsApp(data.senderPhone);
+  const [row] = await getDb()
+    .insert(schema.eventOrders)
+    .values({
+      event_id: data.eventId,
+      umkm_id: data.umkmId ?? null,
+      type: data.type,
+      sender_name: data.senderName.trim(),
+      sender_phone: cleanPhone,
+      item_description: data.itemDescription.trim(),
+      quantity_or_slots: data.quantityOrSlots?.trim() || null,
+      status: 'pending',
+    })
+    .returning({ id: schema.eventOrders.id });
+  return row;
+}
+
+export async function getEventOrders(options?: { eventId?: number }): Promise<EventOrderItem[]> {
+  const query = getDb()
+    .select({
+      ...getTableColumns(schema.eventOrders),
+      event_title: schema.events.title,
+      zone_id: schema.events.zone_id,
+      umkm_name: schema.umkm.name,
+    })
+    .from(schema.eventOrders)
+    .innerJoin(schema.events, eq(schema.eventOrders.event_id, schema.events.id))
+    .leftJoin(schema.umkm, eq(schema.eventOrders.umkm_id, schema.umkm.id));
+
+  const rows = await (options?.eventId ? query.where(eq(schema.eventOrders.event_id, options.eventId)) : query)
+    .orderBy(desc(schema.eventOrders.created_at), desc(schema.eventOrders.id));
+
+  return rows.map((r) => ({
+    id: r.id,
+    event_id: r.event_id,
+    event_title: r.event_title,
+    zone_id: r.zone_id,
+    umkm_id: r.umkm_id,
+    umkm_name: r.umkm_name,
+    type: r.type === 'stall' ? 'stall' : 'consumption',
+    sender_name: r.sender_name,
+    sender_phone: r.sender_phone,
+    item_description: r.item_description,
+    quantity_or_slots: r.quantity_or_slots ?? undefined,
+    status: (r.status as EventOrderItem['status']) || 'pending',
+    created_at: r.created_at ? r.created_at.toISOString() : new Date().toISOString(),
+  }));
+}
+
+export async function getEventOrderById(orderId: number): Promise<{ id: number; event_id: number; zone_id: number } | undefined> {
+  const [row] = await getDb()
+    .select({
+      id: schema.eventOrders.id,
+      event_id: schema.eventOrders.event_id,
+      zone_id: schema.events.zone_id,
+    })
+    .from(schema.eventOrders)
+    .innerJoin(schema.events, eq(schema.eventOrders.event_id, schema.events.id))
+    .where(eq(schema.eventOrders.id, orderId))
+    .limit(1);
+  return row;
+}
+
+export async function getEventById(eventId: number): Promise<EventItem | undefined> {
+  const [row] = await eventSelect().where(eq(schema.events.id, eventId));
+  return row ? toEventItem(row) : undefined;
+}
+
+export async function updateEventOrderStatus(
+  orderId: number,
+  status: 'accepted' | 'rejected'
+): Promise<boolean> {
+  const rows = await getDb()
+    .update(schema.eventOrders)
+    .set({ status })
+    .where(eq(schema.eventOrders.id, orderId))
+    .returning({ id: schema.eventOrders.id });
   return rows.length > 0;
 }

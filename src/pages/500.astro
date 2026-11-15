@@ -1,0 +1,27 @@
+---
+import Layout from '../layouts/Layout.astro';
+import NotFoundView from '../components/common/NotFoundView.astro';
+
+interface Props {
+  error?: unknown;
+}
+
+if (Astro.props.error) {
+  console.error('[SSR 500 error]', Astro.props.error);
+}
+Astro.response.status = 500;
+---
+
+<Layout
+  title="Kendala Server Sementara (500) | Mamasar Sumenep"
+  description="Maaf, terjadi gangguan sementara saat memuat halaman. Silakan coba beberapa saat lagi."
+  noindex={true}
+>
+  <NotFoundView
+    code="500"
+    heading="Gangguan Server Sementara"
+    message="Mohon maaf, sistem sedang mengalami kendala teknis sesaat. Data Anda aman. Silakan muat ulang atau kembali ke beranda."
+    primaryHref="/"
+    primaryLabel="Kembali ke Beranda"
+  />
+</Layout>

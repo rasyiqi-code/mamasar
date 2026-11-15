@@ -10,6 +10,7 @@ interface Props {
   };
   store: {
     id: number;
+    slug?: string;
     name: string;
     zone_name: string;
     is_verified?: boolean | number | null;
@@ -68,7 +69,7 @@ const {
 <!-- DESKTOP & MOBILE SIDEBAR -->
 <aside
   id="dashboard-sidebar"
-  class="fixed md:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#fbfcfd] border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-screen shrink-0"
+  class="fixed md:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#fbfcfd] border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-dvh shrink-0"
 >
   <div class="flex flex-col h-full overflow-y-auto">
     <!-- Sidebar Brand / Store Profile -->
@@ -134,57 +135,71 @@ const {
     )}
 
     <!-- Navigation Items -->
-    <nav class="p-3 space-y-1 flex-1 text-xs">
-      <button
-        type="button"
-        data-nav-tab="products"
-        class="nav-tab-btn active w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
-      >
-        <div class="flex items-center gap-2.5">
-          <AppIcon name="package" size="sm" class="text-slate-600" />
-          <span>Katalog Produk</span>
-        </div>
-        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
-          {productCount}
-        </span>
-      </button>
+    <nav aria-label="Menu Dashboard Toko" class="p-3 space-y-1 flex-1 text-xs">
+      <div role="tablist" aria-orientation="vertical" class="space-y-1">
+        <button
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-products"
+          data-nav-tab="products"
+          class="nav-tab-btn active w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <div class="flex items-center gap-2.5">
+            <AppIcon name="package" size="sm" class="text-slate-600" />
+            <span>Katalog Produk</span>
+          </div>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+            {productCount}
+          </span>
+        </button>
 
-      <button
-        type="button"
-        data-nav-tab="cashbook"
-        class="nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
-      >
-        <div class="flex items-center gap-2.5">
-          <AppIcon name="book" size="sm" class="text-slate-600" />
-          <span>Buku Kas Santri</span>
-        </div>
-        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
-          {cashbookCount}
-        </span>
-      </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-cashbook"
+          data-nav-tab="cashbook"
+          class="nav-tab-btn w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <div class="flex items-center gap-2.5">
+            <AppIcon name="book" size="sm" class="text-slate-600" />
+            <span>Buku Kas Santri</span>
+          </div>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+            {cashbookCount}
+          </span>
+        </button>
 
-      <button
-        type="button"
-        data-nav-tab="profile"
-        class="nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
-      >
-        <AppIcon name="store" size="sm" class="text-slate-600" />
-        <span>Profil Usaha</span>
-      </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-profile"
+          data-nav-tab="profile"
+          class="nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <AppIcon name="store" size="sm" class="text-slate-600" />
+          <span>Profil Usaha</span>
+        </button>
 
-      <button
-        type="button"
-        data-nav-tab="services"
-        class="nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
-      >
-        <AppIcon name="award" size="sm" class="text-slate-600" />
-        <span>Layanan Kemitraan</span>
-      </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-services"
+          data-nav-tab="services"
+          class="nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <AppIcon name="award" size="sm" class="text-slate-600" />
+          <span>Layanan Kemitraan</span>
+        </button>
+      </div>
 
       <div class="pt-3 mt-2 border-t border-slate-200/60">
         <a
           href="/"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+          class="min-h-[40px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
         >
           <AppIcon name="globe" size="sm" />
           <span>Katalog Publik</span>
@@ -195,7 +210,7 @@ const {
     <!-- Sidebar Footer: User Card & Storefront link -->
     <div class="p-3 border-t border-slate-200/70 space-y-2">
       <a
-        href={`/toko/${store.id}`}
+        href={`/toko/${store.slug || store.id}`}
         target="_blank"
         class="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition"
       >

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getNeonAuthBaseUrl, resolveUser } from '../../../../lib/neon-auth';
 import { findOrCreateUserByGoogle, createSession } from '../../../../lib/db';
+import { createSessionCookieHeader, isHttpsRequest } from '../../../../lib/security';
 
 export const GET: APIRoute = async ({ request, redirect }) => {
   // If the user already has an active session (e.g. refreshed or back-navigated callback), redirect to dashboard
@@ -87,9 +88,10 @@ export const GET: APIRoute = async ({ request, redirect }) => {
     const sessionId = await createSession(appUser.id);
 
     const headers = new Headers();
+    const https = isHttpsRequest(request);
     // Forward Neon Auth set-cookie headers (cleaned for localhost if needed)
     for (const sc of setCookies) {
-      if (url.protocol !== 'https:') {
+      if (!https) {
         const cleaned = sc
           .replace(/__Secure-/g, '')
           .replace(/;\s*Secure/gi, '')
@@ -100,11 +102,7 @@ export const GET: APIRoute = async ({ request, redirect }) => {
         headers.append('Set-Cookie', sc);
       }
     }
-    // Set mamasar_session cookie for local compatibility
-    headers.append(
-      'Set-Cookie',
-      `mamasar_session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 24 * 60 * 60}`
-    );
+    headers.append('Set-Cookie', createSessionCookieHeader(sessionId, request));
     headers.set('Location', '/dashboard');
 
     return new Response(null, {

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getUserFromSession, getAllZones, createEvent, updateEvent, deleteEvent, isSuperadmin, type EventInput } from '../../lib/db';
 import { isValidIndonesianPhone } from '../../lib/utils';
+import { jsonError } from '../../lib/security';
 
 /**
  * Parse and validate the shared event form fields for create/update.
@@ -15,12 +16,13 @@ function parseEventForm(
   const organizer = formData.get('organizer')?.toString().trim();
   const zoneId = Number(formData.get('zoneId'));
   const eventDateRaw = formData.get('eventDate')?.toString().trim();
-  const timeDescription = formData.get('timeDescription')?.toString().trim();
+  const timeDescription = (formData.get('timeDescription') ?? formData.get('timeDesc'))?.toString().trim();
   const locationName = formData.get('locationName')?.toString().trim();
   const locationAddress = formData.get('locationAddress')?.toString().trim();
   const estimatedAttendance = Number(formData.get('estimatedAttendance') || 0);
   const consumptionNeeded = formData.get('consumptionNeeded')?.toString().trim();
-  const allowStalls = formData.get('allowStalls') !== null;
+  const rawAllowStalls = formData.get('allowStalls')?.toString();
+  const allowStalls = rawAllowStalls !== undefined && rawAllowStalls !== '0' && rawAllowStalls !== 'false';
   const coordinatorName = formData.get('coordinatorName')?.toString().trim();
   const coordinatorPhone = formData.get('coordinatorPhone')?.toString().trim();
 
@@ -28,10 +30,13 @@ function parseEventForm(
     return { ok: false, message: 'Judul acara, penyelenggara, wilayah MWC, tanggal & waktu, lokasi, dan nomor WhatsApp koordinator wajib diisi.' };
   }
 
-  // Konvensi waktu aplikasi: input datetime-local ("YYYY-MM-DDTHH:mm")
-  // disimpan sebagai wall-clock UTC (mengikuti konvensi SEED_EVENTS), sehingga
-  // tampilan tanggal di server produksi (UTC) tidak bergeser.
-  const eventDate = new Date(`${eventDateRaw}${eventDateRaw.length === 16 ? ':00' : ''}Z`);
+  // Konvensi waktu aplikasi: input date/datetime-local ("YYYY-MM-DD" atau "YYYY-MM-DDTHH:mm")
+  // disimpan sebagai wall-clock UTC sehingga tampilan tanggal di server produksi tidak bergeser.
+  const isoCandidate =
+    eventDateRaw.length === 10
+      ? `${eventDateRaw}T08:00:00Z`
+      : `${eventDateRaw}${eventDateRaw.length === 16 ? ':00' : ''}Z`;
+  const eventDate = new Date(isoCandidate);
   if (isNaN(eventDate.getTime())) {
     return { ok: false, message: 'Tanggal & waktu acara tidak valid.' };
   }
@@ -168,9 +173,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error: any) {
-    return new Response(JSON.stringify({ success: false, message: error.message || 'Terjadi kesalahan server.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Events API error:', error);
+    return jsonError(500, 'Terjadi kesalahan server.');
   }
 };

@@ -1,15 +1,13 @@
 import type { APIRoute } from 'astro';
 import { resolveUser } from '../../../../lib/neon-auth';
-import { isSuperadmin, reviewPetugas } from '../../../../lib/db';
+import { isSuperadmin, reviewPetugas, deleteUserSessions } from '../../../../lib/db';
+import { jsonError } from '../../../../lib/security';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const user = await resolveUser(request);
     if (!user || !isSuperadmin(user)) {
-      return new Response(JSON.stringify({ success: false, message: 'Akses khusus Admin / Pengurus PCNU Sumenep.' }), {
-        status: 403,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonError(403, 'Akses khusus Admin / Pengurus PCNU Sumenep.');
     }
 
     const formData = await request.formData();
@@ -18,13 +16,11 @@ export const POST: APIRoute = async ({ request }) => {
     const targetRole = formData.get('role')?.toString() === 'mwcnu' ? 'mwcnu' : 'ranting';
 
     if (!targetUserId || (action !== 'approve' && action !== 'reject')) {
-      return new Response(JSON.stringify({ success: false, message: 'ID pengguna dan aksi (approve/reject) diperlukan.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonError(400, 'ID pengguna dan aksi (approve/reject) diperlukan.');
     }
 
     await reviewPetugas(targetUserId, action, targetRole);
+    await deleteUserSessions(targetUserId);
 
     const roleLabel = targetRole === 'mwcnu' ? 'Pengurus MWC NU' : 'Kader Ranting';
     return new Response(
@@ -37,9 +33,6 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, message: err.message || 'Terjadi kesalahan server.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonError(500, 'Terjadi kesalahan server saat memproses persetujuan kader.', err);
   }
 };

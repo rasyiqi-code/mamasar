@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { can, getUMKMScope, getUserFromSession, isPCNU, setUMKMVerified } from '../../../lib/db';
+import { jsonError } from '../../../lib/security';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -66,9 +67,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
-    return new Response(JSON.stringify({ success: false, message: error.message || 'Terjadi kesalahan server.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('UMKM verify error:', error);
+    return jsonError(500, 'Terjadi kesalahan server.');
   }
 };

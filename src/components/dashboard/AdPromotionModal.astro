@@ -16,14 +16,12 @@ const featuredPackages = AD_PACKAGES.filter((p) => p.category === 'featured');
 const bumpPackages = AD_PACKAGES.filter((p) => p.category === 'bump');
 ---
 
-<div
+<dialog
   id="modal-ad-promo"
-  class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4"
-  role="dialog"
-  aria-modal="true"
   aria-labelledby="modal-promo-title"
+  class="w-[calc(100%-1.5rem)] max-w-xl rounded-2xl bg-white shadow-2xl border border-slate-200 p-0 text-slate-900 overflow-hidden"
 >
-  <div class="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all my-8">
+  <div class="flex flex-col max-h-[88dvh] overflow-y-auto">
     <!-- Header -->
     <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-amber-50 to-white">
       <div class="flex items-center gap-2.5">
@@ -228,18 +226,19 @@ const bumpPackages = AD_PACKAGES.filter((p) => p.category === 'bump');
         <button
           type="button"
           id="btn-cancel-promo"
-          class="w-full sm:w-auto px-4 py-2.5 text-xs font-bold text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition cursor-pointer"
+          autofocus
+          class="w-full sm:w-auto min-h-[44px] px-4 py-2.5 text-xs font-bold text-slate-700 hover:text-slate-900 border border-slate-200 rounded-xl transition cursor-pointer"
         >
           Batal
         </button>
         <button
           type="submit"
           id="btn-submit-promo-order"
-          class="w-full sm:w-auto px-6 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
+          class="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-slate-950 font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
         >
           <span>Konfirmasi & Ajukan Iklan ➔</span>
         </button>
       </div>
     </form>
   </div>
-</div>
+</dialog>

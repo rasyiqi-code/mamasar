@@ -16,12 +16,12 @@ export class InvalidUploadError extends Error {
   }
 }
 
-interface DetectedImageType {
+export interface DetectedImageType {
   ext: '.jpg' | '.png' | '.webp';
   mime: 'image/jpeg' | 'image/png' | 'image/webp';
 }
 
-function detectImageType(buffer: Buffer): DetectedImageType | null {
+export function detectImageType(buffer: Buffer): DetectedImageType | null {
   if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
     return { ext: '.jpg', mime: 'image/jpeg' };
   }
@@ -48,7 +48,7 @@ function detectImageType(buffer: Buffer): DetectedImageType | null {
   return null;
 }
 
-async function extractAndValidateImage(options: {
+export async function extractAndValidateImage(options: {
   imageFile?: File | null;
   imageBase64?: string | null;
 }): Promise<{ buffer: Buffer; ext: '.jpg' | '.png' | '.webp'; mime: string } | null> {

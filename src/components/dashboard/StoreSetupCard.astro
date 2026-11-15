@@ -1,5 +1,6 @@
 ---
 import KaderRegisterForm from './KaderRegisterForm.astro';
+import PrivacyAccountPanel from './PrivacyAccountPanel.astro';
 
 interface Zone {
   id: number;
@@ -270,6 +271,18 @@ const showKaderFirst = initialTab === 'kader';
         />
       </div>
 
+      <label for="storeSetupConsent" class="flex items-start gap-2.5 pt-1 cursor-pointer text-xs text-slate-700">
+        <input
+          type="checkbox"
+          id="storeSetupConsent"
+          required
+          class="mt-0.5 w-4 h-4 accent-emerald-700 shrink-0 rounded border-slate-300"
+        />
+        <span>
+          Saya menyetujui <a href="/privasi" target="_blank" class="text-emerald-700 font-semibold underline">Kebijakan Privasi Mamasar</a> untuk menampilkan data kontak toko di direktori publik.
+        </span>
+      </label>
+
       <div class="pt-2">
         <button
           type="submit"
@@ -292,4 +305,6 @@ const showKaderFirst = initialTab === 'kader';
   >
     <KaderRegisterForm user={user} zones={zones} assignedZone={assignedZone} />
   </div>
+
+  <PrivacyAccountPanel hasStore={false} />
 </div>

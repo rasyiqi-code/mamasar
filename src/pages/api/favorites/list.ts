@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getProductsByIds } from '../../../lib/db';
+import { jsonError } from '../../../lib/security';
 
 export const GET: APIRoute = async ({ request }) => {
   try {
@@ -36,9 +37,7 @@ export const GET: APIRoute = async ({ request }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, message: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Favorites list error:', err);
+    return jsonError(500, 'Gagal memuat daftar favorit.');
   }
 };

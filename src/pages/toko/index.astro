@@ -171,7 +171,7 @@ const activeZone = zones.find((z) => z.slug === currentZone);
               <div class="space-y-3">
                 <div class="flex items-start justify-between gap-3">
                   <div class="flex items-start gap-3 min-w-0">
-                    <a href={`/toko/${store.id}`} class="relative shrink-0 block group">
+                    <a href={`/toko/${store.slug || store.id}`} class="relative shrink-0 block group">
                       <div class="w-13 h-13 rounded-2xl bg-emerald-50 text-emerald-800 border-2 border-emerald-400 flex items-center justify-center font-black text-lg shadow-inner group-hover:bg-emerald-100 transition">
                         {initials}
                       </div>
@@ -184,7 +184,7 @@ const activeZone = zones.find((z) => z.slug === currentZone);
 
                     <div class="space-y-0.5 min-w-0">
                       <a
-                        href={`/toko/${store.id}`}
+                        href={`/toko/${store.slug || store.id}`}
                         class="font-extrabold text-sm sm:text-base text-slate-900 hover:text-emerald-700 transition truncate block leading-snug"
                         title={store.name}
                       >
@@ -243,7 +243,7 @@ const activeZone = zones.find((z) => z.slug === currentZone);
                       ))}
                       {store.product_count > 3 && (
                         <a
-                          href={`/toko/${store.id}`}
+                          href={`/toko/${store.slug || store.id}`}
                           class="w-16 h-16 sm:w-18 sm:h-18 rounded-lg border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 flex flex-col items-center justify-center text-center p-1 text-slate-500 shrink-0 transition"
                         >
                           <span class="font-black text-xs text-slate-700">+{store.product_count - 3}</span>
@@ -258,7 +258,7 @@ const activeZone = zones.find((z) => z.slug === currentZone);
               <!-- Store Action Buttons -->
               <div class="pt-3 border-t border-slate-100 flex items-center gap-2">
                 <a
-                  href={`/toko/${store.id}`}
+                  href={`/toko/${store.slug || store.id}`}
                   class="flex-1 py-2 px-3 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-300 text-slate-800 text-xs font-bold rounded-xl text-center shadow-2xs transition cursor-pointer"
                 >
                   Kunjungi Toko →

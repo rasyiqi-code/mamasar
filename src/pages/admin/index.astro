@@ -9,6 +9,7 @@ import {
   getUMKMForVerification,
   getAllZones,
   getEvents,
+  getEventOrders,
   getAllPendingAdOrders,
 } from '../../lib/db';
 
@@ -44,6 +45,11 @@ const stores = isSuper
 const events = isSuper
   ? await getEvents()
   : await getEvents({ zoneSlug: assignedZone?.slug });
+
+const allEventOrders = await getEventOrders();
+const eventOrders = isSuper
+  ? allEventOrders
+  : (user.assigned_zone_id ? allEventOrders.filter((o) => o.zone_id === user.assigned_zone_id) : []);
 
 const pendingStores = stores.filter((s) => !s.is_verified);
 const verifiedStores = stores.filter((s) => s.is_verified);
@@ -92,7 +98,7 @@ const portalHeading = isSuper
       <EntryPanel user={user} assignedZone={assignedZone} zones={zones} stores={stores} isDefaultActive={!isSuper} />
 
       <!-- Tab: Agenda Kegiatan NU & Pasar Konsumsi -->
-      <EventsPanel events={events} zones={zones} />
+      <EventsPanel events={events} zones={zones} eventOrders={eventOrders} />
 
       <!-- Tab: Moderasi Iklan & Promosi Berbayar (PCNU & MWCNU) -->
       {canReviewPromos && <PromotionsPanel pendingPromotions={pendingPromotions} />}

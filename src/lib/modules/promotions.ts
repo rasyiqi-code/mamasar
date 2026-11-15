@@ -1,6 +1,7 @@
 import { and, desc, eq, isNotNull, lte, sql } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
+import { invalidateCache } from '../cache';
 import type { AdPromotion, BumpLedgerEntry } from './types';
 import { recordAuditLog } from './audit';
 import { createNotification } from './notifications';
@@ -387,6 +388,8 @@ export async function approveAdOrder(
     );
   });
 
+  invalidateCache('products:');
+  invalidateCache('stores:');
   return { success: true, message: 'Alhamdulillah! Pesanan promosi iklan berhasil disetujui & diaktifkan.' };
 }
 
@@ -476,9 +479,15 @@ export async function expireStalePromotions(): Promise<{ expiredOrders: number; 
       )
       .returning({ id: schema.products.id });
 
-    return {
+    const result = {
       expiredOrders: expiredOrders.length,
       expiredProducts: expiredProducts.length,
     };
+    return result;
+  }).then((res) => {
+    if (res.expiredOrders > 0 || res.expiredProducts > 0) {
+      invalidateCache('products:');
+    }
+    return res;
   });
 }

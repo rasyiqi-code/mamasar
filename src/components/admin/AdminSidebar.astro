@@ -81,7 +81,7 @@ const roleSub = isSuper
 <!-- DESKTOP & MOBILE SIDEBAR -->
 <aside
   id="admin-sidebar"
-  class="fixed md:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#fbfcfd] border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-screen shrink-0"
+  class="fixed md:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#fbfcfd] border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-dvh shrink-0"
 >
   <div class="flex flex-col h-full overflow-y-auto">
     <!-- Sidebar Header: PCNU Logo & Portal Info -->
@@ -111,23 +111,27 @@ const roleSub = isSuper
     </div>
 
     <!-- Navigation Tabs -->
-    <nav class="p-3 space-y-1 flex-1 text-xs">
+    <nav aria-label="Menu Portal Admin & Kader" class="p-3 space-y-1 flex-1 text-xs">
+      <div role="tablist" aria-orientation="vertical" class="space-y-1">
       {isSuper && (
         <button
           type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-agents"
           data-admin-tab="agents"
-          class="admin-nav-tab active w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+          class="admin-nav-tab active w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
             <AppIcon name="shield" size="sm" class="text-slate-600" />
             <span>Pengguna & Peran</span>
           </div>
           {pendingPetugasCount > 0 ? (
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900">
               {pendingPetugasCount}
             </span>
           ) : (
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
               0
             </span>
           )}
@@ -137,19 +141,22 @@ const roleSub = isSuper
       {isSuper ? (
         <button
           type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-stores"
           data-admin-tab="stores"
-          class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+          class="admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
             <AppIcon name="store" size="sm" class="text-slate-600" />
             <span>Moderasi Toko</span>
           </div>
           {pendingStoresCount > 0 ? (
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-indigo-100 text-indigo-900">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-900">
               {pendingStoresCount}
             </span>
           ) : (
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
               0
             </span>
           )}
@@ -157,8 +164,11 @@ const roleSub = isSuper
       ) : (
         <button
           type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-entry"
           data-admin-tab="entry"
-          class="admin-nav-tab active w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+          class="admin-nav-tab active w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <AppIcon name="clipboard" size="sm" class="text-slate-600" />
           <span>Entri Jemput Bola</span>
@@ -168,8 +178,11 @@ const roleSub = isSuper
       {isSuper ? (
         <button
           type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-entry"
           data-admin-tab="entry"
-          class="admin-nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+          class="admin-nav-tab w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <AppIcon name="clipboard" size="sm" class="text-slate-600" />
           <span>Entri Jemput Bola</span>
@@ -177,14 +190,17 @@ const roleSub = isSuper
       ) : (
         <button
           type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-stores"
           data-admin-tab="stores"
-          class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+          class="admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
             <AppIcon name="store" size="sm" class="text-slate-600" />
             <span>Toko Binaan MWC</span>
           </div>
-          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+          <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
             {pendingStoresCount}
           </span>
         </button>
@@ -192,8 +208,11 @@ const roleSub = isSuper
 
       <button
         type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-events"
         data-admin-tab="events"
-        class="admin-nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+        class="admin-nav-tab w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
       >
         <AppIcon name="tent" size="sm" class="text-slate-600" />
         <span>Agenda Kegiatan</span>
@@ -202,19 +221,22 @@ const roleSub = isSuper
       {(isSuper || isMwcAdmin) && (
         <button
           type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-promotions"
           data-admin-tab="promotions"
-          class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+          class="admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
             <AppIcon name="star" size="sm" class="text-amber-600" />
             <span>Iklan & Promosi</span>
           </div>
           {pendingPromotionsCount > 0 ? (
-            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-950">
+            <span class="text-xs font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-950">
               {pendingPromotionsCount}
             </span>
           ) : (
-            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
               0
             </span>
           )}
@@ -223,29 +245,33 @@ const roleSub = isSuper
 
       <button
         type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panel-zones"
         data-admin-tab="zones"
-        class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        class="admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
       >
         <div class="flex items-center gap-2.5">
           <AppIcon name="map-pin" size="sm" class="text-slate-600" />
           <span>Peta Sebaran Wilayah</span>
         </div>
-        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+        <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
           {zonesCount}
         </span>
       </button>
+      </div>
 
       <div class="pt-3 mt-2 border-t border-slate-200/60 space-y-1">
         <a
           href="/dashboard"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+          class="min-h-[40px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
         >
           <AppIcon name="store" size="sm" />
           <span>Dashboard Toko Saya</span>
         </a>
         <a
           href="/"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+          class="min-h-[40px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
         >
           <AppIcon name="globe" size="sm" />
           <span>Lihat Katalog Depan</span>

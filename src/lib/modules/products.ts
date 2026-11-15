@@ -1,10 +1,19 @@
-import { and, asc, desc, eq, getTableColumns, gt, gte, ilike, inArray, lte, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, gt, gte, ilike, inArray, lte, ne, or, sql, type SQL } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
 import { formatPhoneForWhatsApp, slugify } from '../utils';
+import { getOrSetCache, invalidateCache } from '../cache';
 import type { Product } from './types';
+import { generateStoreSlug } from './stores';
+
+function invalidateCatalogCaches() {
+  invalidateCache('products:');
+  invalidateCache('stores:');
+  invalidateCache('zones:');
+}
 
 export type ProductRow = typeof schema.products.$inferSelect & {
+  umkm_slug?: string | null;
   umkm_name: string;
   umkm_phone: string;
   umkm_address: string | null;
@@ -23,6 +32,7 @@ export function toProduct(row: ProductRow): Product {
   return {
     id: row.id,
     umkm_id: row.umkm_id,
+    umkm_slug: row.umkm_slug ?? undefined,
     umkm_name: row.umkm_name,
     umkm_phone: row.umkm_phone,
     umkm_address: row.umkm_address ?? '',
@@ -68,6 +78,7 @@ export function productSelect() {
   return getDb()
     .select({
       ...getTableColumns(schema.products),
+      umkm_slug: schema.umkm.slug,
       umkm_name: schema.umkm.name,
       umkm_phone: schema.umkm.phone,
       umkm_address: schema.umkm.address,
@@ -92,7 +103,7 @@ export const lastBumpedFirst = [
   desc(schema.products.id),
 ];
 
-export async function getProducts(options?: {
+export interface ProductFilterOptions {
   zoneSlug?: string;
   category?: string;
   search?: string;
@@ -101,7 +112,12 @@ export async function getProducts(options?: {
   stockStatus?: string;
   sort?: string;
   verifiedOnly?: boolean;
-}): Promise<Product[]> {
+  excludeProductId?: number;
+  limit?: number;
+  offset?: number;
+}
+
+function buildProductConditions(options?: ProductFilterOptions): SQL[] {
   const conditions: SQL[] = [];
 
   if (options?.verifiedOnly) {
@@ -114,6 +130,10 @@ export async function getProducts(options?: {
 
   if (options?.category && options.category !== 'semua') {
     conditions.push(eq(schema.products.category, options.category));
+  }
+
+  if (options?.excludeProductId) {
+    conditions.push(ne(schema.products.id, options.excludeProductId));
   }
 
   if (options?.stockStatus && options.stockStatus !== 'semua') {
@@ -145,17 +165,61 @@ export async function getProducts(options?: {
     conditions.push(lte(schema.products.price, options.maxPrice));
   }
 
-  const order =
-    options?.sort === 'price_asc'
-      ? [asc(schema.products.price), desc(schema.products.id)]
-      : options?.sort === 'price_desc'
-        ? [desc(schema.products.price), desc(schema.products.id)]
-        : lastBumpedFirst;
+  return conditions;
+}
 
-  const rows = await productSelect()
-    .where(conditions.length ? and(...conditions) : undefined)
-    .orderBy(...order);
-  return rows.map(toProduct);
+function buildProductCacheKey(prefix: string, options?: ProductFilterOptions): string | null {
+  if (options?.search && options.search.trim() !== '') return null;
+  if (options?.minPrice || options?.maxPrice) return null;
+  return `${prefix}:${options?.zoneSlug || 'all'}:${options?.category || 'all'}:${options?.stockStatus || 'all'}:${options?.sort || 'newest'}:${options?.verifiedOnly ? '1' : '0'}:${options?.excludeProductId || 0}:${options?.limit ?? 'all'}:${options?.offset ?? 0}`;
+}
+
+export async function getProducts(options?: ProductFilterOptions): Promise<Product[]> {
+  const load = async () => {
+    const conditions = buildProductConditions(options);
+    const order =
+      options?.sort === 'price_asc'
+        ? [asc(schema.products.price), desc(schema.products.id)]
+        : options?.sort === 'price_desc'
+          ? [desc(schema.products.price), desc(schema.products.id)]
+          : lastBumpedFirst;
+
+    const baseQuery = productSelect()
+      .where(conditions.length ? and(...conditions) : undefined)
+      .orderBy(...order);
+
+    const rows =
+      typeof options?.limit === 'number' && options.limit > 0
+        ? await baseQuery.limit(options.limit).offset(Math.max(0, options.offset ?? 0))
+        : await baseQuery;
+
+    return rows.map(toProduct);
+  };
+
+  const cacheKey = buildProductCacheKey('products:list', options);
+  if (cacheKey) {
+    return getOrSetCache(cacheKey, 60_000, load);
+  }
+  return load();
+}
+
+export async function getProductsCount(options?: ProductFilterOptions): Promise<number> {
+  const load = async () => {
+    const conditions = buildProductConditions(options);
+    const [row] = await getDb()
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.products)
+      .innerJoin(schema.umkm, eq(schema.products.umkm_id, schema.umkm.id))
+      .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+      .where(conditions.length ? and(...conditions) : undefined);
+    return Number(row?.count ?? 0);
+  };
+
+  const cacheKey = buildProductCacheKey('products:count', options);
+  if (cacheKey) {
+    return getOrSetCache(cacheKey, 60_000, load);
+  }
+  return load();
 }
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
@@ -203,6 +267,7 @@ export async function createUMKMAndProduct(data: {
         .insert(schema.umkm)
         .values({
           name: data.umkmName,
+          slug: generateStoreSlug(data.umkmName),
           phone: cleanPhone,
           zone_id: data.zoneId,
           is_verified: 0,
@@ -238,6 +303,9 @@ export async function createUMKMAndProduct(data: {
       productId: productRow.id,
       slug: uniqueSlug,
     };
+  }).then((res) => {
+    invalidateCatalogCaches();
+    return res;
   });
 }
 
@@ -305,6 +373,7 @@ export async function bumpProduct(
       };
     }
 
+    invalidateCatalogCaches();
     return {
       success: true,
       remainingCredits: result,
@@ -318,6 +387,7 @@ export async function bumpProduct(
     .set({ bumped_at: new Date() })
     .where(eq(schema.products.id, productId));
 
+  invalidateCatalogCaches();
   return {
     success: true,
     remainingCredits: 0,
@@ -342,6 +412,7 @@ export async function toggleProductStock(
 
   if (rows.length === 0) return { success: false, is_sold_out: 0 };
 
+  invalidateCatalogCaches();
   return { success: true, is_sold_out: rows[0].is_sold_out ?? 0 };
 }
 
@@ -355,6 +426,7 @@ export async function deleteProduct(productId: number, umkmId?: number): Promise
     .delete(schema.products)
     .where(and(...conditions))
     .returning({ id: schema.products.id });
+  if (rows.length > 0) invalidateCatalogCaches();
   return rows.length > 0;
 }
 
@@ -401,6 +473,7 @@ export async function addProductToUMKM(
     })
     .returning({ id: schema.products.id });
 
+  invalidateCatalogCaches();
   return {
     productId: created.id,
     slug: uniqueSlug,
@@ -477,6 +550,7 @@ export async function updateProduct(
     .set(updateFields)
     .where(eq(schema.products.id, productId));
 
+  invalidateCatalogCaches();
   return true;
 }
 

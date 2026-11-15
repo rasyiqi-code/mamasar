@@ -3,16 +3,16 @@ import { PRODUCT_CATEGORIES } from '../../lib/constants';
 import AppIcon from '../common/AppIcon.astro';
 ---
 
-<!-- MODAL: EDIT PRODUK -->
-<div id="modal-edit-product" class="fixed inset-0 z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-  <div class="modal-backdrop fixed inset-0 bg-slate-900/40 backdrop-blur-xs"></div>
-  <div class="relative bg-white border border-slate-200 rounded-t-2xl sm:rounded-xl w-full max-w-lg shadow-2xl overflow-hidden z-10 max-h-[85vh] sm:max-h-[90vh] flex flex-col">
-    <!-- Mobile Pill Drag Handle -->
-    <div class="sm:hidden w-12 h-1 bg-slate-300 rounded-full mx-auto my-2 shrink-0"></div>
-
-    <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between">
-      <h3 class="font-bold text-sm sm:text-base text-slate-900">Edit Iklan Produk</h3>
-      <button type="button" data-close-modal="edit-product" aria-label="Tutup" class="text-slate-400 hover:text-slate-700 p-1 cursor-pointer flex items-center">
+<!-- MODAL: EDIT PRODUK (Native <dialog>) -->
+<dialog
+  id="modal-edit-product"
+  aria-labelledby="modal-edit-product-title"
+  class="w-[calc(100%-1.5rem)] max-w-lg rounded-2xl bg-white border border-slate-200 shadow-2xl p-0 text-slate-900 overflow-hidden"
+>
+  <div class="flex flex-col max-h-[88dvh]">
+    <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between shrink-0">
+      <h3 id="modal-edit-product-title" class="font-bold text-sm sm:text-base text-slate-900">Edit Iklan Produk</h3>
+      <button type="button" data-close-modal="edit-product" autofocus aria-label="Tutup modal edit produk" class="min-w-[40px] min-h-[40px] rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 cursor-pointer flex items-center justify-center">
         <AppIcon name="close" size="xs" />
       </button>
     </div>
@@ -133,15 +133,22 @@ import AppIcon from '../common/AppIcon.astro';
         />
       </div>
 
-      <div class="pt-2">
+      <div class="pt-2 flex flex-col-reverse sm:flex-row gap-2">
+        <button
+          type="button"
+          data-close-modal="edit-product"
+          class="min-h-[44px] sm:w-32 py-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 font-semibold text-xs sm:text-sm rounded-lg transition cursor-pointer"
+        >
+          Batal
+        </button>
         <button
           type="submit"
           id="btn-submit-edit-product"
-          class="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition shadow-xs cursor-pointer"
+          class="flex-1 min-h-[44px] py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition shadow-xs cursor-pointer"
         >
           Simpan Perubahan Produk ➔
         </button>
       </div>
     </form>
   </div>
-</div>
+</dialog>

@@ -1,18 +1,18 @@
 // Client-side Interactive Logic for Modern SaaS Dashboard
+import { confirmAction, openNativeDialog, closeNativeDialog } from '../lib/dialog';
 
 export function initDashboardClient() {
-  // Tab switching logic via Sidebar & URL hash
+  // Tab switching logic via Sidebar, keyboard arrows & URL hash (history.replaceState)
   function initTabs() {
-    const tabBtns = document.querySelectorAll<HTMLButtonElement>('[data-nav-tab]');
+    const tabBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-nav-tab]'));
     const panels = document.querySelectorAll<HTMLElement>('.tab-panel');
 
-    function switchTab(targetName: string) {
+    function switchTab(targetName: string, syncUrl = false) {
       tabBtns.forEach((btn) => {
-        if (btn.getAttribute('data-nav-tab') === targetName) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
+        const isActive = btn.getAttribute('data-nav-tab') === targetName;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        btn.setAttribute('tabindex', isActive ? '0' : '-1');
       });
 
       panels.forEach((p) => {
@@ -23,22 +23,42 @@ export function initDashboardClient() {
         }
       });
 
+      if (syncUrl) {
+        history.replaceState(null, '', `#${targetName}`);
+      }
+
       closeSidebar();
     }
 
-    tabBtns.forEach((btn) => {
+    tabBtns.forEach((btn, idx) => {
       btn.addEventListener('click', () => {
         const tabName = btn.getAttribute('data-nav-tab');
         if (tabName) {
-          switchTab(tabName);
-          window.location.hash = tabName;
+          switchTab(tabName, true);
+        }
+      });
+
+      btn.addEventListener('keydown', (e) => {
+        if (tabBtns.length === 0) return;
+        let nextIdx = -1;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') nextIdx = (idx + 1) % tabBtns.length;
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabBtns.length) % tabBtns.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = tabBtns.length - 1;
+
+        if (nextIdx >= 0) {
+          e.preventDefault();
+          const nextBtn = tabBtns[nextIdx];
+          const tabName = nextBtn.getAttribute('data-nav-tab');
+          if (tabName) switchTab(tabName, true);
+          nextBtn.focus();
         }
       });
     });
 
     const currentHash = window.location.hash.replace('#', '');
     if (['products', 'cashbook', 'profile', 'services'].includes(currentHash)) {
-      switchTab(currentHash);
+      switchTab(currentHash, false);
     }
   }
 
@@ -62,15 +82,23 @@ export function initDashboardClient() {
   btnCloseSidebar?.addEventListener('click', closeSidebar);
   backdrop?.addEventListener('click', closeSidebar);
 
-  // Modal Manager
+  // Native <dialog> Modal Manager
   function openModal(id: string) {
     const modal = document.getElementById(`modal-${id}`);
-    if (modal) modal.classList.remove('hidden');
+    if (modal instanceof HTMLDialogElement) {
+      openNativeDialog(modal);
+    } else if (modal) {
+      modal.classList.remove('hidden');
+    }
   }
 
   function closeModal(id: string) {
     const modal = document.getElementById(`modal-${id}`);
-    if (modal) modal.classList.add('hidden');
+    if (modal instanceof HTMLDialogElement) {
+      closeNativeDialog(modal);
+    } else if (modal) {
+      modal.classList.add('hidden');
+    }
   }
 
   document.querySelectorAll('[data-open-modal]').forEach((btn) => {
@@ -86,6 +114,13 @@ export function initDashboardClient() {
       if (id) closeModal(id);
     });
   });
+
+  const editProdDialog = document.getElementById('modal-edit-product');
+  if (editProdDialog instanceof HTMLDialogElement) {
+    editProdDialog.addEventListener('click', (e) => {
+      if (e.target === editProdDialog) closeNativeDialog(editProdDialog);
+    });
+  }
 
   document.querySelectorAll('.modal-backdrop').forEach((el) => {
     el.addEventListener('click', () => {
@@ -334,7 +369,13 @@ export function initDashboardClient() {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const name = btn.getAttribute('data-name');
-      if (!confirm(`Hapus produk "${name}" dari katalog toko Anda?`)) return;
+      const confirmed = await confirmAction({
+        title: 'Hapus Produk',
+        message: `Hapus produk "${name}" dari katalog toko Anda?`,
+        confirmLabel: 'Ya, Hapus Produk',
+        tone: 'danger',
+      });
+      if (!confirmed) return;
 
       const formData = new FormData();
       formData.append('productId', id || '');
@@ -436,7 +477,13 @@ export function initDashboardClient() {
   document.querySelectorAll('.btn-delete-cash').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
-      if (!confirm('Hapus baris catatan buku kas ini?')) return;
+      const confirmed = await confirmAction({
+        title: 'Hapus Catatan Kas',
+        message: 'Hapus baris catatan buku kas ini secara permanen?',
+        confirmLabel: 'Ya, Hapus Catatan',
+        tone: 'danger',
+      });
+      if (!confirmed) return;
 
       try {
         const res = await fetch('/api/user/cashbook', {
@@ -712,7 +759,11 @@ export function initDashboardClient() {
     if (!modal) return;
 
     function openPromoModal(category: 'featured' | 'bump' = 'featured', preselectedProductId?: string) {
-      modal?.classList.remove('hidden');
+      if (modal instanceof HTMLDialogElement) {
+        openNativeDialog(modal);
+      } else {
+        modal?.classList.remove('hidden');
+      }
       if (modalAlert) modalAlert.classList.add('hidden');
       switchCategory(category);
       if (preselectedProductId && productSelect) {
@@ -721,7 +772,17 @@ export function initDashboardClient() {
     }
 
     function closePromoModal() {
-      modal?.classList.add('hidden');
+      if (modal instanceof HTMLDialogElement) {
+        closeNativeDialog(modal);
+      } else {
+        modal?.classList.add('hidden');
+      }
+    }
+
+    if (modal instanceof HTMLDialogElement) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closePromoModal();
+      });
     }
 
     function switchCategory(category: 'featured' | 'bump') {
@@ -895,8 +956,73 @@ export function initDashboardClient() {
     (window as any).openPromoModal = openPromoModal;
   }
 
+  function initPrivacyAccountControls() {
+    const toggleBtn = document.getElementById('btn-toggle-delete-account');
+    const box = document.getElementById('delete-account-box');
+    const form = document.getElementById('delete-account-form') as HTMLFormElement | null;
+    const statusBox = document.getElementById('delete-account-status');
+    const confirmInput = document.getElementById('deleteConfirmInput') as HTMLInputElement | null;
+    const submitBtn = document.getElementById('btn-confirm-delete-account') as HTMLButtonElement | null;
+
+    toggleBtn?.addEventListener('click', () => {
+      if (!box) return;
+      const hidden = box.classList.toggle('hidden');
+      toggleBtn.setAttribute('aria-expanded', hidden ? 'false' : 'true');
+      if (!hidden) confirmInput?.focus();
+    });
+
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const confirmText = confirmInput?.value.trim() || '';
+      if (confirmText !== 'HAPUS') {
+        if (statusBox) {
+          statusBox.textContent = 'Ketik HAPUS dengan huruf kapital untuk mengonfirmasi penghapusan akun.';
+          statusBox.className = 'p-2.5 rounded-lg text-xs font-semibold bg-rose-100 text-rose-900 border border-rose-300 block';
+        }
+        confirmInput?.focus();
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Menghapus Akun...';
+      }
+
+      try {
+        const res = await fetch('/api/user/delete-account', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ confirmText }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          try {
+            localStorage.removeItem('mamasar_favorites');
+          } catch {}
+          window.location.href = '/?account_deleted=1';
+          return;
+        }
+        if (statusBox) {
+          statusBox.textContent = data.message || 'Gagal menghapus akun.';
+          statusBox.className = 'p-2.5 rounded-lg text-xs font-semibold bg-rose-100 text-rose-900 border border-rose-300 block';
+        }
+      } catch {
+        if (statusBox) {
+          statusBox.textContent = 'Terjadi gangguan jaringan saat menghapus akun.';
+          statusBox.className = 'p-2.5 rounded-lg text-xs font-semibold bg-rose-100 text-rose-900 border border-rose-300 block';
+        }
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Ya, Hapus Akun Permanen';
+        }
+      }
+    });
+  }
+
   // Initialize features
   initAdPromotionModal();
+  initPrivacyAccountControls();
   initTabs();
 }
 

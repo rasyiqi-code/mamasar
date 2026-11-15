@@ -1,7 +1,8 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import AppIcon from '../../components/common/AppIcon.astro';
-import { getEventBySlug, getProducts } from '../../lib/db';
+import NotFoundView from '../../components/common/NotFoundView.astro';
+import { getEventBySlug, getProducts, getUserFromSession } from '../../lib/db';
 import { formatPhoneForWhatsApp } from '../../lib/utils';
 
 const { slug } = Astro.params;
@@ -13,53 +14,63 @@ if (!slug) {
 const event = await getEventBySlug(slug);
 
 if (!event) {
-  return new Response(null, {
-    status: 404,
-    statusText: 'Kegiatan Tidak Ditemukan',
-  });
+  Astro.response.status = 404;
 }
 
+const sessionId = Astro.cookies.get('mamasar_session')?.value;
+const currentUser = event && sessionId ? await getUserFromSession(sessionId) : null;
+
 const currentUrl = Astro.url.href;
-const coordinatorWaLink = `https://wa.me/${formatPhoneForWhatsApp(event.coordinator_phone)}?text=${encodeURIComponent(
-  `Assalamu'alaikum ${event.coordinator_name || 'Panitia'}, saya ingin bertanya mengenai partisipasi buka lapak bazar atau kebutuhan konsumsi untuk acara: *${event.title}* di ${event.location_name}.`
-)}`;
+const coordinatorWaLink = event
+  ? `https://wa.me/${formatPhoneForWhatsApp(event.coordinator_phone)}?text=${encodeURIComponent(
+      `Assalamu'alaikum ${event.coordinator_name || 'Panitia'}, saya ingin bertanya mengenai partisipasi buka lapak bazar atau kebutuhan konsumsi untuk acara: *${event.title}* di ${event.location_name}.`
+    )}`
+  : '#';
 
-const localFoodProducts = (await getProducts({
-  zoneSlug: event.zone_slug,
-  category: 'Makanan & Minuman',
-})).slice(0, 4);
+const localFoodProducts = event
+  ? (await getProducts({
+      zoneSlug: event.zone_slug,
+      category: 'Makanan & Minuman',
+    })).slice(0, 4)
+  : [];
 
-const foodVendors = localFoodProducts.length > 0
-  ? localFoodProducts
-  : (await getProducts({ category: 'Makanan & Minuman' })).slice(0, 4);
+const foodVendors = event
+  ? (localFoodProducts.length > 0
+      ? localFoodProducts
+      : (await getProducts({ category: 'Makanan & Minuman' })).slice(0, 4))
+  : [];
 
-const eventSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Event',
-  name: event.title,
-  startDate: event.event_date,
-  eventStatus: 'https://schema.org/EventScheduled',
-  eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
-  location: {
-    '@type': 'Place',
-    name: event.location_name,
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: event.location_address || event.location_name,
-      addressLocality: event.zone_name,
-      addressRegion: 'Sumenep, Jawa Timur',
-      addressCountry: 'ID',
-    },
-  },
-  organizer: {
-    '@type': 'Organization',
-    name: event.organizer,
-    url: currentUrl,
-  },
-  description: event.consumption_needed || `Kegiatan ${event.title} diselenggarakan oleh ${event.organizer} di ${event.location_name}, Sumenep.`,
-};
+const eventSchema = event
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Event',
+      name: event.title,
+      startDate: event.event_date,
+      eventStatus: 'https://schema.org/EventScheduled',
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      location: {
+        '@type': 'Place',
+        name: event.location_name,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: event.location_address || event.location_name,
+          addressLocality: event.zone_name,
+          addressRegion: 'Sumenep, Jawa Timur',
+          addressCountry: 'ID',
+        },
+      },
+      organizer: {
+        '@type': 'Organization',
+        name: event.organizer,
+        url: currentUrl,
+      },
+      description:
+        event.consumption_needed ||
+        `Kegiatan ${event.title} diselenggarakan oleh ${event.organizer} di ${event.location_name}, Sumenep.`,
+    }
+  : undefined;
 
-const evDate = new Date(event.event_date);
+const evDate = event ? new Date(event.event_date) : new Date();
 const formattedDate = evDate.toLocaleDateString('id-ID', {
   weekday: 'long',
   day: 'numeric',
@@ -69,6 +80,21 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
 });
 ---
 
+{!event ? (
+  <Layout
+    title="Agenda Kegiatan Tidak Ditemukan | Mamasar"
+    description="Agenda kegiatan NU yang Anda cari belum tersedia atau sudah selesai."
+    noindex={true}
+  >
+    <NotFoundView
+      code="404"
+      heading="Agenda Kegiatan Tidak Ditemukan"
+      message="Link kegiatan mungkin keliru atau agenda sudah dihapus oleh panitia."
+      primaryHref="/kegiatan"
+      primaryLabel="Lihat Semua Kegiatan NU"
+    />
+  </Layout>
+) : (
 <Layout
   title={`${event.title} | Agenda Kegiatan & Konsumsi | Mamasar`}
   description={`Agenda ${event.title} oleh ${event.organizer} di ${event.location_name}, ${event.zone_name}, Sumenep. Pusat pesanan konsumsi berkat dan info lapak bazar warga.`}
@@ -219,43 +245,121 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
       <aside class="lg:col-span-4 space-y-5 lg:sticky lg:top-20">
         <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-xs space-y-4">
           <div class="space-y-1">
-            <span class="text-[10px] font-black uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded">
-              Peluang Jualan Santri & Warga
+            <span class="text-xs font-extrabold uppercase tracking-wider text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded">
+              Peluang Jualan & Konsumsi
             </span>
-            <h3 class="text-base font-black text-slate-900">Buka Lapak Dagang di Lokasi Acara</h3>
+            <h3 class="text-base font-black text-slate-900">Ajukan Penawaran Konsumsi / Daftar Lapak</h3>
             <p class="text-xs text-slate-600 leading-relaxed">
-              Jika Anda menjual camilan, kopi seduh, kopyah, batik, minyak wangi, atau buku santri, manfaatkan keramaian ~{event.estimated_attendance} jamaah di lokasi ini.
+              Tawarkan paket konsumsi/snack box atau ajukan izin buka lapak dagang untuk ~{event.estimated_attendance} jamaah di lokasi acara.
             </p>
           </div>
 
           <div class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5">
             <div class="flex items-center justify-between">
-              <span class="text-slate-500">Izin Lapak Bazar:</span>
-              <span class="font-bold text-emerald-700">Diizinkan Panitia</span>
+              <span class="text-slate-600">Izin Lapak Bazar:</span>
+              <span class="font-bold text-emerald-700">{Boolean(event.allow_stalls) ? 'Diizinkan Panitia' : 'Khusus Penawaran Konsumsi'}</span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-slate-500">Biaya Lapak:</span>
+              <span class="text-slate-600">Biaya Lapak:</span>
               <span class="font-bold text-slate-800">Gratis / Infaq Sukarela</span>
             </div>
             <div class="flex items-center justify-between">
-              <span class="text-slate-500">Koordinator:</span>
+              <span class="text-slate-600">Koordinator:</span>
               <span class="font-bold text-slate-800">{event.coordinator_name || 'Seksi Acara'}</span>
             </div>
           </div>
+
+          <form id="event-order-form" class="space-y-3 pt-2 border-t border-slate-100 text-xs">
+            <input type="hidden" name="eventId" value={event.id} />
+
+            <div class="space-y-1">
+              <label for="evOrderType" class="block font-semibold text-slate-700">Jenis Pengajuan</label>
+              <select
+                id="evOrderType"
+                name="type"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+              >
+                <option value="consumption">Penawaran Konsumsi / Snack Box</option>
+                {Boolean(event.allow_stalls) && (
+                  <option value="stall">Daftar Buka Lapak Bazar UMKM</option>
+                )}
+              </select>
+            </div>
+
+            <div class="space-y-1">
+              <label for="evSenderName" class="block font-semibold text-slate-700">Nama / Nama Toko</label>
+              <input
+                type="text"
+                id="evSenderName"
+                name="senderName"
+                required
+                minlength="2"
+                maxlength="80"
+                value={currentUser?.umkm?.name || currentUser?.name || ''}
+                placeholder="Contoh: Dapur Kue Bu Siti"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+              />
+            </div>
+
+            <div class="space-y-1">
+              <label for="evSenderPhone" class="block font-semibold text-slate-700">Nomor WhatsApp Aktif</label>
+              <input
+                type="tel"
+                id="evSenderPhone"
+                name="senderPhone"
+                required
+                value={currentUser?.umkm?.phone || ''}
+                placeholder="Contoh: 081234567890"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs font-mono text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+              />
+            </div>
+
+            <div class="space-y-1">
+              <label for="evOrderQty" class="block font-semibold text-slate-700">Estimasi Jumlah / Ukuran Lapak</label>
+              <input
+                type="text"
+                id="evOrderQty"
+                name="quantityOrSlots"
+                maxlength="100"
+                placeholder="Contoh: 200 kotak atau 1 meja lipat"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+              />
+            </div>
+
+            <div class="space-y-1">
+              <label for="evOrderDesc" class="block font-semibold text-slate-700">Menu / Barang yang Ditawarkan</label>
+              <textarea
+                id="evOrderDesc"
+                name="itemDescription"
+                required
+                minlength="5"
+                maxlength="400"
+                rows="3"
+                placeholder="Contoh: Snack box Rp 8.000 (kue lumpur, lemper, air mineral) siap antar pagi."
+                class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+              ></textarea>
+            </div>
+
+            <div id="event-order-status" role="status" aria-live="polite" class="hidden p-2.5 rounded-lg text-xs font-semibold"></div>
+
+            <button
+              type="submit"
+              id="btn-submit-event-order"
+              class="w-full min-h-[44px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
+            >
+              <span>Kirim Pengajuan ke Panitia ➔</span>
+            </button>
+          </form>
 
           <a
             href={coordinatorWaLink}
             target="_blank"
             rel="noopener noreferrer"
-            class="w-full py-3 px-4 bg-[#4f46e5] hover:bg-[#4338ca] text-white rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-95 cursor-pointer"
+            class="w-full min-h-[44px] py-2.5 px-4 bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-300 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition"
           >
             <AppIcon name="phone" size="sm" />
-            <span>Hubungi Koordinator Acara via WA</span>
+            <span>Atau Hubungi Koordinator via WA</span>
           </a>
-
-          <p class="text-[10px] text-slate-500 text-center">
-            Hubungi panitia terlebih dahulu sebelum hari-H untuk alokasi tempat lapak jualan.
-          </p>
         </div>
 
         <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs text-xs space-y-2.5">
@@ -264,7 +368,7 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
             href={`https://wa.me/?text=${encodeURIComponent(`*${event.title}*\n📅 ${formattedDate} (${event.time_description})\n📍 ${event.location_name}\n\nInfo lengkap & peluang pesanan konsumsi/lapak:\n${currentUrl}`)}`}
             target="_blank"
             rel="noopener noreferrer"
-            class="w-full py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-xl flex items-center justify-center gap-2 transition"
+            class="w-full min-h-[44px] py-2 px-3 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-xl flex items-center justify-center gap-2 transition"
           >
             <span>Bagikan ke WhatsApp ➔</span>
           </a>
@@ -272,4 +376,63 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
       </aside>
     </div>
   </div>
+
+  <script>
+    const orderForm = document.getElementById('event-order-form') as HTMLFormElement | null;
+    const statusBox = document.getElementById('event-order-status');
+    const submitBtn = document.getElementById('btn-submit-event-order') as HTMLButtonElement | null;
+
+    orderForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!orderForm) return;
+
+      const formData = new FormData(orderForm);
+      const payload = {
+        eventId: Number(formData.get('eventId')),
+        type: String(formData.get('type') || 'consumption'),
+        senderName: String(formData.get('senderName') || '').trim(),
+        senderPhone: String(formData.get('senderPhone') || '').trim(),
+        quantityOrSlots: String(formData.get('quantityOrSlots') || '').trim(),
+        itemDescription: String(formData.get('itemDescription') || '').trim(),
+      };
+
+      if (submitBtn) submitBtn.disabled = true;
+      if (statusBox) {
+        statusBox.className = 'p-2.5 rounded-lg text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200';
+        statusBox.textContent = 'Mengirim pengajuan ke panitia...';
+      }
+
+      try {
+        const res = await fetch('/api/events/order', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          if (statusBox) {
+            statusBox.className = 'p-2.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200';
+            statusBox.textContent = data.message;
+          }
+          const descEl = document.getElementById('evOrderDesc') as HTMLTextAreaElement | null;
+          const qtyEl = document.getElementById('evOrderQty') as HTMLInputElement | null;
+          if (descEl) descEl.value = '';
+          if (qtyEl) qtyEl.value = '';
+        } else {
+          if (statusBox) {
+            statusBox.className = 'p-2.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200';
+            statusBox.textContent = data.message || 'Gagal mengirim pengajuan.';
+          }
+        }
+      } catch {
+        if (statusBox) {
+          statusBox.className = 'p-2.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200';
+          statusBox.textContent = 'Gangguan jaringan. Periksa koneksi Anda dan coba lagi.';
+        }
+      } finally {
+        if (submitBtn) submitBtn.disabled = false;
+      }
+    });
+  </script>
 </Layout>
+)}

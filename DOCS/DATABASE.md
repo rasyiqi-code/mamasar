@@ -18,6 +18,12 @@ erDiagram
     ZONES ||--o{ UMKM : "menaungi"
     ZONES ||--o{ EVENTS : "lokasi"
     UMKM ||--o{ PRODUCTS : "memiliki"
+    EVENTS ||--o{ EVENT_ORDERS : "menerima"
+    UMKM ||--o{ EVENT_ORDERS : "berpartisipasi"
+    UMKM ||--o{ AD_PROMOTIONS : "memesan"
+    UMKM ||--o{ BUMP_LEDGER : "mutasi_sundul"
+    USERS ||--o{ FAVORITES : "menyimpan"
+    USERS ||--o{ NOTIFICATIONS : "menerima"
 
     USERS {
         INTEGER id PK
@@ -44,9 +50,11 @@ erDiagram
         INTEGER id PK
         INTEGER user_id FK
         VARCHAR name
+        VARCHAR slug UK
         VARCHAR phone
         INTEGER zone_id FK
         INTEGER is_verified
+        INTEGER bump_credits
         TEXT address
         TIMESTAMP created_at
     }
@@ -351,9 +359,7 @@ CREATE INDEX IF NOT EXISTS idx_cashbook_user ON cashbook(user_id, transaction_da
 
 ## Sinkronisasi skema
 
-`scripts/migrate-neon.js` (DDL), `src/lib/schema.ts` (mirror Drizzle), dan `src/lib/db.ts` (query) sudah sinkron untuk tabel: `zones`, `umkm`, `products` (termasuk `shopee_url`, `views` default 0), `articles`, `events`, `users`, `sessions`, `cashbook` + index `idx_cashbook_user`. Saat mengubah DDL di `migrate-neon.js`, ubah juga `schema.ts` agar tetap sejajar.
-
-Kolom yang pernah dibuat lalu dihapus karena tidak pernah dipakai aplikasi: `products.gallery_images`, `products.is_featured`, `users.role`. Migrasi menjalankan `DROP COLUMN IF EXISTS` untuk membersihkan database lama.
+`scripts/migrate-neon.js` (DDL), `src/lib/schema.ts` (mirror Drizzle), dan modul di `src/lib/modules/` (`src/lib/db.ts` sebagai facade) sinkron untuk tabel: `zones`, `umkm` (termasuk kolom kanonik `slug` & indeks unik `uq_umkm_slug`), `products` (termasuk `gallery_images`, `is_featured`, `featured_until`, `shopee_url`, `views` default 0), `articles`, `events`, `event_orders`, `users` (dengan peran RBAC 4-level: `pcnu`, `mwcnu`, `ranting`, `warga`), `sessions`, `favorites`, `cashbook`, `ad_promotions`, `bump_ledger`, `audit_log`, dan `notifications`. Saat mengubah DDL di `migrate-neon.js`, ubah juga `schema.ts` agar tetap sejajar.
 
 ---
 

@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { getNeonAuthBaseUrl } from '../../../lib/neon-auth';
 import { findOrCreateUserByGoogle, createSession } from '../../../lib/db';
+import { checkRateLimit, createSessionCookieHeader, getClientIp, isHttpsRequest } from '../../../lib/security';
 
 export const POST: APIRoute = async ({ request }) => {
   let body: any = {};
@@ -14,12 +15,33 @@ export const POST: APIRoute = async ({ request }) => {
   }
 
   const { action = 'signin', email, password, name } = body;
+  const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
 
-  if (!email || !password) {
+  if (!normalizedEmail || !password) {
     return new Response(JSON.stringify({ ok: false, error: 'Email dan password wajib diisi.' }), {
       status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
+  }
+
+  const clientIp = getClientIp(request);
+  const ipLimit = checkRateLimit(`auth-email:ip:${clientIp}`, 15, 15 * 60 * 1000);
+  const emailLimit = checkRateLimit(`auth-email:acct:${normalizedEmail}`, 6, 15 * 60 * 1000);
+  if (!ipLimit.allowed || !emailLimit.allowed) {
+    const retryAfter = Math.max(ipLimit.retryAfterSeconds, emailLimit.retryAfterSeconds);
+    return new Response(
+      JSON.stringify({
+        ok: false,
+        error: `Terlalu banyak percobaan masuk. Coba lagi dalam ${retryAfter} detik.`,
+      }),
+      {
+        status: 429,
+        headers: {
+          'Content-Type': 'application/json',
+          'Retry-After': String(retryAfter),
+        },
+      }
+    );
   }
 
   const baseUrl = getNeonAuthBaseUrl();
@@ -32,9 +54,9 @@ export const POST: APIRoute = async ({ request }) => {
   const origin = new URL(request.url).origin;
   const endpoint = action === 'signup' ? `${baseUrl}/sign-up/email` : `${baseUrl}/sign-in/email`;
 
-  const payload: any = { email, password };
+  const payload: any = { email: normalizedEmail, password };
   if (action === 'signup') {
-    payload.name = name || email.split('@')[0];
+    payload.name = (typeof name === 'string' && name.trim()) || normalizedEmail.split('@')[0];
   }
 
   try {
@@ -54,7 +76,10 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({
           ok: false,
-          error: data.message || 'Autentikasi Neon Auth gagal. Silakan periksa kembali email dan kata sandi Anda.',
+          error:
+            action === 'signup'
+              ? 'Pendaftaran gagal. Pastikan format email benar, kata sandi minimal 8 karakter, dan email belum terdaftar.'
+              : 'Email atau kata sandi tidak valid. Silakan periksa kembali.',
         }),
         {
           status: 400,
@@ -71,23 +96,30 @@ export const POST: APIRoute = async ({ request }) => {
     const appUser = await findOrCreateUserByGoogle({
       googleId: `neon_${user.id}`,
       email: user.email,
-      name: user.name || email.split('@')[0],
+      name: user.name || normalizedEmail.split('@')[0],
       avatarUrl: user.image || '',
     });
 
     const sessionId = await createSession(appUser.id);
+    const https = isHttpsRequest(request);
 
     const responseHeaders = new Headers({
       'Content-Type': 'application/json',
     });
 
     for (const sc of setCookies) {
-      responseHeaders.append('Set-Cookie', sc);
+      if (!https) {
+        const cleaned = sc
+          .replace(/__Secure-/g, '')
+          .replace(/;\s*Secure/gi, '')
+          .replace(/;\s*SameSite=None/gi, '; SameSite=Lax')
+          .replace(/;\s*Partitioned/gi, '');
+        responseHeaders.append('Set-Cookie', cleaned);
+      } else {
+        responseHeaders.append('Set-Cookie', sc);
+      }
     }
-    responseHeaders.append(
-      'Set-Cookie',
-      `mamasar_session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 24 * 60 * 60}`
-    );
+    responseHeaders.append('Set-Cookie', createSessionCookieHeader(sessionId, request));
 
     return new Response(
       JSON.stringify({

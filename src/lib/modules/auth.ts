@@ -3,6 +3,7 @@ import { and, asc, desc, eq, gt, lt, getTableColumns, sql } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
 import { getEnv } from '../neon';
+import { SESSION_MAX_AGE_SECONDS } from '../security';
 import type { User, UMKM } from './types';
 
 export const ROLES = {
@@ -105,8 +106,11 @@ export function can(
     case 'articles:manage':
       return isPCNU(user);
 
-    case 'events:manage':
-      return isPetugas(user);
+    case 'events:manage': {
+      if (isPCNU(user)) return true;
+      if (!isMWCNU(user)) return false;
+      return context?.zoneId === undefined ? true : matchesAssignedZone(user, context.zoneId);
+    }
 
     case 'umkm:create_verified': {
       if (!isPetugas(user)) return false;
@@ -239,7 +243,7 @@ export async function updateUserProfile(userId: number, data: { name?: string; a
 
 export async function createSession(userId: number): Promise<string> {
   const sessionId = `sess_${crypto.randomBytes(24).toString('hex')}`;
-  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+  const expiresAt = new Date(Date.now() + SESSION_MAX_AGE_SECONDS * 1000);
 
   await getDb().insert(schema.sessions).values({
     id: sessionId,
@@ -252,6 +256,13 @@ export async function createSession(userId: number): Promise<string> {
   }
 
   return sessionId;
+}
+
+export async function rotateSession(oldSessionId: string | undefined, userId: number): Promise<string> {
+  if (oldSessionId) {
+    await deleteSession(oldSessionId);
+  }
+  return createSession(userId);
 }
 
 export async function getOrCreateSessionForUser(userId: number): Promise<string> {

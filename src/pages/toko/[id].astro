@@ -2,51 +2,72 @@
 import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import AppIcon from '../../components/common/AppIcon.astro';
+import NotFoundView from '../../components/common/NotFoundView.astro';
 import { getUMKMById } from '../../lib/db';
 import { formatPhoneForWhatsApp } from '../../lib/utils';
 
 const { id } = Astro.params;
 
 if (!id) {
-  return Astro.redirect('/toko');
+  return Astro.redirect('/toko', 301);
 }
 
 const store = await getUMKMById(id);
 
-if (!store) {
-  return Astro.redirect('/toko');
+if (store && store.slug && /^\d+$/.test(id.trim())) {
+  return Astro.redirect(`/toko/${store.slug}`, 301);
 }
 
-const cleanPhone = formatPhoneForWhatsApp(store.phone);
-const currentUrl = Astro.url.href;
-const waLink = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
-  `Assalamu'alaikum ${store.name}, saya melihat etalase toko Anda di Mamasar Sumenep. Saya ingin bertanya mengenai ketersediaan produk Anda.`
-)}`;
+if (!store) {
+  Astro.response.status = 404;
+}
 
-const initials = store.name.slice(0, 2).toUpperCase();
+const cleanPhone = store ? formatPhoneForWhatsApp(store.phone) : '';
+const storeSlugOrId = store ? store.slug || store.id : id;
+const currentUrl = new URL(`/toko/${storeSlugOrId}`, Astro.url.origin).href;
+const waLink = store
+  ? `https://wa.me/${cleanPhone}?text=${encodeURIComponent(
+      `Assalamu'alaikum ${store.name}, saya melihat etalase toko Anda di Mamasar Sumenep. Saya ingin bertanya mengenai ketersediaan produk Anda.`
+    )}`
+  : '#';
+
+const initials = store ? store.name.slice(0, 2).toUpperCase() : 'NU';
 
 // Structured Schema.org Organization/LocalBusiness for SEO
-const storeSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'LocalBusiness',
-  name: store.name,
-  telephone: `+${cleanPhone}`,
-  address: {
-    '@type': 'PostalAddress',
-    streetAddress: store.address || 'Kabupaten Sumenep',
-    addressLocality: store.zone_name,
-    addressRegion: 'Jawa Timur',
-    addressCountry: 'ID',
-  },
-  url: currentUrl,
-};
+const storeSchema = store
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'LocalBusiness',
+      '@id': currentUrl,
+      name: store.name,
+      telephone: `+${cleanPhone}`,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: store.address || 'Kabupaten Sumenep',
+        addressLocality: store.zone_name,
+        addressRegion: 'Jawa Timur',
+        addressCountry: 'ID',
+      },
+      url: currentUrl,
+    }
+  : undefined;
 ---
 
 <Layout
-  title={`${store.name} - Toko UMKM Warga NU ${store.zone_name} Sumenep`}
-  description={`Profil dan etalase produk resmi ${store.name} di ${store.zone_name}, Sumenep. Belanja langsung dari pengrajin warga Nahdliyin.`}
+  title={store ? `${store.name} - Toko UMKM Warga NU ${store.zone_name} Sumenep` : 'Toko Tidak Ditemukan (404) | Mamasar'}
+  description={store ? `Profil dan etalase produk resmi ${store.name} di ${store.zone_name}, Sumenep. Belanja langsung dari pengrajin warga Nahdliyin.` : 'Toko UMKM yang Anda cari tidak ditemukan atau telah dihapus.'}
+  canonicalUrl={currentUrl}
+  noindex={!store}
   schema={storeSchema}
 >
+  {!store ? (
+    <NotFoundView
+      heading="Toko Tidak Ditemukan"
+      message="Maaf, etalase toko UMKM yang Anda cari tidak terdaftar atau sudah tidak aktif lagi di direktori Mamasar."
+      primaryHref="/toko"
+      primaryLabel="Lihat Semua Toko Warga"
+    />
+  ) : (
   <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
     
     <!-- Top Breadcrumb -->
@@ -435,4 +456,5 @@ const storeSchema = {
     </div>
 
   </div>
+  )}
 </Layout>

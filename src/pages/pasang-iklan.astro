@@ -106,7 +106,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               name="productName"
               required
               placeholder="Contoh: Keripik Pisang Madu Gurih Manis"
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
             />
           </div>
 
@@ -118,7 +118,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               id="category"
               name="category"
               required
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer transition"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 cursor-pointer transition"
             >
               <option value="" disabled selected>Pilih Kategori</option>
               {PRODUCT_CATEGORIES.map((cat) => (
@@ -143,7 +143,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
                 min="0"
                 step="500"
                 placeholder="16000"
-                class="w-full bg-white border border-slate-300 rounded-xl p-2.5 pl-9 text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-xl p-2.5 pl-9 text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
               />
             </div>
           </div>
@@ -161,10 +161,10 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
                 min="0"
                 step="500"
                 placeholder="20000"
-                class="w-full bg-white border border-slate-300 rounded-xl p-2.5 pl-9 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-xl p-2.5 pl-9 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
               />
             </div>
-            <p class="text-[11px] text-slate-500">Untuk diskon / promo.</p>
+            <p class="text-xs text-slate-500">Untuk diskon / promo.</p>
           </div>
 
           <div class="space-y-1.5">
@@ -176,7 +176,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               id="shopeeUrl"
               name="shopeeUrl"
               placeholder="https://shopee.co.id/product/..."
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
             />
           </div>
         </div>
@@ -191,13 +191,13 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               id="stockStatus"
               name="stockStatus"
               required
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer transition"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 cursor-pointer transition"
             >
               <option value="ready" selected>Ready Stock (Barang Siap Kirim)</option>
               <option value="po">Pre-Order / Dibuat Berdasarkan Pesanan</option>
               <option value="sold_out">Habis / Kuota Produksi Penuh</option>
             </select>
-            <p class="text-[11px] text-slate-500">Representasi ketersediaan barang fisik saat ini.</p>
+            <p class="text-xs text-slate-500">Representasi ketersediaan barang fisik saat ini.</p>
           </div>
 
           <div class="space-y-1.5">
@@ -209,9 +209,9 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               id="productionCapacity"
               name="productionCapacity"
               placeholder="Contoh: 50 bungkus/hari atau PO 2-3 hari"
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
             />
-            <p class="text-[11px] text-slate-500">Estimasi volume produksi per hari/minggu untuk pembeli.</p>
+            <p class="text-xs text-slate-500">Estimasi volume produksi per hari/minggu untuk pembeli.</p>
           </div>
         </div>
 
@@ -225,7 +225,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
             required
             rows="4"
             placeholder="Jelaskan rasa, bahan baku, berat kemasan, varian, atau ketentuan pembelian..."
-            class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+            class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
           ></textarea>
         </div>
       </div>
@@ -237,44 +237,56 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
             <AppIcon name="camera" size="xs" class="text-slate-500" />
             <span>Foto Produk (Maks. 4 Foto)</span>
           </h2>
-          <span id="photo-counter" class="text-[11px] font-semibold text-slate-500">0 dari 4 foto dipilih</span>
+          <span id="photo-counter" class="text-xs font-semibold text-slate-500">0 dari 4 foto dipilih</span>
         </div>
 
         <div class="space-y-3">
           <!-- Upload Pickers (Hidden when 4 photos selected) -->
           <div id="upload-boxes" class="flex flex-col sm:flex-row gap-3">
-            <label for="imageInput" class="flex-1 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition bg-slate-50 hover:bg-white group">
+            <label for="imageInput" class="flex-1 min-h-[44px] border-2 border-dashed border-slate-300 hover:border-emerald-600 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition bg-slate-50 hover:bg-white group">
               <input type="file" id="imageInput" accept="image/*" multiple class="sr-only" />
               <div class="space-y-1.5 flex flex-col items-center">
-                <AppIcon name="camera" size="lg" class="text-slate-500 group-hover:text-indigo-600 transition" />
-                <span class="text-xs font-bold text-slate-800 group-hover:text-indigo-600">Pilih Foto dari Galeri</span>
-                <span class="text-[11px] text-slate-500">Bisa pilih sekaligus (JPG, PNG, WEBP)</span>
+                <AppIcon name="camera" size="lg" class="text-slate-500 group-hover:text-emerald-700 transition" />
+                <span class="text-xs font-bold text-slate-800 group-hover:text-emerald-700">Pilih Foto dari Galeri</span>
+                <span class="text-xs text-slate-500">Bisa pilih sekaligus (JPG, PNG, WEBP)</span>
               </div>
             </label>
 
-            <label for="cameraInput" class="flex-1 border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition bg-slate-50 hover:bg-white group">
+            <label for="cameraInput" class="flex-1 min-h-[44px] border-2 border-dashed border-slate-300 hover:border-emerald-600 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition bg-slate-50 hover:bg-white group">
               <input type="file" id="cameraInput" accept="image/*" capture="environment" class="sr-only" />
               <div class="space-y-1.5 flex flex-col items-center">
                 <AppIcon name="sparkles" size="lg" class="text-slate-500 group-hover:text-emerald-700 transition" />
                 <span class="text-xs font-bold text-slate-800 group-hover:text-emerald-700">Jepret Kamera HP Langsung</span>
-                <span class="text-[11px] text-slate-500">Ambil foto fisik produk</span>
+                <span class="text-xs text-slate-500">Ambil foto fisik produk</span>
               </div>
             </label>
           </div>
 
           <!-- Compression indicator -->
-          <p id="compress-status" class="hidden text-xs font-semibold text-indigo-700 animate-pulse"></p>
+          <p id="compress-status" class="hidden text-xs font-semibold text-emerald-700 animate-pulse"></p>
 
           <!-- Dynamic Photos Grid -->
           <div id="photos-grid" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div>
         </div>
       </div>
 
+      <label for="productPrivacyConsent" class="flex items-start gap-2.5 pt-2 cursor-pointer text-xs text-slate-700">
+        <input
+          type="checkbox"
+          id="productPrivacyConsent"
+          required
+          class="mt-0.5 w-4 h-4 accent-emerald-700 shrink-0 rounded border-slate-300"
+        />
+        <span>
+          Saya menyetujui <a href="/privasi" target="_blank" class="text-emerald-700 font-semibold underline">Kebijakan Privasi Mamasar</a> dan memastikan data produk serta nomor WhatsApp usaha ini benar untuk ditampilkan di direktori publik.
+        </span>
+      </label>
+
       <!-- Action Buttons -->
       <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
         <a
           href="/"
-          class="w-full sm:w-auto px-5 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl text-center hover:bg-slate-50 transition"
+          class="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold text-slate-600 hover:text-slate-900 border border-slate-200 rounded-xl text-center hover:bg-slate-50 transition"
         >
           Batal
         </a>
@@ -282,7 +294,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
         <button
           type="submit"
           id="btn-submit-product"
-          class="w-full sm:w-auto px-8 py-3 bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
+          class="w-full sm:w-auto min-h-[44px] px-8 py-3 bg-emerald-700 hover:bg-emerald-800 text-white font-black text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
         >
           <span>Terbitkan Produk</span>
           <AppIcon name="arrow-right" size="xs" />
@@ -358,8 +370,8 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
         item.appendChild(img);
 
         const badge = document.createElement('span');
-        badge.className = `absolute bottom-1.5 left-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded shadow-xs ${
-          idx === 0 ? 'bg-indigo-600 text-white' : 'bg-slate-900/80 text-white backdrop-blur-xs'
+        badge.className = `absolute bottom-1.5 left-1.5 text-xs font-bold px-1.5 py-0.5 rounded shadow-xs ${
+          idx === 0 ? 'bg-emerald-700 text-white' : 'bg-slate-900/80 text-white backdrop-blur-xs'
         }`;
         badge.textContent = idx === 0 ? 'Foto Utama' : `Foto ${idx + 1}`;
         item.appendChild(badge);
@@ -455,6 +467,40 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
       cameraInput.value = '';
     });
 
+    const DRAFT_KEY = 'mamasar_ad_draft';
+    const draftFields = ['productName', 'category', 'price', 'originalPrice', 'shopeeUrl', 'stockStatus', 'productionCapacity', 'description'];
+
+    function saveAdDraft() {
+      try {
+        const draft: Record<string, string> = {};
+        for (const id of draftFields) {
+          const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+          if (el) draft[id] = el.value;
+        }
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+      } catch {}
+    }
+
+    function restoreAdDraft() {
+      try {
+        const raw = localStorage.getItem(DRAFT_KEY);
+        if (!raw) return;
+        const draft = JSON.parse(raw) as Record<string, string>;
+        for (const id of draftFields) {
+          const el = document.getElementById(id) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | null;
+          if (el && typeof draft[id] === 'string' && draft[id] !== '') {
+            el.value = draft[id];
+          }
+        }
+      } catch {}
+    }
+
+    restoreAdDraft();
+    for (const id of draftFields) {
+      document.getElementById(id)?.addEventListener('input', saveAdDraft);
+      document.getElementById(id)?.addEventListener('change', saveAdDraft);
+    }
+
     // Submit Iklan Produk
     productForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -474,9 +520,12 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
         const data = await res.json();
 
         if (res.ok && data.success) {
+          try {
+            localStorage.removeItem(DRAFT_KEY);
+          } catch {}
           showAlert('Alhamdulillah! Iklan produk berhasil diterbitkan. Mengalihkan ke halaman produk...', false);
           setTimeout(() => {
-            window.location.href = `/p/${data.slug}`;
+            window.location.href = `/produk/${data.slug}`;
           }, 900);
         } else {
           if (res.status === 401) {

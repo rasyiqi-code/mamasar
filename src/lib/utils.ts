@@ -101,3 +101,26 @@ export function slugify(text: string): string {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
 }
+
+/**
+ * Generates an ImageKit transformation URL when the image is hosted on ik.imagekit.io.
+ * Passes through local/other origins untouched.
+ */
+export function getOptimizedImageUrl(url: string, width: number): string {
+  if (!url || !url.includes('ik.imagekit.io')) return url;
+  try {
+    const parsed = new URL(url);
+    parsed.searchParams.set('tr', `w-${width},f-auto,q-80`);
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Builds responsive srcset strings for ImageKit-hosted product images.
+ */
+export function getImageSrcSet(url?: string | null): string | undefined {
+  if (!url || !url.includes('ik.imagekit.io')) return undefined;
+  return `${getOptimizedImageUrl(url, 400)} 400w, ${getOptimizedImageUrl(url, 800)} 800w`;
+}

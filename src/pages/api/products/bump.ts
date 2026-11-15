@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { bumpProduct } from '../../../lib/db';
 import { resolveUser } from '../../../lib/neon-auth';
+import { jsonError } from '../../../lib/security';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -41,9 +42,7 @@ export const POST: APIRoute = async ({ request }) => {
       }
     );
   } catch (error: any) {
-    return new Response(
-      JSON.stringify({ success: false, message: error.message || 'Terjadi kesalahan server.' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } }
-    );
+    console.error('Product bump error:', error);
+    return jsonError(500, 'Terjadi kesalahan server.');
   }
 };

@@ -3,6 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import { getArticleBySlug, getArticles, getProducts } from '../../lib/db';
 import ProductCard from '../../components/ProductCard.astro';
 import AppIcon from '../../components/common/AppIcon.astro';
+import NotFoundView from '../../components/common/NotFoundView.astro';
 
 const { slug } = Astro.params;
 
@@ -13,40 +14,69 @@ if (!slug) {
 const article = await getArticleBySlug(slug);
 
 if (!article) {
-  return new Response(null, {
-    status: 404,
-    statusText: 'Artikel Tidak Ditemukan',
-  });
+  Astro.response.status = 404;
 }
 
 const currentUrl = Astro.url.href;
-const allArticles = await getArticles();
-const relatedArticles = allArticles.filter((a) => a.id !== article.id).slice(0, 3);
-const sampleProducts = (await getProducts()).slice(0, 4);
+const allArticles = article ? await getArticles() : [];
+const relatedArticles = article ? allArticles.filter((a) => a.id !== article.id).slice(0, 3) : [];
+
+function inferProductCategoryFromArticle(category: string, title: string): string | undefined {
+  const haystack = `${category} ${title}`.toLowerCase();
+  if (/(kuliner|makanan|minuman|halal|katering|pirt|dapur|jajanan|snack)/.test(haystack)) {
+    return 'Makanan & Minuman';
+  }
+  if (/(batik|kriya|kerajinan|sarung|songkok|kopyah)/.test(haystack)) {
+    return 'Batik & Kerajinan';
+  }
+  if (/(busana|fashion|pakaian|hijab|muslim)/.test(haystack)) {
+    return 'Fashion & Busana';
+  }
+  if (/(herbal|jamu|madu|kesehatan)/.test(haystack)) {
+    return 'Herbal & Kesehatan';
+  }
+  if (/(pertanian|tani|nelayan|bibit|sembako|beras)/.test(haystack)) {
+    return 'Pertanian & Sembako';
+  }
+  if (/(jasa|cetak|digital|promosi|kemasan)/.test(haystack)) {
+    return 'Jasa & Karya';
+  }
+  return undefined;
+}
+
+const matchedCategory = article ? inferProductCategoryFromArticle(article.category, article.title) : undefined;
+const matchedProducts = article
+  ? await getProducts({ category: matchedCategory, verifiedOnly: matchedCategory ? false : true, limit: 4 })
+  : [];
+const sampleProducts = article
+  ? (matchedProducts.length > 0 ? matchedProducts : await getProducts({ limit: 4 }))
+  : [];
 
 // Schema.org Article Structured Data
-const articleSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'Article',
-  headline: article.title,
-  image: [article.image_url],
-  datePublished: article.created_at,
-  dateModified: article.created_at,
-  author: {
-    '@type': 'Organization',
-    name: 'PCNU Kabupaten Sumenep',
-    url: currentUrl,
-  },
-  publisher: {
-    '@type': 'Organization',
-    name: 'Mamasar Sumenep',
-    logo: {
-      '@type': 'ImageObject',
-      url: `${Astro.url.origin}/favicon.svg`,
-    },
-  },
-  description: article.summary,
-};
+const articleSchema = article
+  ? {
+      '@context': 'https://schema.org',
+      '@type': 'Article',
+      headline: article.title,
+      image: [article.image_url],
+      datePublished: article.created_at,
+      dateModified: article.created_at,
+      author: {
+        '@type': 'Organization',
+        name: 'PCNU Kabupaten Sumenep',
+        url: currentUrl,
+      },
+      publisher: {
+        '@type': 'Organization',
+        name: 'Mamasar Sumenep',
+        logo: {
+          '@type': 'ImageObject',
+          url: `${Astro.url.origin}/favicon.svg`,
+        },
+      },
+      description: article.summary,
+    }
+  : undefined;
 
 // Anti-XSS HTML escape helper for raw strings
 function escapeHtml(str: string): string {
@@ -71,9 +101,24 @@ function formatContent(text: string): string {
     .replace(/\n\n/gim, '</p><p class="text-xs sm:text-sm text-slate-700 leading-relaxed mb-4">');
 }
 
-const renderedContent = formatContent(article.content || article.summary);
+const renderedContent = article ? formatContent(article.content || article.summary) : '';
 ---
 
+{!article ? (
+  <Layout
+    title="Artikel Edukasi Tidak Ditemukan | Mamasar"
+    description="Artikel panduan UMKM yang Anda cari belum tersedia atau sudah dipindahkan."
+    noindex={true}
+  >
+    <NotFoundView
+      code="404"
+      heading="Artikel Edukasi Tidak Ditemukan"
+      message="Artikel yang Anda buka mungkin salah alamat atau belum diterbitkan."
+      primaryHref="/edukasi"
+      primaryLabel="Ke Pusat Edukasi UMKM"
+    />
+  </Layout>
+) : (
 <Layout
   title={`${article.title} | Edukasi UMKM NU Sumenep`}
   description={article.summary}
@@ -211,7 +256,7 @@ const renderedContent = formatContent(article.content || article.summary);
             ))}
           </div>
           <div class="pt-2 border-t border-slate-100">
-            <a href="/edukasi" class="text-xs font-bold text-indigo-600 hover:underline block text-center">
+            <a href="/edukasi" class="text-xs font-bold text-emerald-700 hover:underline block text-center">
               Lihat Semua Panduan ({allArticles.length}) ➔
             </a>
           </div>
@@ -226,9 +271,9 @@ const renderedContent = formatContent(article.content || article.summary);
       <section class="space-y-4 pt-6 border-t border-slate-200">
         <div class="flex items-center justify-between">
           <h3 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <span>🛍️</span> Dukung Produk Warga Nahdliyin Sumenep
+            <span>🛍️</span> {matchedCategory ? `Produk ${matchedCategory} Warga NU` : 'Dukung Produk Warga Nahdliyin Sumenep'}
           </h3>
-          <a href="/" class="text-xs font-bold text-emerald-700 hover:underline">
+          <a href={matchedCategory ? `/?kategori=${encodeURIComponent(matchedCategory)}` : '/'} class="text-xs font-bold text-emerald-700 hover:underline">
             Katalog Lengkap ➔
           </a>
         </div>
@@ -243,3 +288,4 @@ const renderedContent = formatContent(article.content || article.summary);
 
   </div>
 </Layout>
+)}

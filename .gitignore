@@ -35,4 +35,5 @@ Thumbs.db
 .vscode/
 .neon
 .vercel
+.emocis/
 *.pptx

@@ -1,11 +1,23 @@
 import { and, asc, desc, eq, getTableColumns, ilike, isNull, or, sql, type SQL } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
-import { formatPhoneForWhatsApp } from '../utils';
+import { formatPhoneForWhatsApp, slugify } from '../utils';
+import { getOrSetCache, invalidateCache } from '../cache';
 import type { ClaimCandidate, SetupUMKMResult, UMKM, UMKMVerificationRow, Product } from './types';
 import { productSelect, toProduct, lastBumpedFirst } from './products';
 import { recordAuditLog } from './audit';
 import { createNotification } from './notifications';
+
+function invalidateCatalogCaches() {
+  invalidateCache('stores:');
+  invalidateCache('products:');
+  invalidateCache('zones:');
+}
+
+export function generateStoreSlug(name: string): string {
+  const base = slugify(name) || 'toko-umkm';
+  return `${base}-${Date.now().toString(36).slice(-4)}`;
+}
 
 export type UMKMJoinRow = typeof schema.umkm.$inferSelect & {
   zone_name: string;
@@ -17,6 +29,7 @@ export function toUMKM(row: UMKMJoinRow): UMKM & { zone_name: string; zone_slug:
     id: row.id,
     user_id: row.user_id ?? undefined,
     name: row.name,
+    slug: row.slug ?? undefined,
     phone: row.phone,
     zone_id: row.zone_id,
     zone_name: row.zone_name,
@@ -54,36 +67,45 @@ export async function getAllUMKM(options?: {
     );
   }
 
-  const rows = await getDb()
-    .select({
-      ...getTableColumns(schema.umkm),
-      zone_name: schema.zones.name,
-      zone_slug: schema.zones.slug,
-      product_count: sql<number>`count(${schema.products.id})::int`,
-      sample_images_str: sql<string | null>`string_agg(${schema.products.image_url}, ',')`,
-    })
-    .from(schema.umkm)
-    .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
-    .leftJoin(schema.products, eq(schema.products.umkm_id, schema.umkm.id))
-    .where(conditions.length ? and(...conditions) : undefined)
-    .groupBy(schema.umkm.id, schema.zones.name, schema.zones.slug)
-    .orderBy(desc(sql`count(${schema.products.id})`), asc(schema.umkm.id));
+  const loadStores = async () => {
+    const rows = await getDb()
+      .select({
+        ...getTableColumns(schema.umkm),
+        zone_name: schema.zones.name,
+        zone_slug: schema.zones.slug,
+        product_count: sql<number>`count(${schema.products.id})::int`,
+        sample_images_str: sql<string | null>`string_agg(${schema.products.image_url}, ',')`,
+      })
+      .from(schema.umkm)
+      .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+      .leftJoin(schema.products, eq(schema.products.umkm_id, schema.umkm.id))
+      .where(conditions.length ? and(...conditions) : undefined)
+      .groupBy(schema.umkm.id, schema.zones.name, schema.zones.slug)
+      .orderBy(desc(sql`count(${schema.products.id})`), asc(schema.umkm.id));
 
-  return rows.map((r) => ({
-    ...toUMKM(r),
-    product_count: r.product_count,
-    sample_images: r.sample_images_str ? String(r.sample_images_str).split(',').filter(Boolean) : [],
-  }));
+    return rows.map((r) => ({
+      ...toUMKM(r),
+      product_count: r.product_count,
+      sample_images: r.sample_images_str ? String(r.sample_images_str).split(',').filter(Boolean) : [],
+    }));
+  };
+
+  if (!options?.search) {
+    return getOrSetCache(`stores:${options?.zoneSlug || 'semua'}`, 60_000, loadStores);
+  }
+  return loadStores();
 }
 
-export async function getUMKMById(id: number | string): Promise<(UMKM & {
+export async function getUMKMById(idOrSlug: number | string): Promise<(UMKM & {
   zone_name: string;
   zone_slug: string;
   product_count: number;
   products: Product[];
 }) | undefined> {
-  const numId = Number(id);
-  if (isNaN(numId)) return undefined;
+  const raw = String(idOrSlug).trim();
+  if (!raw) return undefined;
+  const isNumeric = /^\d+$/.test(raw);
+  const whereClause = isNumeric ? eq(schema.umkm.id, Number(raw)) : eq(schema.umkm.slug, raw);
 
   const [store] = await getDb()
     .select({
@@ -95,13 +117,13 @@ export async function getUMKMById(id: number | string): Promise<(UMKM & {
     .from(schema.umkm)
     .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
     .leftJoin(schema.products, eq(schema.products.umkm_id, schema.umkm.id))
-    .where(eq(schema.umkm.id, numId))
+    .where(whereClause)
     .groupBy(schema.umkm.id, schema.zones.name, schema.zones.slug);
 
   if (!store) return undefined;
 
   const productRows = await productSelect()
-    .where(eq(schema.products.umkm_id, numId))
+    .where(eq(schema.products.umkm_id, store.id))
     .orderBy(desc(schema.products.id));
 
   return {
@@ -221,6 +243,7 @@ export async function setupUMKMForUser(
     .values({
       user_id: userId,
       name: data.name,
+      slug: generateStoreSlug(data.name),
       phone: cleanPhone,
       zone_id: data.zoneId,
       ranting: data.ranting || null,
@@ -229,6 +252,7 @@ export async function setupUMKMForUser(
     })
     .returning({ id: schema.umkm.id });
 
+  invalidateCatalogCaches();
   return { outcome: 'linked', storeId: created.id, claimed: false };
 }
 
@@ -237,6 +261,7 @@ export async function getUMKMForVerification(zoneId?: number): Promise<UMKMVerif
     .select({
       id: schema.umkm.id,
       name: schema.umkm.name,
+      slug: schema.umkm.slug,
       phone: schema.umkm.phone,
       address: schema.umkm.address,
       ranting: schema.umkm.ranting,
@@ -260,6 +285,7 @@ export async function getUMKMForVerification(zoneId?: number): Promise<UMKMVerif
   return rows.map((row) => ({
     id: row.id,
     name: row.name,
+    slug: row.slug ?? undefined,
     phone: row.phone,
     address: row.address ?? undefined,
     ranting: row.ranting ?? undefined,
@@ -346,6 +372,9 @@ export async function setUMKMVerified(
     }
 
     return true;
+  }).then((ok) => {
+    if (ok) invalidateCatalogCaches();
+    return ok;
   });
 }
 
@@ -370,6 +399,9 @@ export async function deleteUMKM(umkmId: number, options?: { actorUserId?: numbe
     );
 
     return true;
+  }).then((ok) => {
+    if (ok) invalidateCatalogCaches();
+    return ok;
   });
 }
 
@@ -417,6 +449,7 @@ export async function updateUMKMProfile(
     .set(updateFields)
     .where(eq(schema.umkm.id, umkmId));
 
+  invalidateCatalogCaches();
   return true;
 }
 
@@ -453,6 +486,7 @@ export async function createStoreByPetugas(
     .select({
       id: schema.umkm.id,
       name: schema.umkm.name,
+      slug: schema.umkm.slug,
       phone: schema.umkm.phone,
       zone_id: schema.umkm.zone_id,
       address: schema.umkm.address,
@@ -490,6 +524,7 @@ export async function createStoreByPetugas(
     .insert(schema.umkm)
     .values({
       name: data.name,
+      slug: generateStoreSlug(data.name),
       phone: cleanPhone,
       zone_id: data.zoneId,
       ranting: data.ranting || null,
@@ -505,6 +540,8 @@ export async function createStoreByPetugas(
       other_legalities: data.otherLegalities || null,
     })
     .returning({ id: schema.umkm.id, name: schema.umkm.name, phone: schema.umkm.phone });
+
+  invalidateCatalogCaches();
 
   await recordAuditLog({
     actorUserId: createdByUserId,

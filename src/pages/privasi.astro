@@ -1,0 +1,109 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
+import { SITE_CONFIG } from '../lib/constants';
+---
+
+<Layout
+  title="Kebijakan Privasi & Perlindungan Data | Mamasar Sumenep"
+  description="Informasi pengumpulan, penggunaan, ekspor, dan penghapusan data pribadi pelaku UMKM dan warga di direktori Mamasar Sumenep."
+>
+  <article class="max-w-3xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-8">
+    <header class="pb-5 border-b border-slate-200 space-y-2">
+      <p class="text-xs font-semibold uppercase tracking-wider text-emerald-700">
+        Transparansi & Hak Pengguna
+      </p>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        Kebijakan Privasi Mamasar Sumenep
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600">
+        Diperbarui: 15 November 2026 • Direktori UMKM Nahdliyin Kabupaten Sumenep
+      </p>
+    </header>
+
+    <section class="space-y-3 text-sm text-slate-700 leading-relaxed">
+      <h2 class="text-base font-bold text-slate-900">1. Data yang Kami Kumpulkan</h2>
+      <ul class="list-disc pl-5 space-y-1.5">
+        <li>
+          <strong>Data Akun:</strong> Nama, alamat email, dan foto profil saat masuk menggunakan Google OAuth atau tautan masuk email.
+        </li>
+        <li>
+          <strong>Data Toko &amp; Usaha:</strong> Nama usaha, nomor WhatsApp usaha, wilayah MWC NU / Ranting, alamat usaha, serta informasi legalitas opsional (NIB, Sertifikat Halal, P-IRT, BPOM).
+        </li>
+        <li>
+          <strong>Konten Produk &amp; Promosi:</strong> Nama produk, harga, deskripsi, foto produk, serta bukti transfer apabila Anda memesan layanan promosi iklan opsional.
+        </li>
+        <li>
+          <strong>Aktivitas Pengguna:</strong> Produk favorit tersimpan dan catatan transaksi pada fitur Buku Kas Santri yang Anda input secara sadar.
+        </li>
+      </ul>
+    </section>
+
+    <section class="space-y-3 text-sm text-slate-700 leading-relaxed">
+      <h2 class="text-base font-bold text-slate-900">2. Tujuan Penggunaan Data</h2>
+      <p>
+        Data digunakan semata-mata untuk menampilkan etalase produk UMKM Sumenep agar pembeli dapat menghubungi penjual langsung melalui WhatsApp tanpa potongan komisi transaksi. Data legalitas hanya ditampilkan sebagai informasi kredibilitas toko.
+      </p>
+      <p>
+        Kami <strong>tidak menjual, menyewakan, atau membagikan</strong> data pribadi dan catatan Buku Kas Anda kepada pihak ketiga untuk keperluan pemasaran di luar ekosistem Mamasar.
+      </p>
+    </section>
+
+    <section class="space-y-3 text-sm text-slate-700 leading-relaxed">
+      <h2 class="text-base font-bold text-slate-900">3. Cookie &amp; Penyimpanan Lokal</h2>
+      <ul class="list-disc pl-5 space-y-1.5">
+        <li>
+          <strong>Cookie Sesi (<code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">mamasar_session</code>):</strong> Cookie <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">HttpOnly</code> berdurasi maksimal 7 hari untuk menjaga status masuk akun Anda.
+        </li>
+        <li>
+          <strong>Cookie Penghitung Kunjungan (<code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">mamasar_viewed</code>):</strong> Mencatat maksimal 20 ID produk terakhir dalam sesi singkat untuk mencegah penghitungan tayangan ganda yang tidak wajar.
+        </li>
+        <li>
+          <strong>Penyimpanan Lokal Browser (<code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">localStorage</code>):</strong> Menyimpan daftar produk favorit tamu dan draf sementara formulir iklan sebelum Anda menerbitkan produk.
+        </li>
+      </ul>
+    </section>
+
+    <section class="space-y-3 text-sm text-slate-700 leading-relaxed">
+      <h2 class="text-base font-bold text-slate-900">4. Hak Ekspor &amp; Penghapusan Data Anda</h2>
+      <p>
+        Sesuai prinsip perlindungan data pribadi, setiap pengguna yang telah masuk memiliki hak penuh untuk:
+      </p>
+      <ul class="list-disc pl-5 space-y-1.5">
+        <li>
+          <strong>Mengunduh Salinan Data (Portabilitas):</strong> Ekspor seluruh data akun, profil toko, katalog produk, dan catatan buku kas dalam format JSON melalui <a href="/dashboard#profile" class="text-emerald-700 font-semibold underline">Dashboard Toko</a> atau endpoint <code class="font-mono text-xs bg-slate-100 px-1 py-0.5 rounded">/api/user/export</code>.
+        </li>
+        <li>
+          <strong>Menghapus Akun Secara Permanen:</strong> Menghapus akun beserta profil toko, produk, favorit, dan buku kas melalui bagian <em>Privasi &amp; Data Akun</em> di Dashboard.
+        </li>
+      </ul>
+    </section>
+
+    <section class="p-4 sm:p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-sm text-slate-700">
+      <h2 class="text-sm font-bold text-slate-900 flex items-center gap-2">
+        <AppIcon name="shield" size="sm" class="text-emerald-700" />
+        <span>Kontak Pengelola Data Mamasar</span>
+      </h2>
+      <p class="text-xs sm:text-sm">
+        Apabila Anda ingin mengajukan pembaruan atau penghapusan data toko yang didaftarkan oleh Kader MWC NU atas nama usaha Anda, hubungi pengelola resmi melalui WhatsApp:
+      </p>
+      <div class="pt-1 flex flex-wrap items-center gap-3">
+        <a
+          href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent("Assalamu'alaikum Admin Mamasar, saya ingin konsultasi terkait data toko / privasi akun.")}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition"
+        >
+          <AppIcon name="phone" size="xs" />
+          <span>Hubungi Pengelola via WhatsApp</span>
+        </a>
+        <a
+          href="/dashboard"
+          class="inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-100 text-slate-800 text-xs font-semibold transition"
+        >
+          <span>Kelola Data di Dashboard ➔</span>
+        </a>
+      </div>
+    </section>
+  </article>
+</Layout>

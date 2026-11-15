@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getUserFromSession, addCashbookEntry, deleteCashbookEntry } from '../../../lib/db';
+import { jsonError } from '../../../lib/security';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
@@ -43,10 +44,8 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, message: err.message || 'Gagal menyimpan catatan kas.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Cashbook POST error:', err);
+    return jsonError(500, 'Gagal menyimpan catatan kas.');
   }
 };
 
@@ -56,20 +55,14 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
     const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
     if (!user) {
-      return new Response(JSON.stringify({ success: false, message: 'Silakan login terlebih dahulu.' }), {
-        status: 401,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonError(401, 'Silakan login terlebih dahulu.');
     }
 
     const body = await request.json();
     const { id } = body;
 
     if (!id) {
-      return new Response(JSON.stringify({ success: false, message: 'ID catatan tidak ditemukan.' }), {
-        status: 400,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return jsonError(400, 'ID catatan tidak ditemukan.');
     }
 
     const deleted = await deleteCashbookEntry(Number(id), user.id, user.umkm?.id);
@@ -78,9 +71,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, message: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Cashbook DELETE error:', err);
+    return jsonError(500, 'Gagal menghapus catatan kas.');
   }
 };

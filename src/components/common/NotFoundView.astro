@@ -1,0 +1,64 @@
+---
+import AppIcon from './AppIcon.astro';
+
+interface Props {
+  code?: string;
+  heading?: string;
+  message?: string;
+  primaryHref?: string;
+  primaryLabel?: string;
+}
+
+const {
+  code = '404',
+  heading = 'Halaman Tidak Ditemukan',
+  message = 'Mohon maaf, tautan atau produk yang Anda cari mungkin telah laku terjual, dihapus pemiliknya, atau alamat URL telah dipindahkan.',
+  primaryHref = '/',
+  primaryLabel = 'Kembali ke Katalog',
+} = Astro.props;
+---
+
+<div class="min-h-[65vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-lg w-full text-center space-y-6 bg-white border border-slate-200 rounded-3xl p-8 sm:p-10 shadow-xs">
+    <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-emerald-50 text-emerald-700 border border-emerald-200 text-3xl font-black shadow-xs">
+      {code}
+    </div>
+
+    <div class="space-y-2">
+      <h1 class="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+        {heading}
+      </h1>
+      <p class="text-sm text-slate-600 leading-relaxed">
+        {message}
+      </p>
+    </div>
+
+    <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3 text-xs font-bold">
+      <a
+        href={primaryHref}
+        class="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl shadow-xs transition inline-flex items-center justify-center gap-1.5"
+      >
+        <AppIcon name="clipboard" size="xs" />
+        <span>{primaryLabel}</span>
+      </a>
+      <a
+        href="/toko"
+        class="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition inline-flex items-center justify-center gap-1.5"
+      >
+        <AppIcon name="store" size="xs" class="text-slate-600" />
+        <span>Daftar Toko Warga</span>
+      </a>
+      <a
+        href="/kegiatan"
+        class="w-full sm:w-auto min-h-[44px] px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl transition inline-flex items-center justify-center gap-1.5"
+      >
+        <AppIcon name="tent" size="xs" class="text-slate-600" />
+        <span>Pasar Kegiatan NU</span>
+      </a>
+    </div>
+
+    <div class="pt-4 border-t border-slate-100 text-xs text-slate-500">
+      Butuh bantuan menemukan pengrajin atau produk tertentu di Sumenep? Hubungi pengurus MWC NU setempat melalui WhatsApp.
+    </div>
+  </div>
+</div>

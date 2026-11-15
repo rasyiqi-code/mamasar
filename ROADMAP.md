@@ -181,8 +181,8 @@ gantt
 ### Fase 8: Rencana Pengembangan Masa Depan & Penguatan Operasional - [AKTIF 🚀]
 - [x] **8.1. Galeri Multi-Foto Produk (2–4 Foto Detail)**
   - Dukungan multi-unggah foto detail produk hingga 4 foto dan validasi magic-byte + ukuran di sisi server.
-- [x] **8.2. Penguatan Keamanan, RBAC Zona & Integrasi Transaksional**
-  - Policy RBAC terpadu (`can()`), pembatasan zona MWCNU pada verifikasi/pembuatan toko & review promosi, single-store constraint per akun, `bump_ledger`, `audit_log`, `notifications`, auto expense buku kas promosi, dan endpoint cron kedaluwarsa slot unggulan (`/api/cron/expire-promotions`).
+- [x] **8.2. Penguatan Keamanan, Privasi, Kanonik SEO, & Audit UI/UX**
+  - Policy RBAC 4-level terpadu (`can()`), pembatasan zona MWCNU pada verifikasi, promosi, & agenda (`/api/events/order`), single-store constraint per akun, `bump_ledger`, `audit_log`, `notifications`, endpoint cron (`/api/cron/expire-promotions`), halaman privasi & ekspor/hapus akun (`/privasi`), rute kanonik `/produk/[slug]` & `/toko/[slug]` (`301`), paginasi katalog beranda, dialog konfirmasi & modal native `<dialog>`, Leaflet peta lokal di `/admin`, serta unit test + GitHub Actions CI.
 - [ ] **8.3. Dasbor Statistik Kontribusi Kader Lapangan**
   - Menampilkan pencapaian kuantitatif di `/petugas`: *"Sahabat telah membantu mendaftarkan X toko dan Y produk di MWC Anda"*.
 - [ ] **8.4. Filter Periode Bulan pada Buku Kas**

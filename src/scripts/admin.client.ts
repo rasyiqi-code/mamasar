@@ -1,18 +1,18 @@
 // Client-side Interactive Logic for Modern SaaS Admin Portal
+import { confirmAction, openConfirmDialog, openNativeDialog, closeNativeDialog } from '../lib/dialog';
 
 export function initAdminClient() {
-  // Tab switching logic via Sidebar & URL hash
+  // Tab switching logic via Sidebar, keyboard arrows & URL hash (history.replaceState)
   function initTabs() {
-    const tabBtns = document.querySelectorAll<HTMLButtonElement>('[data-admin-tab]');
+    const tabBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-admin-tab]'));
     const panels = document.querySelectorAll<HTMLElement>('.admin-tab-panel');
 
-    function switchTab(targetName: string) {
+    function switchTab(targetName: string, syncUrl = false) {
       tabBtns.forEach((btn) => {
-        if (btn.getAttribute('data-admin-tab') === targetName) {
-          btn.classList.add('active');
-        } else {
-          btn.classList.remove('active');
-        }
+        const isActive = btn.getAttribute('data-admin-tab') === targetName;
+        btn.classList.toggle('active', isActive);
+        btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+        btn.setAttribute('tabindex', isActive ? '0' : '-1');
       });
 
       panels.forEach((p) => {
@@ -23,22 +23,42 @@ export function initAdminClient() {
         }
       });
 
+      if (syncUrl) {
+        history.replaceState(null, '', `#${targetName}`);
+      }
+
       closeSidebar();
     }
 
-    tabBtns.forEach((btn) => {
+    tabBtns.forEach((btn, idx) => {
       btn.addEventListener('click', () => {
         const tabName = btn.getAttribute('data-admin-tab');
         if (tabName) {
-          switchTab(tabName);
-          window.location.hash = tabName;
+          switchTab(tabName, true);
+        }
+      });
+
+      btn.addEventListener('keydown', (e) => {
+        if (tabBtns.length === 0) return;
+        let nextIdx = -1;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowRight') nextIdx = (idx + 1) % tabBtns.length;
+        else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') nextIdx = (idx - 1 + tabBtns.length) % tabBtns.length;
+        else if (e.key === 'Home') nextIdx = 0;
+        else if (e.key === 'End') nextIdx = tabBtns.length - 1;
+
+        if (nextIdx >= 0) {
+          e.preventDefault();
+          const nextBtn = tabBtns[nextIdx];
+          const tabName = nextBtn.getAttribute('data-admin-tab');
+          if (tabName) switchTab(tabName, true);
+          nextBtn.focus();
         }
       });
     });
 
     const currentHash = window.location.hash.replace('#', '');
     if (['agents', 'stores', 'entry', 'events', 'promotions', 'zones'].includes(currentHash)) {
-      switchTab(currentHash);
+      switchTab(currentHash, false);
     }
   }
 
@@ -314,7 +334,13 @@ export function initAdminClient() {
       const name = btn.dataset.name || 'toko ini';
       if (!umkmId) return;
 
-      if (!confirm(`Hapus toko "${name}" beserta seluruh produknya? Tindakan ini tidak dapat dibatalkan.`)) {
+      const confirmed = await confirmAction({
+        title: 'Hapus Toko Warga',
+        message: `Hapus toko "${name}" beserta seluruh produknya? Tindakan ini tidak dapat dibatalkan.`,
+        confirmLabel: 'Ya, Hapus Toko',
+        tone: 'danger',
+      });
+      if (!confirmed) {
         return;
       }
 
@@ -341,9 +367,10 @@ export function initAdminClient() {
   });
 
   // --- EVENT MANAGEMENT MODAL & CRUD ---
-  const eventModal = document.getElementById('modal-event');
+  const eventModal = document.getElementById('modal-event') as HTMLDialogElement | null;
   const btnOpenAddEvent = document.getElementById('btn-open-add-event');
   const btnCloseEventModal = document.getElementById('btn-close-event-modal');
+  const btnCancelEventModal = document.getElementById('btn-cancel-event-modal');
   const eventForm = document.getElementById('admin-event-form') as HTMLFormElement | null;
   const eventFormTitle = document.getElementById('modal-event-title');
   const adminEventAction = document.getElementById('adminEventAction') as HTMLInputElement | null;
@@ -358,11 +385,11 @@ export function initAdminClient() {
   }
 
   function openEventModal() {
-    eventModal?.classList.remove('hidden');
+    openNativeDialog(eventModal);
   }
 
   function closeEventModal() {
-    eventModal?.classList.add('hidden');
+    closeNativeDialog(eventModal);
   }
 
   function resetEventForm() {
@@ -370,8 +397,8 @@ export function initAdminClient() {
     if (adminEventAction) adminEventAction.value = 'create';
     if (adminEventId) adminEventId.value = '';
     if (eventFormTitle) eventFormTitle.textContent = 'Publikasikan Agenda Baru';
-    const allowStalls = document.getElementById('adminEvAllowStalls') as HTMLInputElement | null;
-    if (allowStalls) allowStalls.checked = true;
+    const allowStalls = document.getElementById('adminEvStalls') as HTMLSelectElement | null;
+    if (allowStalls) allowStalls.value = '1';
   }
 
   btnOpenAddEvent?.addEventListener('click', () => {
@@ -380,7 +407,10 @@ export function initAdminClient() {
   });
 
   btnCloseEventModal?.addEventListener('click', closeEventModal);
-  eventModal?.querySelector('.modal-backdrop')?.addEventListener('click', closeEventModal);
+  btnCancelEventModal?.addEventListener('click', closeEventModal);
+  eventModal?.addEventListener('click', (e) => {
+    if (e.target === eventModal) closeEventModal();
+  });
 
   // Edit Event trigger
   document.querySelectorAll<HTMLButtonElement>('[data-action="edit-event"]').forEach((btn) => {
@@ -397,19 +427,19 @@ export function initAdminClient() {
       const orgInput = document.getElementById('adminEvOrganizer') as HTMLInputElement | null;
       const zoneSelect = document.getElementById('adminEvZone') as HTMLSelectElement | null;
       const dateInput = document.getElementById('adminEvDate') as HTMLInputElement | null;
-      const timeDescInput = document.getElementById('adminEvTimeDesc') as HTMLInputElement | null;
-      const locNameInput = document.getElementById('adminEvLocationName') as HTMLInputElement | null;
-      const locAddrInput = document.getElementById('adminEvLocationAddress') as HTMLInputElement | null;
+      const timeDescInput = document.getElementById('adminEvTime') as HTMLInputElement | null;
+      const locNameInput = document.getElementById('adminEvLocation') as HTMLInputElement | null;
+      const locAddrInput = document.getElementById('adminEvAddress') as HTMLInputElement | null;
       const attendInput = document.getElementById('adminEvAttendance') as HTMLInputElement | null;
-      const coordNameInput = document.getElementById('adminEvCoordinatorName') as HTMLInputElement | null;
-      const coordPhoneInput = document.getElementById('adminEvCoordinatorPhone') as HTMLInputElement | null;
-      const consumInput = document.getElementById('adminEvConsumption') as HTMLTextAreaElement | null;
-      const stallsInput = document.getElementById('adminEvAllowStalls') as HTMLInputElement | null;
+      const coordNameInput = document.getElementById('adminEvCoordinator') as HTMLInputElement | null;
+      const coordPhoneInput = document.getElementById('adminEvPhone') as HTMLInputElement | null;
+      const consumInput = document.getElementById('adminEvConsumption') as HTMLInputElement | null;
+      const stallsSelect = document.getElementById('adminEvStalls') as HTMLSelectElement | null;
 
       if (titleInput) titleInput.value = ev.title;
       if (orgInput) orgInput.value = ev.organizer;
       if (zoneSelect) zoneSelect.value = String(ev.zone_id);
-      if (dateInput && ev.event_date) dateInput.value = ev.event_date.slice(0, 16);
+      if (dateInput && ev.event_date) dateInput.value = ev.event_date.slice(0, 10);
       if (timeDescInput) timeDescInput.value = ev.time_description;
       if (locNameInput) locNameInput.value = ev.location_name;
       if (locAddrInput) locAddrInput.value = ev.location_address || '';
@@ -417,7 +447,7 @@ export function initAdminClient() {
       if (coordNameInput) coordNameInput.value = ev.coordinator_name || '';
       if (coordPhoneInput) coordPhoneInput.value = ev.coordinator_phone || '';
       if (consumInput) consumInput.value = ev.consumption_needed || '';
-      if (stallsInput) stallsInput.checked = Boolean(ev.allow_stalls);
+      if (stallsSelect) stallsSelect.value = ev.allow_stalls ? '1' : '0';
 
       openEventModal();
     });
@@ -426,7 +456,7 @@ export function initAdminClient() {
   // Submit Event Form (create or update)
   eventForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const submitBtn = document.getElementById('btn-submit-admin-event') as HTMLButtonElement | null;
+    const submitBtn = document.getElementById('btn-submit-event') as HTMLButtonElement | null;
     if (submitBtn) submitBtn.disabled = true;
 
     try {
@@ -453,7 +483,13 @@ export function initAdminClient() {
     btn.addEventListener('click', async () => {
       const id = btn.getAttribute('data-id');
       const title = btn.getAttribute('data-title') || 'agenda ini';
-      if (!confirm(`Hapus agenda "${title}" dari daftar kegiatan?`)) return;
+      const confirmed = await confirmAction({
+        title: 'Hapus Agenda Kegiatan',
+        message: `Hapus agenda "${title}" dari daftar kegiatan?`,
+        confirmLabel: 'Ya, Hapus Agenda',
+        tone: 'danger',
+      });
+      if (!confirmed) return;
 
       try {
         const body = new FormData();
@@ -471,6 +507,35 @@ export function initAdminClient() {
         }
       } catch (err: any) {
         notify('Kendala jaringan: ' + err.message, true);
+      }
+    });
+  });
+
+  // Event Orders (Accept / Reject)
+  document.querySelectorAll<HTMLButtonElement>('[data-action="event-order-status"]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const orderId = Number(btn.getAttribute('data-id'));
+      const status = btn.getAttribute('data-status') as 'accepted' | 'rejected' | null;
+      if (!orderId || (status !== 'accepted' && status !== 'rejected')) return;
+
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/events/order', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ orderId, status }),
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          notify(data.message || 'Status pengajuan diperbarui.');
+          setTimeout(() => window.location.reload(), 700);
+        } else {
+          notify(data.message || 'Gagal memperbarui status pengajuan.', true);
+          btn.disabled = false;
+        }
+      } catch (err: any) {
+        notify('Kendala jaringan: ' + err.message, true);
+        btn.disabled = false;
       }
     });
   });
@@ -864,9 +929,15 @@ export function initAdminClient() {
         } else {
           showJemputAlert(`Alhamdulillah! Produk berhasil diterbitkan ke katalog Mamasar.`, false);
           resetStep2ProductForm();
-          setTimeout(() => {
-            if (confirm('Produk berhasil diterbitkan! Ingin melihat halaman produk di tab baru?')) {
-              window.open(`/p/${data.slug}`, '_blank');
+          setTimeout(async () => {
+            const shouldView = await confirmAction({
+              title: 'Produk Berhasil Diterbitkan',
+              message: 'Ingin melihat halaman produk baru ini di tab baru?',
+              confirmLabel: 'Buka Halaman Produk',
+              cancelLabel: 'Tetap di Portal',
+            });
+            if (shouldView) {
+              window.open(`/produk/${data.slug}`, '_blank');
             }
           }, 300);
         }
@@ -891,11 +962,26 @@ export function initAdminClient() {
 
       let reason: string | undefined = undefined;
       if (decision === 'reject') {
-        const inputReason = prompt('Masukkan alasan penolakan pesanan promosi iklan:', 'Bukti transfer tidak sesuai atau tidak terbaca');
-        if (inputReason === null) return;
-        reason = inputReason.trim();
+        const result = await openConfirmDialog({
+          title: 'Tolak Pengajuan Promosi',
+          message: 'Tuliskan alasan penolakan agar pemilik toko dapat memperbaikinya:',
+          confirmLabel: 'Tolak Pengajuan',
+          tone: 'danger',
+          inputLabel: 'Alasan Penolakan',
+          inputPlaceholder: 'Bukti transfer tidak sesuai atau tidak terbaca',
+          defaultValue: 'Bukti transfer tidak sesuai atau tidak terbaca',
+          requiredInput: true,
+        });
+        if (!result.confirmed) return;
+        reason = result.value;
       } else {
-        if (!confirm('Setujui bukti pembayaran dan aktifkan promosi iklan ini sekarang?')) {
+        const confirmed = await confirmAction({
+          title: 'Setujui Promosi Iklan',
+          message: 'Setujui bukti pembayaran dan aktifkan promosi iklan ini sekarang?',
+          confirmLabel: 'Ya, Aktifkan Promosi',
+          tone: 'emerald',
+        });
+        if (!confirmed) {
           return;
         }
       }

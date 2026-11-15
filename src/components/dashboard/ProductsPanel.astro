@@ -179,25 +179,14 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
             </div>
           </div>
 
-          <!-- Quick Actions: Compact -->
+          <!-- Quick Actions: 2 Primary Actions + More Dropdown -->
           <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto flex-wrap sm:flex-nowrap">
-            <button
-              type="button"
-              data-action="promote-single"
-              data-id={prod.id}
-              data-name={prod.name}
-              title="Promosikan produk ini jadi iklan unggulan"
-              class="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-950 font-bold text-xs rounded border border-amber-300 transition cursor-pointer inline-flex items-center gap-1"
-            >
-              <span>★ Unggulkan</span>
-            </button>
-
             <button
               type="button"
               data-action="bump"
               data-id={prod.id}
               title="Sundul ke posisi teratas"
-              class="px-2 py-1 bg-slate-50 hover:bg-amber-50 text-slate-700 hover:text-amber-950 font-medium text-xs rounded border border-slate-200 hover:border-amber-300 transition cursor-pointer inline-flex items-center gap-1"
+              class="min-h-[38px] px-2.5 py-1 bg-slate-50 hover:bg-amber-50 text-slate-700 hover:text-amber-950 font-medium text-xs rounded-lg border border-slate-200 hover:border-amber-300 transition cursor-pointer inline-flex items-center gap-1"
             >
               <AppIcon name="zap" size="xs" />
               <span>Sundul</span>
@@ -215,53 +204,61 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
               data-shopee={prod.shopee_url || ''}
               data-stock-status={prod.stock_status || (prod.is_sold_out ? 'sold_out' : 'ready')}
               data-capacity={prod.production_capacity || ''}
-              class="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded border border-slate-200 transition cursor-pointer"
+              class="min-h-[38px] px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition cursor-pointer"
             >
               Edit
             </button>
 
-            <button
-              type="button"
-              data-action="record-sale"
-              data-title={`Penjualan ${prod.name}`}
-              data-amount={prod.price}
-              class="px-2 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-medium text-xs rounded border border-emerald-200 transition cursor-pointer"
-            >
-              + Kas
-            </button>
-
-            <button
-              type="button"
-              data-action="toggle-stock"
-              data-id={prod.id}
-              class={`px-2 py-1 font-medium text-xs rounded border transition cursor-pointer ${
-                prod.is_sold_out
-                  ? 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100'
-                  : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-100'
-              }`}
-            >
-              {prod.is_sold_out ? 'Tersedia' : 'Habis'}
-            </button>
-
-            <a
-              href={`/p/${prod.slug}`}
-              target="_blank"
-              class="px-2 py-1 text-slate-500 hover:text-slate-900 text-xs font-medium"
-            >
-              Lihat ➔
-            </a>
-
-            <button
-              type="button"
-              data-action="delete"
-              data-id={prod.id}
-              data-name={prod.name}
-              class="p-1.5 text-slate-500 hover:text-rose-600 rounded transition cursor-pointer"
-              title="Hapus Produk"
-              aria-label={`Hapus produk ${prod.name}`}
-            >
-              <AppIcon name="trash" size="xs" />
-            </button>
+            <details class="relative">
+              <summary class="min-h-[38px] list-none px-2.5 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition cursor-pointer inline-flex items-center gap-1 select-none">
+                <span>Lainnya</span>
+                <span aria-hidden="true">▾</span>
+              </summary>
+              <div class="absolute right-0 mt-1 w-44 bg-white border border-slate-200 rounded-xl shadow-lg p-1.5 z-30 flex flex-col gap-1 text-xs">
+                <button
+                  type="button"
+                  data-action="promote-single"
+                  data-id={prod.id}
+                  data-name={prod.name}
+                  class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-amber-50 text-amber-950 font-bold cursor-pointer"
+                >
+                  ★ Unggulkan Iklan
+                </button>
+                <button
+                  type="button"
+                  data-action="record-sale"
+                  data-title={`Penjualan ${prod.name}`}
+                  data-amount={prod.price}
+                  class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-emerald-50 text-emerald-800 font-medium cursor-pointer"
+                >
+                  + Catat ke Buku Kas
+                </button>
+                <button
+                  type="button"
+                  data-action="toggle-stock"
+                  data-id={prod.id}
+                  class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
+                >
+                  {prod.is_sold_out ? 'Tandai Tersedia' : 'Tandai Stok Habis'}
+                </button>
+                <a
+                  href={`/produk/${prod.slug}`}
+                  target="_blank"
+                  class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-slate-50 text-slate-700 font-medium block"
+                >
+                  Lihat Halaman ➔
+                </a>
+                <button
+                  type="button"
+                  data-action="delete"
+                  data-id={prod.id}
+                  data-name={prod.name}
+                  class="w-full text-left px-2.5 py-2 rounded-lg hover:bg-rose-50 text-rose-700 font-semibold cursor-pointer border-t border-slate-100 mt-0.5 pt-2"
+                >
+                  Hapus Produk
+                </button>
+              </div>
+            </details>
           </div>
         </div>
       ))}

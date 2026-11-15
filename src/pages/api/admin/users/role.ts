@@ -4,8 +4,10 @@ import {
   isSuperadmin,
   updateUserRoleByAdmin,
   createOrPreRegisterUserByAdmin,
+  deleteUserSessions,
   type UserRole,
 } from '../../../../lib/db';
+import { jsonError } from '../../../../lib/security';
 
 const ROLE_LABELS: Record<UserRole, string> = {
   pcnu: 'Admin PCNU / Superadmin',
@@ -83,6 +85,7 @@ export const POST: APIRoute = async ({ request }) => {
       org,
       phone,
     });
+    await deleteUserSessions(targetUserId);
 
     return new Response(
       JSON.stringify({
@@ -92,11 +95,10 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
-    const message = err?.message || 'Terjadi kesalahan server.';
-    const status = /wajib|tidak valid|tidak ditemukan|tidak dapat diturunkan/i.test(message) ? 400 : 500;
-    return new Response(JSON.stringify({ success: false, message }), {
-      status,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    const rawMsg = err?.message || '';
+    if (/wajib|tidak valid|tidak ditemukan|tidak dapat diturunkan/i.test(rawMsg)) {
+      return jsonError(400, rawMsg, err);
+    }
+    return jsonError(500, 'Terjadi kesalahan server saat memperbarui peran pengguna.', err);
   }
 };

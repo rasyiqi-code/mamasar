@@ -1,0 +1,46 @@
+<dialog
+  id="mamasar-confirm-dialog"
+  aria-labelledby="confirm-dialog-title"
+  class="w-[calc(100%-2rem)] max-w-md rounded-2xl bg-white border border-slate-200 shadow-2xl p-0 text-slate-900"
+>
+  <form method="dialog" class="p-5 sm:p-6 space-y-4">
+    <div class="space-y-1.5">
+      <h2 id="confirm-dialog-title" class="text-base font-bold text-slate-900 leading-snug">
+        Konfirmasi Tindakan
+      </h2>
+      <p id="confirm-dialog-message" class="text-xs sm:text-sm text-slate-600 leading-relaxed">
+        Apakah Anda yakin ingin melanjutkan?
+      </p>
+    </div>
+
+    <div id="confirm-dialog-input-wrap" class="hidden space-y-1.5">
+      <label for="confirm-dialog-input" id="confirm-dialog-input-label" class="block text-xs font-semibold text-slate-700"></label>
+      <input
+        type="text"
+        id="confirm-dialog-input"
+        class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-xs sm:text-sm text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700"
+      />
+    </div>
+
+    <div class="pt-2 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+      <button
+        type="submit"
+        id="confirm-dialog-cancel"
+        value="cancel"
+        autofocus
+        formnovalidate
+        class="min-h-[44px] px-4 py-2 rounded-lg text-xs font-semibold text-slate-700 bg-white hover:bg-slate-100 border border-slate-300 transition cursor-pointer"
+      >
+        Batal
+      </button>
+      <button
+        type="submit"
+        id="confirm-dialog-submit"
+        value="confirm"
+        class="min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 transition cursor-pointer"
+      >
+        Lanjutkan
+      </button>
+    </div>
+  </form>
+</dialog>

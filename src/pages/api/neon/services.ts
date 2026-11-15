@@ -1,20 +1,18 @@
 import type { APIRoute } from 'astro';
 import { getNeonSql, getNeonS3Client, invokeNeonFunction, sealRealtimeQuery, getNeonAuthInfo } from '../../../lib/neon';
-import { getUserFromSession } from '../../../lib/db';
+import { getUserFromSession, isPCNU } from '../../../lib/db';
 import { ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { isSafeOutboundUrl } from '../../../lib/security';
+import { isSafeOutboundUrl, jsonError } from '../../../lib/security';
 
 export const GET: APIRoute = async ({ cookies }) => {
-  // Diagnostic endpoint: only reachable by logged-in members.
-  // Public exposure leaks infrastructure topology (versions, endpoints, keys).
   const sessionCookie = cookies.get('mamasar_session')?.value;
   const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
   if (!user) {
-    return new Response(JSON.stringify({ error: 'Akses ditolak. Silakan masuk terlebih dahulu.' }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return jsonError(401, 'Akses ditolak. Silakan masuk terlebih dahulu.');
+  }
+  if (!isPCNU(user)) {
+    return jsonError(403, 'Akses diagnostik khusus Admin PCNU.');
   }
 
   const report: Record<string, any> = {

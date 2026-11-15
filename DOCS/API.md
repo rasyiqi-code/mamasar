@@ -21,10 +21,15 @@ Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. For
 | `POST` | `/api/umkm/add-product` | Sesi toko | Tambah produk ke toko sendiri |
 | `POST` | `/api/umkm/verify` | Pengurus MWC | Set/cabut status terverifikasi toko |
 | `POST` | `/api/umkm/delete` | Pengurus MWC | Hapus toko beserta produknya |
-| `POST` | `/api/events` | Pengurus MWC | Buat, ubah, atau hapus agenda kegiatan |
+| `POST` | `/api/events` | PCNU / MWCNU | Buat, ubah, atau hapus agenda kegiatan (terscoped wilayah untuk MWCNU) |
+| `POST` | `/api/events/order` | Publik | Ajukan pesanan konsumsi atau pendaftaran lapak bazar pada agenda NU |
+| `PATCH` | `/api/events/order` | PCNU / MWCNU | Perbarui status pengajuan konsumsi/lapak (`pending`/`contacted`/`approved`/`rejected`) |
 | `POST` | `/api/user/avatar` | Sesi opsional | Unggah foto profil |
 | `POST` | `/api/user/cashbook` | Sesi | Tambah catatan buku kas |
 | `DELETE` | `/api/user/cashbook` | Sesi | Hapus catatan buku kas |
+| `GET` | `/api/user/export` | Sesi | Unduh ekspor data pribadi akun, toko, produk, & kas dalam JSON |
+| `POST` | `/api/user/delete-account` | Sesi | Hapus akun & etalase UMKM milik sendiri (hak hapus UU PDP) |
+| `POST` | `/api/cron/expire-promotions` | Cron Secret | Nonaktifkan status `is_featured` iklan promosi yang masa tayangnya habis |
 | `GET` | `/api/neon/services` | Sesi | Health check layanan Neon |
 | `GET` | `/uploads/[...path]` | Publik | Sajikan file lokal dari `data/uploads` |
 | `GET` | `/sitemap.xml` | Publik | Sitemap dinamis |
@@ -208,7 +213,7 @@ Menghapus toko beserta seluruh produknya (FK cascade). Akun pemilik toko (bila a
 
 ### `POST /api/events`
 
-Endpoint pengurus MWC untuk kelola agenda kegiatan (form di halaman `/kegiatan`). Memerlukan cookie `mamasar_session` milik akun dengan `users.role = 'pengurus'`. Format `multipart/form-data`; field `action` menentukan aksi.
+Endpoint PCNU / MWCNU untuk kelola agenda kegiatan (form di `/admin` & `/kegiatan`). Memerlukan cookie `mamasar_session` dengan peran `pcnu` atau `mwcnu` (`events:manage`, terscoped ke `assigned_zone_id` untuk MWCNU). Format `multipart/form-data`; field `action` menentukan aksi.
 
 **`action=create`** — buat agenda baru. Respons `201`: `{ "success": true, "eventId": 7, "slug": "...", "message": "..." }`.
 
@@ -272,6 +277,16 @@ Respons `201`: `{ "success": true, "message": "...", "entry": { ... } }`.
 Memerlukan cookie `mamasar_session`. Body JSON: `{ "id": 3 }`.
 
 Respons `200`: `{ "success": true }` atau `{ "success": false }` bila tidak ada baris yang cocok dengan `user_id`.
+
+### `POST /api/events/order` & `PATCH /api/events/order`
+
+- `POST`: Endpoint publik (dilindungi rate limit `10` permintaan/jam per IP) untuk mengirim permohonan konsumsi berkat atau pengajuan lapak bazar warga pada halaman `/kegiatan/[slug]`. Field wajib: `eventId`, `type` (`consumption` | `stall`), `requesterName`, `requesterPhone` (nomor HP Indonesia valid). Field opsional: `umkmId`, `organization`, `notes`.
+- `PATCH`: Endpoint pengurus (`pcnu` atau `mwcnu` sesuai `zone_id` acara via `can(user, 'events:manage', { zoneId })`) untuk mengubah `status` pengajuan (`pending` | `contacted` | `approved` | `rejected`) beserta pencatatan `audit_log`.
+
+### `GET /api/user/export` & `POST /api/user/delete-account`
+
+- `GET /api/user/export`: Memerlukan sesi login. Mengembalikan file JSON lampiran (`Content-Disposition: attachment`) berisi profil pengguna, profil UMKM, produk, buku kas, favorit, riwayat promosi, dan notifikasi.
+- `POST /api/user/delete-account`: Memerlukan sesi login. Memvalidasi konfirmasi pengguna (`confirm: "HAPUS"`) dan menghapus permanen toko UMKM beserta data akun pengguna, kemudian mengosongkan cookie `mamasar_session`. Akun `SUPERADMIN_EMAIL` dikecualikan agar tidak terkunci.
 
 ---
 

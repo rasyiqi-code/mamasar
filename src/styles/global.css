@@ -1,14 +1,42 @@
 @import "tailwindcss";
 
+@theme {
+  --color-brand-primary: #047857;
+  --color-brand-primary-hover: #065f46;
+  --color-action-primary: #047857;
+  --color-action-accent: #d97706;
+  --color-surface-canvas: #f8fafc;
+  --color-surface-card: #ffffff;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-border-subtle: #e2e8f0;
+  --color-alert-danger: #be123c;
+  --color-alert-warning: #b45309;
+  --color-alert-success: #047857;
+}
+
 @layer base {
   html {
     height: 100%;
-    background-color: #f8fafc;
-    color: #0f172a;
+    background-color: var(--color-surface-canvas);
+    color: var(--color-text-primary);
   }
   body {
     -webkit-tap-highlight-color: transparent;
     padding-top: env(safe-area-inset-top);
+  }
+
+  dialog:modal {
+    overscroll-behavior: contain;
+    margin: auto;
+    max-height: min(90dvh, 760px);
+  }
+
+  dialog::backdrop {
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(2px);
+    overflow: hidden;
+    overscroll-behavior: contain;
   }
 
   /* R-39: Explicit cursor indicators on all interactive elements */

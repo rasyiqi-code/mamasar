@@ -1,9 +1,16 @@
 import type { APIRoute } from 'astro';
 import { getNeonAuthBaseUrl } from '../../../lib/neon-auth';
+import { checkRateLimit, getClientIp, isHttpsRequest } from '../../../lib/security';
 
 export const GET: APIRoute = async ({ request, redirect }) => {
   if (request.method === 'HEAD') {
     return new Response(null, { status: 200 });
+  }
+
+  const clientIp = getClientIp(request);
+  const limit = checkRateLimit(`auth-oauth:ip:${clientIp}`, 20, 10 * 60 * 1000);
+  if (!limit.allowed) {
+    return redirect('/dashboard?error=rate_limited');
   }
 
   const url = new URL(request.url);
@@ -40,8 +47,9 @@ export const GET: APIRoute = async ({ request, redirect }) => {
         ? neonRes.headers.getSetCookie()
         : [neonRes.headers.get('set-cookie')].filter(Boolean) as string[];
 
+      const https = isHttpsRequest(request);
       for (const sc of setCookies) {
-        if (url.protocol !== 'https:') {
+        if (!https) {
           const cleaned = sc
             .replace(/__Secure-/g, '')
             .replace(/;\s*Secure/gi, '')

@@ -30,11 +30,8 @@ function isReservedHostname(hostname: string): boolean {
   return h.endsWith('.localhost') || h.endsWith('.local');
 }
 
-/**
- * Prevent SSRF: only allow http/https URL toward public internet hosts.
- * Rejects private/loopback/link-local IP literals and resolves
- * DNS to reject hosts that resolve to private ranges (e.g. 169.254.169.254).
- */
+export const SESSION_MAX_AGE_SECONDS = 7 * 24 * 60 * 60; // 7 hari
+
 /**
  * Safely serialize JSON for inline <script type="application/ld+json"> or <script type="application/json">
  * by escaping HTML-significant characters and JS line terminators so user-controlled strings
@@ -49,6 +46,107 @@ export function safeJsonLd(value: unknown): string {
     .replace(/\u2029/g, '\\u2029');
 }
 
+/**
+ * Standardized API error response: logs internal details server-side and never leaks
+ * database driver/stack internals to clients.
+ */
+export function jsonError(
+  status: number,
+  publicMessage: string,
+  internalError?: unknown,
+  extraHeaders?: Record<string, string>
+): Response {
+  if (internalError !== undefined) {
+    console.error(`[API ${status}] ${publicMessage}:`, internalError);
+  }
+  return new Response(
+    JSON.stringify({
+      success: false,
+      message: publicMessage,
+    }),
+    {
+      status,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(extraHeaders || {}),
+      },
+    }
+  );
+}
+
+export function isHttpsRequest(request: Request): boolean {
+  const proto = request.headers.get('x-forwarded-proto')?.split(',')[0]?.trim().toLowerCase();
+  if (proto) return proto === 'https';
+  try {
+    return new URL(request.url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
+export function createSessionCookieHeader(sessionId: string, request: Request): string {
+  const secureFlag = isHttpsRequest(request) ? '; Secure' : '';
+  return `mamasar_session=${sessionId}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE_SECONDS}${secureFlag}`;
+}
+
+export function getClientIp(request: Request): string {
+  const xff = request.headers.get('x-forwarded-for');
+  if (xff) {
+    const first = xff.split(',')[0]?.trim();
+    if (first) return first;
+  }
+  return request.headers.get('x-real-ip')?.trim() || 'unknown';
+}
+
+interface RateBucket {
+  count: number;
+  resetAt: number;
+}
+
+const rateBuckets = new Map<string, RateBucket>();
+
+export function checkRateLimit(
+  key: string,
+  limit: number,
+  windowMs: number
+): { allowed: boolean; retryAfterSeconds: number; remaining: number } {
+  const now = Date.now();
+  if (rateBuckets.size > 2000) {
+    for (const [k, b] of rateBuckets.entries()) {
+      if (b.resetAt <= now) rateBuckets.delete(k);
+    }
+  }
+
+  const existing = rateBuckets.get(key);
+  if (!existing || existing.resetAt <= now) {
+    rateBuckets.set(key, { count: 1, resetAt: now + windowMs });
+    return { allowed: true, retryAfterSeconds: 0, remaining: Math.max(0, limit - 1) };
+  }
+
+  existing.count += 1;
+  if (existing.count > limit) {
+    const retryAfterSeconds = Math.max(1, Math.ceil((existing.resetAt - now) / 1000));
+    return { allowed: false, retryAfterSeconds, remaining: 0 };
+  }
+
+  return {
+    allowed: true,
+    retryAfterSeconds: 0,
+    remaining: Math.max(0, limit - existing.count),
+  };
+}
+
+export function isSafeMediaUrl(url: string): boolean {
+  if (!url) return false;
+  if (url.startsWith('/uploads/') && !url.includes('..')) return true;
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 export async function isSafeOutboundUrl(urlString: string): Promise<boolean> {
   let url: URL;
   try {
@@ -57,6 +155,7 @@ export async function isSafeOutboundUrl(urlString: string): Promise<boolean> {
     return false;
   }
   if (url.protocol !== 'http:' && url.protocol !== 'https:') return false;
+  if (url.username || url.password) return false;
 
   const hostname = url.hostname;
   const ipVersion = isIP(hostname);

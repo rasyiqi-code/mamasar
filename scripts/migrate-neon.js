@@ -109,6 +109,8 @@ async function runMigration() {
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS other_legalities TEXT;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS bump_credits INTEGER DEFAULT 0;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS created_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS slug VARCHAR(255);`;
+  await sql`CREATE UNIQUE INDEX IF NOT EXISTS uq_umkm_slug ON umkm(slug) WHERE slug IS NOT NULL;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMP WITH TIME ZONE;`;
   await sql`CREATE UNIQUE INDEX IF NOT EXISTS uq_umkm_user_id ON umkm(user_id) WHERE user_id IS NOT NULL;`;
 
@@ -258,6 +260,41 @@ async function runMigration() {
     );
   `;
   await sql`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read, created_at DESC);`;
+
+  // Pesanan konsumsi / pendaftaran lapak UMKM pada kegiatan NU
+  await sql`
+    CREATE TABLE IF NOT EXISTS event_orders (
+      id SERIAL PRIMARY KEY,
+      event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+      umkm_id INTEGER REFERENCES umkm(id) ON DELETE SET NULL,
+      type VARCHAR(20) NOT NULL DEFAULT 'consumption',
+      sender_name VARCHAR(255) NOT NULL,
+      sender_phone VARCHAR(50) NOT NULL,
+      item_description TEXT NOT NULL,
+      quantity_or_slots VARCHAR(100),
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_event_orders_event ON event_orders(event_id, created_at DESC);`;
+
+  // Backfill slug toko agar setiap UMKM memiliki URL SEO-friendly (/toko/[slug])
+  const storesMissingSlug = await sql`SELECT id, name FROM umkm WHERE slug IS NULL ORDER BY id ASC`;
+  if (storesMissingSlug.length > 0) {
+    const existingSlugRows = await sql`SELECT slug FROM umkm WHERE slug IS NOT NULL`;
+    const usedSlugs = new Set(existingSlugRows.map((r) => String(r.slug)));
+    for (const row of storesMissingSlug) {
+      const base =
+        String(row.name || 'toko')
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '') || 'toko';
+      const candidate = usedSlugs.has(base) ? `${base}-${row.id}` : base;
+      usedSlugs.add(candidate);
+      await sql`UPDATE umkm SET slug = ${candidate} WHERE id = ${row.id}`;
+    }
+    console.log(`✅ Backfill slug untuk ${storesMissingSlug.length} toko selesai.`);
+  }
 
   console.log('✅ Skema tabel berhasil dibuat di Neon PostgreSQL!');
 

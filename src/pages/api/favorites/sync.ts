@@ -1,6 +1,7 @@
 import type { APIRoute } from 'astro';
 import { resolveUser } from '../../../lib/neon-auth';
 import { syncGuestFavorites, getUserFavoriteIds } from '../../../lib/db';
+import { jsonError } from '../../../lib/security';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -29,9 +30,7 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, message: err.message }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    console.error('Favorites sync error:', err);
+    return jsonError(500, 'Gagal menyinkronkan favorit.');
   }
 };

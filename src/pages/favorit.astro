@@ -47,6 +47,7 @@ function formatRupiah(amount: number) {
 <Layout
   title="Iklan Produk Favorit Tersimpan | Mamasar Sumenep"
   description="Daftar produk UMKM Nahdliyin yang Anda simpan untuk dibeli atau dihubungi via WhatsApp."
+  noindex={true}
 >
   <div class="max-w-7xl mx-auto space-y-6 py-4 sm:py-8 px-3 sm:px-6 lg:px-8">
     
@@ -116,7 +117,7 @@ function formatRupiah(amount: number) {
             </button>
 
             <div>
-              <a href={`/p/${p.slug}`} class="block relative aspect-4/3 bg-slate-100 overflow-hidden">
+              <a href={`/produk/${p.slug}`} class="block relative aspect-4/3 bg-slate-100 overflow-hidden">
                 <img
                   src={p.image_url}
                   alt={p.name}
@@ -134,7 +135,7 @@ function formatRupiah(amount: number) {
                   <span class="truncate">{p.zone_name}</span>
                 </span>
                 <a
-                  href={`/p/${p.slug}`}
+                  href={`/produk/${p.slug}`}
                   class="font-bold text-xs text-slate-900 group-hover:text-emerald-700 line-clamp-2 leading-tight block"
                 >
                   {p.name}
@@ -177,31 +178,45 @@ function formatRupiah(amount: number) {
       </p>
       <a
         href="/"
-        class="inline-block mt-2 text-xs font-bold bg-[#4f46e5] hover:bg-[#4338ca] text-white px-5 py-2.5 rounded-xl transition shadow-xs"
+        class="inline-flex min-h-[44px] items-center justify-center mt-2 text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl transition shadow-xs"
       >
         Mulai Jelajahi Produk ➔
       </a>
     </div>
 
+    <div
+      id="favorites-meta"
+      data-logged-in={user ? '1' : '0'}
+      data-initial-count={String(serverFavorites.length)}
+      class="hidden"
+      aria-hidden="true"
+    ></div>
+
   </div>
 
   <!-- Client Script for Favorites management & Guest Sync -->
-  <script define:vars={{ isLoggedIn: Boolean(user), initialServerCount: serverFavorites.length }}>
+  <script>
+    import { confirmAction } from '../lib/dialog';
+
+    const metaEl = document.getElementById('favorites-meta');
+    const isLoggedIn = metaEl?.getAttribute('data-logged-in') === '1';
+    const initialServerCount = Number(metaEl?.getAttribute('data-initial-count') || '0');
+
     const container = document.getElementById('favorites-container');
     const emptyState = document.getElementById('empty-favorites');
     const clearBtn = document.getElementById('btn-clear-favorites');
 
-    function getLocalFavorites() {
+    function getLocalFavorites(): number[] {
       try {
         const raw = localStorage.getItem('mamasar_favorites');
         const parsed = raw ? JSON.parse(raw) : [];
-        return Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'number') : [];
+        return Array.isArray(parsed) ? parsed.filter((id: unknown): id is number => typeof id === 'number') : [];
       } catch {
         return [];
       }
     }
 
-    function formatPriceIDR(value) {
+    function formatPriceIDR(value: number): string {
       return new Intl.NumberFormat('id-ID', {
         style: 'currency',
         currency: 'IDR',
@@ -209,7 +224,7 @@ function formatRupiah(amount: number) {
       }).format(value);
     }
 
-    function createFavCard(p) {
+    function createFavCard(p: { id: number; slug: string; name: string; price: number; image_url?: string; zone_name?: string; umkm_name?: string; umkm_phone?: string }) {
       const formattedPrice = formatPriceIDR(p.price);
       const waMsg = encodeURIComponent(
         'Halo *' + (p.umkm_name || 'Penjual') + '*, saya tertarik dengan produk Anda di Mamasar:\n📦 *' +
@@ -218,7 +233,7 @@ function formatRupiah(amount: number) {
           formattedPrice +
           ')\nApakah barang masih tersedia?'
       );
-      const detailHref = '/p/' + encodeURIComponent(p.slug);
+      const detailHref = '/produk/' + encodeURIComponent(p.slug);
 
       const card = document.createElement('div');
       card.id = 'fav-card-' + p.id;
@@ -355,7 +370,7 @@ function formatRupiah(amount: number) {
 
     // Handle remove favorite
     container?.addEventListener('click', async (e) => {
-      const btn = e.target.closest('[data-remove-fav]');
+      const btn = (e.target as HTMLElement | null)?.closest('[data-remove-fav]');
       if (!btn) return;
       const id = Number(btn.getAttribute('data-remove-fav'));
 
@@ -387,7 +402,13 @@ function formatRupiah(amount: number) {
     });
 
     clearBtn?.addEventListener('click', async () => {
-      if (!confirm('Hapus semua daftar produk favorit yang tersimpan?')) return;
+      const confirmed = await confirmAction({
+        title: 'Kosongkan Daftar Favorit',
+        message: 'Hapus semua daftar produk favorit yang tersimpan?',
+        confirmLabel: 'Ya, Hapus Semua',
+        tone: 'danger',
+      });
+      if (!confirmed) return;
       localStorage.removeItem('mamasar_favorites');
 
       if (isLoggedIn) {

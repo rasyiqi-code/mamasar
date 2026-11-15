@@ -60,6 +60,7 @@ export interface UMKM {
   id: number;
   user_id?: number;
   name: string;
+  slug?: string;
   phone: string;
   zone_id: number;
   zone_name?: string;
@@ -80,6 +81,7 @@ export interface UMKM {
 export interface Product {
   id: number;
   umkm_id: number;
+  umkm_slug?: string;
   umkm_name: string;
   umkm_phone: string;
   umkm_address: string;
@@ -188,6 +190,7 @@ export type SetupUMKMResult =
 export interface UMKMVerificationRow {
   id: number;
   name: string;
+  slug?: string;
   phone: string;
   address?: string;
   ranting?: string;
@@ -229,5 +232,21 @@ export interface NotificationItem {
   body: string;
   link?: string;
   is_read: number;
+  created_at: string;
+}
+
+export interface EventOrderItem {
+  id: number;
+  event_id: number;
+  event_title?: string;
+  zone_id?: number;
+  umkm_id?: number | null;
+  umkm_name?: string | null;
+  type: 'consumption' | 'stall';
+  sender_name: string;
+  sender_phone: string;
+  item_description: string;
+  quantity_or_slots?: string;
+  status: 'pending' | 'accepted' | 'rejected';
   created_at: string;
 }

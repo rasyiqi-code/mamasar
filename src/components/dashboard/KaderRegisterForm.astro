@@ -219,6 +219,18 @@ const isRejected = user.agent_status === 'rejected';
         </div>
       </div>
 
+      <label for="petugasRegConsent" class="flex items-start gap-2.5 cursor-pointer text-xs text-slate-700">
+        <input
+          type="checkbox"
+          id="petugasRegConsent"
+          required
+          class="mt-0.5 w-4 h-4 accent-emerald-700 shrink-0 rounded border-slate-300"
+        />
+        <span>
+          Saya menyetujui <a href="/privasi" target="_blank" class="text-emerald-700 font-semibold underline">Kebijakan Privasi Mamasar</a> dalam verifikasi data keanggotaan Kader / Pengurus MWC NU.
+        </span>
+      </label>
+
       <button
         type="submit"
         id="btn-submit-petugas-reg"

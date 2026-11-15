@@ -50,6 +50,7 @@ export const umkm = pgTable(
     user_id: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
     created_by_user_id: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
     name: varchar('name', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).unique(),
     phone: varchar('phone', { length: 50 }).notNull(),
     zone_id: integer('zone_id')
       .notNull()
@@ -249,4 +250,23 @@ export const notifications = pgTable(
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (t) => [index('idx_notifications_user').on(t.user_id, t.is_read, t.created_at.desc())]
+);
+
+export const eventOrders = pgTable(
+  'event_orders',
+  {
+    id: serial('id').primaryKey(),
+    event_id: integer('event_id')
+      .notNull()
+      .references(() => events.id, { onDelete: 'cascade' }),
+    umkm_id: integer('umkm_id').references(() => umkm.id, { onDelete: 'set null' }),
+    type: varchar('type', { length: 20 }).notNull().default('consumption'),
+    sender_name: varchar('sender_name', { length: 255 }).notNull(),
+    sender_phone: varchar('sender_phone', { length: 50 }).notNull(),
+    item_description: text('item_description').notNull(),
+    quantity_or_slots: varchar('quantity_or_slots', { length: 100 }),
+    status: varchar('status', { length: 20 }).notNull().default('pending'),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index('idx_event_orders_event').on(t.event_id, t.created_at.desc())]
 );

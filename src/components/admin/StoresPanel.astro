@@ -4,6 +4,7 @@ import AppIcon from '../common/AppIcon.astro';
 interface UMKMStore {
   id: number;
   name: string;
+  slug?: string;
   phone: string;
   address?: string | null;
   ranting?: string | null;
@@ -79,7 +80,7 @@ function formatDate(iso: string): string {
 
             <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
               <a
-                href={`/toko/${store.id}`}
+                href={`/toko/${store.slug || store.id}`}
                 target="_blank"
                 class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium rounded transition"
               >
@@ -154,7 +155,7 @@ function formatDate(iso: string): string {
 
             <div class="flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
               <a
-                href={`/toko/${store.id}`}
+                href={`/toko/${store.slug || store.id}`}
                 target="_blank"
                 class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-medium rounded transition"
               >

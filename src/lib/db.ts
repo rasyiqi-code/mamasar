@@ -24,3 +24,4 @@ export * from './modules/favorites';
 export * from './modules/promotions';
 export * from './modules/audit';
 export * from './modules/notifications';
+export * from './modules/privacy';

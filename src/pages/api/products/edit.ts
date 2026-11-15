@@ -1,7 +1,8 @@
 import type { APIRoute } from 'astro';
 import { resolveUser } from '../../../lib/neon-auth';
 import { updateProduct } from '../../../lib/db';
-import { saveUploadedImage } from '../../../lib/storage';
+import { InvalidUploadError, saveUploadedImage } from '../../../lib/storage';
+import { isSafeMediaUrl, jsonError } from '../../../lib/security';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -35,9 +36,10 @@ export const POST: APIRoute = async ({ request }) => {
               if (typeof item === 'string' && item.startsWith('data:image')) {
                 return await saveUploadedImage({ imageBase64: item });
               }
-              return item;
+              return typeof item === 'string' && isSafeMediaUrl(item) ? item : '';
             })
           );
+          galleryImages = galleryImages.filter(Boolean);
         }
       } catch (_) {}
     }
@@ -85,9 +87,9 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, message: err.message || 'Terjadi kesalahan server.' }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    if (err instanceof InvalidUploadError) {
+      return jsonError(400, err.message);
+    }
+    return jsonError(500, 'Terjadi kesalahan server saat menyimpan perubahan produk.', err);
   }
 };

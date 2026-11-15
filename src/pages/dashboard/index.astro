@@ -50,6 +50,20 @@ const assignedZone = user ? zones.find((z) => z.id === user.assigned_zone_id) : 
   title={user ? (store ? `Dashboard Toko: ${store.name} | Mamasar` : `Akun & Pendaftaran Peran: ${user.name} | Mamasar`) : 'Masuk atau Daftar Akun | Mamasar'}
   description="Portal swalayan pemilik UMKM Nahdliyin, Kader Ranting, Pengurus MWC, dan Admin PCNU Sumenep."
 >
+  <!-- Banner Akses Terbatas /admin -->
+  {user && authError === 'unauthorized_admin' && (
+    <div role="alert" class="bg-amber-50 border-b border-amber-300 px-4 py-3 text-xs text-amber-950">
+      <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <p class="font-semibold">
+          Halaman Portal Admin & Kader (<code>/admin</code>) khusus untuk Kader Ranting, Pengurus MWC, atau Admin PCNU yang sudah disetujui.
+        </p>
+        <a href="/petugas" class="shrink-0 font-bold text-emerald-800 underline hover:text-emerald-900">
+          Ajukan Peran Kader MWC ➔
+        </a>
+      </div>
+    </div>
+  )}
+
   <!-- KONDISI 1: Belum Login -->
   {!user && <AuthCard authError={authError} isLoggedOut={isLoggedOut} intent={intent} />}
 

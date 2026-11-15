@@ -1,5 +1,6 @@
 ---
 import AppIcon from '../common/AppIcon.astro';
+import PrivacyAccountPanel from './PrivacyAccountPanel.astro';
 
 interface Props {
   store: {
@@ -230,10 +231,12 @@ const { store, zones } = Astro.props;
       <button
         type="submit"
         id="btn-submit-edit-store"
-        class="py-2 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded shadow-xs transition cursor-pointer"
+        class="min-h-[44px] py-2 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
       >
         Simpan Profil & Legalitas Toko ➔
       </button>
     </div>
   </form>
+
+  <PrivacyAccountPanel hasStore={true} />
 </section>
