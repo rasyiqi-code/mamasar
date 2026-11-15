@@ -35,15 +35,15 @@ const {
 ---
 
 <!-- MOBILE TOP HEADER (Compact bar for mobile) -->
-<div class="md:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between">
+<div class="md:hidden sticky top-0 z-40 bg-white border-b border-slate-200 px-4 py-2.5 flex items-center justify-between gap-2">
   <div class="flex items-center gap-2.5 min-w-0">
     <button
       type="button"
       id="btn-toggle-sidebar"
-      class="p-1.5 text-slate-700 hover:text-slate-900 rounded-lg border border-slate-200 focus:outline-none cursor-pointer"
+      class="min-w-[40px] min-h-[40px] flex items-center justify-center text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-lg border border-slate-200 focus:outline-none cursor-pointer shrink-0"
       aria-label="Buka Menu Sidebar"
     >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
       </svg>
     </button>
@@ -56,14 +56,13 @@ const {
     </div>
   </div>
 
-  <div class="flex items-center gap-2">
-    <a
-      href="/pasang-iklan"
-      class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shrink-0 transition flex items-center gap-1"
-    >
-      + Produk
-    </a>
-  </div>
+  <a
+    href="/pasang-iklan"
+    class="min-h-[40px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shrink-0 transition inline-flex items-center gap-1"
+  >
+    <AppIcon name="plus" size="xs" />
+    <span>Produk</span>
+  </a>
 </div>
 
 <!-- SIDEBAR BACKDROP ON MOBILE -->
@@ -72,11 +71,11 @@ const {
 <!-- DESKTOP & MOBILE SIDEBAR -->
 <aside
   id="dashboard-sidebar"
-  class="fixed md:sticky top-0 bottom-0 left-0 z-50 w-64 bg-[#fbfcfd] border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-dvh shrink-0"
+  class="fixed md:sticky top-0 md:top-14 bottom-0 left-0 z-50 w-64 md:w-60 bg-white border-r border-slate-200 flex flex-col justify-between transform -translate-x-full md:translate-x-0 transition-transform duration-200 ease-in-out h-dvh md:h-[calc(100dvh-3.5rem)] shrink-0"
 >
-  <div class="flex flex-col h-full overflow-y-auto">
+  <div class="flex flex-col h-full overflow-y-auto md:pr-4">
     <!-- Sidebar Brand / Store Profile -->
-    <div class="p-4 border-b border-slate-200/70 flex items-center justify-between">
+    <div class="p-4 md:px-0 md:py-5 border-b border-slate-200 flex items-center justify-between gap-2">
       <div class="flex items-center gap-3 min-w-0">
         <div class="w-9 h-9 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm shrink-0">
           {store.name.slice(0, 2).toUpperCase()}
@@ -100,7 +99,7 @@ const {
       <button
         type="button"
         id="btn-close-sidebar"
-        class="md:hidden text-slate-500 hover:text-slate-800 p-1 cursor-pointer"
+        class="md:hidden min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-500 hover:text-slate-900 rounded-lg hover:bg-slate-100 cursor-pointer"
         aria-label="Tutup Menu Sidebar"
       >
         <AppIcon name="x" size="sm" />
@@ -109,11 +108,11 @@ const {
 
     <!-- Role Quick Links (If Superadmin or Petugas) -->
     {(isSuper || isCadre) && (
-      <div class="p-3 border-b border-slate-200/70 space-y-1.5">
+      <div class="p-3 md:px-0 border-b border-slate-200 space-y-1.5">
         {isSuper && (
           <a
             href="/admin"
-            class="flex items-center justify-between px-3 py-2 rounded-lg bg-rose-50 text-rose-900 border border-rose-200/70 text-xs font-semibold hover:bg-rose-100/70 transition"
+            class="min-h-[40px] flex items-center justify-between px-3 py-2 rounded-lg bg-rose-50 text-rose-900 border border-rose-200 text-xs font-semibold hover:bg-rose-100/70 transition"
           >
             <span class="flex items-center gap-1.5">
               <AppIcon name="shield" size="xs" />
@@ -125,7 +124,7 @@ const {
         {isCadre && !isSuper && (
           <a
             href="/admin#entry"
-            class="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200/70 text-xs font-semibold hover:bg-emerald-100/70 transition"
+            class="min-h-[40px] flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 text-xs font-semibold hover:bg-emerald-100/70 transition"
           >
             <span class="flex items-center gap-1.5">
               <AppIcon name="clipboard" size="xs" />
@@ -138,7 +137,7 @@ const {
     )}
 
     <!-- Navigation Items -->
-    <nav aria-label="Menu Dashboard Toko" class="p-3 space-y-1 flex-1 text-xs">
+    <nav aria-label="Menu Dashboard Toko" class="p-3 md:px-0 md:py-4 space-y-1 flex-1 text-xs">
       <div role="tablist" aria-orientation="vertical" class="space-y-1">
         <button
           type="button"
@@ -149,10 +148,10 @@ const {
           class="nav-tab-btn active w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
-            <AppIcon name="package" size="sm" class="text-slate-600" />
+            <AppIcon name="package" size="sm" />
             <span>Katalog Produk</span>
           </div>
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+          <span class="nav-badge text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 tabular-nums">
             {productCount}
           </span>
         </button>
@@ -166,10 +165,10 @@ const {
           class="nav-tab-btn w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
-            <AppIcon name="book" size="sm" class="text-slate-600" />
+            <AppIcon name="book" size="sm" />
             <span>Buku Kas Usaha</span>
           </div>
-          <span class="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+          <span class="nav-badge text-xs font-mono font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 tabular-nums">
             {cashbookCount}
           </span>
         </button>
@@ -182,7 +181,7 @@ const {
           data-nav-tab="profile"
           class="nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
         >
-          <AppIcon name="store" size="sm" class="text-slate-600" />
+          <AppIcon name="store" size="sm" />
           <span>Profil Usaha</span>
         </button>
 
@@ -194,60 +193,69 @@ const {
           data-nav-tab="services"
           class="nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
         >
-          <AppIcon name="award" size="sm" class="text-slate-600" />
+          <AppIcon name="award" size="sm" />
           <span>Layanan Kemitraan</span>
         </button>
       </div>
 
-      <div class="pt-3 mt-2 border-t border-slate-200/60">
+      <div class="pt-3 mt-3 border-t border-slate-200 space-y-1">
         <a
           href="/"
-          class="min-h-[40px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+          class="min-h-[40px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition font-medium"
         >
           <AppIcon name="globe" size="sm" />
           <span>Katalog Publik</span>
         </a>
+        <a
+          href={`/toko/${store.slug || store.id}`}
+          target="_blank"
+          class="md:hidden min-h-[40px] flex items-center justify-between px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition font-medium"
+        >
+          <span class="flex items-center gap-2.5">
+            <AppIcon name="external-link" size="sm" />
+            <span>Etalase Toko</span>
+          </span>
+          <AppIcon name="arrow-right" size="xs" />
+        </a>
       </div>
     </nav>
 
-    <!-- Sidebar Footer: User Card & Storefront link -->
-    <div class="p-3 border-t border-slate-200/70 space-y-2">
-      <a
-        href={`/toko/${store.slug || store.id}`}
-        target="_blank"
-        class="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition"
-      >
-        <span>Lihat Toko Publik</span>
-        <AppIcon name="arrow-right" size="xs" />
-      </a>
-
-      <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-        <div class="flex items-center gap-2 min-w-0">
+    <!-- Sidebar Footer: User Account Row -->
+    <div class="p-3 md:px-0 md:py-4 border-t border-slate-200 flex items-center justify-between gap-2 text-xs">
+      <div class="flex items-center gap-2.5 min-w-0">
+        {avatarUrl ? (
           <img
-            src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=059669&color=fff`}
+            src={avatarUrl}
             alt={user.name}
-            class="w-7 h-7 rounded-full border border-slate-200 shrink-0 object-cover"
+            class="w-8 h-8 rounded-full border border-slate-200 shrink-0 object-cover"
           />
-          <div class="min-w-0">
-            <span class="font-semibold text-slate-900 block truncate text-xs">{user.name}</span>
-            <span class="text-xs text-slate-600 block truncate">{user.email}</span>
-          </div>
-        </div>
-        <form
-          method="POST"
-          action="/api/auth/logout"
-          onsubmit="try{localStorage.removeItem('mamasar_favorites')}catch{}"
-        >
-          <button
-            type="submit"
-            class="p-1.5 text-slate-600 hover:text-rose-700 rounded-md transition cursor-pointer"
-            title="Keluar"
-            aria-label="Keluar dari akun"
+        ) : (
+          <span
+            aria-hidden="true"
+            class="w-8 h-8 rounded-full bg-slate-100 border border-slate-200 text-slate-700 font-bold text-xs flex items-center justify-center shrink-0"
           >
-            <AppIcon name="log-out" size="sm" />
-          </button>
-        </form>
+            {user.name.slice(0, 2).toUpperCase()}
+          </span>
+        )}
+        <div class="min-w-0">
+          <span class="font-semibold text-slate-900 block truncate text-xs">{user.name}</span>
+          <span class="text-xs text-slate-600 block truncate">{user.email}</span>
+        </div>
       </div>
+      <form
+        method="POST"
+        action="/api/auth/logout"
+        onsubmit="try{localStorage.removeItem('mamasar_favorites')}catch{}"
+      >
+        <button
+          type="submit"
+          class="min-w-[36px] min-h-[36px] flex items-center justify-center text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg transition cursor-pointer"
+          title="Keluar"
+          aria-label="Keluar dari akun"
+        >
+          <AppIcon name="log-out" size="sm" />
+        </button>
+      </form>
     </div>
   </div>
 </aside>

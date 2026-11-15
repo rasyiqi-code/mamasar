@@ -25,54 +25,52 @@ interface Props {
 const { summary, entries, products = [] } = Astro.props;
 ---
 
-<section id="panel-cashbook" class="tab-panel hidden space-y-4">
-  <!-- Top Bar: Compact Header with Line Divider -->
-  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
-    <div class="flex items-center gap-2.5">
-      <h2 class="text-base sm:text-lg font-bold text-slate-900">Buku Kas Usaha</h2>
-      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
-        Pembukuan
-      </span>
+<section id="panel-cashbook" class="tab-panel hidden space-y-5">
+  <!-- Top Bar: Compact Header with Actions -->
+  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+    <div class="space-y-0.5">
+      <h2 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Buku Kas Usaha</h2>
+      <p class="text-xs text-slate-600">Catat pemasukan dan pengeluaran harian serta ekspor CSV.</p>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="flex items-center gap-2 shrink-0">
       <button
         type="button"
         id="btn-export-csv"
-        class="min-h-[40px] py-1 px-3 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition cursor-pointer flex items-center gap-1"
+        class="min-h-[40px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition cursor-pointer inline-flex items-center gap-1.5"
         title="Unduh CSV"
       >
         <AppIcon name="download" size="xs" />
-        <span>Ekspor</span>
+        <span>Ekspor CSV</span>
       </button>
       <button
         type="button"
         id="btn-toggle-cashbook-form"
-        class="min-h-[40px] py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer flex items-center gap-1"
+        class="min-h-[40px] py-1.5 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center gap-1.5"
       >
         <AppIcon name="plus" size="xs" />
-        <span>Catat</span>
+        <span>Catat Transaksi</span>
       </button>
     </div>
   </div>
 
-  {/* Summary Metric Strip: Compact 3-Column with Line Dividers */}
-  <div class="grid grid-cols-3 divide-x divide-slate-200 py-3 border-b border-slate-200 text-xs">
-    <div class="pr-3">
-      <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider block">Pemasukan</span>
-      <span class="text-base sm:text-lg font-bold text-slate-900 block font-mono tabular-nums mt-0.5" id="cash-income-display">
+  {/* Summary Metric Strip: Responsive 3-Column with Line Dividers */}
+  <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-slate-200 py-3 border-y border-slate-200 text-xs">
+    <div class="pb-3 sm:pb-0 sm:pr-4">
+      <span class="text-xs font-medium text-slate-600 block">Pemasukan</span>
+      <span class="text-lg font-bold text-slate-900 block font-mono tabular-nums mt-0.5" id="cash-income-display">
         {formatRupiah(summary.totalIncome)}
       </span>
     </div>
-    <div class="px-3">
-      <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider block">Pengeluaran</span>
-      <span class="text-base sm:text-lg font-bold text-slate-900 block font-mono tabular-nums mt-0.5" id="cash-expense-display">
+    <div class="py-3 sm:py-0 sm:px-4">
+      <span class="text-xs font-medium text-slate-600 block">Pengeluaran</span>
+      <span class="text-lg font-bold text-slate-900 block font-mono tabular-nums mt-0.5" id="cash-expense-display">
         {formatRupiah(summary.totalExpense)}
       </span>
     </div>
-    <div class="pl-3">
-      <span class="text-xs font-semibold text-slate-600 uppercase tracking-wider block">Saldo Bersih</span>
-      <span class="text-base sm:text-lg font-bold text-emerald-700 block font-mono tabular-nums mt-0.5" id="cash-balance-display">
+    <div class="pt-3 sm:pt-0 sm:pl-4">
+      <span class="text-xs font-medium text-slate-600 block">Saldo Bersih</span>
+      <span class="text-lg font-bold text-emerald-700 block font-mono tabular-nums mt-0.5" id="cash-balance-display">
         {formatRupiah(summary.balance)}
       </span>
     </div>
@@ -88,11 +86,11 @@ const { summary, entries, products = [] } = Astro.props;
       </button>
     </div>
 
-    <form id="cashbook-entry-form" class="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+    <form id="cashbook-entry-form" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
       {products.length > 0 && (
-        <div class="sm:col-span-4 bg-slate-50 p-2 rounded-md border border-slate-200 flex items-center gap-2">
-          <span class="text-xs font-semibold text-slate-700 shrink-0">Pilih Produk:</span>
-          <select id="cashProdSelect" class="flex-1 min-h-[38px] bg-white border border-slate-300 rounded-md p-1.5 text-xs font-medium text-slate-800">
+        <div class="sm:col-span-4 bg-slate-50 p-2.5 rounded-lg border border-slate-200 flex flex-col sm:flex-row sm:items-center gap-2">
+          <span class="text-xs font-semibold text-slate-700 shrink-0">Isi Cepat Produk:</span>
+          <select id="cashProdSelect" class="flex-1 min-h-[42px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-medium text-slate-800">
             <option value="">-- Isi otomatis nama &amp; harga dari produk --</option>
             {products.map((p) => (
               <option value={p.id} data-name={p.name} data-price={p.price}>
@@ -109,9 +107,9 @@ const { summary, entries, products = [] } = Astro.props;
           type="text"
           id="cashTitle"
           name="title"
-          placeholder="Contoh: Penjualan 3 Kripik"
+          placeholder="Contoh: Penjualan 3 Keripik"
           required
-          class="w-full min-h-[40px] bg-white border border-slate-300 rounded-md p-2 text-xs focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
         />
       </div>
 
@@ -124,7 +122,7 @@ const { summary, entries, products = [] } = Astro.props;
           placeholder="45000"
           required
           min="100"
-          class="w-full min-h-[40px] bg-white border border-slate-300 rounded-md p-2 text-xs font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-mono focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
         />
       </div>
 
@@ -133,7 +131,7 @@ const { summary, entries, products = [] } = Astro.props;
         <select
           id="cashType"
           name="type"
-          class="w-full min-h-[40px] bg-white border border-slate-300 rounded-md p-2 text-xs font-medium focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-medium focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
         >
           <option value="income">Pemasukan</option>
           <option value="expense">Pengeluaran</option>
@@ -146,16 +144,16 @@ const { summary, entries, products = [] } = Astro.props;
           type="date"
           id="cashDate"
           name="transactionDate"
-          class="w-full min-h-[40px] bg-white border border-slate-300 rounded-md p-2 text-xs font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-mono focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
         />
       </div>
 
       <div class="sm:col-span-2 flex items-end justify-end">
         <button
           type="submit"
-          class="min-h-[40px] py-1.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg cursor-pointer inline-flex items-center gap-1.5"
+          class="min-h-[44px] py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg cursor-pointer inline-flex items-center gap-1.5"
         >
-          <span>Simpan</span>
+          <span>Simpan Catatan</span>
           <AppIcon name="arrow-right" size="xs" />
         </button>
       </div>
