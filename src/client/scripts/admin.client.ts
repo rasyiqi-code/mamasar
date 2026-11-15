@@ -38,6 +38,7 @@ export function initAdminClient() {
     const mobileTitleEl = document.getElementById('admin-mobile-title');
     const quickEntryBtn = document.getElementById('admin-quick-entry-btn');
     const canShowQuickEntry = Boolean(quickEntryBtn && !quickEntryBtn.classList.contains('hidden'));
+    const headerGroups = Array.from(document.querySelectorAll<HTMLElement>('[data-admin-header-group]'));
     const jumpTabBtns = Array.from(document.querySelectorAll<HTMLElement>('[data-jump-admin-tab]'));
 
     function switchTab(targetName: string, syncUrl = false) {
@@ -65,6 +66,11 @@ export function initAdminClient() {
         if (desktopTitleEl) desktopTitleEl.textContent = activeLabel;
         if (mobileTitleEl) mobileTitleEl.textContent = activeLabel;
       }
+
+      const activeGroupKey = ['agents', 'events', 'entry'].includes(targetName) ? targetName : 'default';
+      headerGroups.forEach((group) => {
+        group.classList.toggle('hidden', group.getAttribute('data-admin-header-group') !== activeGroupKey);
+      });
 
       if (quickEntryBtn && canShowQuickEntry) {
         const showBtn = targetName !== 'entry';
@@ -199,7 +205,7 @@ export function initAdminClient() {
   // Form Daftarkan / Tetapkan Akun Peran Khusus (Modal PCNU)
   function initAdminUserManagement() {
     const addUserModal = document.getElementById('modal-add-user') as HTMLDialogElement | null;
-    const btnOpenAddUser = document.getElementById('btn-open-add-user');
+    const openAddUserBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-open-add-user]'));
     const btnCloseAddUser = document.getElementById('btn-close-add-user-modal');
     const btnCancelAddUser = document.getElementById('btn-cancel-add-user-modal');
     const addUserForm = document.getElementById('form-admin-add-user') as HTMLFormElement | null;
@@ -222,9 +228,11 @@ export function initAdminClient() {
       syncAddUserZoneReq();
     }
 
-    btnOpenAddUser?.addEventListener('click', () => {
-      resetAddUserForm();
-      openNativeDialog(addUserModal);
+    openAddUserBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        resetAddUserForm();
+        openNativeDialog(addUserModal);
+      });
     });
     btnCloseAddUser?.addEventListener('click', () => closeNativeDialog(addUserModal));
     btnCancelAddUser?.addEventListener('click', () => closeNativeDialog(addUserModal));
@@ -524,7 +532,7 @@ export function initAdminClient() {
 
   // --- EVENT MANAGEMENT MODAL & CRUD ---
   const eventModal = document.getElementById('modal-event') as HTMLDialogElement | null;
-  const btnOpenAddEvent = document.getElementById('btn-open-add-event');
+  const openAddEventBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-open-add-event]'));
   const btnCloseEventModal = document.getElementById('btn-close-event-modal');
   const btnCancelEventModal = document.getElementById('btn-cancel-event-modal');
   const eventForm = document.getElementById('admin-event-form') as HTMLFormElement | null;
@@ -557,9 +565,11 @@ export function initAdminClient() {
     if (allowStalls) allowStalls.value = '1';
   }
 
-  btnOpenAddEvent?.addEventListener('click', () => {
-    resetEventForm();
-    openEventModal();
+  openAddEventBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      resetEventForm();
+      openEventModal();
+    });
   });
 
   btnCloseEventModal?.addEventListener('click', closeEventModal);
