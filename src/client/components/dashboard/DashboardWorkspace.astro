@@ -59,11 +59,11 @@ const isCadre = isPetugas(user);
 const assignedZone = user ? zones.find((z) => z.id === user.assigned_zone_id) : undefined;
 
 const sectionTitleMap: Record<DashboardSection, string> = {
-  overview: 'Ringkasan',
+  overview: 'Ringkasan Toko',
   products: 'Katalog Produk',
   cashbook: 'Buku Kas Usaha',
-  profile: 'Profil Usaha',
-  services: 'Layanan Kemitraan',
+  profile: 'Profil & Data Toko',
+  services: 'Layanan Kemitraan & Kaderisasi',
 };
 
 const activeLabel = sectionTitleMap[activeSection];
@@ -126,23 +126,17 @@ const pageTitle = user
       <!-- Kolom Kanan: App Header + Workspace Utama (Full Viewport Width) -->
       <div class="flex-1 min-w-0 w-full flex flex-col">
         <header class="hidden md:flex sticky top-0 z-30 h-14 bg-white/95 backdrop-blur-xs border-b border-slate-200 px-6 lg:px-8 items-center justify-between gap-4">
-          <div class="flex items-center gap-2 min-w-0 text-xs">
-            <a href="/" class="inline-flex items-center gap-1.5 font-bold text-slate-900 hover:text-emerald-800 transition shrink-0">
-              <span class="w-5 h-5 rounded bg-emerald-700 text-white text-[10px] font-extrabold inline-flex items-center justify-center">
-                NU
-              </span>
-              <span>Mamasar</span>
-            </a>
-            <span class="text-slate-300" aria-hidden="true">/</span>
-            <a href="/dashboard" class="font-medium text-slate-600 hover:text-slate-900 transition shrink-0">
-              Dashboard
-            </a>
-            <span class="text-slate-300" aria-hidden="true">/</span>
-            <span class="font-semibold text-slate-900 truncate">{activeLabel}</span>
-            <span class="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 font-medium shrink-0 ml-1">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <h1 class="text-sm sm:text-base font-bold tracking-tight text-slate-900 truncate">{activeLabel}</h1>
+            <span class="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium shrink-0">
               <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
               <span>{store.zone_name}</span>
             </span>
+            {activeSection === 'profile' && (
+              <span class="hidden sm:inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-mono font-medium shrink-0">
+                ID #{store.id}
+              </span>
+            )}
           </div>
 
           <div class="flex items-center gap-2 shrink-0">

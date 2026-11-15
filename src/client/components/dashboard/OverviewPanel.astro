@@ -60,31 +60,22 @@ const recentCash = cashbookEntries.slice(0, 4);
 ---
 
 <section id="panel-overview" class="space-y-6">
-  {/* Top Header & Quick Actions */}
-  <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
-    <div class="space-y-0.5">
-      <h2 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Ringkasan Toko</h2>
-      <p class="text-xs text-slate-600">
-        Pantau performa produk, saldo kas usaha, dan pintasan pengelolaan {store.name}.
-      </p>
-    </div>
-
-    <div class="flex items-center gap-2 shrink-0">
-      <a
-        href="/dashboard/produk"
-        class="min-h-[40px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-lg border border-slate-300 transition inline-flex items-center gap-1.5"
-      >
-        <AppIcon name="package" size="xs" />
-        <span>Kelola Produk</span>
-      </a>
-      <a
-        href="/pasang-iklan"
-        class="min-h-[40px] py-1.5 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition inline-flex items-center gap-1.5"
-      >
-        <AppIcon name="plus" size="xs" />
-        <span>Pasang Iklan</span>
-      </a>
-    </div>
+  {/* Top Quick Actions */}
+  <div class="flex items-center justify-end gap-2">
+    <a
+      href="/dashboard/produk"
+      class="min-h-[40px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-lg border border-slate-300 transition inline-flex items-center gap-1.5"
+    >
+      <AppIcon name="package" size="xs" />
+      <span>Kelola Produk</span>
+    </a>
+    <a
+      href="/pasang-iklan"
+      class="min-h-[40px] py-1.5 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition inline-flex items-center gap-1.5"
+    >
+      <AppIcon name="plus" size="xs" />
+      <span>Pasang Iklan</span>
+    </a>
   </div>
 
   {/* 4-Column Hairline KPI Strip */}
