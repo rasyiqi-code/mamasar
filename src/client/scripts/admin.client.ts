@@ -380,6 +380,30 @@ export function initAdminClient() {
       }
     }
 
+    storeRows.forEach((row) => {
+      const headerTrigger = row.querySelector<HTMLElement>('[data-store-header]');
+      const toggleBtn = row.querySelector<HTMLButtonElement>('[data-store-toggle]');
+      const chevronEl = row.querySelector<HTMLElement>('[data-store-chevron]');
+      const actionsPanel = row.querySelector<HTMLElement>('[data-store-actions]');
+      if (!headerTrigger || !actionsPanel) return;
+
+      headerTrigger.addEventListener('click', () => {
+        if (!window.matchMedia('(max-width: 639px)').matches) return;
+        const isOpen = toggleBtn?.getAttribute('aria-expanded') === 'true';
+        const nextOpen = !isOpen;
+
+        if (nextOpen) {
+          actionsPanel.classList.remove('hidden');
+          actionsPanel.classList.add('grid', 'grid-cols-[1fr_1fr_32px]');
+        } else {
+          actionsPanel.classList.add('hidden');
+          actionsPanel.classList.remove('grid', 'grid-cols-[1fr_1fr_32px]');
+        }
+        toggleBtn?.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
+        chevronEl?.classList.toggle('rotate-180', nextOpen);
+      });
+    });
+
     storeFilterBtns.forEach((btn) => {
       btn.addEventListener('click', () => {
         activeStoreFilter = btn.getAttribute('data-store-filter') || 'all';
