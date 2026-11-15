@@ -126,9 +126,9 @@ const renderedContent = article ? formatContent(article.content || article.summa
   canonicalUrl={currentUrl}
   schema={articleSchema}
 >
-  <div class="pb-12 space-y-8">
-    {/* Full-bleed Top Breadcrumb Strip */}
-    <div class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
+  <div class="pb-12 space-y-5 md:space-y-8">
+    {/* Full-bleed Top Breadcrumb Strip (Desktop Only — App Mode on Mobile) */}
+    <div class="hidden md:block w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
       <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 h-11 flex items-center justify-between text-xs text-slate-600">
         <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 min-w-0">
           <a href="/" class="hover:text-emerald-700 shrink-0 font-medium">Beranda</a>
@@ -147,7 +147,7 @@ const renderedContent = article ? formatContent(article.content || article.summa
       </div>
     </div>
 
-    <div class="px-3 sm:px-0 space-y-10">
+    <div class="px-3 sm:px-0 pt-4 md:pt-0 space-y-10">
       {/* Main Grid Layout: Open Editorial Column + Docked Hairline Sidebar */}
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         <div class="lg:col-span-8 space-y-6">
