@@ -46,9 +46,9 @@ const activeMobileTitleMap: Record<NonNullable<Props['activeSection']>, string> 
 const activeMobileTitle = activeMobileTitleMap[activeSection];
 ---
 
-<!-- MOBILE TOP HEADER (Unified Single Header with Context-Aware Actions) -->
+<!-- MOBILE TOP HEADER (Unified App Bar: Menu + Page Title + Action) -->
 <div class="md:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-xs border-b border-slate-200 px-3 py-2 flex items-center justify-between gap-2">
-  <div class="flex items-center gap-2 min-w-0">
+  <div class="flex items-center gap-2.5 min-w-0">
     <button
       type="button"
       id="btn-toggle-sidebar"
@@ -60,32 +60,7 @@ const activeMobileTitle = activeMobileTitleMap[activeSection];
       </svg>
     </button>
 
-    <a
-      href="/dashboard/profil#store-logo-section"
-      title="Ubah Logo Toko"
-      aria-label="Ubah Logo Toko"
-      class="shrink-0 block rounded-lg"
-    >
-      <img
-        data-store-logo-img
-        src={store.logo_url || ''}
-        alt={`Logo ${store.name}`}
-        class={`w-8 h-8 rounded-lg object-cover border border-slate-200 bg-white ${store.logo_url ? '' : 'hidden'}`}
-      />
-      <div
-        data-store-logo-fallback
-        class={`w-8 h-8 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-xs ${store.logo_url ? 'hidden' : ''}`}
-      >
-        {store.name.slice(0, 2).toUpperCase()}
-      </div>
-    </a>
-
-    <div class="min-w-0">
-      <h2 class="text-xs font-bold text-slate-900 truncate leading-tight">{activeMobileTitle}</h2>
-      <p class="text-[11px] text-slate-600 truncate leading-tight">
-        {store.name} · {store.zone_name}
-      </p>
-    </div>
+    <h2 class="text-sm font-bold text-slate-900 truncate">{activeMobileTitle}</h2>
   </div>
 
   <div class="flex items-center gap-1.5 shrink-0">
