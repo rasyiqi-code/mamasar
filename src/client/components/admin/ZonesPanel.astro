@@ -99,7 +99,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
 
 <section id="panel-zones" class="admin-tab-panel hidden space-y-6">
   {/* Top Bar: Header with External Maps Link */}
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-3 sm:pb-4 border-b border-slate-200 gap-3">
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between px-3.5 sm:px-0 pb-3 sm:pb-4 border-b border-slate-200 gap-3">
     <div>
       <div class="flex items-center gap-2 flex-wrap">
         <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
@@ -139,7 +139,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
   </div>
 
   {/* Key Metrics Bar (Swiss Hairline KPI Strip) */}
-  <div class="grid grid-cols-2 lg:grid-cols-4 border border-slate-200 rounded-lg bg-white text-xs overflow-hidden divide-y divide-slate-200 lg:divide-y-0 lg:divide-x [&>*:nth-child(odd)]:border-r [&>*:nth-child(odd)]:border-slate-200 lg:[&>*:nth-child(odd)]:border-r-0">
+  <div class="grid grid-cols-2 lg:grid-cols-4 border-y sm:border border-slate-200 rounded-none sm:rounded-lg bg-white text-xs overflow-hidden divide-y divide-slate-200 lg:divide-y-0 lg:divide-x [&>*:nth-child(odd)]:border-r [&>*:nth-child(odd)]:border-slate-200 lg:[&>*:nth-child(odd)]:border-r-0">
     <div class="p-3 sm:p-3.5 space-y-1">
       <span class="text-xs uppercase font-bold text-slate-600 tracking-wider block">Wilayah MWC</span>
       <div class="flex items-baseline gap-2">
@@ -178,7 +178,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
   </div>
 
   {/* Map Filtering Controls */}
-  <div class="flex flex-wrap items-center justify-between gap-3">
+  <div class="flex flex-wrap items-center justify-between gap-3 px-3.5 sm:px-0">
     <div class="w-full sm:w-auto flex items-center gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold overflow-x-auto no-scrollbar">
       <button
         type="button"
@@ -212,7 +212,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
   </div>
 
   {/* Leaflet Interactive Map Container */}
-  <div class="relative w-full rounded-lg overflow-hidden border border-slate-300 bg-slate-100">
+  <div class="relative w-full rounded-none sm:rounded-lg overflow-hidden border-y sm:border border-slate-300 bg-slate-100">
     <div id="zones-leaflet-map" class="w-full h-[320px] sm:h-[520px] z-0"></div>
 
     {/* Map Overlay Legend (Bottom Left) */}
@@ -236,7 +236,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
   <div class="space-y-6 pt-2">
     {/* Daratan Cards */}
     <div id="container-daratan" class="space-y-3">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+      <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
         <div class="flex items-center gap-2">
           <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">
             Wilayah Daratan (<span class="font-mono tabular-nums">{daratan.length}</span> MWC)
@@ -247,11 +247,11 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 border-y sm:border-0 border-slate-200 sm:gap-3">
         {daratan.map((z) => (
           <div
             id={`card-zone-${z.slug}`}
-            class="zone-card bg-white border border-slate-200 hover:border-emerald-600 rounded-lg p-3.5 transition space-y-2.5 group"
+            class="zone-card bg-white border-0 sm:border border-slate-200 hover:border-emerald-600 rounded-none sm:rounded-lg p-3.5 transition space-y-2.5 group"
           >
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
@@ -305,7 +305,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
 
     {/* Kepulauan Cards */}
     <div id="container-kepulauan" class="space-y-3">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+      <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
         <div class="flex items-center gap-2">
           <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">
             Wilayah Kepulauan (<span class="font-mono tabular-nums">{kepulauan.length}</span> MWC)
@@ -316,11 +316,11 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 border-y sm:border-0 border-slate-200 sm:gap-3">
         {kepulauan.map((z) => (
           <div
             id={`card-zone-${z.slug}`}
-            class="zone-card bg-white border border-slate-200 hover:border-teal-600 rounded-lg p-3.5 transition space-y-2.5 group"
+            class="zone-card bg-white border-0 sm:border border-slate-200 hover:border-teal-600 rounded-none sm:rounded-lg p-3.5 transition space-y-2.5 group"
           >
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">

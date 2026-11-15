@@ -81,12 +81,12 @@ const portalHeading = isSuper
       pendingPromotionsCount={pendingPromotions.length}
     />
 
-    <!-- Workspace Utama Admin / Petugas (Fullwidth & Compact) -->
-    <main id="main" tabindex="-1" class="flex-1 min-w-0 overflow-y-auto p-3.5 sm:p-6 pb-24 md:pb-6 w-full space-y-5 sm:space-y-6">
+    <!-- Workspace Utama Admin / Petugas (Full-Edge Mobile + Desktop Gutter) -->
+    <main id="main" tabindex="-1" class="flex-1 min-w-0 overflow-y-auto px-0 py-3.5 sm:p-6 pb-24 md:pb-6 w-full space-y-5 sm:space-y-6">
       <h1 class="sr-only">{portalHeading}</h1>
 
       <!-- Status Box Fallback -->
-      <div id="admin-status-box" role="status" aria-live="polite" class="hidden mb-4 p-2.5 rounded-lg text-xs font-semibold"></div>
+      <div id="admin-status-box" role="status" aria-live="polite" class="hidden mx-3.5 sm:mx-0 mb-4 p-2.5 rounded-lg text-xs font-semibold"></div>
 
       <!-- Tab: Manajemen Akun, Peran & Persetujuan Kader/MWC (Khusus Superadmin) -->
       {isSuper && <AgentsPanel pendingPetugas={pendingPetugas} allUsers={allUsers} zones={zones} />}

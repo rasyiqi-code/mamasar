@@ -130,9 +130,9 @@ const otherArticles = filteredArticles.filter((art) => art.id !== featuredArticl
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+        <div class="-mx-3 sm:mx-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5">
           {(currentCategory === 'semua' ? otherArticles : filteredArticles).map((article) => (
-            <article class="bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-slate-300 transition flex flex-col justify-between group">
+            <article class="bg-white border-y sm:border border-slate-200 rounded-none sm:rounded-lg overflow-hidden hover:border-slate-300 transition flex flex-col justify-between group">
               <div>
                 <a href={`/edukasi/${article.slug}`} class="block aspect-16/10 overflow-hidden bg-slate-100 relative">
                   <img

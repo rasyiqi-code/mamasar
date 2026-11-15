@@ -99,7 +99,7 @@ function formatRupiah(amount: number) {
 
     <div class="px-3 sm:px-0 pt-6 space-y-6">
     <!-- Container Grid: Server Rendered when logged in, or populated via client script -->
-    <div id="favorites-container" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
+    <div id="favorites-container" class="-mx-3 sm:mx-0 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-px sm:gap-4 bg-slate-200 sm:bg-transparent border-y sm:border-0 border-slate-200">
       {serverFavorites.map((p) => {
         const formattedPrice = formatRupiah(p.price);
         const waMsg = encodeURIComponent(
@@ -108,7 +108,7 @@ function formatRupiah(amount: number) {
         return (
           <div
             id={`fav-card-${p.id}`}
-            class="bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-emerald-400 transition flex flex-col justify-between group relative"
+            class="bg-white border-0 sm:border border-slate-200 rounded-none sm:rounded-lg overflow-hidden hover:border-emerald-400 transition flex flex-col justify-between group relative"
           >
             <button
               type="button"
@@ -244,7 +244,7 @@ function formatRupiah(amount: number) {
       const card = document.createElement('div');
       card.id = 'fav-card-' + p.id;
       card.className =
-        'bg-white border border-slate-200 rounded-lg overflow-hidden hover:border-emerald-400 transition flex flex-col justify-between group relative';
+        'bg-white border-0 sm:border border-slate-200 rounded-none sm:rounded-lg overflow-hidden hover:border-emerald-400 transition flex flex-col justify-between group relative';
 
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';

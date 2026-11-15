@@ -34,7 +34,7 @@ function formatDate(iso: string): string {
 
 <section id="panel-stores" class="admin-tab-panel hidden space-y-6">
   {/* Top Bar: Compact Header with Line Divider */}
-  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+  <div class="flex items-center justify-between px-3.5 sm:px-0 pb-3 border-b border-slate-200">
     <div class="flex items-center gap-2.5">
       <h2 class="text-base sm:text-lg font-bold text-slate-900">Kurasi &amp; Moderasi Toko</h2>
       <span class="text-xs font-mono tabular-nums font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
@@ -45,7 +45,7 @@ function formatDate(iso: string): string {
 
   {/* Section 1: Antrean Menunggu Verifikasi */}
   <div class="space-y-2">
-    <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+    <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
       <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
         Antrean Verifikasi (<span class="font-mono tabular-nums">{pendingStores.length}</span>)
       </h2>
@@ -54,7 +54,7 @@ function formatDate(iso: string): string {
     {pendingStores.length > 0 ? (
       <div class="divide-y divide-slate-100 border-b border-slate-200">
         {pendingStores.map((store) => (
-          <div class="py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 px-1 transition">
+          <div class="py-3 px-3.5 sm:px-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition">
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
@@ -114,13 +114,13 @@ function formatDate(iso: string): string {
         ))}
       </div>
     ) : (
-      <p class="text-xs text-slate-600 py-3">Tidak ada toko baru yang menunggu verifikasi.</p>
+      <p class="text-xs text-slate-600 py-3 px-3.5 sm:px-0">Tidak ada toko baru yang menunggu verifikasi.</p>
     )}
   </div>
 
   {/* Section 2: Toko Terverifikasi */}
   <div class="space-y-2 pt-2">
-    <div class="flex items-center justify-between pb-2 border-b border-slate-200">
+    <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
       <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
         Toko Terverifikasi (<span class="font-mono tabular-nums">{verifiedStores.length}</span>)
       </h2>
@@ -129,7 +129,7 @@ function formatDate(iso: string): string {
     {verifiedStores.length > 0 ? (
       <div class="divide-y divide-slate-100 border-b border-slate-200">
         {verifiedStores.map((store) => (
-          <div class="py-3 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 px-1 transition">
+          <div class="py-3 px-3.5 sm:px-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition">
             <div class="min-w-0">
               <div class="flex items-center gap-2 flex-wrap">
                 <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
@@ -192,7 +192,7 @@ function formatDate(iso: string): string {
         ))}
       </div>
     ) : (
-      <p class="text-xs text-slate-600 py-3">Belum ada toko yang terverifikasi.</p>
+      <p class="text-xs text-slate-600 py-3 px-3.5 sm:px-0">Belum ada toko yang terverifikasi.</p>
     )}
   </div>
 </section>

@@ -50,7 +50,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
 
 <section id="panel-events" class="admin-tab-panel hidden space-y-4">
   <!-- Top Bar: Compact Header with Line Divider -->
-  <div class="flex items-center justify-between pb-3 border-b border-slate-200">
+  <div class="flex items-center justify-between px-3.5 sm:px-0 pb-3 border-b border-slate-200">
     <div class="flex items-center gap-2.5">
       <h2 class="text-base sm:text-lg font-bold text-slate-900">Agenda Kegiatan & Konsumsi</h2>
       <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
@@ -79,15 +79,15 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
   </div>
 
   {/* Events Management Table: Preserved Table with Horizontal Scroll */}
-  <div class="w-full overflow-x-auto">
-    <table class="w-full min-w-[640px] text-left text-xs border-b border-slate-200">
+  <div class="w-full overflow-x-auto border-y sm:border-0 border-slate-200">
+    <table class="w-full min-w-[640px] text-left text-xs sm:border-b sm:border-slate-200">
       <thead>
         <tr class="border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-xs">
-          <th class="py-2.5 px-2">Tanggal</th>
+          <th class="py-2.5 pl-3.5 pr-2 sm:px-2">Tanggal</th>
           <th class="py-2.5 px-2">Nama Acara &amp; Wilayah</th>
           <th class="py-2.5 px-2">Penyelenggara</th>
           <th class="py-2.5 px-2">Bazar</th>
-          <th class="py-2.5 px-2 text-center">Aksi</th>
+          <th class="py-2.5 pl-2 pr-3.5 sm:px-2 text-center">Aksi</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
@@ -162,15 +162,15 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
 
   {/* Pengajuan Konsumsi & Lapak Bazar Masuk */}
   <div class="pt-4 border-t border-slate-200 space-y-3">
-    <div class="flex items-center justify-between">
+    <div class="flex items-center justify-between px-3.5 sm:px-0">
       <div>
         <h3 class="text-sm font-bold text-slate-900">Pengajuan Konsumsi &amp; Lapak Bazar (<span class="font-mono tabular-nums">{eventOrders.length}</span>)</h3>
-        <p class="text-xs text-slate-600">Penawaran snack box/katering dan permintaan lapak dari UMKM &amp; warga untuk agenda kegiatan NU.</p>
+        <p class="hidden sm:block text-xs text-slate-600">Penawaran snack box/katering dan permintaan lapak dari UMKM &amp; warga untuk agenda kegiatan NU.</p>
       </div>
     </div>
 
     {eventOrders.length > 0 ? (
-      <div class="divide-y divide-slate-200 border border-slate-200 rounded-lg bg-white overflow-hidden">
+      <div class="divide-y divide-slate-200 border-y sm:border border-slate-200 rounded-none sm:rounded-lg bg-white overflow-hidden">
         {eventOrders.map((order) => {
           const st = orderStatusBadge[order.status] || orderStatusBadge.pending;
           return (
@@ -227,7 +227,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
         })}
       </div>
     ) : (
-      <p class="text-xs text-slate-600 py-4 text-center border border-dashed border-slate-200 rounded-lg">
+      <p class="text-xs text-slate-600 py-4 px-3.5 text-center border-y sm:border border-dashed border-slate-200 rounded-none sm:rounded-lg">
         Belum ada pengajuan konsumsi atau lapak bazar masuk pada wilayah Anda.
       </p>
     )}

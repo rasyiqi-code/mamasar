@@ -198,14 +198,14 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
               </span>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="-mx-3 sm:mx-0 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {foodVendors.map((p) => {
                 const orderWaLink = `https://wa.me/${p.umkm_phone}?text=${encodeURIComponent(
                   `Assalamu'alaikum ${p.umkm_name}, kami dari panitia kegiatan *${event.title}* di ${event.zone_name} ingin bertanya mengenai pesanan konsumsi produk *${p.name}* untuk acara tanggal ${formattedDate}. Apakah melayani pesanan jumlah banyak?`
                 )}`;
 
                 return (
-                  <article class="bg-white border border-slate-200 rounded-lg overflow-hidden flex flex-col justify-between">
+                  <article class="bg-white border-y sm:border border-slate-200 rounded-none sm:rounded-lg overflow-hidden flex flex-col justify-between">
                     <div>
                       <img
                         src={getOptimizedImageUrl(p.image_url || DEFAULT_PRODUCT_IMAGE, 400)}

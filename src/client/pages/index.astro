@@ -384,7 +384,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             </a>
           </div>
 
-          <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div class="-mx-3 sm:mx-0 grid grid-cols-2 lg:grid-cols-4 gap-0.5 sm:gap-4 [&>a]:rounded-none sm:[&>a]:rounded-lg [&>a]:border-0 sm:[&>a]:border">
             {verifiedSellers.slice(0, 4).map((seller) => {
               const coverImg = seller.sample_images[0] ? getOptimizedImageUrl(seller.sample_images[0], 500) : null;
               return (
@@ -433,7 +433,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
     <!-- 5. MAIN CATALOG GRID (5-Column Desktop Dense Marketplace Grid + Pagination) -->
     <section id="katalog-terbaru" class="space-y-3.5 sm:space-y-4 px-3 sm:px-0 pt-1">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pb-2.5 sm:pb-3 border-b border-slate-200">
+      <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pb-2.5 sm:pb-3 border-b border-slate-200">
         <div>
           <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
             <AppIcon name="clipboard" size="sm" class="text-emerald-700" />
@@ -476,7 +476,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
       </div>
 
       <!-- Quick Filter Pills -->
-      <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
+      <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
         <span class="text-slate-600 text-xs font-bold uppercase tracking-wider shrink-0 mr-1">
           Filter:
         </span>
@@ -553,7 +553,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
       {products.length > 0 ? (
         <div class="space-y-6">
-          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div class="-mx-3 sm:mx-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px sm:gap-4 bg-slate-200 sm:bg-transparent border-y sm:border-0 border-slate-200 [&>article]:rounded-none sm:[&>article]:rounded-lg [&>article]:border-0 sm:[&>article]:border [&>article]:shadow-none sm:[&>article]:shadow-xs">
             {products.map((p) => (
               <ProductCard product={p} variant="compact" showSellerAvatar={false} />
             ))}
@@ -625,7 +625,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             Bersihkan Riwayat
           </button>
         </div>
-        <div id="recent-viewed-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4"></div>
+        <div id="recent-viewed-grid" class="-mx-3 sm:mx-0 grid grid-cols-2 lg:grid-cols-4 gap-px sm:gap-4 bg-slate-200 sm:bg-transparent border-y sm:border-0 border-slate-200"></div>
       </section>
     )}
 
@@ -760,7 +760,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           const card = document.createElement('a');
           card.href = `/produk/${p.slug}`;
           card.className =
-            'bg-white border border-slate-200 hover:border-emerald-400 rounded-lg overflow-hidden shadow-xs hover:shadow-md transition group block';
+            'bg-white border-0 sm:border border-slate-200 hover:border-emerald-400 rounded-none sm:rounded-lg overflow-hidden shadow-none sm:shadow-xs hover:shadow-md transition group block';
 
           const media = document.createElement('div');
           media.className = 'relative aspect-4/3 bg-slate-100 overflow-hidden';
