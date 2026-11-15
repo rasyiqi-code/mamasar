@@ -34,11 +34,16 @@ const bumpPromoCount = pendingPromotions.filter((p) => p.type.startsWith('bump_p
 ---
 
 <section id="panel-promotions" class="admin-tab-panel hidden">
-  {/* Hairline Operational Metric Strip */}
-  <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200">
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r lg:border-b-0 border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Antrean Verifikasi</span>
-      <div class="mt-0.5 flex items-baseline gap-1.5">
+  {/* Hairline Operational Metric Strip: Horizontal Scroll on Mobile, 4-Col Grid on Desktop */}
+  <div
+    tabindex="0"
+    role="region"
+    aria-label="Ringkasan statistik promosi"
+    class="flex lg:grid lg:grid-cols-4 overflow-x-auto no-scrollbar snap-x snap-mandatory divide-x divide-slate-200 border-b border-slate-200 bg-white"
+  >
+    <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Antrean Verifikasi</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5 whitespace-nowrap">
         <span class={`text-xl font-bold font-mono tabular-nums ${pendingPromotions.length > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
           {pendingPromotions.length}
         </span>
@@ -46,20 +51,20 @@ const bumpPromoCount = pendingPromotions.filter((p) => p.type.startsWith('bump_p
       </div>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b lg:border-b-0 lg:border-r border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Infaq Pending</span>
-      <span class="mt-0.5 text-lg sm:text-xl font-bold text-emerald-700 font-mono tabular-nums block truncate">
+    <div class="shrink-0 min-w-[170px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Infaq Pending</span>
+      <span class="mt-0.5 text-lg sm:text-xl font-bold text-emerald-700 font-mono tabular-nums block whitespace-nowrap">
         {formatRupiah(totalPendingAmount)}
       </span>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Slot Unggulan</span>
+    <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Slot Unggulan</span>
       <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{featuredPromoCount}</span>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
-      <span class="text-xs font-medium text-slate-600 block">Paket Sundul</span>
+    <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Paket Sundul</span>
       <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{bumpPromoCount}</span>
     </div>
   </div>

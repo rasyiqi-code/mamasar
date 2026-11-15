@@ -60,33 +60,38 @@ const recentCash = cashbookEntries.slice(0, 4);
 ---
 
 <section id="panel-overview">
-  {/* 4-Column Hairline KPI Strip: 2x2 Grid on Mobile, 4x1 on Desktop */}
-  <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200">
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r lg:border-b-0 border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Produk Tayang</span>
-      <div class="mt-0.5 flex items-baseline gap-1.5">
+  {/* 4-Column Hairline KPI Strip: Horizontal Scroll on Mobile, 4x1 on Desktop */}
+  <div
+    tabindex="0"
+    role="region"
+    aria-label="Ringkasan statistik toko"
+    class="flex lg:grid lg:grid-cols-4 overflow-x-auto no-scrollbar snap-x snap-mandatory divide-x divide-slate-200 border-b border-slate-200 bg-white"
+  >
+    <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Produk Tayang</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5 whitespace-nowrap">
         <span class="text-xl font-bold text-slate-900 font-mono tabular-nums">{products.length}</span>
         <span class="text-xs text-slate-600 font-mono tabular-nums">({activeCount} aktif)</span>
       </div>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b lg:border-b-0 lg:border-r border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Total Dilihat</span>
+    <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Total Dilihat</span>
       <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">
         {totalViews.toLocaleString('id-ID')}
       </span>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Saldo Kas</span>
-      <span class="mt-0.5 text-lg sm:text-xl font-bold text-emerald-700 font-mono tabular-nums block truncate">
+    <div class="shrink-0 min-w-[170px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Saldo Kas</span>
+      <span class="mt-0.5 text-lg sm:text-xl font-bold text-emerald-700 font-mono tabular-nums block whitespace-nowrap">
         {formatRupiah(cashbookSummary.balance)}
       </span>
     </div>
 
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
-      <span class="text-xs font-medium text-slate-600 block">Token Sundul</span>
-      <div class="mt-0.5 flex items-baseline gap-1.5">
+    <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Token Sundul</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5 whitespace-nowrap">
         <span class="text-xl font-bold text-slate-900 font-mono tabular-nums">{bumpCredits}</span>
         <span class="text-xs text-slate-600">kuota</span>
       </div>
