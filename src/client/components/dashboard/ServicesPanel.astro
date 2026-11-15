@@ -26,7 +26,7 @@ interface Props {
 const { user, zones, assignedZone } = Astro.props;
 ---
 
-<section id="panel-services" class="tab-panel space-y-6">
+<section id="panel-services" class="tab-panel px-4 sm:px-6 lg:px-8 py-6 space-y-6">
   <!-- BAGIAN 1: STATUS / PENDAFTARAN KADER RANTING & PENGURUS MWC -->
   <KaderRegisterForm user={user} zones={zones} assignedZone={assignedZone} />
 
