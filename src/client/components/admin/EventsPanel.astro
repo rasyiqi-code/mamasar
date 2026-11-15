@@ -33,6 +33,9 @@ interface Props {
 
 const { events, zones, eventOrders = [] } = Astro.props;
 
+const bazarCount = events.filter((e) => Boolean(e.allow_stalls)).length;
+const pendingOrdersCount = eventOrders.filter((o) => o.status === 'pending').length;
+
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -48,21 +51,43 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
 };
 ---
 
-<section id="panel-events" class="admin-tab-panel hidden space-y-4">
-  <!-- Top Bar: Compact Header with Line Divider -->
-  <div class="flex items-center justify-between px-3.5 sm:px-0 pb-3 border-b border-slate-200">
-    <div class="flex items-center gap-2.5">
-      <h2 class="text-base sm:text-lg font-bold text-slate-900">Agenda Kegiatan & Konsumsi</h2>
-      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
-        {events.length} agenda
-      </span>
+<section id="panel-events" class="admin-tab-panel hidden">
+  {/* Hairline Operational Metric Strip */}
+  <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r lg:border-b-0 border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Agenda Terdaftar</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{events.length}</span>
     </div>
 
-    <div class="flex items-center gap-2">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b lg:border-b-0 lg:border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Buka Lapak Bazar</span>
+      <span class="mt-0.5 text-xl font-bold text-emerald-700 font-mono tabular-nums block">{bazarCount}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Pengajuan Masuk</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{eventOrders.length}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4">
+      <span class="text-xs font-medium text-slate-600 block">Menunggu Respon</span>
+      <span class={`mt-0.5 text-xl font-bold font-mono tabular-nums block ${pendingOrdersCount > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
+        {pendingOrdersCount}
+      </span>
+    </div>
+  </div>
+
+  {/* Toolbar */}
+  <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-slate-200 flex items-center justify-between gap-3 bg-white">
+    <h2 id="events-table-heading" class="text-xs font-bold uppercase tracking-wider text-slate-800">
+      Daftar Agenda Kegiatan NU
+    </h2>
+
+    <div class="flex items-center gap-2 shrink-0">
       <a
         href="/kegiatan"
         target="_blank"
-        class="inline-flex items-center gap-1 min-h-[38px] py-1 px-2.5 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition"
+        class="inline-flex items-center gap-1.5 min-h-[44px] sm:min-h-[38px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition"
       >
         <span>Direktori</span>
         <AppIcon name="external-link" size="xs" />
@@ -70,7 +95,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
       <button
         type="button"
         id="btn-open-add-event"
-        class="min-h-[38px] py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center gap-1"
+        class="min-h-[44px] sm:min-h-[38px] py-1.5 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center gap-1.5"
       >
         <AppIcon name="plus" size="xs" />
         <span>Tambah Agenda</span>
@@ -78,56 +103,61 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
     </div>
   </div>
 
-  {/* Events Management Table: Preserved Table with Horizontal Scroll */}
-  <div class="w-full overflow-x-auto border-y sm:border-0 border-slate-200">
-    <table class="w-full min-w-[640px] text-left text-xs sm:border-b sm:border-slate-200">
-      <thead>
-        <tr class="border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-xs">
-          <th class="py-2.5 pl-3.5 pr-2 sm:px-2">Tanggal</th>
-          <th class="py-2.5 px-2">Nama Acara &amp; Wilayah</th>
-          <th class="py-2.5 px-2">Penyelenggara</th>
-          <th class="py-2.5 px-2">Bazar</th>
-          <th class="py-2.5 pl-2 pr-3.5 sm:px-2 text-center">Aksi</th>
+  {/* Events Management Table: Preserved Table with Horizontal Scroll & Accessible Region */}
+  <div
+    tabindex="0"
+    role="region"
+    aria-labelledby="events-table-heading"
+    class="events-table-wrapper w-full overflow-x-auto border-b border-slate-200 bg-white"
+  >
+    <table class="events-directory-table w-full min-w-[680px] text-left border-collapse text-xs">
+      <thead class="bg-slate-50 border-b border-slate-200 text-slate-700">
+        <tr>
+          <th scope="col" class="py-2.5 pl-4 sm:pl-6 lg:pl-8 pr-3 font-bold">Tanggal</th>
+          <th scope="col" class="py-2.5 px-3 font-bold">Nama Acara &amp; Wilayah</th>
+          <th scope="col" class="py-2.5 px-3 font-bold">Penyelenggara</th>
+          <th scope="col" class="py-2.5 px-3 font-bold">Bazar</th>
+          <th scope="col" class="py-2.5 pl-3 pr-4 sm:pr-6 lg:pr-8 font-bold text-right">Aksi</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-slate-100">
         {events.length > 0 ? (
           events.map((ev) => (
-            <tr class="hover:bg-slate-50/60 transition" id={`event-row-${ev.id}`}>
-              <td class="py-2.5 px-2 text-slate-600 font-mono tabular-nums text-xs whitespace-nowrap">
+            <tr class="hover:bg-slate-50/70 transition" id={`event-row-${ev.id}`}>
+              <td class="py-3 pl-4 sm:pl-6 lg:pl-8 pr-3 text-slate-600 font-mono tabular-nums text-xs whitespace-nowrap align-top">
                 {formatDate(ev.event_date)}
               </td>
-              <td class="py-2.5 px-2 min-w-[200px]">
-                <a href={`/kegiatan/${ev.slug}`} target="_blank" class="font-semibold text-slate-900 hover:text-emerald-700 transition block">
+              <th scope="row" class="py-3 px-3 min-w-[220px] font-normal align-top">
+                <a href={`/kegiatan/${ev.slug}`} target="_blank" class="font-bold text-slate-900 hover:text-emerald-700 transition block">
                   {ev.title}
                 </a>
-                <span class="inline-flex items-center gap-1 text-xs text-slate-600">
+                <span class="inline-flex items-center gap-1 text-xs text-slate-600 mt-0.5">
                   <AppIcon name="map-pin" size="xs" />
-                  <span>{ev.zone_name} • {ev.location_name}</span>
+                  <span>{ev.zone_name} · {ev.location_name}</span>
                 </span>
+              </th>
+              <td class="py-3 px-3 text-slate-700 align-top">
+                <span class="text-xs font-medium block">{ev.organizer}</span>
+                <span class="text-xs text-slate-600 block font-mono tabular-nums mt-0.5">{ev.coordinator_phone}</span>
               </td>
-              <td class="py-2.5 px-2 text-slate-700">
-                <span class="text-xs font-medium">{ev.organizer}</span>
-                <span class="text-xs text-slate-600 block font-mono tabular-nums">{ev.coordinator_phone}</span>
-              </td>
-              <td class="py-2.5 px-2 whitespace-nowrap">
+              <td class="py-3 px-3 whitespace-nowrap align-top">
                 {Boolean(ev.allow_stalls) ? (
                   <span class="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200">
                     Bazar
                   </span>
                 ) : (
                   <span class="inline-block px-2 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-600">
-                    -
+                    Tidak
                   </span>
                 )}
               </td>
-              <td class="py-2.5 px-2 text-center whitespace-nowrap">
-                <div class="flex items-center justify-center gap-1.5">
+              <td class="py-3 pl-3 pr-4 sm:pr-6 lg:pr-8 text-right whitespace-nowrap align-top">
+                <div class="inline-flex items-center justify-end gap-1.5">
                   <button
                     type="button"
                     data-action="edit-event"
                     data-id={ev.id}
-                    class="min-h-[34px] py-1 px-2.5 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded border border-slate-200 transition cursor-pointer"
+                    class="min-h-[40px] sm:min-h-[34px] py-1 px-3 bg-white hover:bg-slate-100 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition cursor-pointer"
                   >
                     Edit
                   </button>
@@ -136,7 +166,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
                     data-action="delete-event"
                     data-id={ev.id}
                     data-title={ev.title}
-                    class="inline-flex items-center justify-center min-h-[34px] min-w-[34px] p-1 text-slate-600 hover:text-rose-600 rounded transition cursor-pointer"
+                    class="inline-flex items-center justify-center min-h-[40px] min-w-[40px] sm:min-h-[34px] sm:min-w-[34px] p-1.5 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200 transition cursor-pointer"
                     title="Hapus"
                     aria-label={`Hapus agenda ${ev.title}`}
                   >
@@ -148,8 +178,8 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
           ))
         ) : (
           <tr>
-            <td colspan="5" class="py-8 text-center text-slate-600 text-xs">
-              Belum ada agenda kegiatan.
+            <td colspan="5" class="py-10 px-4 text-center text-slate-600 text-xs">
+              Belum ada agenda kegiatan terdaftar. Gunakan tombol Tambah Agenda di atas untuk mempublikasikan agenda baru.
             </td>
           </tr>
         )}
@@ -161,34 +191,38 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
   <script type="application/json" id="admin-events-json" set:html={JSON.stringify(events).replace(/</g, '\\u003c')} />
 
   {/* Pengajuan Konsumsi & Lapak Bazar Masuk */}
-  <div class="pt-4 border-t border-slate-200 space-y-3">
-    <div class="flex items-center justify-between px-3.5 sm:px-0">
+  <div class="pt-4">
+    <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
       <div>
-        <h3 class="text-sm font-bold text-slate-900">Pengajuan Konsumsi &amp; Lapak Bazar (<span class="font-mono tabular-nums">{eventOrders.length}</span>)</h3>
-        <p class="hidden sm:block text-xs text-slate-600">Penawaran snack box/katering dan permintaan lapak dari UMKM &amp; warga untuk agenda kegiatan NU.</p>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+          Pengajuan Konsumsi &amp; Lapak Bazar (<span class="font-mono tabular-nums">{eventOrders.length}</span>)
+        </h3>
+        <p class="hidden sm:block text-xs text-slate-600 mt-0.5">
+          Penawaran konsumsi dan permintaan lapak UMKM warga pada agenda kegiatan NU.
+        </p>
       </div>
     </div>
 
     {eventOrders.length > 0 ? (
-      <div class="divide-y divide-slate-200 border-y sm:border border-slate-200 rounded-none sm:rounded-lg bg-white overflow-hidden">
+      <div class="divide-y divide-slate-200 border-b border-slate-200 bg-white">
         {eventOrders.map((order) => {
           const st = orderStatusBadge[order.status] || orderStatusBadge.pending;
           return (
-            <div id={`event-order-row-${order.id}`} class="p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition text-xs">
+            <div id={`event-order-row-${order.id}`} class="px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition text-xs">
               <div class="space-y-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <span class={`text-xs font-bold px-2 py-0.5 rounded border ${order.type === 'stall' ? 'bg-teal-50 text-teal-800 border-teal-200' : 'bg-amber-50 text-amber-900 border-amber-200'}`}>
+                  <span class={`text-xs font-semibold px-2 py-0.5 rounded border ${order.type === 'stall' ? 'bg-teal-50 text-teal-800 border-teal-200' : 'bg-amber-50 text-amber-900 border-amber-200'}`}>
                     {order.type === 'stall' ? 'Lapak Bazar' : 'Konsumsi'}
                   </span>
-                  <span class="font-bold text-slate-900">{order.sender_name}</span>
+                  <span class="font-bold text-sm text-slate-900">{order.sender_name}</span>
                   {order.umkm_name && (
-                    <span class="text-xs text-emerald-700 font-semibold">• Toko {order.umkm_name}</span>
+                    <span class="text-xs text-emerald-700 font-semibold">Toko {order.umkm_name}</span>
                   )}
                   <span data-order-badge={order.id} class={`text-xs font-semibold px-2 py-0.5 rounded border ${st.cls}`}>
                     {st.label}
                   </span>
                 </div>
-                <p class="text-xs text-slate-700 font-medium">{order.event_title}</p>
+                <p class="text-xs text-slate-800 font-medium">{order.event_title}</p>
                 <p class="text-xs text-slate-600">{order.item_description}{order.quantity_or_slots ? ` (${order.quantity_or_slots})` : ''}</p>
                 <a
                   href={`https://wa.me/${order.sender_phone}`}
@@ -196,18 +230,19 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
                   rel="noopener noreferrer"
                   class="inline-flex items-center gap-1 text-xs font-mono font-semibold text-emerald-700 hover:underline"
                 >
-                  WhatsApp: {order.sender_phone}
+                  <AppIcon name="phone" size="xs" />
+                  <span>{order.sender_phone}</span>
                 </a>
               </div>
 
-              <div class="flex items-center gap-2 shrink-0">
+              <div class="grid grid-cols-2 sm:flex items-center gap-2 shrink-0 w-full sm:w-auto">
                 <button
                   type="button"
                   data-action="event-order-status"
                   data-id={order.id}
                   data-status="accepted"
                   disabled={order.status === 'accepted'}
-                  class="min-h-[38px] px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
+                  class="min-h-[44px] sm:min-h-[38px] px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
                 >
                   Terima
                 </button>
@@ -217,7 +252,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
                   data-id={order.id}
                   data-status="rejected"
                   disabled={order.status === 'rejected'}
-                  class="min-h-[38px] px-3 py-1.5 bg-white hover:bg-rose-50 disabled:opacity-40 text-rose-700 border border-rose-300 font-semibold text-xs rounded-lg transition cursor-pointer"
+                  class="min-h-[44px] sm:min-h-[38px] px-3.5 py-1.5 bg-white hover:bg-rose-50 disabled:opacity-40 text-rose-700 border border-rose-300 font-semibold text-xs rounded-lg transition cursor-pointer"
                 >
                   Tolak
                 </button>
@@ -227,15 +262,16 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
         })}
       </div>
     ) : (
-      <p class="text-xs text-slate-600 py-4 px-3.5 text-center border-y sm:border border-dashed border-slate-200 rounded-none sm:rounded-lg">
+      <p class="text-xs text-slate-600 py-8 px-4 sm:px-6 lg:px-8 text-center border-b border-slate-200 bg-white">
         Belum ada pengajuan konsumsi atau lapak bazar masuk pada wilayah Anda.
       </p>
     )}
   </div>
 
-  {/* MODAL: TAMBAH / UBAH AGENDA (Native <dialog>) */}
+  {/* MODAL: TAMBAH / UBAH AGENDA (Native <dialog> with light dismiss) */}
   <dialog
     id="modal-event"
+    closedby="any"
     aria-labelledby="modal-event-title"
     class="w-full sm:w-[calc(100%-1.5rem)] max-w-xl rounded-t-2xl sm:rounded-lg bg-white border border-slate-200 shadow-lg p-0 text-slate-900 overflow-hidden"
   >
@@ -243,9 +279,9 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
       <div class="sm:hidden flex justify-center pt-2.5 pb-1 shrink-0">
         <span class="w-10 h-1 rounded-full bg-slate-300"></span>
       </div>
-      <div class="p-3.5 sm:p-4 border-b border-slate-200 flex items-center justify-between shrink-0">
+      <div class="px-4 py-3.5 border-b border-slate-200 flex items-center justify-between shrink-0">
         <h3 id="modal-event-title" class="font-bold text-sm text-slate-900">Agenda Kegiatan NU</h3>
-        <button type="button" id="btn-close-event-modal" aria-label="Tutup modal agenda" class="min-w-[40px] min-h-[40px] text-slate-600 hover:text-slate-900 flex items-center justify-center rounded-lg hover:bg-slate-100 cursor-pointer">
+        <button type="button" id="btn-close-event-modal" aria-label="Tutup modal agenda" class="min-w-[44px] min-h-[44px] text-slate-600 hover:text-slate-900 flex items-center justify-center rounded-lg hover:bg-slate-100 cursor-pointer">
           <AppIcon name="close" size="xs" />
         </button>
       </div>
@@ -255,50 +291,50 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
         <input type="hidden" id="adminEventId" name="eventId" value="" />
 
         <div class="space-y-1">
-          <label for="adminEvTitle" class="block font-medium text-slate-700">Judul Acara <span class="text-rose-500">*</span></label>
+          <label for="adminEvTitle" class="block font-semibold text-slate-800">Judul Acara <span class="text-rose-500">*</span></label>
           <input
             type="text"
             id="adminEvTitle"
             name="title"
             placeholder="Contoh: Lailatul Ijtima' MWC NU Gapura"
             required
-            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="space-y-1">
-            <label for="adminEvDate" class="block font-medium text-slate-700">Tanggal Acara <span class="text-rose-500">*</span></label>
+            <label for="adminEvDate" class="block font-semibold text-slate-800">Tanggal Acara <span class="text-rose-500">*</span></label>
             <input
               type="date"
               id="adminEvDate"
               name="eventDate"
               required
-              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-mono"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 font-mono"
             />
           </div>
 
           <div class="space-y-1">
-            <label for="adminEvTime" class="block font-medium text-slate-700">Waktu Pelaksanaan <span class="text-rose-500">*</span></label>
+            <label for="adminEvTime" class="block font-semibold text-slate-800">Waktu Pelaksanaan <span class="text-rose-500">*</span></label>
             <input
               type="text"
               id="adminEvTime"
               name="timeDesc"
               placeholder="Contoh: 19:30 WIB - Selesai"
               required
-              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
             />
           </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="space-y-1">
-            <label for="adminEvZone" class="block font-medium text-slate-700">Wilayah MWC <span class="text-rose-500">*</span></label>
+            <label for="adminEvZone" class="block font-semibold text-slate-800">Wilayah MWC <span class="text-rose-500">*</span></label>
             <select
               id="adminEvZone"
               name="zoneId"
               required
-              class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-medium text-slate-800 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
             >
               {zones.map((z) => (
                 <option value={z.id}>{z.name}</option>
@@ -307,59 +343,59 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
           </div>
 
           <div class="space-y-1">
-            <label for="adminEvOrganizer" class="block font-medium text-slate-700">Penyelenggara <span class="text-rose-500">*</span></label>
+            <label for="adminEvOrganizer" class="block font-semibold text-slate-800">Penyelenggara <span class="text-rose-500">*</span></label>
             <input
               type="text"
               id="adminEvOrganizer"
               name="organizer"
               placeholder="Contoh: MWC NU Gapura"
               required
-              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
             />
           </div>
         </div>
 
         <div class="space-y-1">
-          <label for="adminEvLocation" class="block font-medium text-slate-700">Tempat / Lokasi <span class="text-rose-500">*</span></label>
+          <label for="adminEvLocation" class="block font-semibold text-slate-800">Tempat / Lokasi <span class="text-rose-500">*</span></label>
           <input
             type="text"
             id="adminEvLocation"
             name="locationName"
             placeholder="Contoh: Masjid Jamik Gapura"
             required
-            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="space-y-1">
-          <label for="adminEvAddress" class="block font-medium text-slate-700">Alamat Lengkap</label>
+          <label for="adminEvAddress" class="block font-semibold text-slate-800">Alamat Lengkap</label>
           <input
             type="text"
             id="adminEvAddress"
             name="locationAddress"
-            placeholder="Contoh: Jl. Raya Gapura Timur Km 3"
-            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            placeholder="Jl. Raya / patokan alamat"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="space-y-1">
-            <label for="adminEvAttendance" class="block font-medium text-slate-700">Estimasi Jamaah</label>
+            <label for="adminEvAttendance" class="block font-semibold text-slate-800">Estimasi Jamaah</label>
             <input
               type="number"
               id="adminEvAttendance"
               name="estimatedAttendance"
               placeholder="Contoh: 500"
-              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 font-mono"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 font-mono"
             />
           </div>
 
           <div class="space-y-1">
-            <label for="adminEvStalls" class="block font-medium text-slate-700">Izinkan Bazar UMKM?</label>
+            <label for="adminEvStalls" class="block font-semibold text-slate-800">Izinkan Bazar UMKM?</label>
             <select
               id="adminEvStalls"
               name="allowStalls"
-              class="w-full bg-white border border-slate-300 rounded p-2 text-xs font-medium text-slate-800 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 cursor-pointer"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
             >
               <option value="1">Ya, Diizinkan</option>
               <option value="0">Tidak Diizinkan</option>
@@ -368,60 +404,73 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
         </div>
 
         <div class="space-y-1">
-          <label for="adminEvConsumption" class="block font-medium text-slate-700">Kebutuhan Konsumsi</label>
+          <label for="adminEvConsumption" class="block font-semibold text-slate-800">Kebutuhan Konsumsi</label>
           <input
             type="text"
             id="adminEvConsumption"
             name="consumptionNeeded"
             placeholder="Contoh: 500 nasi kotak, snack box"
-            class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div class="space-y-1">
-            <label for="adminEvCoordinator" class="block font-medium text-slate-700">Nama Panitia</label>
+            <label for="adminEvCoordinator" class="block font-semibold text-slate-800">Nama Panitia</label>
             <input
               type="text"
               id="adminEvCoordinator"
               name="coordinatorName"
-              placeholder="Contoh: Ustadz Ahmad Fauzi"
-              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+              placeholder="Nama koordinator acara"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
             />
           </div>
 
           <div class="space-y-1">
-            <label for="adminEvPhone" class="block font-medium text-slate-700">Nomor WhatsApp <span class="text-rose-500">*</span></label>
+            <label for="adminEvPhone" class="block font-semibold text-slate-800">Nomor WhatsApp <span class="text-rose-500">*</span></label>
             <input
               type="tel"
               id="adminEvPhone"
               name="coordinatorPhone"
-              placeholder="Contoh: 081234567890"
+              inputmode="tel"
+              placeholder="08xxxxxxxxxx"
               required
-              class="w-full bg-white border border-slate-300 rounded p-2 text-xs text-slate-900 font-mono focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600"
+              class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 font-mono focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
             />
           </div>
         </div>
 
-        <div class="pt-2 border-t border-slate-200 flex items-center justify-end gap-2">
+        <div class="pt-3 border-t border-slate-200 flex items-center justify-end gap-2">
           <button
             type="button"
             id="btn-cancel-event-modal"
             autofocus
-            class="min-h-[42px] py-1.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-medium text-xs rounded-lg transition cursor-pointer"
+            class="min-h-[44px] py-2 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold text-xs rounded-lg transition cursor-pointer"
           >
             Batal
           </button>
           <button
             type="submit"
             id="btn-submit-event"
-            class="min-h-[42px] py-1.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center gap-1.5"
+            class="min-h-[44px] py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center justify-center"
           >
-            <span>Simpan Agenda</span>
-            <AppIcon name="arrow-right" size="xs" />
+            Simpan Agenda
           </button>
         </div>
       </form>
     </div>
   </dialog>
 </section>
+
+<style>
+  .events-table-wrapper {
+    max-inline-size: 100%;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .events-directory-table thead {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 1;
+  }
+</style>

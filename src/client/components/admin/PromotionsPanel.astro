@@ -29,161 +29,179 @@ function getPackageLabel(type: string) {
 }
 
 const totalPendingAmount = pendingPromotions.reduce((sum, p) => sum + p.amount, 0);
+const featuredPromoCount = pendingPromotions.filter((p) => p.type.startsWith('featured_')).length;
+const bumpPromoCount = pendingPromotions.filter((p) => p.type.startsWith('bump_pack_')).length;
 ---
 
-<section id="panel-promotions" class="admin-tab-panel hidden space-y-6">
-  {/* Header & KPI */}
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 px-3.5 sm:px-0 pb-3 sm:pb-4 border-b border-slate-200">
-    <div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <h2 class="text-base sm:text-lg font-bold text-slate-900">Moderasi Iklan &amp; Promosi</h2>
-        <span class="text-xs font-mono tabular-nums font-bold px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300">
-          {pendingPromotions.length} Antrean
+<section id="panel-promotions" class="admin-tab-panel hidden">
+  {/* Hairline Operational Metric Strip */}
+  <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r lg:border-b-0 border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Antrean Verifikasi</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5">
+        <span class={`text-xl font-bold font-mono tabular-nums ${pendingPromotions.length > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
+          {pendingPromotions.length}
         </span>
+        <span class="text-xs text-slate-600">pesanan</span>
       </div>
-      <p class="hidden sm:block text-xs text-slate-600 mt-1">
-        Verifikasi bukti transfer / QRIS infaq promosi untuk mengaktifkan Slot Unggulan dan kuota token sundul toko warga.
-      </p>
     </div>
 
-    <div class="flex items-center gap-3 w-full sm:w-auto">
-      <div class="w-full sm:w-auto px-3 py-2 rounded-lg bg-slate-50 border border-slate-200 flex sm:block items-center justify-between sm:text-right">
-        <span class="text-xs uppercase font-bold text-slate-600 sm:block tracking-wider">Infaq Pending</span>
-        <span class="text-sm font-black font-mono tabular-nums text-emerald-700">{formatRupiah(totalPendingAmount)}</span>
-      </div>
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b lg:border-b-0 lg:border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Infaq Pending</span>
+      <span class="mt-0.5 text-lg sm:text-xl font-bold text-emerald-700 font-mono tabular-nums block truncate">
+        {formatRupiah(totalPendingAmount)}
+      </span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Slot Unggulan</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{featuredPromoCount}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4">
+      <span class="text-xs font-medium text-slate-600 block">Paket Sundul</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{bumpPromoCount}</span>
     </div>
   </div>
 
   {/* Status Alert inside panel */}
-  <div id="promo-review-alert" class="hidden mx-3.5 sm:mx-0 p-3 rounded-lg text-xs font-semibold"></div>
+  <div id="promo-review-alert" role="status" aria-live="polite" class="hidden mx-4 sm:mx-6 lg:mx-8 my-4 p-3 rounded-lg text-xs font-semibold"></div>
 
   {/* Pending Orders List */}
   {pendingPromotions.length > 0 ? (
-    <div class="divide-y divide-slate-200 border-y border-slate-200 bg-white">
-      {pendingPromotions.map((promo) => {
-        const pkgInfo = getPackageLabel(promo.type);
-        const dateStr = new Date(promo.created_at).toLocaleDateString('id-ID', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        });
+    <div>
+      <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+          Antrean Verifikasi Bukti Transfer &amp; QRIS
+        </h2>
+      </div>
 
-        return (
-          <div class="py-4 px-3.5 sm:px-3 hover:bg-slate-50/60 transition flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            {/* Left & Details */}
-            <div class="flex items-start gap-4 min-w-0">
-              {/* Bukti Transfer Thumbnail */}
-              <div class="shrink-0">
-                {promo.proof_image_url ? (
-                  <a
-                    href={promo.proof_image_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    class="block group relative"
-                    title="Klik untuk melihat bukti ukuran penuh"
-                  >
-                    <img
-                      src={promo.proof_image_url}
-                      alt="Bukti Transfer"
-                      class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border border-slate-200 group-hover:opacity-90"
-                    />
-                    <span class="absolute inset-0 bg-slate-900/50 rounded-lg opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1 text-white text-xs font-bold">
-                      <span>Lihat</span>
-                      <AppIcon name="external-link" size="xs" />
-                    </span>
-                  </a>
-                ) : (
-                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-600 text-xs text-center p-1 font-semibold">
-                    <span>Tanpa Bukti</span>
-                  </div>
-                )}
-              </div>
+      <div class="divide-y divide-slate-200 border-b border-slate-200 bg-white">
+        {pendingPromotions.map((promo) => {
+          const pkgInfo = getPackageLabel(promo.type);
+          const dateStr = new Date(promo.created_at).toLocaleDateString('id-ID', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          });
 
-              {/* Information Details */}
-              <div class="min-w-0 space-y-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <span class={`text-xs font-bold px-2 py-0.5 rounded border ${pkgInfo.badge}`}>
-                    {pkgInfo.label}
-                  </span>
-                  <span class="text-xs font-bold text-slate-900 truncate">
-                    {promo.umkm_name || 'Toko UMKM'}
-                  </span>
-                  {promo.user_email && (
-                    <span class="hidden sm:inline text-xs text-slate-600 font-mono">({promo.user_email})</span>
+          return (
+            <div class="px-4 sm:px-6 lg:px-8 py-4 hover:bg-slate-50/70 transition flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              {/* Left & Details */}
+              <div class="flex items-start gap-3.5 sm:gap-4 min-w-0">
+                <div class="shrink-0">
+                  {promo.proof_image_url ? (
+                    <a
+                      href={promo.proof_image_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="block relative group"
+                      title="Buka bukti pembayaran ukuran penuh"
+                    >
+                      <img
+                        src={promo.proof_image_url}
+                        alt={`Bukti transfer ${promo.umkm_name || 'toko'}`}
+                        width="80"
+                        height="80"
+                        class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg object-cover border border-slate-200 group-hover:opacity-90 transition"
+                      />
+                      <span class="mt-1 inline-flex w-full items-center justify-center gap-1 text-[11px] font-semibold text-emerald-700 hover:underline">
+                        <AppIcon name="external-link" size="xs" />
+                        <span>Bukti</span>
+                      </span>
+                    </a>
+                  ) : (
+                    <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 text-[11px] text-center p-1.5 font-semibold">
+                      Tanpa Bukti
+                    </div>
                   )}
                 </div>
 
-                {pkgInfo.isFeatured && promo.product_name && (
-                  <div class="text-xs text-slate-700 font-medium flex items-center gap-1.5 flex-wrap">
-                    <span class="text-slate-600"><span class="hidden sm:inline">Produk yang diiklankan</span><span class="sm:hidden">Produk</span>:</span>
-                    {promo.product_slug ? (
-                      <a
-                        href={`/produk/${promo.product_slug}`}
-                        target="_blank"
-                        class="font-bold text-emerald-800 hover:underline inline-flex items-center gap-1"
-                      >
-                        <span>{promo.product_name}</span>
-                        <AppIcon name="external-link" size="xs" />
-                      </a>
-                    ) : (
-                      <span class="font-bold text-slate-900">{promo.product_name}</span>
+                <div class="min-w-0 space-y-1">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class={`text-xs font-semibold px-2 py-0.5 rounded border ${pkgInfo.badge}`}>
+                      {pkgInfo.label}
+                    </span>
+                    <span class="text-sm font-bold text-slate-900 truncate">
+                      {promo.umkm_name || 'Toko UMKM'}
+                    </span>
+                    {promo.user_email && (
+                      <span class="hidden sm:inline text-xs text-slate-600 font-mono">{promo.user_email}</span>
                     )}
                   </div>
-                )}
 
-                <div class="flex items-center gap-2 sm:gap-3 text-xs pt-0.5 flex-wrap">
-                  <span class="font-bold font-mono tabular-nums text-emerald-800">{formatRupiah(promo.amount)}</span>
-                  <span class="text-slate-300">•</span>
-                  <span class="text-xs text-slate-600 uppercase">{promo.payment_method}</span>
-                  <span class="text-slate-300">•</span>
-                  <span class="text-xs text-slate-600">{dateStr}</span>
+                  {pkgInfo.isFeatured && promo.product_name && (
+                    <div class="text-xs text-slate-700 font-medium flex items-center gap-1.5 flex-wrap">
+                      <span class="text-slate-600">Produk:</span>
+                      {promo.product_slug ? (
+                        <a
+                          href={`/produk/${promo.product_slug}`}
+                          target="_blank"
+                          class="font-bold text-emerald-800 hover:underline inline-flex items-center gap-1"
+                        >
+                          <span>{promo.product_name}</span>
+                          <AppIcon name="external-link" size="xs" />
+                        </a>
+                      ) : (
+                        <span class="font-bold text-slate-900">{promo.product_name}</span>
+                      )}
+                    </div>
+                  )}
+
+                  <div class="flex items-center gap-2.5 text-xs pt-0.5 flex-wrap text-slate-600">
+                    <span class="font-bold font-mono tabular-nums text-emerald-800">{formatRupiah(promo.amount)}</span>
+                    <span aria-hidden="true">/</span>
+                    <span class="uppercase font-medium">{promo.payment_method}</span>
+                    <span aria-hidden="true">/</span>
+                    <span class="font-mono tabular-nums">{dateStr}</span>
+                  </div>
+
+                  {promo.notes && (
+                    <p class="text-xs text-slate-700 bg-slate-50 px-2.5 py-1.5 rounded-lg border border-slate-200 mt-1">
+                      "{promo.notes}"
+                    </p>
+                  )}
                 </div>
+              </div>
 
-                {promo.notes && (
-                  <p class="text-xs text-slate-600 italic bg-slate-50 px-2 py-1 rounded border border-slate-200 mt-1">
-                    "{promo.notes}"
-                  </p>
-                )}
+              {/* Right: Review Action Buttons */}
+              <div class="grid grid-cols-2 sm:flex items-center gap-2 shrink-0 w-full md:w-auto pt-2.5 md:pt-0 border-t md:border-t-0 border-slate-100 justify-end">
+                <button
+                  type="button"
+                  data-action="review-promo"
+                  data-order-id={promo.id}
+                  data-decision="reject"
+                  class="min-h-[44px] sm:min-h-[40px] px-4 py-1.5 rounded-lg border border-rose-300 bg-white hover:bg-rose-50 text-rose-700 font-semibold text-xs transition cursor-pointer inline-flex items-center justify-center"
+                >
+                  Tolak
+                </button>
+
+                <button
+                  type="button"
+                  data-action="review-promo"
+                  data-order-id={promo.id}
+                  data-decision="approve"
+                  class="min-h-[44px] sm:min-h-[40px] px-4 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-semibold text-xs transition cursor-pointer inline-flex items-center justify-center gap-1.5"
+                >
+                  <AppIcon name="check" size="xs" />
+                  <span>Setujui</span>
+                </button>
               </div>
             </div>
-
-            {/* Right: Review Action Buttons */}
-            <div class="grid grid-cols-2 sm:flex items-center gap-2 shrink-0 w-full md:w-auto pt-2.5 md:pt-0 border-t md:border-t-0 border-slate-100 justify-end">
-              <button
-                type="button"
-                data-action="review-promo"
-                data-order-id={promo.id}
-                data-decision="reject"
-                class="min-h-[44px] px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 font-bold text-xs transition cursor-pointer inline-flex items-center justify-center"
-              >
-                Tolak
-              </button>
-
-              <button
-                type="button"
-                data-action="review-promo"
-                data-order-id={promo.id}
-                data-decision="approve"
-                class="min-h-[44px] px-4 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-bold text-xs transition cursor-pointer inline-flex items-center justify-center gap-1.5"
-              >
-                <AppIcon name="check" size="xs" />
-                <span>Setujui</span>
-              </button>
-            </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   ) : (
-    <div class="py-16 px-4 text-center rounded-none sm:rounded-lg border-y sm:border border-dashed border-slate-200 bg-slate-50/50 space-y-2">
+    <div class="px-4 sm:px-6 lg:px-8 py-14 text-center border-b border-slate-200 bg-white space-y-2">
       <div class="w-11 h-11 mx-auto rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 flex items-center justify-center">
         <AppIcon name="check" size="md" />
       </div>
-      <h3 class="text-sm font-bold text-slate-800">Tidak Ada Antrean Promosi Baru</h3>
-      <p class="text-xs text-slate-600 max-w-sm mx-auto">
-        Semua pesanan slot iklan unggulan dan paket token sundul telah diproses. Pengajuan baru dari toko akan muncul otomatis di sini.
+      <h2 class="text-sm font-bold text-slate-900">Tidak Ada Antrean Promosi Baru</h2>
+      <p class="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+        Semua pesanan slot iklan unggulan dan paket token sundul telah diproses. Pengajuan baru dari toko warga akan muncul di sini.
       </p>
     </div>
   )}

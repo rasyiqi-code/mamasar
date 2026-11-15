@@ -20,6 +20,7 @@ import EntryPanel from '../../components/admin/EntryPanel.astro';
 import EventsPanel from '../../components/admin/EventsPanel.astro';
 import ZonesPanel from '../../components/admin/ZonesPanel.astro';
 import PromotionsPanel from '../../components/admin/PromotionsPanel.astro';
+import AppIcon from '../../components/common/AppIcon.astro';
 
 const user = await resolveUser(Astro.request);
 const isSuper = !!user && isSuperadmin(user);
@@ -57,18 +58,22 @@ const canReviewPromos = isSuper || (user.role === 'mwcnu' && Boolean(user.assign
 const pendingPromotions = isSuper
   ? await getAllPendingAdOrders()
   : (canReviewPromos && user.assigned_zone_id ? await getAllPendingAdOrders(user.assigned_zone_id) : []);
+
 const portalHeading = isSuper
   ? 'Pusat Kendali Admin PCNU Sumenep'
   : user.role === 'mwcnu'
     ? `Portal Pengurus MWC ${assignedZone?.name || 'Sumenep'}`
     : `Portal Kader MWC ${assignedZone?.name || 'Sumenep'}`;
+
+const defaultTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
+const scopeBadgeText = isSuper ? 'PCNU Sumenep' : `MWC ${assignedZone?.name || 'Sumenep'}`;
 ---
 
 <AppLayout
   title={`${portalHeading} | Mamasar`}
   description="Panel kendali operasional terpadu PCNU untuk manajemen akun & peran, persetujuan kader MWC, moderasi toko, dan pendataan UMKM jemput bola."
 >
-  <div class="min-h-screen bg-white flex flex-col md:flex-row">
+  <div class="min-h-screen w-full bg-white flex flex-col md:flex-row">
     <!-- Sidebar Navigasi Admin / Pengurus / Petugas -->
     <AdminSidebar
       user={user}
@@ -81,51 +86,92 @@ const portalHeading = isSuper
       pendingPromotionsCount={pendingPromotions.length}
     />
 
-    <!-- Workspace Utama Admin / Petugas (Full-Edge Mobile + Desktop Gutter) -->
-    <main id="main" tabindex="-1" class="flex-1 min-w-0 overflow-y-auto px-0 py-3.5 sm:p-6 pb-24 md:pb-6 w-full space-y-5 sm:space-y-6">
-      <h1 class="sr-only">{portalHeading}</h1>
+    <!-- Kolom Kanan: Sticky Desktop App Header + Workspace Utama -->
+    <div class="flex-1 min-w-0 w-full flex flex-col">
+      <header class="hidden md:flex sticky top-0 z-30 h-14 bg-white/95 backdrop-blur-xs border-b border-slate-200 px-6 lg:px-8 items-center justify-between gap-4 shrink-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <h1 id="admin-desktop-title" class="text-sm sm:text-base font-bold tracking-tight text-slate-900 truncate">
+            {defaultTabLabel}
+          </h1>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium shrink-0">
+            <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+            <span>{scopeBadgeText}</span>
+          </span>
+        </div>
 
-      <!-- Status Box Fallback -->
-      <div id="admin-status-box" role="status" aria-live="polite" class="hidden mx-3.5 sm:mx-0 mb-4 p-2.5 rounded-lg text-xs font-semibold"></div>
+        <div class="flex items-center gap-2 shrink-0">
+          <a
+            href="/"
+            class="min-h-[36px] px-2.5 py-1.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition inline-flex items-center gap-1.5"
+          >
+            <AppIcon name="globe" size="xs" />
+            <span>Katalog Publik</span>
+          </a>
+          <a
+            href="/dashboard"
+            class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5"
+          >
+            <AppIcon name="store" size="xs" />
+            <span>Toko Saya</span>
+          </a>
+          <button
+            type="button"
+            id="admin-quick-entry-btn"
+            data-jump-admin-tab="entry"
+            class={`min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1.5 cursor-pointer ${isSuper ? '' : 'hidden'}`}
+          >
+            <AppIcon name="plus" size="xs" />
+            <span>Entri UMKM</span>
+          </button>
+        </div>
+      </header>
 
-      <!-- Tab: Manajemen Akun, Peran & Persetujuan Kader/MWC (Khusus Superadmin) -->
-      {isSuper && <AgentsPanel pendingPetugas={pendingPetugas} allUsers={allUsers} zones={zones} />}
+      <main id="main" tabindex="-1" class="flex-1 min-w-0 w-full pb-24 md:pb-10">
+        <span class="sr-only">{portalHeading}</span>
 
-      <!-- Tab: Kurasi & Moderasi Toko Warga -->
-      <StoresPanel pendingStores={pendingStores} verifiedStores={verifiedStores} />
+        <!-- Status Box Fallback -->
+        <div id="admin-status-box" role="status" aria-live="polite" class="hidden mx-4 sm:mx-6 lg:mx-8 my-4 p-3 rounded-lg text-xs font-semibold"></div>
 
-      <!-- Tab: Pendataan Jemput Bola (Formulir Kamera & Entri Lapangan 2-Step) -->
-      <EntryPanel user={user} assignedZone={assignedZone} zones={zones} stores={stores} isDefaultActive={!isSuper} />
+        <!-- Tab: Manajemen Akun, Peran & Persetujuan Kader/MWC (Khusus Superadmin) -->
+        {isSuper && <AgentsPanel pendingPetugas={pendingPetugas} allUsers={allUsers} zones={zones} />}
 
-      <!-- Tab: Agenda Kegiatan NU & Pasar Konsumsi -->
-      <EventsPanel events={events} zones={zones} eventOrders={eventOrders} />
+        <!-- Tab: Kurasi & Moderasi Toko Warga -->
+        <StoresPanel pendingStores={pendingStores} verifiedStores={verifiedStores} />
 
-      <!-- Tab: Moderasi Iklan & Promosi Berbayar (PCNU & MWCNU) -->
-      {canReviewPromos && <PromotionsPanel pendingPromotions={pendingPromotions} />}
+        <!-- Tab: Pendataan Jemput Bola (Formulir Kamera & Entri Lapangan 2-Step) -->
+        <EntryPanel user={user} assignedZone={assignedZone} zones={zones} stores={stores} isDefaultActive={!isSuper} />
 
-      <!-- Tab: Sebaran Wilayah 24 MWC NU Sumenep (Peta Sebaran Maps) -->
-      <ZonesPanel zones={zones} allStores={allStores} />
-    </main>
+        <!-- Tab: Agenda Kegiatan NU & Pasar Konsumsi -->
+        <EventsPanel events={events} zones={zones} eventOrders={eventOrders} />
+
+        <!-- Tab: Moderasi Iklan & Promosi Berbayar (PCNU & MWCNU) -->
+        {canReviewPromos && <PromotionsPanel pendingPromotions={pendingPromotions} />}
+
+        <!-- Tab: Sebaran Wilayah 24 MWC NU Sumenep (Peta Sebaran Maps) -->
+        <ZonesPanel zones={zones} allStores={allStores} />
+      </main>
+    </div>
   </div>
 
   <style is:global>
     .admin-nav-tab {
-      color: #64748b;
-      transition: all 0.15s ease;
+      color: #475569;
+      border: 1px solid transparent;
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
     }
     .admin-nav-tab:hover {
       background-color: #f8fafc;
       color: #0f172a;
     }
     .admin-nav-tab.active {
-      background-color: #f1f5f9;
-      color: #0f172a;
+      background-color: #ecfdf5;
+      color: #064e3b;
+      border-color: #a7f3d0;
       font-weight: 600;
     }
-    .admin-nav-tab.active span[class*="text-xs"],
-    .admin-nav-tab.active span[class*="text-[10px]"] {
-      background-color: #e2e8f0;
-      color: #0f172a;
+    .admin-nav-tab.active .admin-nav-badge {
+      background-color: #d1fae5;
+      color: #065f46;
       border-color: transparent;
     }
   </style>

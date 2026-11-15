@@ -2,17 +2,55 @@
 import { confirmAction, openConfirmDialog, openNativeDialog, closeNativeDialog } from '../../lib/dialog';
 
 export function initAdminClient() {
+  // Mobile Sidebar Toggle
+  const sidebar = document.getElementById('admin-sidebar');
+  const backdrop = document.getElementById('admin-sidebar-backdrop');
+  const btnToggleSidebar = document.getElementById('btn-toggle-admin-sidebar');
+  const btnCloseSidebar = document.getElementById('btn-close-admin-sidebar');
+
+  function openSidebar() {
+    sidebar?.classList.remove('-translate-x-full');
+    backdrop?.classList.remove('hidden');
+    btnToggleSidebar?.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeSidebar() {
+    sidebar?.classList.add('-translate-x-full');
+    backdrop?.classList.add('hidden');
+    btnToggleSidebar?.setAttribute('aria-expanded', 'false');
+  }
+
+  btnToggleSidebar?.addEventListener('click', openSidebar);
+  btnCloseSidebar?.addEventListener('click', closeSidebar);
+  backdrop?.addEventListener('click', closeSidebar);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+      closeSidebar();
+      btnToggleSidebar?.focus();
+    }
+  });
+
   // Tab switching logic via Sidebar, keyboard arrows & URL hash (history.replaceState)
   function initTabs() {
     const tabBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-admin-tab]'));
     const panels = document.querySelectorAll<HTMLElement>('.admin-tab-panel');
+    const desktopTitleEl = document.getElementById('admin-desktop-title');
+    const mobileTitleEl = document.getElementById('admin-mobile-title');
+    const quickEntryBtn = document.getElementById('admin-quick-entry-btn');
+    const canShowQuickEntry = Boolean(quickEntryBtn && !quickEntryBtn.classList.contains('hidden'));
+    const jumpTabBtns = Array.from(document.querySelectorAll<HTMLElement>('[data-jump-admin-tab]'));
 
     function switchTab(targetName: string, syncUrl = false) {
+      let activeLabel = '';
+
       tabBtns.forEach((btn) => {
         const isActive = btn.getAttribute('data-admin-tab') === targetName;
         btn.classList.toggle('active', isActive);
         btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
         btn.setAttribute('tabindex', isActive ? '0' : '-1');
+        if (isActive && !activeLabel) {
+          activeLabel = btn.getAttribute('data-admin-label') || '';
+        }
       });
 
       panels.forEach((p) => {
@@ -22,6 +60,15 @@ export function initAdminClient() {
           p.classList.add('hidden');
         }
       });
+
+      if (activeLabel) {
+        if (desktopTitleEl) desktopTitleEl.textContent = activeLabel;
+        if (mobileTitleEl) mobileTitleEl.textContent = activeLabel;
+      }
+
+      if (quickEntryBtn && canShowQuickEntry) {
+        quickEntryBtn.classList.toggle('hidden', targetName === 'entry');
+      }
 
       if (syncUrl) {
         history.replaceState(null, '', `#${targetName}`);
@@ -56,31 +103,21 @@ export function initAdminClient() {
       });
     });
 
+    jumpTabBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const target = btn.getAttribute('data-jump-admin-tab');
+        if (target) switchTab(target, true);
+      });
+    });
+
     const currentHash = window.location.hash.replace('#', '');
     if (['agents', 'stores', 'entry', 'events', 'promotions', 'zones'].includes(currentHash)) {
-      switchTab(currentHash, false);
+      const targetPanelExists = document.getElementById(`panel-${currentHash}`) !== null;
+      if (targetPanelExists) {
+        switchTab(currentHash, false);
+      }
     }
   }
-
-  // Mobile Sidebar Toggle
-  const sidebar = document.getElementById('admin-sidebar');
-  const backdrop = document.getElementById('admin-sidebar-backdrop');
-  const btnToggleSidebar = document.getElementById('btn-toggle-admin-sidebar');
-  const btnCloseSidebar = document.getElementById('btn-close-admin-sidebar');
-
-  function openSidebar() {
-    sidebar?.classList.remove('-translate-x-full');
-    backdrop?.classList.remove('hidden');
-  }
-
-  function closeSidebar() {
-    sidebar?.classList.add('-translate-x-full');
-    backdrop?.classList.add('hidden');
-  }
-
-  btnToggleSidebar?.addEventListener('click', openSidebar);
-  btnCloseSidebar?.addEventListener('click', closeSidebar);
-  backdrop?.addEventListener('click', closeSidebar);
 
   // Status notification helper
   function notify(msg: string, isError = false) {
@@ -211,6 +248,7 @@ export function initAdminClient() {
     const searchInput = document.getElementById('user-directory-search') as HTMLInputElement | null;
     const roleFilter = document.getElementById('user-directory-role-filter') as HTMLSelectElement | null;
     const countLabel = document.getElementById('user-directory-count');
+    const userEmptyRow = document.getElementById('user-directory-empty');
     const userRows = Array.from(document.querySelectorAll<HTMLTableRowElement>('[data-user-row]'));
 
     function filterUserRows() {
@@ -231,10 +269,85 @@ export function initAdminClient() {
       if (countLabel) {
         countLabel.textContent = `Menampilkan ${visible} dari ${userRows.length} akun`;
       }
+      if (userEmptyRow) {
+        userEmptyRow.classList.toggle('hidden', visible > 0 || userRows.length === 0);
+      }
     }
 
     searchInput?.addEventListener('input', filterUserRows);
     roleFilter?.addEventListener('change', filterUserRows);
+
+    // Filter Direktori Toko (Search + Status Pills)
+    const storeSearchInput = document.getElementById('store-directory-search') as HTMLInputElement | null;
+    const storeFilterBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('.store-filter-btn[data-store-filter]'));
+    const storeRows = Array.from(document.querySelectorAll<HTMLElement>('[data-store-row]'));
+    const pendingSection = document.getElementById('stores-section-pending');
+    const verifiedSection = document.getElementById('stores-section-verified');
+    const storeEmptyState = document.getElementById('store-directory-empty');
+    let activeStoreFilter = 'all';
+
+    function filterStores() {
+      const q = (storeSearchInput?.value || '').trim().toLowerCase();
+      let visiblePending = 0;
+      let visibleVerified = 0;
+
+      storeRows.forEach((row) => {
+        const rowSearch = row.dataset.search || '';
+        const rowStatus = row.dataset.storeStatus || '';
+        const matchSearch = !q || rowSearch.includes(q);
+        const matchFilter = activeStoreFilter === 'all' || rowStatus === activeStoreFilter;
+        const show = matchSearch && matchFilter;
+        row.classList.toggle('hidden', !show);
+        if (show) {
+          if (rowStatus === 'pending') visiblePending += 1;
+          else if (rowStatus === 'verified') visibleVerified += 1;
+        }
+      });
+
+      const totalVisible = visiblePending + visibleVerified;
+      const showEmptySearch = totalVisible === 0 && (q !== '' || storeRows.length > 0 && activeStoreFilter !== 'all' && ((activeStoreFilter === 'pending' && visiblePending === 0 && pendingSection?.querySelector('[data-store-row]') !== null) || (activeStoreFilter === 'verified' && visibleVerified === 0 && verifiedSection?.querySelector('[data-store-row]') !== null)));
+
+      if (pendingSection) {
+        const hidePending =
+          activeStoreFilter === 'verified' ||
+          (q !== '' && visiblePending === 0) ||
+          Boolean(showEmptySearch);
+        pendingSection.classList.toggle('hidden', hidePending);
+      }
+
+      if (verifiedSection) {
+        const hideVerified =
+          activeStoreFilter === 'pending' ||
+          (q !== '' && visibleVerified === 0) ||
+          Boolean(showEmptySearch);
+        verifiedSection.classList.toggle('hidden', hideVerified);
+      }
+
+      if (storeEmptyState) {
+        const showEmpty = q !== '' ? totalVisible === 0 : Boolean(showEmptySearch);
+        storeEmptyState.classList.toggle('hidden', !showEmpty);
+      }
+    }
+
+    storeFilterBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        activeStoreFilter = btn.getAttribute('data-store-filter') || 'all';
+        storeFilterBtns.forEach((b) => {
+          const isSelected = b === btn;
+          b.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+          b.classList.toggle('bg-slate-900', isSelected);
+          b.classList.toggle('text-white', isSelected);
+          b.classList.toggle('border-slate-900', isSelected);
+          b.classList.toggle('bg-white', !isSelected);
+          b.classList.toggle('text-slate-700', !isSelected);
+          b.classList.toggle('hover:text-slate-900', !isSelected);
+          b.classList.toggle('border-slate-300', !isSelected);
+        });
+        filterStores();
+      });
+    });
+
+    storeSearchInput?.addEventListener('input', filterStores);
 
     // Simpan perubahan peran per baris
     document.querySelectorAll<HTMLButtonElement>('[data-action="save-user-role"]').forEach((btn) => {
@@ -409,7 +522,15 @@ export function initAdminClient() {
   btnCloseEventModal?.addEventListener('click', closeEventModal);
   btnCancelEventModal?.addEventListener('click', closeEventModal);
   eventModal?.addEventListener('click', (e) => {
-    if (e.target === eventModal) closeEventModal();
+    if ('closedBy' in HTMLDialogElement.prototype) return;
+    if (e.target !== eventModal) return;
+    const rect = eventModal.getBoundingClientRect();
+    const clickedInDialog =
+      rect.top <= e.clientY &&
+      e.clientY <= rect.top + rect.height &&
+      rect.left <= e.clientX &&
+      e.clientX <= rect.left + rect.width;
+    if (!clickedInDialog) closeEventModal();
   });
 
   // Edit Event trigger
@@ -601,21 +722,21 @@ export function initAdminClient() {
     step2Container?.classList.add('hidden');
 
     // Step 1 Active Indicator
-    step1Indicator?.classList.remove('bg-emerald-50', 'border-emerald-200', 'shadow-none');
-    step1Indicator?.classList.add('bg-emerald-50', 'border-2', 'border-emerald-500', 'shadow-2xs');
+    step1Indicator?.classList.remove('bg-emerald-50/60', 'border-emerald-200', 'bg-slate-50', 'border-slate-200');
+    step1Indicator?.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'font-bold');
     if (step1Badge) {
       step1Badge.textContent = '1';
-      step1Badge.className = 'w-7 h-7 rounded-full bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';
+      step1Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-xs shrink-0';
     }
 
     // Step 2 Inactive Indicator
-    step2Indicator?.classList.remove('bg-emerald-50', 'border-2', 'border-emerald-500', 'shadow-2xs');
-    step2Indicator?.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-500');
+    step2Indicator?.classList.remove('bg-emerald-50', 'border-emerald-300', 'border-emerald-600', 'text-emerald-950', 'font-bold');
+    step2Indicator?.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-600');
     if (step2Badge) {
-      step2Badge.className = 'w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-black text-xs shrink-0';
+      step2Badge.className = 'w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center font-mono font-bold text-xs shrink-0';
     }
-    if (step2Title) step2Title.className = 'text-xs font-bold leading-tight text-slate-600';
-    if (step2Desc) step2Desc.className = 'text-[11px] text-slate-500 font-medium truncate mt-0.5';
+    if (step2Title) step2Title.className = 'text-xs font-bold leading-tight text-slate-700 truncate';
+    if (step2Desc) step2Desc.className = 'hidden sm:block text-[11px] text-slate-600 font-medium truncate mt-0.5';
   }
 
   function goToStep2(store: { id: number; name: string; phone: string; zoneName: string; ranting?: string }) {
@@ -623,7 +744,7 @@ export function initAdminClient() {
     if (step2UmkmIdInput) step2UmkmIdInput.value = String(store.id);
     if (activeStoreName) activeStoreName.textContent = store.name;
     if (activeStoreZone) {
-      activeStoreZone.textContent = store.ranting ? `${store.zoneName} • Ranting ${store.ranting}` : store.zoneName;
+      activeStoreZone.textContent = store.ranting ? `${store.zoneName} · Desa ${store.ranting}` : store.zoneName;
     }
     if (activeStorePhone) activeStorePhone.textContent = store.phone;
 
@@ -631,30 +752,30 @@ export function initAdminClient() {
     step2Container?.classList.remove('hidden');
 
     // Step 1 Completed Indicator
-    step1Indicator?.classList.remove('border-2', 'border-emerald-500', 'shadow-2xs');
-    step1Indicator?.classList.add('bg-emerald-50/60', 'border', 'border-emerald-200');
+    step1Indicator?.classList.remove('bg-emerald-50', 'border-emerald-300');
+    step1Indicator?.classList.add('bg-emerald-50/60', 'border-emerald-200');
     if (step1Badge) {
       step1Badge.innerHTML = '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
-      step1Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';
+      step1Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-xs shrink-0';
     }
 
     // Step 2 Active Indicator
     step2Indicator?.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-600');
-    step2Indicator?.classList.add('bg-emerald-50', 'border-2', 'border-emerald-600');
+    step2Indicator?.classList.add('bg-emerald-50', 'border-emerald-300', 'text-emerald-950', 'font-bold');
     if (step2Badge) {
-      step2Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-black text-xs shrink-0';
+      step2Badge.className = 'w-7 h-7 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-mono font-bold text-xs shrink-0';
     }
-    if (step2Title) step2Title.className = 'text-xs font-black leading-tight text-emerald-950';
-    if (step2Desc) step2Desc.className = 'text-xs text-emerald-800 font-medium truncate mt-0.5';
+    if (step2Title) step2Title.className = 'text-xs font-bold leading-tight text-emerald-950 truncate';
+    if (step2Desc) step2Desc.className = 'hidden sm:block text-[11px] text-emerald-800 font-medium truncate mt-0.5';
 
     step2Container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   // Toggle Step 1 Mode: Daftarkan Baru vs Pilih Terdaftar
   btnModeNewStore?.addEventListener('click', () => {
-    btnModeNewStore.classList.add('bg-white', 'text-slate-900', 'shadow-2xs');
+    btnModeNewStore.classList.add('bg-white', 'text-slate-900', 'border', 'border-slate-200');
     btnModeNewStore.classList.remove('text-slate-600');
-    btnModeExistingStore?.classList.remove('bg-white', 'text-slate-900', 'shadow-2xs');
+    btnModeExistingStore?.classList.remove('bg-white', 'text-slate-900', 'border', 'border-slate-200');
     btnModeExistingStore?.classList.add('text-slate-600');
 
     formStep1Store?.classList.remove('hidden');
@@ -662,9 +783,9 @@ export function initAdminClient() {
   });
 
   btnModeExistingStore?.addEventListener('click', () => {
-    btnModeExistingStore.classList.add('bg-white', 'text-slate-900', 'shadow-2xs');
+    btnModeExistingStore.classList.add('bg-white', 'text-slate-900', 'border', 'border-slate-200');
     btnModeExistingStore.classList.remove('text-slate-600');
-    btnModeNewStore?.classList.remove('bg-white', 'text-slate-900', 'shadow-2xs');
+    btnModeNewStore?.classList.remove('bg-white', 'text-slate-900', 'border', 'border-slate-200');
     btnModeNewStore?.classList.add('text-slate-600');
 
     formStep1Store?.classList.add('hidden');
@@ -676,7 +797,7 @@ export function initAdminClient() {
     e.preventDefault();
     if (btnSubmitStep1) {
       btnSubmitStep1.disabled = true;
-      btnSubmitStep1.innerHTML = '<span>Menyimpan Toko...</span>';
+      btnSubmitStep1.textContent = 'Menyimpan Toko...';
     }
 
     try {
@@ -698,7 +819,7 @@ export function initAdminClient() {
     } finally {
       if (btnSubmitStep1) {
         btnSubmitStep1.disabled = false;
-        btnSubmitStep1.innerHTML = '<span>Lanjut ke Step 2: Daftarkan Produk</span><svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>';
+        btnSubmitStep1.textContent = 'Lanjut ke Step 2: Produk';
       }
     }
   });
@@ -779,8 +900,8 @@ export function initAdminClient() {
       const removeBtn = document.createElement('button');
       removeBtn.type = 'button';
       removeBtn.setAttribute('aria-label', `Hapus foto ${idx + 1}`);
-      removeBtn.className = 'absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-rose-600 hover:bg-rose-700 text-white font-bold flex items-center justify-center shadow-sm cursor-pointer transition';
-      removeBtn.innerHTML = '<svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
+      removeBtn.className = 'absolute top-1.5 right-1.5 w-8 h-8 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-bold flex items-center justify-center shadow-sm cursor-pointer transition';
+      removeBtn.innerHTML = '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>';
       removeBtn.onclick = (e) => {
         e.preventDefault();
         petugasPhotos.splice(idx, 1);

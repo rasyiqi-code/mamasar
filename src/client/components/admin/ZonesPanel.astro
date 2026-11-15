@@ -24,12 +24,10 @@ interface Props {
 
 const { zones, allStores = [] } = Astro.props;
 
-// Geo-Coordinates & Local Commodities for MWC zones in Kabupaten Sumenep
 const SUMENEP_ZONE_GEO: Record<
   string,
   { lat: number; lng: number; type: 'daratan' | 'kepulauan'; highlight: string }
 > = {
-  // 18 MWC Daratan
   'mwc-kota-sumenep': { lat: -6.9950, lng: 113.8650, type: 'daratan', highlight: 'Pusat Kota, Keraton Sumenep, & Sentra Kuliner Madura' },
   'mwc-batuan': { lat: -7.0180, lng: 113.8420, type: 'daratan', highlight: 'Sentra Olahan Makanan, Keripik, & Pertanian' },
   'mwc-kalianget': { lat: -7.0420, lng: 113.9160, type: 'daratan', highlight: 'Pelabuhan Kalianget, Garam Rakyat, & Perikanan' },
@@ -48,8 +46,6 @@ const SUMENEP_ZONE_GEO: Record<
   'mwc-dungkek': { lat: -6.9550, lng: 114.0450, type: 'daratan', highlight: 'Ujung Timur Madura, Oksigen Gili Iyang, & Ikan Tangkap' },
   'mwc-batang-batang': { lat: -6.9250, lng: 113.9950, type: 'daratan', highlight: 'Kawasan Wisata Pantai Lombang & Anyaman Daun Lontar' },
   'mwc-batuputih': { lat: -6.8850, lng: 113.8950, type: 'daratan', highlight: 'Perkebunan Mete, Asam Jawa, & Peternakan Sapi' },
-
-  // 6 MWC Kepulauan
   'mwc-talango': { lat: -7.0650, lng: 113.9750, type: 'kepulauan', highlight: 'Pulau Poteran, Wisata Religi Asta Sayyid Yusuf' },
   'mwc-giligenting': { lat: -7.1950, lng: 113.9250, type: 'kepulauan', highlight: 'Pulau Giligenting & Gili Labak, Perikanan Bahari' },
   'mwc-nonggunong': { lat: -7.0850, lng: 114.3550, type: 'kepulauan', highlight: 'Pulau Sapudi Bagian Utara, Budidaya Rumput Laut' },
@@ -58,7 +54,6 @@ const SUMENEP_ZONE_GEO: Record<
   'mwc-sapeken': { lat: -7.0050, lng: 115.7050, type: 'kepulauan', highlight: 'Gugusan Terumbu Karang, Budidaya Kerapu & Lobster' },
 };
 
-// Compute Store count and Product count per zone
 const storeCountByZone = new Map<number, number>();
 const productCountByZone = new Map<number, number>();
 
@@ -97,29 +92,70 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
 const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
 ---
 
-<section id="panel-zones" class="admin-tab-panel hidden space-y-6">
-  {/* Top Bar: Header with External Maps Link */}
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between px-3.5 sm:px-0 pb-3 sm:pb-4 border-b border-slate-200 gap-3">
-    <div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <h2 class="text-base sm:text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-          <AppIcon name="map-pin" size="sm" class="text-emerald-700" />
-          <span>Peta Sebaran <span class="font-mono tabular-nums">{enrichedZones.length}</span> MWC NU</span>
-        </h2>
-        <span class="hidden sm:inline-block text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
-          Geolokasi Interaktif
-        </span>
+<section id="panel-zones" class="admin-tab-panel hidden">
+  {/* Hairline Operational Metric Strip */}
+  <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200 bg-white">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r lg:border-b-0 border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Wilayah MWC</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5">
+        <span class="text-xl font-bold text-slate-900 font-mono tabular-nums">{enrichedZones.length}</span>
+        <span class="text-[11px] text-emerald-700 font-semibold font-mono tabular-nums">{daratan.length}D / {kepulauan.length}P</span>
       </div>
-      <p class="hidden sm:block text-xs text-slate-600 mt-0.5">
-        Pemetaan persebaran kader MWC NU, sentra komoditas unggulan daerah, dan pelaku UMKM binaan se-Kabupaten Sumenep.
-      </p>
     </div>
 
-    <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b lg:border-b-0 lg:border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Toko Terdata</span>
+      <span class="mt-0.5 text-xl font-bold text-emerald-700 font-mono tabular-nums block">{totalStores}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Produk Aktif</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{totalProducts}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4">
+      <span class="text-xs font-medium text-slate-600 block">MWC Terisi</span>
+      <div class="mt-0.5 flex items-baseline gap-1">
+        <span class="text-xl font-bold text-emerald-800 font-mono tabular-nums">{zonesWithStores}</span>
+        <span class="text-xs text-slate-600 font-mono tabular-nums">/ {enrichedZones.length}</span>
+      </div>
+    </div>
+  </div>
+
+  {/* Map Filter & Action Toolbar */}
+  <div class="px-4 sm:px-6 lg:px-8 py-3.5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/40">
+    <div class="w-full sm:w-auto flex items-center gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold overflow-x-auto no-scrollbar">
+      <button
+        type="button"
+        id="btn-filter-all"
+        class="zone-filter-btn min-h-[40px] sm:min-h-[34px] py-1 px-3 rounded-md bg-white text-slate-900 border border-slate-200 transition cursor-pointer whitespace-nowrap shrink-0"
+        data-filter="all"
+      >
+        Semua ({enrichedZones.length})
+      </button>
+      <button
+        type="button"
+        id="btn-filter-daratan"
+        class="zone-filter-btn min-h-[40px] sm:min-h-[34px] py-1 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer whitespace-nowrap shrink-0"
+        data-filter="daratan"
+      >
+        Daratan ({daratan.length})
+      </button>
+      <button
+        type="button"
+        id="btn-filter-kepulauan"
+        class="zone-filter-btn min-h-[40px] sm:min-h-[34px] py-1 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer whitespace-nowrap shrink-0"
+        data-filter="kepulauan"
+      >
+        Kepulauan ({kepulauan.length})
+      </button>
+    </div>
+
+    <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
       <button
         type="button"
         id="btn-recenter-map"
-        class="min-h-[44px] py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-lg transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+        class="min-h-[44px] sm:min-h-[38px] py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-semibold rounded-lg transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
       >
         <AppIcon name="map-pin" size="xs" />
         <span>Pusatkan</span>
@@ -129,7 +165,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
         href="https://www.google.com/maps/search/?api=1&query=Kabupaten+Sumenep+Madura"
         target="_blank"
         rel="noopener noreferrer"
-        class="min-h-[44px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+        class="min-h-[44px] sm:min-h-[38px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg transition inline-flex items-center justify-center gap-1.5"
       >
         <AppIcon name="globe" size="xs" />
         <span>Google Maps</span>
@@ -138,146 +174,73 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
     </div>
   </div>
 
-  {/* Key Metrics Bar (Swiss Hairline KPI Strip) */}
-  <div class="grid grid-cols-2 lg:grid-cols-4 border-y sm:border border-slate-200 rounded-none sm:rounded-lg bg-white text-xs overflow-hidden divide-y divide-slate-200 lg:divide-y-0 lg:divide-x [&>*:nth-child(odd)]:border-r [&>*:nth-child(odd)]:border-slate-200 lg:[&>*:nth-child(odd)]:border-r-0">
-    <div class="p-3 sm:p-3.5 space-y-1">
-      <span class="text-xs uppercase font-bold text-slate-600 tracking-wider block">Wilayah MWC</span>
-      <div class="flex items-baseline gap-2">
-        <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono tabular-nums">{enrichedZones.length}</span>
-        <span class="hidden sm:inline text-xs text-slate-600 font-semibold">Kecamatan</span>
-      </div>
-      <p class="text-[11px] sm:text-xs text-emerald-700 font-bold font-mono tabular-nums">{daratan.length} Daratan · {kepulauan.length} Pulau</p>
-    </div>
-
-    <div class="p-3 sm:p-3.5 space-y-1">
-      <span class="text-xs uppercase font-bold text-slate-600 tracking-wider block">Toko Terdata</span>
-      <div class="flex items-baseline gap-2">
-        <span class="text-xl sm:text-2xl font-black text-emerald-700 font-mono tabular-nums">{totalStores}</span>
-        <span class="hidden sm:inline text-xs text-slate-600 font-semibold">Unit Usaha</span>
-      </div>
-      <p class="hidden sm:block text-xs text-slate-600">Pendataan kader lapangan MWC</p>
-    </div>
-
-    <div class="p-3 sm:p-3.5 space-y-1">
-      <span class="text-xs uppercase font-bold text-slate-600 tracking-wider block">Produk Aktif</span>
-      <div class="flex items-baseline gap-2">
-        <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono tabular-nums">{totalProducts}</span>
-        <span class="hidden sm:inline text-xs text-slate-600 font-semibold">Iklan Aktif</span>
-      </div>
-      <p class="hidden sm:block text-xs text-slate-600">Tersedia di katalog Mamasar</p>
-    </div>
-
-    <div class="p-3 sm:p-3.5 space-y-1">
-      <span class="text-xs uppercase font-bold text-slate-600 tracking-wider block">MWC Terisi</span>
-      <div class="flex items-baseline gap-2">
-        <span class="text-xl sm:text-2xl font-black text-emerald-800 font-mono tabular-nums">{zonesWithStores}</span>
-        <span class="text-xs text-emerald-800 font-bold font-mono tabular-nums">/ {enrichedZones.length}</span>
-      </div>
-      <p class="hidden sm:block text-xs text-slate-600">Wilayah dengan UMKM terdata</p>
-    </div>
-  </div>
-
-  {/* Map Filtering Controls */}
-  <div class="flex flex-wrap items-center justify-between gap-3 px-3.5 sm:px-0">
-    <div class="w-full sm:w-auto flex items-center gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-bold overflow-x-auto no-scrollbar">
-      <button
-        type="button"
-        id="btn-filter-all"
-        class="zone-filter-btn min-h-[44px] py-1 px-3 rounded-md bg-white text-slate-900 border border-slate-200 transition cursor-pointer whitespace-nowrap shrink-0"
-        data-filter="all"
-      >
-        Semua ({enrichedZones.length})
-      </button>
-      <button
-        type="button"
-        id="btn-filter-daratan"
-        class="zone-filter-btn min-h-[44px] py-1 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer whitespace-nowrap shrink-0"
-        data-filter="daratan"
-      >
-        Daratan ({daratan.length})
-      </button>
-      <button
-        type="button"
-        id="btn-filter-kepulauan"
-        class="zone-filter-btn min-h-[44px] py-1 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer whitespace-nowrap shrink-0"
-        data-filter="kepulauan"
-      >
-        Kepulauan ({kepulauan.length})
-      </button>
-    </div>
-
-    <p class="hidden sm:block text-xs text-slate-600">
-      <span class="text-emerald-700 font-bold">Klik pin di peta</span> atau tombol <span class="font-bold">Peta</span> pada daftar untuk melompat ke lokasi.
-    </p>
-  </div>
-
   {/* Leaflet Interactive Map Container */}
-  <div class="relative w-full rounded-none sm:rounded-lg overflow-hidden border-y sm:border border-slate-300 bg-slate-100">
-    <div id="zones-leaflet-map" class="w-full h-[320px] sm:h-[520px] z-0"></div>
+  <div class="relative w-full overflow-hidden border-b border-slate-200 bg-slate-100">
+    <div id="zones-leaflet-map" class="w-full h-[300px] sm:h-[460px] z-0"></div>
 
-    {/* Map Overlay Legend (Bottom Left) */}
+    {/* Map Overlay Legend (Desktop) */}
     <div class="hidden sm:block absolute bottom-3 left-3 z-10 bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-2.5 shadow-sm text-xs space-y-1.5 pointer-events-auto">
       <p class="font-bold text-slate-800 leading-tight">Legenda Peta MWC NU:</p>
       <div class="flex items-center gap-2">
         <span class="w-3 h-3 rounded-full bg-emerald-700 border border-emerald-900"></span>
-        <span class="text-slate-700">MWC Daratan ({daratan.length} Kecamatan)</span>
+        <span class="text-slate-700">MWC Daratan ({daratan.length})</span>
       </div>
       <div class="flex items-center gap-2">
         <span class="w-3 h-3 rounded-full bg-teal-700 border border-teal-900"></span>
-        <span class="text-slate-700">MWC Kepulauan ({kepulauan.length} Kecamatan)</span>
+        <span class="text-slate-700">MWC Kepulauan ({kepulauan.length})</span>
       </div>
       <p id="map-tile-fallback" class="hidden text-xs text-amber-800 font-semibold pt-1 border-t border-slate-200">
-        Ubin peta eksternal tidak termuat — gunakan daftar kartu MWC di bawah.
+        Ubin peta eksternal tidak termuat. Gunakan daftar wilayah MWC di bawah.
       </p>
     </div>
   </div>
 
-  {/* Detailed Zone Cards Section (Divided into Daratan & Kepulauan) */}
-  <div class="space-y-6 pt-2">
-    {/* Daratan Cards */}
-    <div id="container-daratan" class="space-y-3">
-      <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
+  {/* Detailed Zone Directory (Daratan & Kepulauan) */}
+  <div class="divide-y divide-slate-200">
+    {/* Daratan */}
+    <div id="container-daratan">
+      <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
             Wilayah Daratan (<span class="font-mono tabular-nums">{daratan.length}</span> MWC)
-          </h3>
-          <span class="text-xs font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
+          </h2>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 border border-emerald-200">
             Daratan Madura
           </span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 border-y sm:border-0 border-slate-200 sm:gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 sm:gap-px sm:bg-slate-200 border-b border-slate-200">
         {daratan.map((z) => (
           <div
             id={`card-zone-${z.slug}`}
-            class="zone-card bg-white border-0 sm:border border-slate-200 hover:border-emerald-600 rounded-none sm:rounded-lg p-3.5 transition space-y-2.5 group"
+            class="zone-card bg-white p-4 transition space-y-3 group"
           >
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <h4 class="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-emerald-700 transition truncate">
+                <h3 class="font-bold text-sm text-slate-900 group-hover:text-emerald-700 transition truncate">
                   {z.name}
-                </h4>
+                </h3>
                 <p class="text-xs text-slate-600 mt-0.5 line-clamp-1" title={z.highlight}>
                   {z.highlight}
                 </p>
               </div>
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 shrink-0">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 shrink-0">
                 Daratan
               </span>
             </div>
 
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+            <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
               <div class="flex items-center gap-2 text-slate-600 font-medium font-mono tabular-nums">
                 <span><strong class="text-slate-900">{z.storeCount}</strong> Toko</span>
-                <span>•</span>
+                <span aria-hidden="true">/</span>
                 <span><strong class="text-slate-900">{z.productCount}</strong> Produk</span>
               </div>
 
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
-                  class="btn-fly-zone inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] text-emerald-800 hover:text-emerald-950 font-bold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
+                  class="btn-fly-zone inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] text-emerald-800 hover:text-emerald-950 font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer"
                   data-lat={z.lat}
                   data-lng={z.lng}
                   data-slug={z.slug}
@@ -290,11 +253,11 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
                 <a
                   href={`/?zona=${z.slug}`}
                   target="_blank"
-                  class="inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] text-emerald-700 hover:text-emerald-900 font-bold px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 transition"
+                  class="inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] text-slate-700 hover:text-emerald-800 font-semibold px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 transition"
                   title="Buka katalog produk MWC ini"
                 >
                   <span>Katalog</span>
-                  <AppIcon name="arrow-right" size="xs" />
+                  <AppIcon name="external-link" size="xs" />
                 </a>
               </div>
             </div>
@@ -303,50 +266,50 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
       </div>
     </div>
 
-    {/* Kepulauan Cards */}
-    <div id="container-kepulauan" class="space-y-3">
-      <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
+    {/* Kepulauan */}
+    <div id="container-kepulauan">
+      <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
         <div class="flex items-center gap-2">
-          <h3 class="text-xs font-black uppercase tracking-wider text-slate-800">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
             Wilayah Kepulauan (<span class="font-mono tabular-nums">{kepulauan.length}</span> MWC)
-          </h3>
-          <span class="text-xs font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
-            Gugusan Pulau &amp; Bahari
+          </h2>
+          <span class="text-xs font-semibold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
+            Gugusan Pulau
           </span>
         </div>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 border-y sm:border-0 border-slate-200 sm:gap-3">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 divide-y sm:divide-y-0 sm:gap-px sm:bg-slate-200 border-b border-slate-200">
         {kepulauan.map((z) => (
           <div
             id={`card-zone-${z.slug}`}
-            class="zone-card bg-white border-0 sm:border border-slate-200 hover:border-teal-600 rounded-none sm:rounded-lg p-3.5 transition space-y-2.5 group"
+            class="zone-card bg-white p-4 transition space-y-3 group"
           >
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <h4 class="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-teal-700 transition truncate">
+                <h3 class="font-bold text-sm text-slate-900 group-hover:text-teal-700 transition truncate">
                   {z.name}
-                </h4>
+                </h3>
                 <p class="text-xs text-slate-600 mt-0.5 line-clamp-1" title={z.highlight}>
                   {z.highlight}
                 </p>
               </div>
-              <span class="text-xs font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 shrink-0">
+              <span class="text-xs font-semibold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 shrink-0">
                 Kepulauan
               </span>
             </div>
 
-            <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+            <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between text-xs gap-2">
               <div class="flex items-center gap-2 text-slate-600 font-medium font-mono tabular-nums">
                 <span><strong class="text-slate-900">{z.storeCount}</strong> Toko</span>
-                <span>•</span>
+                <span aria-hidden="true">/</span>
                 <span><strong class="text-slate-900">{z.productCount}</strong> Produk</span>
               </div>
 
-              <div class="flex items-center gap-1.5">
+              <div class="flex items-center gap-1.5 shrink-0">
                 <button
                   type="button"
-                  class="btn-fly-zone inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] text-teal-800 hover:text-teal-950 font-bold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 transition cursor-pointer"
+                  class="btn-fly-zone inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] text-teal-800 hover:text-teal-950 font-semibold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 border border-teal-200 transition cursor-pointer"
                   data-lat={z.lat}
                   data-lng={z.lng}
                   data-slug={z.slug}
@@ -359,11 +322,11 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
                 <a
                   href={`/?zona=${z.slug}`}
                   target="_blank"
-                  class="inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] text-emerald-700 hover:text-emerald-900 font-bold px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 transition"
+                  class="inline-flex items-center gap-1 min-h-[44px] sm:min-h-[36px] text-slate-700 hover:text-emerald-800 font-semibold px-2.5 py-1 rounded-lg bg-white hover:bg-slate-50 border border-slate-300 transition"
                   title="Buka katalog produk MWC ini"
                 >
                   <span>Katalog</span>
-                  <AppIcon name="arrow-right" size="xs" />
+                  <AppIcon name="external-link" size="xs" />
                 </a>
               </div>
             </div>
@@ -378,7 +341,6 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
 </section>
 
 <style is:global>
-  /* Custom Leaflet Styling */
   .mamasar-map-pin {
     display: flex;
     align-items: center;
@@ -407,7 +369,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
     transform: scale(1.2);
   }
   .leaflet-popup-content-wrapper {
-    border-radius: 14px;
+    border-radius: 12px;
     padding: 0;
     overflow: hidden;
     box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
@@ -492,24 +454,22 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
       const popupHtml = `
         <div class="p-3.5 space-y-2 text-slate-900 min-w-[220px]">
           <div class="flex items-center justify-between gap-2 border-b border-slate-100 pb-1.5">
-            <h4 class="font-black text-xs text-slate-900">${escapePopupHtml(z.name)}</h4>
-            <span class="text-xs font-bold px-1.5 py-0.5 rounded ${
+            <h4 class="font-bold text-xs text-slate-900">${escapePopupHtml(z.name)}</h4>
+            <span class="text-xs font-semibold px-1.5 py-0.5 rounded ${
               isKepulauan ? 'bg-teal-50 text-teal-800 border border-teal-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
             }">${isKepulauan ? 'Kepulauan' : 'Daratan'}</span>
           </div>
           <p class="text-xs text-slate-600 leading-snug">${escapePopupHtml(z.highlight || 'Wilayah MWC NU Sumenep')}</p>
-          <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-semibold">
-            <span>${Number(z.storeCount) || 0} Toko UMKM</span>
+          <div class="pt-1.5 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600 font-semibold font-mono tabular-nums">
+            <span>${Number(z.storeCount) || 0} Toko</span>
             <span>${Number(z.productCount) || 0} Produk</span>
           </div>
           <div class="pt-1 flex items-center gap-1.5">
-            <a href="/?zona=${encodeURIComponent(z.slug)}" target="_blank" rel="noopener noreferrer" class="flex-1 py-1.5 px-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-center font-bold text-xs transition inline-flex items-center justify-center gap-1">
+            <a href="/?zona=${encodeURIComponent(z.slug)}" target="_blank" rel="noopener noreferrer" class="flex-1 min-h-[34px] py-1 px-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-center font-semibold text-xs transition inline-flex items-center justify-center">
               <span>Katalog Wilayah</span>
-              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </a>
-            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(z.name + ' Sumenep')}" target="_blank" rel="noopener noreferrer" class="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-center font-bold text-xs transition inline-flex items-center gap-1">
+            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(z.name + ' Sumenep')}" target="_blank" rel="noopener noreferrer" class="min-h-[34px] py-1 px-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-center font-semibold text-xs transition inline-flex items-center justify-center">
               <span>Rute</span>
-              <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
             </a>
           </div>
         </div>
@@ -535,10 +495,10 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
         const filterType = btn.getAttribute('data-filter');
 
         filterBtns.forEach((b) => {
-          b.classList.remove('bg-white', 'text-slate-900', 'shadow-2xs');
+          b.classList.remove('bg-white', 'text-slate-900', 'border', 'border-slate-200');
           b.classList.add('text-slate-600');
         });
-        btn.classList.add('bg-white', 'text-slate-900', 'shadow-2xs');
+        btn.classList.add('bg-white', 'text-slate-900', 'border', 'border-slate-200');
         btn.classList.remove('text-slate-600');
 
         if (filterType === 'all') {

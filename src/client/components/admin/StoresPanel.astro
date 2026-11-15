@@ -5,6 +5,7 @@ interface UMKMStore {
   id: number;
   name: string;
   slug?: string;
+  logo_url?: string | null;
   phone: string;
   address?: string | null;
   ranting?: string | null;
@@ -23,6 +24,14 @@ interface Props {
 
 const { pendingStores, verifiedStores } = Astro.props;
 
+const totalStoresCount = pendingStores.length + verifiedStores.length;
+const totalProductsCount =
+  pendingStores.reduce((sum, s) => sum + (s.product_count || 0), 0) +
+  verifiedStores.reduce((sum, s) => sum + (s.product_count || 0), 0);
+const coveredZonesCount = new Set(
+  [...pendingStores, ...verifiedStores].map((s) => s.zone_name).filter(Boolean)
+).size;
+
 function formatDate(iso: string): string {
   try {
     return new Date(iso).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -30,169 +39,294 @@ function formatDate(iso: string): string {
     return iso;
   }
 }
+
+function storeInitials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) return (words[0][0] + words[1][0]).toUpperCase();
+  return name.trim().slice(0, 2).toUpperCase() || 'UM';
+}
 ---
 
-<section id="panel-stores" class="admin-tab-panel hidden space-y-6">
-  {/* Top Bar: Compact Header with Line Divider */}
-  <div class="flex items-center justify-between px-3.5 sm:px-0 pb-3 border-b border-slate-200">
-    <div class="flex items-center gap-2.5">
-      <h2 class="text-base sm:text-lg font-bold text-slate-900">Kurasi &amp; Moderasi Toko</h2>
-      <span class="text-xs font-mono tabular-nums font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
-        {pendingStores.length} antrean
-      </span>
+<section id="panel-stores" class="admin-tab-panel hidden">
+  {/* Hairline Operational Metric Strip */}
+  <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r lg:border-b-0 border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Antrean Verifikasi</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5">
+        <span class={`text-xl font-bold font-mono tabular-nums ${pendingStores.length > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
+          {pendingStores.length}
+        </span>
+        <span class="text-xs text-slate-600">menunggu</span>
+      </div>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b lg:border-b-0 lg:border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Toko Terverifikasi</span>
+      <span class="mt-0.5 text-xl font-bold text-emerald-700 font-mono tabular-nums block">{verifiedStores.length}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Total Produk Etalase</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{totalProductsCount}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4">
+      <span class="text-xs font-medium text-slate-600 block">Cakupan Wilayah</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5">
+        <span class="text-xl font-bold text-slate-900 font-mono tabular-nums">{coveredZonesCount}</span>
+        <span class="text-xs text-slate-600">MWC</span>
+      </div>
+    </div>
+  </div>
+
+  {/* Search & Status Filter Toolbar */}
+  <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/40">
+    <div class="relative flex-1 max-w-md">
+      <label for="store-directory-search" class="sr-only">Cari nama toko, desa, atau MWC</label>
+      <input
+        type="search"
+        id="store-directory-search"
+        autocorrect="off"
+        autocapitalize="none"
+        spellcheck="false"
+        placeholder="Cari nama toko, desa/ranting, atau MWC..."
+        class="w-full min-h-[44px] sm:min-h-[38px] bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+      />
+    </div>
+
+    <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+      <button
+        type="button"
+        data-store-filter="all"
+        aria-pressed="true"
+        class="store-filter-btn min-h-[40px] sm:min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-white border border-slate-900 transition cursor-pointer shrink-0 font-mono tabular-nums"
+      >
+        Semua ({totalStoresCount})
+      </button>
+      <button
+        type="button"
+        data-store-filter="pending"
+        aria-pressed="false"
+        class="store-filter-btn min-h-[40px] sm:min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 border border-slate-300 transition cursor-pointer shrink-0 font-mono tabular-nums"
+      >
+        Antrean ({pendingStores.length})
+      </button>
+      <button
+        type="button"
+        data-store-filter="verified"
+        aria-pressed="false"
+        class="store-filter-btn min-h-[40px] sm:min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 border border-slate-300 transition cursor-pointer shrink-0 font-mono tabular-nums"
+      >
+        Terverifikasi ({verifiedStores.length})
+      </button>
     </div>
   </div>
 
   {/* Section 1: Antrean Menunggu Verifikasi */}
-  <div class="space-y-2">
-    <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
-        Antrean Verifikasi (<span class="font-mono tabular-nums">{pendingStores.length}</span>)
+  <div id="stores-section-pending" class="border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+        Menunggu Verifikasi (<span class="font-mono tabular-nums">{pendingStores.length}</span>)
       </h2>
     </div>
 
     {pendingStores.length > 0 ? (
-      <div class="divide-y divide-slate-100 border-b border-slate-200">
-        {pendingStores.map((store) => (
-          <div class="py-3 px-3.5 sm:px-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
-                <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-                  <AppIcon name="map-pin" size="xs" />
-                  <span>MWC {store.zone_name}</span>
-                </span>
-                {store.ranting && (
-                  <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Desa {store.ranting}
-                  </span>
+      <div class="divide-y divide-slate-200 bg-white">
+        {pendingStores.map((store) => {
+          const searchKey = `${store.name} ${store.zone_name} ${store.ranting || ''} ${store.owner_email || ''}`.toLowerCase();
+          return (
+            <div
+              data-store-row
+              data-store-status="pending"
+              data-search={searchKey}
+              class="px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition"
+            >
+              <div class="flex items-start gap-3 min-w-0">
+                {store.logo_url ? (
+                  <img
+                    src={store.logo_url}
+                    alt={`Logo ${store.name}`}
+                    width="40"
+                    height="40"
+                    class="w-10 h-10 rounded-lg object-cover border border-slate-200 bg-white shrink-0"
+                  />
+                ) : (
+                  <div class="w-10 h-10 rounded-lg bg-amber-50 text-amber-800 border border-amber-200 flex items-center justify-center font-bold text-xs shrink-0">
+                    {storeInitials(store.name)}
+                  </div>
                 )}
-                <span class="text-xs font-mono tabular-nums text-slate-600">
-                  {store.product_count || 0} produk<span class="hidden sm:inline"> · {formatDate(store.created_at)}</span>
-                </span>
-                <span class="hidden sm:inline text-xs text-slate-600">
-                  {store.owner_email || 'Kader Lapangan'}
-                </span>
-              </div>
-              {store.address && (
-                <p class="hidden sm:block text-xs text-slate-600 truncate mt-0.5">{store.address}</p>
-              )}
-            </div>
 
-            <div class="grid grid-cols-[1fr_1fr_44px] sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
-              <a
-                href={`/toko/${store.slug || store.id}`}
-                target="_blank"
-                class="inline-flex items-center justify-center gap-1 min-h-[44px] px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition"
-              >
-                <span>Lihat</span>
-                <AppIcon name="external-link" size="xs" />
-              </a>
-              <button
-                type="button"
-                data-action="verify-store"
-                data-id={store.id}
-                data-verified="1"
-                class="inline-flex items-center justify-center gap-1 min-h-[44px] py-1 px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
-              >
-                <AppIcon name="check" size="xs" />
-                <span>Verifikasi</span>
-              </button>
-              <button
-                type="button"
-                data-action="delete-store"
-                data-id={store.id}
-                data-name={store.name}
-                class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] p-1.5 text-slate-600 hover:text-rose-600 rounded-lg border border-transparent hover:border-rose-200 transition cursor-pointer"
-                title="Hapus Toko"
-                aria-label={`Hapus toko ${store.name}`}
-              >
-                <AppIcon name="trash" size="xs" />
-              </button>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                      <AppIcon name="map-pin" size="xs" />
+                      <span>MWC {store.zone_name}</span>
+                    </span>
+                    {store.ranting && (
+                      <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        Desa {store.ranting}
+                      </span>
+                    )}
+                    <span class="text-xs font-mono tabular-nums text-slate-600">
+                      {store.product_count || 0} produk<span class="hidden sm:inline"> ({formatDate(store.created_at)})</span>
+                    </span>
+                  </div>
+                  {(store.address || store.owner_email) && (
+                    <p class="hidden sm:block text-xs text-slate-600 truncate mt-0.5">
+                      {[store.owner_email || 'Kader Lapangan', store.address].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div class="grid grid-cols-[1fr_1fr_44px] sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
+                <a
+                  href={`/toko/${store.slug || store.id}`}
+                  target="_blank"
+                  class="inline-flex items-center justify-center gap-1 min-h-[44px] sm:min-h-[38px] px-3 py-1 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition"
+                >
+                  <span>Lihat</span>
+                  <AppIcon name="external-link" size="xs" />
+                </a>
+                <button
+                  type="button"
+                  data-action="verify-store"
+                  data-id={store.id}
+                  data-verified="1"
+                  class="inline-flex items-center justify-center gap-1 min-h-[44px] sm:min-h-[38px] py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
+                >
+                  <AppIcon name="check" size="xs" />
+                  <span>Verifikasi</span>
+                </button>
+                <button
+                  type="button"
+                  data-action="delete-store"
+                  data-id={store.id}
+                  data-name={store.name}
+                  class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-[38px] sm:min-w-[38px] p-1.5 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200 transition cursor-pointer"
+                  title="Hapus Toko"
+                  aria-label={`Hapus toko ${store.name}`}
+                >
+                  <AppIcon name="trash" size="xs" />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     ) : (
-      <p class="text-xs text-slate-600 py-3 px-3.5 sm:px-0">Tidak ada toko baru yang menunggu verifikasi.</p>
+      <p class="text-xs text-slate-600 py-5 px-4 sm:px-6 lg:px-8 bg-white">
+        Semua pengajuan toko baru telah ditinjau.
+      </p>
     )}
   </div>
 
   {/* Section 2: Toko Terverifikasi */}
-  <div class="space-y-2 pt-2">
-    <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+  <div id="stores-section-verified" class="border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
         Toko Terverifikasi (<span class="font-mono tabular-nums">{verifiedStores.length}</span>)
       </h2>
     </div>
 
     {verifiedStores.length > 0 ? (
-      <div class="divide-y divide-slate-100 border-b border-slate-200">
-        {verifiedStores.map((store) => (
-          <div class="py-3 px-3.5 sm:px-1 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/60 transition">
-            <div class="min-w-0">
-              <div class="flex items-center gap-2 flex-wrap">
-                <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
-                <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Verified
-                </span>
-                <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
-                  <AppIcon name="map-pin" size="xs" />
-                  <span>MWC {store.zone_name}</span>
-                </span>
-                {store.ranting && (
-                  <span class="text-xs font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Desa {store.ranting}
-                  </span>
+      <div class="divide-y divide-slate-200 bg-white">
+        {verifiedStores.map((store) => {
+          const searchKey = `${store.name} ${store.zone_name} ${store.ranting || ''} ${store.owner_email || ''}`.toLowerCase();
+          return (
+            <div
+              data-store-row
+              data-store-status="verified"
+              data-search={searchKey}
+              class="px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 hover:bg-slate-50/70 transition"
+            >
+              <div class="flex items-start gap-3 min-w-0">
+                {store.logo_url ? (
+                  <img
+                    src={store.logo_url}
+                    alt={`Logo ${store.name}`}
+                    width="40"
+                    height="40"
+                    class="w-10 h-10 rounded-lg object-cover border border-slate-200 bg-white shrink-0"
+                  />
+                ) : (
+                  <div class="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center font-bold text-xs shrink-0">
+                    {storeInitials(store.name)}
+                  </div>
                 )}
-                <span class="text-xs font-mono tabular-nums text-slate-600">
-                  {store.product_count || 0} produk
-                </span>
-                <span class="hidden sm:inline text-xs text-slate-600">
-                  {store.owner_email || 'Binaan Warga'}
-                </span>
-              </div>
-              {store.address && (
-                <p class="hidden sm:block text-xs text-slate-600 truncate mt-0.5">{store.address}</p>
-              )}
-            </div>
 
-            <div class="grid grid-cols-[1fr_1fr_44px] sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
-              <a
-                href={`/toko/${store.slug || store.id}`}
-                target="_blank"
-                class="inline-flex items-center justify-center gap-1 min-h-[44px] px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition"
-              >
-                <span>Lihat</span>
-                <AppIcon name="external-link" size="xs" />
-              </a>
-              <button
-                type="button"
-                data-action="verify-store"
-                data-id={store.id}
-                data-verified="0"
-                class="min-h-[44px] py-1 px-2.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-200 font-semibold text-xs rounded-lg transition cursor-pointer"
-                title="Cabut status verifikasi"
-              >
-                Cabut
-              </button>
-              <button
-                type="button"
-                data-action="delete-store"
-                data-id={store.id}
-                data-name={store.name}
-                class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] p-1.5 text-slate-600 hover:text-rose-600 rounded-lg border border-transparent hover:border-rose-200 transition cursor-pointer"
-                title="Hapus Toko"
-                aria-label={`Hapus toko ${store.name}`}
-              >
-                <AppIcon name="trash" size="xs" />
-              </button>
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
+                    <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      <AppIcon name="check" size="xs" />
+                      <span>Terverifikasi</span>
+                    </span>
+                    <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                      <AppIcon name="map-pin" size="xs" />
+                      <span>MWC {store.zone_name}</span>
+                    </span>
+                    {store.ranting && (
+                      <span class="text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                        Desa {store.ranting}
+                      </span>
+                    )}
+                    <span class="text-xs font-mono tabular-nums text-slate-600">
+                      {store.product_count || 0} produk
+                    </span>
+                  </div>
+                  {(store.address || store.owner_email) && (
+                    <p class="hidden sm:block text-xs text-slate-600 truncate mt-0.5">
+                      {[store.owner_email || 'Binaan Warga', store.address].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div class="grid grid-cols-[1fr_1fr_44px] sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
+                <a
+                  href={`/toko/${store.slug || store.id}`}
+                  target="_blank"
+                  class="inline-flex items-center justify-center gap-1 min-h-[44px] sm:min-h-[38px] px-3 py-1 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition"
+                >
+                  <span>Lihat</span>
+                  <AppIcon name="external-link" size="xs" />
+                </a>
+                <button
+                  type="button"
+                  data-action="verify-store"
+                  data-id={store.id}
+                  data-verified="0"
+                  class="min-h-[44px] sm:min-h-[38px] py-1 px-3 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-semibold text-xs rounded-lg transition cursor-pointer"
+                  title="Cabut status verifikasi"
+                >
+                  Cabut
+                </button>
+                <button
+                  type="button"
+                  data-action="delete-store"
+                  data-id={store.id}
+                  data-name={store.name}
+                  class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-[38px] sm:min-w-[38px] p-1.5 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200 transition cursor-pointer"
+                  title="Hapus Toko"
+                  aria-label={`Hapus toko ${store.name}`}
+                >
+                  <AppIcon name="trash" size="xs" />
+                </button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     ) : (
-      <p class="text-xs text-slate-600 py-3 px-3.5 sm:px-0">Belum ada toko yang terverifikasi.</p>
+      <p class="text-xs text-slate-600 py-5 px-4 sm:px-6 lg:px-8 bg-white">
+        Belum ada toko terverifikasi di cakupan wilayah ini.
+      </p>
     )}
+  </div>
+
+  <div id="store-directory-empty" class="hidden px-4 sm:px-6 lg:px-8 py-12 text-center text-xs text-slate-600 bg-white border-b border-slate-200">
+    Tidak ada toko yang cocok dengan pencarian Anda.
   </div>
 </section>

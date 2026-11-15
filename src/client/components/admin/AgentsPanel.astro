@@ -16,38 +16,61 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
   ranting: { label: 'Kader Ranting', cls: 'bg-emerald-50 text-emerald-800 border-emerald-200' },
   warga: { label: 'Warga', cls: 'bg-slate-100 text-slate-700 border-slate-200' },
 };
+
+const mwcCount = allUsers.filter((u) => u.role === 'mwcnu').length;
+const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
 ---
 
-<section id="panel-agents" class="admin-tab-panel space-y-8">
-  <!-- Top Bar -->
-  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3.5 sm:px-0 pb-3 border-b border-slate-200">
-    <div class="flex items-center gap-2.5 flex-wrap">
-      <h2 class="text-base sm:text-lg font-bold text-slate-900">Manajemen Pengguna & Peran</h2>
-      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
-        {pendingPetugas.length} permohonan baru
-      </span>
-      <span class="text-xs font-semibold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
-        {allUsers.length} total akun
-      </span>
+<section id="panel-agents" class="admin-tab-panel">
+  {/* Hairline Operational Metric Strip */}
+  <div class="grid grid-cols-2 lg:grid-cols-4 border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r lg:border-b-0 border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Permohonan Masuk</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5">
+        <span class={`text-xl font-bold font-mono tabular-nums ${pendingPetugas.length > 0 ? 'text-amber-700' : 'text-slate-900'}`}>
+          {pendingPetugas.length}
+        </span>
+        <span class="text-xs text-slate-600">menunggu</span>
+      </div>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b lg:border-b-0 lg:border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Pengurus MWC</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{mwcCount}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
+      <span class="text-xs font-medium text-slate-600 block">Kader Ranting</span>
+      <span class="mt-0.5 text-xl font-bold text-emerald-700 font-mono tabular-nums block">{rantingCount}</span>
+    </div>
+
+    <div class="px-4 sm:px-6 lg:px-8 py-4">
+      <span class="text-xs font-medium text-slate-600 block">Total Akun</span>
+      <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{allUsers.length}</span>
     </div>
   </div>
 
-  <!-- Section 1: Antrean Permohonan (Pending) -->
-  <div class="space-y-3">
-    <div class="flex items-center justify-between px-3.5 sm:px-0 pb-2 border-b border-slate-200">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
-        1. Antrean Permohonan Kader / Pengurus ({pendingPetugas.length})
-      </h3>
+  {/* Section 1: Antrean Permohonan */}
+  <div class="border-b border-slate-200">
+    <div class="px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between gap-2 border-b border-slate-200 bg-white">
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+        Antrean Permohonan Kader &amp; Pengurus (<span class="font-mono tabular-nums">{pendingPetugas.length}</span>)
+      </h2>
     </div>
 
     {pendingPetugas.length === 0 ? (
-      <p class="text-xs text-slate-600 py-2 px-3.5 sm:px-0">Tidak ada permohonan kader atau pengurus yang menunggu persetujuan saat ini.</p>
+      <div class="px-4 sm:px-6 lg:px-8 py-6 text-xs text-slate-600 flex items-center gap-2.5 bg-white">
+        <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center shrink-0">
+          <AppIcon name="check" size="xs" />
+        </span>
+        <span>Semua permohonan kader dan pengurus telah diproses. Pengajuan baru akan tampil di sini.</span>
+      </div>
     ) : (
-      <div class="divide-y divide-slate-200 border-b border-slate-200">
+      <div class="divide-y divide-slate-200 bg-white">
         {pendingPetugas.map((kader) => {
           const isMwcReq = kader.requested_role === 'mwcnu';
           return (
-            <div class="py-3 px-3.5 sm:px-1 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3 hover:bg-slate-50/60 transition">
+            <div class="px-4 sm:px-6 lg:px-8 py-4 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5 hover:bg-slate-50/70 transition">
               <div class="min-w-0 space-y-1">
                 <div class="flex items-center gap-2 flex-wrap">
                   <strong class="font-bold text-sm text-slate-900">{kader.name}</strong>
@@ -56,22 +79,22 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                       ? 'bg-teal-50 text-teal-800 border-teal-200'
                       : 'bg-emerald-50 text-emerald-800 border-emerald-200'
                   }`}>
-                    {isMwcReq ? 'Ajukan: Pengurus MWC NU' : 'Ajukan: Kader Ranting'}
+                    {isMwcReq ? 'Ajukan: Pengurus MWC' : 'Ajukan: Kader Ranting'}
                   </span>
-                  <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
+                  <span class="inline-flex items-center gap-1 text-xs font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                     <AppIcon name="map-pin" size="xs" />
                     <span>MWC {kader.zone_name || 'Sumenep'}</span>
                   </span>
                   {kader.agent_ranting && (
-                    <span class="text-xs font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
+                    <span class="text-xs font-medium text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-200">
                       Ranting {kader.agent_ranting}
                     </span>
                   )}
                 </div>
                 <div class="flex items-center gap-2 flex-wrap text-xs text-slate-600">
                   <span>{kader.agent_org || 'Kader NU'}</span>
-                  <span>•</span>
-                  <span class="font-mono">{kader.email}</span>
+                  <span aria-hidden="true">/</span>
+                  <span class="font-mono break-all">{kader.email}</span>
                 </div>
               </div>
 
@@ -81,7 +104,7 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                     href={`https://wa.me/${kader.agent_phone}?text=${encodeURIComponent(`Assalamu'alaikum Sahabat ${kader.name}, kami dari Admin PCNU Sumenep mengonfirmasi pengajuan peran di Mamasar untuk wilayah MWC ${kader.zone_name || 'Sumenep'}.`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="inline-flex items-center gap-1 min-h-[38px] px-2.5 py-1 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded text-xs font-medium transition"
+                    class="inline-flex items-center justify-center gap-1.5 min-h-[44px] sm:min-h-[38px] px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 rounded-lg text-xs font-semibold transition"
                     title="Hubungi via WhatsApp"
                   >
                     <AppIcon name="phone" size="xs" />
@@ -92,10 +115,10 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                 <select
                   aria-label={`Pilih peran persetujuan untuk ${kader.name}`}
                   data-role-select-for={kader.id}
-                  class="min-h-[36px] bg-white border border-slate-300 rounded px-2 py-1 text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none"
+                  class="flex-1 sm:flex-initial min-h-[44px] sm:min-h-[38px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none"
                 >
-                  <option value="ranting" selected={!isMwcReq}>Setujui sbg Kader Ranting</option>
-                  <option value="mwcnu" selected={isMwcReq}>Setujui sbg Pengurus MWC</option>
+                  <option value="ranting" selected={!isMwcReq}>Setujui: Kader Ranting</option>
+                  <option value="mwcnu" selected={isMwcReq}>Setujui: Pengurus MWC</option>
                 </select>
 
                 <button
@@ -103,7 +126,7 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                   data-action="review-agent"
                   data-id={kader.id}
                   data-decision="approve"
-                  class="inline-flex items-center gap-1 min-h-[38px] py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded transition cursor-pointer"
+                  class="inline-flex items-center justify-center gap-1.5 min-h-[44px] sm:min-h-[38px] py-1.5 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
                 >
                   <AppIcon name="check" size="xs" />
                   <span>Setujui</span>
@@ -113,7 +136,7 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                   data-action="review-agent"
                   data-id={kader.id}
                   data-decision="reject"
-                  class="inline-flex items-center gap-1 min-h-[38px] py-1 px-3 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-semibold text-xs rounded transition cursor-pointer"
+                  class="inline-flex items-center justify-center gap-1.5 min-h-[44px] sm:min-h-[38px] py-1.5 px-3 bg-white hover:bg-rose-50 text-rose-700 border border-rose-300 font-semibold text-xs rounded-lg transition cursor-pointer"
                 >
                   <AppIcon name="x" size="xs" />
                   <span>Tolak</span>
@@ -126,25 +149,25 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
     )}
   </div>
 
-  <!-- Section 2: Daftarkan / Tetapkan Akun Peran Khusus (via Email) -->
-  <div class="space-y-3 bg-slate-50/70 border-y sm:border border-slate-200 rounded-none sm:rounded-lg px-3.5 py-4 sm:p-5">
+  {/* Section 2: Tetapkan Akun Peran Khusus (Hairline Section) */}
+  <div class="border-b border-slate-200 bg-slate-50/40 px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-4">
     <div class="space-y-1">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
-        2. Daftarkan atau Tetapkan Akun Peran Khusus (via Email)
-      </h3>
-      <p class="text-xs text-slate-600 leading-relaxed">
-        Daftarkan email Pengurus MWC, Kader Ranting, atau Admin PCNU baru dari sini. Jika pemilik email sudah punya akun, perannya langsung berubah; jika belum, saat nanti dia masuk dengan Google atau daftar memakai email ini, perannya otomatis aktif.
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+        Daftarkan atau Tetapkan Akun Peran Khusus
+      </h2>
+      <p class="text-xs text-slate-600 leading-relaxed max-w-3xl">
+        Tetapkan email Pengurus MWC, Kader Ranting, atau Admin PCNU baru. Jika email sudah memiliki akun, perannya langsung diperbarui; jika belum, peran aktif otomatis saat pemilik email masuk.
       </p>
     </div>
 
-    <div id="admin-add-user-status" role="status" aria-live="polite" class="hidden p-2.5 rounded-lg text-xs font-semibold"></div>
+    <div id="admin-add-user-status" role="status" aria-live="polite" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
 
     <form id="form-admin-add-user" class="space-y-3" aria-label="Formulir pendaftaran akun sesuai peran">
       <input type="hidden" name="mode" value="create" />
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <div class="space-y-1">
-          <label for="addUserName" class="block text-xs font-medium text-slate-800">
+          <label for="addUserName" class="block text-xs font-semibold text-slate-800">
             Nama Lengkap <span class="text-rose-600" aria-hidden="true">*</span>
           </label>
           <input
@@ -154,12 +177,12 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
             autocomplete="name"
             required
             placeholder="Contoh: Ust. Fathorrahman"
-            class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="space-y-1">
-          <label for="addUserEmail" class="block text-xs font-medium text-slate-800">
+          <label for="addUserEmail" class="block text-xs font-semibold text-slate-800">
             Alamat Email Akun <span class="text-rose-600" aria-hidden="true">*</span>
           </label>
           <input
@@ -171,20 +194,20 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
             autocapitalize="none"
             spellcheck="false"
             required
-            placeholder="pengurus@gmail.com"
-            class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+            placeholder="email@example.com"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="space-y-1">
-          <label for="addUserRole" class="block text-xs font-medium text-slate-800">
+          <label for="addUserRole" class="block text-xs font-semibold text-slate-800">
             Peran / Hak Akses <span class="text-rose-600" aria-hidden="true">*</span>
           </label>
           <select
             id="addUserRole"
             name="role"
             required
-            class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs font-semibold text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-semibold text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
           >
             <option value="mwcnu">Pengurus MWC NU (Kecamatan)</option>
             <option value="ranting">Kader Ranting (Petugas Lapangan)</option>
@@ -196,14 +219,14 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div class="space-y-1">
-          <label for="addUserZone" class="block text-xs font-medium text-slate-800">
+          <label for="addUserZone" class="block text-xs font-semibold text-slate-800">
             Wilayah MWC NU <span id="addUserZoneRequiredMark" class="text-rose-600" aria-hidden="true">*</span>
           </label>
           <select
             id="addUserZone"
             name="zoneId"
             required
-            class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
           >
             <option value="" disabled selected>Pilih Wilayah MWC</option>
             {zones.map((z) => (
@@ -213,33 +236,33 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
         </div>
 
         <div class="space-y-1">
-          <label for="addUserRanting" class="block text-xs font-medium text-slate-800">
+          <label for="addUserRanting" class="block text-xs font-semibold text-slate-800">
             Ranting / Desa (Opsional)
           </label>
           <input
             type="text"
             id="addUserRanting"
             name="ranting"
-            placeholder="Contoh: Gapura Barat"
-            class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+            placeholder="Nama desa / kelurahan"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="space-y-1">
-          <label for="addUserOrg" class="block text-xs font-medium text-slate-800">
+          <label for="addUserOrg" class="block text-xs font-semibold text-slate-800">
             Banom / Lembaga (Opsional)
           </label>
           <input
             type="text"
             id="addUserOrg"
             name="org"
-            placeholder="Contoh: LPNU / Ansor"
-            class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+            placeholder="Misal: LPNU / Ansor"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
 
         <div class="space-y-1">
-          <label for="addUserPhone" class="block text-xs font-medium text-slate-800">
+          <label for="addUserPhone" class="block text-xs font-semibold text-slate-800">
             No. WhatsApp (Opsional)
           </label>
           <input
@@ -248,8 +271,8 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
             name="phone"
             autocomplete="tel"
             inputmode="tel"
-            placeholder="081234567890"
-            class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+            placeholder="08xxxxxxxxxx"
+            class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
           />
         </div>
       </div>
@@ -258,44 +281,43 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
         <button
           type="submit"
           id="btn-admin-add-user"
-          class="inline-flex items-center gap-1.5 min-h-[40px] py-2 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg shadow-xs transition cursor-pointer"
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 min-h-[44px] sm:min-h-[40px] py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
         >
           <span>Simpan &amp; Tetapkan Akun</span>
-          <AppIcon name="arrow-right" size="xs" />
         </button>
       </div>
     </form>
   </div>
 
-  <!-- Section 3: Direktori Semua Pengguna & Ubah Peran -->
-  <div class="space-y-3">
-    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-3.5 sm:px-0 pb-2 border-b border-slate-200">
-      <h3 id="users-directory-heading" class="text-xs font-bold uppercase tracking-wider text-slate-800">
-        3. Daftar Seluruh Akun & Pengaturan Peran
-      </h3>
-      <span id="user-directory-count" class="text-xs font-medium text-slate-600">
+  {/* Section 3: Direktori Semua Pengguna & Ubah Peran */}
+  <div class="pt-5 space-y-3">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-4 sm:px-6 lg:px-8">
+      <h2 id="users-directory-heading" class="text-xs font-bold uppercase tracking-wider text-slate-800">
+        Direktori Akun &amp; Pengaturan Peran
+      </h2>
+      <span id="user-directory-count" class="text-xs font-mono tabular-nums font-medium text-slate-600">
         Menampilkan {allUsers.length} dari {allUsers.length} akun
       </span>
     </div>
 
-    <search class="flex flex-col sm:flex-row gap-2.5 px-3.5 sm:px-0">
-      <div class="flex-1">
-        <label for="user-directory-search" class="sr-only">Cari nama atau email pengguna</label>
+    <search class="flex flex-col sm:flex-row gap-2.5 px-4 sm:px-6 lg:px-8">
+      <div class="relative flex-1">
+        <label for="user-directory-search" class="sr-only">Cari nama, email, atau toko pengguna</label>
         <input
           type="search"
           id="user-directory-search"
           autocorrect="off"
           autocapitalize="none"
           spellcheck="false"
-          placeholder="Cari nama, email, atau nama toko..."
-          class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
+          placeholder="Cari nama, email, wilayah, atau nama toko..."
+          class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
         />
       </div>
       <div class="sm:w-56">
         <label for="user-directory-role-filter" class="sr-only">Filter berdasarkan peran</label>
         <select
           id="user-directory-role-filter"
-          class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-sm sm:text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
+          class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-medium text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20 cursor-pointer"
         >
           <option value="">Semua Peran ({allUsers.length})</option>
           <option value="pcnu">Admin PCNU / Superadmin</option>
@@ -310,16 +332,16 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
       tabindex="0"
       role="region"
       aria-labelledby="users-directory-heading"
-      class="users-table-wrapper overflow-x-auto border-y sm:border border-slate-200 rounded-none sm:rounded-lg bg-white"
+      class="users-table-wrapper overflow-x-auto border-y border-slate-200 bg-white"
     >
-      <table class="users-directory-table w-full min-w-[780px] text-left border-collapse text-xs">
+      <table class="users-directory-table w-full min-w-[820px] text-left border-collapse text-xs">
         <thead class="bg-slate-50 border-b border-slate-200 text-slate-700">
           <tr>
-            <th scope="col" class="py-2.5 px-3 font-bold">Pengguna</th>
+            <th scope="col" class="py-2.5 pl-4 sm:pl-6 lg:pl-8 pr-3 font-bold">Pengguna</th>
             <th scope="col" class="py-2.5 px-3 font-bold">Peran Saat Ini</th>
             <th scope="col" class="py-2.5 px-3 font-bold">Ubah Peran</th>
-            <th scope="col" class="py-2.5 px-3 font-bold">Wilayah MWC & Ranting</th>
-            <th scope="col" class="py-2.5 px-3 font-bold text-right">Aksi</th>
+            <th scope="col" class="py-2.5 px-3 font-bold">Wilayah MWC &amp; Ranting</th>
+            <th scope="col" class="py-2.5 pl-3 pr-4 sm:pr-6 lg:pr-8 font-bold text-right">Aksi</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
@@ -333,17 +355,17 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                 data-search={searchKey}
                 class="hover:bg-slate-50/70 transition"
               >
-                <th scope="row" class="py-3 px-3 font-normal align-top">
+                <th scope="row" class="py-3 pl-4 sm:pl-6 lg:pl-8 pr-3 font-normal align-top">
                   <div class="space-y-0.5">
                     <div class="font-bold text-slate-900 flex items-center gap-1.5 flex-wrap">
                       <span>{u.name}</span>
                       {u.is_env_superadmin && (
-                        <span class="text-xs font-semibold px-1.5 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-200">
+                        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-rose-100 text-rose-900 border border-rose-200">
                           Superadmin Utama (Env)
                         </span>
                       )}
                       {u.is_pending_login && (
-                        <span class="text-xs font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
+                        <span class="text-[11px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-300">
                           Belum Login
                         </span>
                       )}
@@ -365,7 +387,7 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                     </span>
                     {u.zone_name && (
                       <div class="text-xs text-slate-600">
-                        MWC {u.zone_name}{u.agent_ranting ? ` • ${u.agent_ranting}` : ''}
+                        MWC {u.zone_name}{u.agent_ranting ? ` / ${u.agent_ranting}` : ''}
                       </div>
                     )}
                   </div>
@@ -378,7 +400,7 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                     data-user-role-select
                     data-id={u.id}
                     disabled={u.is_env_superadmin}
-                    class="w-full min-h-[36px] bg-white border border-slate-300 rounded px-2 py-1 text-xs font-medium text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
+                    class="w-full min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs font-medium text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
                   >
                     <option value="warga" selected={u.role === 'warga'}>Warga Biasa</option>
                     <option value="ranting" selected={u.role === 'ranting'}>Kader Ranting</option>
@@ -395,9 +417,9 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                       data-user-zone-select
                       data-id={u.id}
                       disabled={u.is_env_superadmin}
-                      class="flex-1 min-h-[36px] bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
+                      class="flex-1 min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
                     >
-                      <option value="">-- Semua / Tidak Ada MWC --</option>
+                      <option value="">-- Semua / Tanpa MWC --</option>
                       {zones.map((z) => (
                         <option value={z.id} selected={u.assigned_zone_id === z.id}>{z.name}</option>
                       ))}
@@ -411,20 +433,20 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
                       value={u.agent_ranting || ''}
                       disabled={u.is_env_superadmin}
                       placeholder="Ranting/Desa"
-                      class="sm:w-32 min-h-[36px] bg-white border border-slate-300 rounded px-2 py-1 text-xs text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
+                      class="sm:w-32 min-h-[40px] bg-white border border-slate-300 rounded-lg px-2.5 py-1 text-xs text-slate-900 disabled:bg-slate-100 disabled:text-slate-600 focus:border-emerald-700 focus:outline-none"
                     />
                   </div>
                 </td>
 
-                <td class="py-3 px-3 align-top text-right">
+                <td class="py-3 pl-3 pr-4 sm:pr-6 lg:pr-8 align-top text-right">
                   {u.is_env_superadmin ? (
-                    <span class="text-xs font-medium text-slate-600">Terkunci</span>
+                    <span class="inline-flex items-center min-h-[40px] text-xs font-medium text-slate-600">Terkunci</span>
                   ) : (
                     <button
                       type="button"
                       data-action="save-user-role"
                       data-id={u.id}
-                      class="min-h-[36px] px-3 py-1 bg-slate-900 hover:bg-emerald-700 text-white font-semibold text-xs rounded transition cursor-pointer"
+                      class="min-h-[40px] px-3.5 py-1.5 bg-slate-900 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
                     >
                       Simpan
                     </button>
@@ -433,6 +455,11 @@ const ROLE_BADGES: Record<string, { label: string; cls: string }> = {
               </tr>
             );
           })}
+          <tr id="user-directory-empty" class="hidden">
+            <td colspan="5" class="py-10 px-4 text-center text-xs text-slate-600">
+              Tidak ada akun yang cocok dengan kata kunci atau filter peran tersebut.
+            </td>
+          </tr>
         </tbody>
       </table>
     </div>
