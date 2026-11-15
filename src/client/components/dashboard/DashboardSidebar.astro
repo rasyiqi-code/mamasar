@@ -196,7 +196,7 @@ const {
         </a>
       </div>
 
-      <div class="pt-3 mt-3 border-t border-slate-200 space-y-1">
+      <div class="md:hidden pt-3 mt-3 border-t border-slate-200 space-y-1">
         <a
           href="/"
           class="min-h-[40px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
@@ -207,18 +207,18 @@ const {
       </div>
     </nav>
 
-    <!-- Sidebar Footer: Storefront Link & User Account Row -->
-    <div class="p-3 border-t border-slate-200 space-y-2.5">
+    <!-- Sidebar Footer: Mobile Storefront Link & User Account Row -->
+    <div class="p-3 border-t border-slate-200 space-y-2.5 md:space-y-0">
       <a
         href={`/toko/${store.slug || store.id}`}
         target="_blank"
-        class="w-full min-h-[40px] flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition"
+        class="md:hidden w-full min-h-[40px] flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition"
       >
         <span>Lihat Toko Publik</span>
         <AppIcon name="external-link" size="xs" />
       </a>
 
-      <div class="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-1.5 text-xs">
+      <div class="pt-2 md:pt-0 border-t md:border-t-0 border-slate-200/70 flex items-center justify-between gap-1.5 text-xs">
         <a
           href="/dashboard/profil"
           aria-current={activeSection === 'profile' ? 'page' : undefined}
