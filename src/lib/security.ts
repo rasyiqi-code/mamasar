@@ -35,6 +35,20 @@ function isReservedHostname(hostname: string): boolean {
  * Rejects private/loopback/link-local IP literals and resolves
  * DNS to reject hosts that resolve to private ranges (e.g. 169.254.169.254).
  */
+/**
+ * Safely serialize JSON for inline <script type="application/ld+json"> or <script type="application/json">
+ * by escaping HTML-significant characters and JS line terminators so user-controlled strings
+ * cannot break out of the script element (XSS).
+ */
+export function safeJsonLd(value: unknown): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/>/g, '\\u003e')
+    .replace(/&/g, '\\u0026')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
+}
+
 export async function isSafeOutboundUrl(urlString: string): Promise<boolean> {
   let url: URL;
   try {

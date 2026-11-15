@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { getUserFromSession, addProductToUMKM } from '../../../lib/db';
-import { saveUploadedImage } from '../../../lib/storage';
+import { InvalidUploadError, saveUploadedImage } from '../../../lib/storage';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -62,7 +62,13 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {
-    return new Response(JSON.stringify({ success: false, message: err.message || 'Terjadi kesalahan server.' }), {
+    if (err instanceof InvalidUploadError) {
+      return new Response(JSON.stringify({ success: false, message: err.message }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    return new Response(JSON.stringify({ success: false, message: 'Terjadi kesalahan server.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

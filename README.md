@@ -7,7 +7,7 @@ Aplikasi direktori dan marketplace mandiri UMKM Nahdliyin se-Kabupaten Sumenep. 
 ## 🚀 Fitur Utama & Rute Aplikasi
 
 ### 1. Halaman Publik & Katalog Warga
-- **Beranda [`/`](http://localhost:4321/)**: Katalog produk dengan filter 27 zona MWC (18 daratan & 9 kepulauan), kategori produk, pencarian bebas (`q`), dan opsi pengurutan (*Terbaru*, *Harga Terendah*, *Harga Tertinggi*). Dilengkapi slider kampanye gerakan belanja tetangga.
+- **Beranda [`/`](http://localhost:4321/)**: Katalog produk dengan filter 24 zona MWC (18 daratan & 6 kepulauan), kategori produk, pencarian bebas (`q`), dan opsi pengurutan (*Terbaru*, *Harga Terendah*, *Harga Tertinggi*). Dilengkapi slider kampanye gerakan belanja tetangga.
 - **Detail Produk [`/p/[slug]`](http://localhost:4321/p/rengginang-lorjuk-super-asli-gapura)**: Metadata Schema.org `Product`, kartu Open Graph, penghitung penayangan riil (*view counter*) dengan proteksi cookie debounce, status ketersediaan stok, tautan opsional Shopee, dan tombol WhatsApp otomatis berisi rincian nama barang, harga, dan tautan halaman.
 - **Direktori Toko [`/toko`](http://localhost:4321/toko) & Profil Toko [`/toko/[id]`](http://localhost:4321/toko/1)**: Direktori unit usaha UMKM per MWC dengan lencana resmi `✓ Verified MWC NU`, etalase katalog milik toko, informasi lokasi, dan tombol chat langsung ke pemilik toko.
 - **Kegiatan NU & Pasar Konsumsi [`/kegiatan`](http://localhost:4321/kegiatan) & [`/kegiatan/[slug]`](http://localhost:4321/kegiatan/lailatul-ijtima-mwc-gapura)**: Jadwal pengajian akbar, Lailatul Ijtima', dan Harlah se-Sumenep. Dilengkapi tombol pemesanan katering/snack box ke UMKM terdekat dan informasi pendaftaran lapak bazar warga.
@@ -93,7 +93,7 @@ npx astro dev stop
 
 ## 🗄️ Migrasi Database & Seeding
 
-Untuk membuat tabel skema (termasuk kolom relasi petugas, toko, dan tabel favorit) serta mengisi data awal wilayah 27 MWC NU Sumenep:
+Untuk membuat tabel skema (termasuk kolom relasi petugas, toko, dan tabel favorit) serta mengisi data awal wilayah 24 MWC NU Sumenep:
 
 ```bash
 node --env-file=.env scripts/migrate-neon.js

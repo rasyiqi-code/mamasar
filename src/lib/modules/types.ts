@@ -192,10 +192,42 @@ export interface UMKMVerificationRow {
   address?: string;
   ranting?: string;
   is_verified: number;
+  verified_at?: string;
+  verification_note?: string;
   zone_id: number;
   zone_name: string;
   zone_slug: string;
   owner_email?: string;
   product_count: number;
+  created_at: string;
+}
+
+export interface BumpLedgerEntry {
+  id: number;
+  umkm_id: number;
+  delta: number;
+  reason: string;
+  reference_id?: number;
+  balance_after: number;
+  created_at: string;
+}
+
+export interface AuditLogEntry {
+  id: number;
+  actor_user_id?: number;
+  action: string;
+  target_type: string;
+  target_id?: number;
+  metadata_json?: string;
+  created_at: string;
+}
+
+export interface NotificationItem {
+  id: number;
+  user_id: number;
+  title: string;
+  body: string;
+  link?: string;
+  is_read: number;
   created_at: string;
 }

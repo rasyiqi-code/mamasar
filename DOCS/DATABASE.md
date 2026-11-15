@@ -115,7 +115,7 @@ erDiagram
 
 ### 1. Tabel `zones` (Wilayah MWC NU)
 
-Menyimpan 27 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC daratan dan 9 MWC kepulauan. Daftar lengkap ada di `SEED_ZONES` pada `src/lib/seeds.ts`.
+Menyimpan 24 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC daratan dan 6 MWC kepulauan. Daftar lengkap ada di `SEED_ZONES` pada `src/lib/seeds.ts`.
 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |

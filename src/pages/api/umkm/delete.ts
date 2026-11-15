@@ -1,9 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getUserFromSession, isSuperadmin, deleteUMKM } from '../../../lib/db';
+import { can, deleteUMKM, getUMKMScope, getUserFromSession, isPCNU } from '../../../lib/db';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    // Hanya Superadmin atau Pengurus boleh menghapus toko.
     const sessionCookie = cookies.get('mamasar_session')?.value;
     const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
@@ -14,7 +13,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    if (!isSuperadmin(user) && user.role !== 'mwcnu') {
+    if (!isPCNU(user) && user.role !== 'mwcnu') {
       return new Response(JSON.stringify({ success: false, message: 'Akses khusus Admin PCNU / Pengurus MWCNU.' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' },
@@ -31,8 +30,23 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
+    const scope = await getUMKMScope(umkmId);
+    if (!scope) {
+      return new Response(JSON.stringify({ success: false, message: 'Toko tidak ditemukan.' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!can(user, 'umkm:delete', { zoneId: scope.zone_id })) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Anda hanya dapat menghapus toko pada wilayah MWCNU Anda.' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Produk ikut terhapus lewat FK cascade; akun pemilik (bila ada) tetap utuh.
-    const success = await deleteUMKM(umkmId);
+    const success = await deleteUMKM(umkmId, { actorUserId: user.id });
 
     if (!success) {
       return new Response(JSON.stringify({ success: false, message: 'Toko tidak ditemukan.' }), {

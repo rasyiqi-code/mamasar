@@ -1,4 +1,6 @@
 ---
+import AppIcon from '../common/AppIcon.astro';
+
 interface Props {
   user: {
     id: number;
@@ -94,10 +96,10 @@ const {
       <button
         type="button"
         id="btn-close-sidebar"
-        class="md:hidden text-slate-400 hover:text-slate-700 p-1 cursor-pointer"
+        class="md:hidden text-slate-500 hover:text-slate-800 p-1 cursor-pointer"
         aria-label="Tutup Menu Sidebar"
       >
-        ✕
+        <AppIcon name="x" size="sm" />
       </button>
     </div>
 
@@ -110,10 +112,10 @@ const {
             class="flex items-center justify-between px-3 py-2 rounded-lg bg-rose-50 text-rose-900 border border-rose-200/70 text-xs font-semibold hover:bg-rose-100/70 transition"
           >
             <span class="flex items-center gap-1.5">
-              <span>🛡️</span>
+              <AppIcon name="shield" size="xs" />
               <span>Konsol Superadmin</span>
             </span>
-            <span>➔</span>
+            <AppIcon name="arrow-right" size="xs" />
           </a>
         )}
         {isCadre && !isSuper && (
@@ -122,10 +124,10 @@ const {
             class="flex items-center justify-between px-3 py-2 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200/70 text-xs font-semibold hover:bg-emerald-100/70 transition"
           >
             <span class="flex items-center gap-1.5">
-              <span>📋</span>
+              <AppIcon name="clipboard" size="xs" />
               <span>Portal Petugas MWC</span>
             </span>
-            <span>➔</span>
+            <AppIcon name="arrow-right" size="xs" />
           </a>
         )}
       </div>
@@ -139,7 +141,7 @@ const {
         class="nav-tab-btn active w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
       >
         <div class="flex items-center gap-2.5">
-          <span class="text-sm">📦</span>
+          <AppIcon name="package" size="sm" class="text-slate-600" />
           <span>Katalog Produk</span>
         </div>
         <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
@@ -153,7 +155,7 @@ const {
         class="nav-tab-btn w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
       >
         <div class="flex items-center gap-2.5">
-          <span class="text-sm">📖</span>
+          <AppIcon name="book" size="sm" class="text-slate-600" />
           <span>Buku Kas Santri</span>
         </div>
         <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
@@ -166,7 +168,7 @@ const {
         data-nav-tab="profile"
         class="nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
       >
-        <span class="text-sm">🏪</span>
+        <AppIcon name="store" size="sm" class="text-slate-600" />
         <span>Profil Usaha</span>
       </button>
 
@@ -175,16 +177,16 @@ const {
         data-nav-tab="services"
         class="nav-tab-btn w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
       >
-        <span class="text-sm">🏛️</span>
+        <AppIcon name="award" size="sm" class="text-slate-600" />
         <span>Layanan Kemitraan</span>
       </button>
 
       <div class="pt-3 mt-2 border-t border-slate-200/60">
         <a
           href="/"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
         >
-          <span class="text-sm">🌐</span>
+          <AppIcon name="globe" size="sm" />
           <span>Katalog Publik</span>
         </a>
       </div>
@@ -198,7 +200,7 @@ const {
         class="w-full flex items-center justify-center gap-1.5 py-2 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-200 transition"
       >
         <span>Lihat Toko Publik</span>
-        <span>➔</span>
+        <AppIcon name="arrow-right" size="xs" />
       </a>
 
       <div class="pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
@@ -210,16 +212,23 @@ const {
           />
           <div class="min-w-0">
             <span class="font-semibold text-slate-900 block truncate text-[11px]">{user.name}</span>
-            <span class="text-[9px] text-slate-400 block truncate">{user.email}</span>
+            <span class="text-[9px] text-slate-500 block truncate">{user.email}</span>
           </div>
         </div>
-        <a
-          href="/api/auth/logout"
-          class="p-1.5 text-slate-400 hover:text-rose-600 rounded-md transition"
-          title="Keluar"
+        <form
+          method="POST"
+          action="/api/auth/logout"
+          onsubmit="try{localStorage.removeItem('mamasar_favorites')}catch{}"
         >
-          🚪
-        </a>
+          <button
+            type="submit"
+            class="p-1.5 text-slate-600 hover:text-rose-700 rounded-md transition cursor-pointer"
+            title="Keluar"
+            aria-label="Keluar dari akun"
+          >
+            <AppIcon name="log-out" size="sm" />
+          </button>
+        </form>
       </div>
     </div>
   </div>

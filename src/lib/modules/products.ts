@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, getTableColumns, gte, ilike, inArray, lte, or, sql, type SQL } from 'drizzle-orm';
+import { and, asc, desc, eq, getTableColumns, gt, gte, ilike, inArray, lte, or, sql, type SQL } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
 import { formatPhoneForWhatsApp, slugify } from '../utils';
@@ -31,7 +31,7 @@ export function toProduct(row: ProductRow): Product {
     umkm_halal_cert: row.umkm_halal_cert ?? undefined,
     umkm_pirt: row.umkm_pirt ?? undefined,
     umkm_bpom: row.umkm_bpom ?? undefined,
-    is_verified: row.is_verified ?? 1,
+    is_verified: row.is_verified ?? 0,
     zone_id: row.zone_id,
     zone_name: row.zone_name,
     zone_slug: row.zone_slug,
@@ -100,8 +100,13 @@ export async function getProducts(options?: {
   maxPrice?: number;
   stockStatus?: string;
   sort?: string;
+  verifiedOnly?: boolean;
 }): Promise<Product[]> {
   const conditions: SQL[] = [];
+
+  if (options?.verifiedOnly) {
+    conditions.push(eq(schema.umkm.is_verified, 1));
+  }
 
   if (options?.zoneSlug && options.zoneSlug !== 'semua') {
     conditions.push(eq(schema.zones.slug, options.zoneSlug));
@@ -182,13 +187,17 @@ export async function createUMKMAndProduct(data: {
   return await getDb().transaction(async (tx) => {
     let targetUmkmId: number;
     const [existingStore] = await tx
-      .select({ id: schema.umkm.id })
+      .select({ id: schema.umkm.id, user_id: schema.umkm.user_id })
       .from(schema.umkm)
       .where(eq(schema.umkm.phone, cleanPhone))
       .limit(1);
 
     if (existingStore) {
-      targetUmkmId = existingStore.id;
+      if (existingStore.user_id && existingStore.user_id === data.createdByUserId) {
+        targetUmkmId = existingStore.id;
+      } else {
+        throw new Error('Nomor WhatsApp toko ini sudah terdaftar. Gunakan menu Pengaturan Toko / Klaim Toko.');
+      }
     } else {
       const [umkmRow] = await tx
         .insert(schema.umkm)
@@ -252,15 +261,42 @@ export async function bumpProduct(
 ): Promise<{ success: boolean; reason?: string; remainingCredits: number; message: string }> {
   const db = getDb();
 
-  // If umkmId is provided, enforce credit check
+  // If umkmId is provided, enforce atomic credit check and record bump ledger
   if (umkmId) {
-    const [store] = await db
-      .select({ bump_credits: schema.umkm.bump_credits })
-      .from(schema.umkm)
-      .where(eq(schema.umkm.id, umkmId));
+    const result = await db.transaction(async (tx) => {
+      const [updatedStore] = await tx
+        .update(schema.umkm)
+        .set({ bump_credits: sql`COALESCE(${schema.umkm.bump_credits}, 0) - 1` })
+        .where(and(eq(schema.umkm.id, umkmId), gt(schema.umkm.bump_credits, 0)))
+        .returning({ bump_credits: schema.umkm.bump_credits });
 
-    const currentCredits = store ? (store.bump_credits ?? 0) : 0;
-    if (currentCredits <= 0) {
+      if (!updatedStore) {
+        return null;
+      }
+
+      const [bumped] = await tx
+        .update(schema.products)
+        .set({ bumped_at: new Date() })
+        .where(and(eq(schema.products.id, productId), eq(schema.products.umkm_id, umkmId)))
+        .returning({ id: schema.products.id });
+
+      if (!bumped) {
+        throw new Error('Produk tidak ditemukan atau bukan milik toko ini.');
+      }
+
+      const balanceAfter = Math.max(0, updatedStore.bump_credits ?? 0);
+      await tx.insert(schema.bumpLedger).values({
+        umkm_id: umkmId,
+        delta: -1,
+        reason: 'bump',
+        reference_id: productId,
+        balance_after: balanceAfter,
+      });
+
+      return balanceAfter;
+    });
+
+    if (result === null) {
       return {
         success: false,
         reason: 'insufficient_credits',
@@ -269,23 +305,10 @@ export async function bumpProduct(
       };
     }
 
-    // Decrement 1 credit and update bumped_at
-    await db.transaction(async (tx) => {
-      await tx
-        .update(schema.umkm)
-        .set({ bump_credits: sql`GREATEST(0, COALESCE(${schema.umkm.bump_credits}, 0) - 1)` })
-        .where(eq(schema.umkm.id, umkmId));
-
-      await tx
-        .update(schema.products)
-        .set({ bumped_at: new Date() })
-        .where(and(eq(schema.products.id, productId), eq(schema.products.umkm_id, umkmId)));
-    });
-
     return {
       success: true,
-      remainingCredits: Math.max(0, currentCredits - 1),
-      message: `Alhamdulillah! Iklan berhasil disundul ke posisi teratas katalog. Sisa token: ${Math.max(0, currentCredits - 1)}.`,
+      remainingCredits: result,
+      message: `Alhamdulillah! Iklan berhasil disundul ke posisi teratas katalog. Sisa token: ${result}.`,
     };
   }
 
@@ -463,4 +486,13 @@ export async function getProductsByIds(productIds: number[]): Promise<Product[]>
     .where(inArray(schema.products.id, productIds))
     .orderBy(desc(schema.products.id));
   return rows.map(toProduct);
+}
+
+export async function isProductOwnedByUMKM(productId: number, umkmId: number): Promise<boolean> {
+  const [row] = await getDb()
+    .select({ id: schema.products.id })
+    .from(schema.products)
+    .where(and(eq(schema.products.id, productId), eq(schema.products.umkm_id, umkmId)))
+    .limit(1);
+  return Boolean(row);
 }

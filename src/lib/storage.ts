@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import ImageKit from 'imagekit';
@@ -5,6 +6,81 @@ import { DEFAULT_PRODUCT_IMAGE } from './constants';
 import { uploadToNeonStorage, getNeonS3Client, getEnv, resolveAvatarUrl } from './neon';
 
 export { resolveAvatarUrl };
+
+const MAX_UPLOAD_BYTES = 2 * 1024 * 1024; // 2 MB
+
+export class InvalidUploadError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'InvalidUploadError';
+  }
+}
+
+interface DetectedImageType {
+  ext: '.jpg' | '.png' | '.webp';
+  mime: 'image/jpeg' | 'image/png' | 'image/webp';
+}
+
+function detectImageType(buffer: Buffer): DetectedImageType | null {
+  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return { ext: '.jpg', mime: 'image/jpeg' };
+  }
+  if (
+    buffer.length >= 8 &&
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47 &&
+    buffer[4] === 0x0d &&
+    buffer[5] === 0x0a &&
+    buffer[6] === 0x1a &&
+    buffer[7] === 0x0a
+  ) {
+    return { ext: '.png', mime: 'image/png' };
+  }
+  if (
+    buffer.length >= 12 &&
+    buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+    buffer.subarray(8, 12).toString('ascii') === 'WEBP'
+  ) {
+    return { ext: '.webp', mime: 'image/webp' };
+  }
+  return null;
+}
+
+async function extractAndValidateImage(options: {
+  imageFile?: File | null;
+  imageBase64?: string | null;
+}): Promise<{ buffer: Buffer; ext: '.jpg' | '.png' | '.webp'; mime: string } | null> {
+  const { imageFile, imageBase64 } = options;
+  let buffer: Buffer | null = null;
+
+  if (imageFile && imageFile instanceof File && imageFile.size > 0) {
+    if (imageFile.size > MAX_UPLOAD_BYTES) {
+      throw new InvalidUploadError('Ukuran gambar maksimal 2 MB.');
+    }
+    buffer = Buffer.from(await imageFile.arrayBuffer());
+  } else if (imageBase64 && imageBase64.includes(';base64,')) {
+    const commaIndex = imageBase64.indexOf(',');
+    if (commaIndex !== -1) {
+      const base64Data = imageBase64.substring(commaIndex + 1);
+      buffer = Buffer.from(base64Data, 'base64');
+    }
+  }
+
+  if (!buffer || buffer.length === 0) return null;
+
+  if (buffer.length > MAX_UPLOAD_BYTES) {
+    throw new InvalidUploadError('Ukuran gambar maksimal 2 MB.');
+  }
+
+  const detected = detectImageType(buffer);
+  if (!detected) {
+    throw new InvalidUploadError('Format gambar tidak valid. Gunakan JPEG, PNG, atau WebP.');
+  }
+
+  return { buffer, ext: detected.ext, mime: detected.mime };
+}
 
 const UPLOADS_DIR = path.resolve(process.cwd(), 'data/uploads');
 const AVATARS_DIR = path.resolve(process.cwd(), 'data/uploads/avatars');
@@ -44,35 +120,20 @@ export async function saveProductImage(options: {
   imageFile?: File | null;
   imageBase64?: string | null;
 }): Promise<string> {
-  const { imageFile, imageBase64 } = options;
   const imagekit = getImageKitClient();
+  const validated = await extractAndValidateImage(options);
 
-  // Extract file buffer, name, and mime type
-  let buffer: Buffer | null = null;
-  let fileName = '';
-
-  if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-    const ext = path.extname(imageFile.name) || '.jpg';
-    fileName = `prod-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
-    buffer = Buffer.from(await imageFile.arrayBuffer());
-  } else if (imageBase64 && imageBase64.includes(';base64,')) {
-    const commaIndex = imageBase64.indexOf(',');
-    if (commaIndex !== -1) {
-      const base64Data = imageBase64.substring(commaIndex + 1);
-      buffer = Buffer.from(base64Data, 'base64');
-      fileName = `prod-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.jpg`;
-    }
-  }
-
-  if (!buffer || !fileName) {
+  if (!validated) {
     return DEFAULT_PRODUCT_IMAGE;
   }
+
+  const fileName = `prod-${crypto.randomUUID()}${validated.ext}`;
 
   // Upload to ImageKit if configured
   if (imagekit) {
     try {
       const res = await imagekit.upload({
-        file: buffer,
+        file: validated.buffer,
         fileName,
         folder: '/products',
         useUniqueFileName: true,
@@ -86,7 +147,7 @@ export async function saveProductImage(options: {
   // Fallback: Local disk
   await ensureUploadsDir();
   const filePath = path.join(UPLOADS_DIR, fileName);
-  await fs.writeFile(filePath, buffer);
+  await fs.writeFile(filePath, validated.buffer);
   return `/uploads/${fileName}`;
 }
 
@@ -104,43 +165,24 @@ export async function saveAccountAvatar(options: {
   imageBase64?: string | null;
   userId?: string | number;
 }): Promise<string> {
-  const { imageFile, imageBase64, userId } = options;
+  const { userId } = options;
   const useNeonStorage = Boolean(getNeonS3Client());
+  const validated = await extractAndValidateImage(options);
 
-  let buffer: Buffer | null = null;
-  let fileName = '';
-  let contentType = 'image/jpeg';
-
-  const userPrefix = userId ? `user-${userId}` : 'avatar';
-
-  if (imageFile && imageFile instanceof File && imageFile.size > 0) {
-    const ext = path.extname(imageFile.name) || '.jpg';
-    fileName = `avatars/${userPrefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
-    buffer = Buffer.from(await imageFile.arrayBuffer());
-    contentType = imageFile.type || 'image/jpeg';
-  } else if (imageBase64 && imageBase64.includes(';base64,')) {
-    const commaIndex = imageBase64.indexOf(',');
-    if (commaIndex !== -1) {
-      const base64Data = imageBase64.substring(commaIndex + 1);
-      buffer = Buffer.from(base64Data, 'base64');
-      // Detect content type from the data URL header (the part before the comma)
-      const header = imageBase64.slice(0, commaIndex);
-      const ext = header.includes('image/png') ? '.png' : header.includes('image/webp') ? '.webp' : '.jpg';
-      contentType = header.slice(header.indexOf(':') + 1) || 'image/jpeg';
-      fileName = `avatars/${userPrefix}-${Date.now()}-${Math.random().toString(36).substring(2, 8)}${ext}`;
-    }
-  }
-
-  if (!buffer || !fileName) {
+  if (!validated) {
     // No image was provided; return an empty value so the UI falls back to
     // initials instead of inventing a stock photo as the user's own face.
     return '';
   }
 
+  const userPrefix = userId ? `user-${userId}` : 'avatar';
+  const baseName = `${userPrefix}-${crypto.randomUUID()}${validated.ext}`;
+  const fileName = `avatars/${baseName}`;
+
   // Upload to Neon S3 Object Storage
   if (useNeonStorage) {
     try {
-      return await uploadToNeonStorage(buffer, fileName, contentType);
+      return await uploadToNeonStorage(validated.buffer, fileName, validated.mime);
     } catch (err) {
       console.warn('Neon S3 avatar upload failed, falling back to local storage:', err);
     }
@@ -148,8 +190,7 @@ export async function saveAccountAvatar(options: {
 
   // Fallback: Local storage
   await ensureUploadsDir();
-  const baseName = path.basename(fileName);
   const filePath = path.join(AVATARS_DIR, baseName);
-  await fs.writeFile(filePath, buffer);
+  await fs.writeFile(filePath, validated.buffer);
   return `/uploads/avatars/${baseName}`;
 }

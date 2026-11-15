@@ -92,7 +92,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
             <AppIcon name="box" size="xs" class="text-slate-500" />
             <span>Informasi Produk</span>
           </h2>
-          <span class="text-[11px] text-slate-400">* Wajib diisi</span>
+          <span class="text-[11px] text-slate-500">* Wajib diisi</span>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -106,7 +106,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               name="productName"
               required
               placeholder="Contoh: Keripik Pisang Madu Gurih Manis"
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
             />
           </div>
 
@@ -118,7 +118,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               id="category"
               name="category"
               required
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer transition"
+              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer transition"
             >
               <option value="" disabled selected>Pilih Kategori</option>
               {PRODUCT_CATEGORIES.map((cat) => (
@@ -134,7 +134,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               Harga Jual (Rp) <span class="text-rose-500">*</span>
             </label>
             <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">Rp</span>
               <input
                 type="number"
                 id="price"
@@ -143,7 +143,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
                 min="0"
                 step="500"
                 placeholder="16000"
-                class="w-full bg-white border border-slate-300 rounded-xl p-2.5 pl-9 text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+                class="w-full bg-white border border-slate-300 rounded-xl p-2.5 pl-9 text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
               />
             </div>
           </div>
@@ -153,7 +153,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               Harga Coret / Normal (Opsional)
             </label>
             <div class="relative">
-              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400">Rp</span>
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-500">Rp</span>
               <input
                 type="number"
                 id="originalPrice"
@@ -161,10 +161,10 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
                 min="0"
                 step="500"
                 placeholder="20000"
-                class="w-full bg-white border border-slate-300 rounded-xl p-2.5 pl-9 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+                class="w-full bg-white border border-slate-300 rounded-xl p-2.5 pl-9 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
               />
             </div>
-            <p class="text-[11px] text-slate-400">Untuk diskon / promo.</p>
+            <p class="text-[11px] text-slate-500">Untuk diskon / promo.</p>
           </div>
 
           <div class="space-y-1.5">
@@ -176,7 +176,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               id="shopeeUrl"
               name="shopeeUrl"
               placeholder="https://shopee.co.id/product/..."
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
             />
           </div>
         </div>
@@ -191,7 +191,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               id="stockStatus"
               name="stockStatus"
               required
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer transition"
+              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer transition"
             >
               <option value="ready" selected>Ready Stock (Barang Siap Kirim)</option>
               <option value="po">Pre-Order / Dibuat Berdasarkan Pesanan</option>
@@ -209,7 +209,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
               id="productionCapacity"
               name="productionCapacity"
               placeholder="Contoh: 50 bungkus/hari atau PO 2-3 hari"
-              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+              class="w-full bg-white border border-slate-300 rounded-xl p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
             />
             <p class="text-[11px] text-slate-500">Estimasi volume produksi per hari/minggu untuk pembeli.</p>
           </div>
@@ -225,7 +225,7 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
             required
             rows="4"
             placeholder="Jelaskan rasa, bahan baku, berat kemasan, varian, atau ketentuan pembelian..."
-            class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
+            class="w-full bg-white border border-slate-300 rounded-xl p-3 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition"
           ></textarea>
         </div>
       </div>
@@ -243,21 +243,21 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
         <div class="space-y-3">
           <!-- Upload Pickers (Hidden when 4 photos selected) -->
           <div id="upload-boxes" class="flex flex-col sm:flex-row gap-3">
-            <label class="flex-1 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition bg-slate-50 hover:bg-white group">
-              <input type="file" id="imageInput" accept="image/*" multiple class="hidden" />
+            <label for="imageInput" class="flex-1 border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition bg-slate-50 hover:bg-white group">
+              <input type="file" id="imageInput" accept="image/*" multiple class="sr-only" />
               <div class="space-y-1.5 flex flex-col items-center">
-                <AppIcon name="camera" size="lg" class="text-slate-400 group-hover:text-indigo-600 transition" />
+                <AppIcon name="camera" size="lg" class="text-slate-500 group-hover:text-indigo-600 transition" />
                 <span class="text-xs font-bold text-slate-800 group-hover:text-indigo-600">Pilih Foto dari Galeri</span>
-                <span class="text-[11px] text-slate-400">Bisa pilih sekaligus (JPG, PNG, WEBP)</span>
+                <span class="text-[11px] text-slate-500">Bisa pilih sekaligus (JPG, PNG, WEBP)</span>
               </div>
             </label>
 
-            <label class="flex-1 border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition bg-slate-50 hover:bg-white group">
-              <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" />
+            <label for="cameraInput" class="flex-1 border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition bg-slate-50 hover:bg-white group">
+              <input type="file" id="cameraInput" accept="image/*" capture="environment" class="sr-only" />
               <div class="space-y-1.5 flex flex-col items-center">
-                <AppIcon name="sparkles" size="lg" class="text-slate-400 group-hover:text-emerald-600 transition" />
-                <span class="text-xs font-bold text-slate-800 group-hover:text-emerald-600">Jepret Kamera HP Langsung</span>
-                <span class="text-[11px] text-slate-400">Ambil foto fisik produk</span>
+                <AppIcon name="sparkles" size="lg" class="text-slate-500 group-hover:text-emerald-700 transition" />
+                <span class="text-xs font-bold text-slate-800 group-hover:text-emerald-700">Jepret Kamera HP Langsung</span>
+                <span class="text-[11px] text-slate-500">Ambil foto fisik produk</span>
               </div>
             </label>
           </div>
@@ -282,9 +282,10 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
         <button
           type="submit"
           id="btn-submit-product"
-          class="w-full sm:w-auto px-8 py-3 bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+          class="w-full sm:w-auto px-8 py-3 bg-[#4f46e5] hover:bg-[#4338ca] text-white font-black text-sm rounded-xl transition shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-95"
         >
-          <span>Terbitkan Produk ➔</span>
+          <span>Terbitkan Produk</span>
+          <AppIcon name="arrow-right" size="xs" />
         </button>
       </div>
     </form>

@@ -545,12 +545,12 @@ export function initAdminClient() {
 
     // Step 2 Inactive Indicator
     step2Indicator?.classList.remove('bg-emerald-50', 'border-2', 'border-emerald-500', 'shadow-2xs');
-    step2Indicator?.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-400');
+    step2Indicator?.classList.add('bg-slate-50', 'border-slate-200', 'text-slate-500');
     if (step2Badge) {
       step2Badge.className = 'w-7 h-7 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center font-black text-xs shrink-0';
     }
     if (step2Title) step2Title.className = 'text-xs font-bold leading-tight text-slate-600';
-    if (step2Desc) step2Desc.className = 'text-[11px] text-slate-400 font-medium truncate mt-0.5';
+    if (step2Desc) step2Desc.className = 'text-[11px] text-slate-500 font-medium truncate mt-0.5';
   }
 
   function goToStep2(store: { id: number; name: string; phone: string; zoneName: string; ranting?: string }) {
@@ -570,11 +570,11 @@ export function initAdminClient() {
     step1Indicator?.classList.add('bg-emerald-50/60', 'border', 'border-emerald-200');
     if (step1Badge) {
       step1Badge.textContent = '✓';
-      step1Badge.className = 'w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center font-black text-xs shrink-0';
+      step1Badge.className = 'w-7 h-7 rounded-full bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';
     }
 
     // Step 2 Active Indicator
-    step2Indicator?.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-400');
+    step2Indicator?.classList.remove('bg-slate-50', 'border-slate-200', 'text-slate-500');
     step2Indicator?.classList.add('bg-emerald-50', 'border-2', 'border-emerald-500', 'shadow-2xs');
     if (step2Badge) {
       step2Badge.className = 'w-7 h-7 rounded-full bg-emerald-700 text-white flex items-center justify-center font-black text-xs shrink-0';

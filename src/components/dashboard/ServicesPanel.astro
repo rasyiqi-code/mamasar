@@ -1,5 +1,6 @@
 ---
 import { SITE_CONFIG } from '../../lib/constants';
+import AppIcon from '../common/AppIcon.astro';
 import KaderRegisterForm from './KaderRegisterForm.astro';
 
 interface Zone {
@@ -41,7 +42,7 @@ const { user, zones, assignedZone } = Astro.props;
     <!-- Card 1: Permodalan Syariah -->
     <div class="space-y-2 pb-4 border-b md:border-b-0 md:border-r border-slate-200 md:pr-6">
       <div class="flex items-center gap-2">
-        <span class="text-base">🏛️</span>
+        <AppIcon name="cash" size="sm" class="text-emerald-700" />
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">Permodalan Syariah (BMTNU & Lazisnu)</h3>
       </div>
       <div class="space-y-1 text-xs text-slate-600">
@@ -63,7 +64,7 @@ const { user, zones, assignedZone } = Astro.props;
     <!-- Card 2: Legalitas & Halal -->
     <div class="space-y-2">
       <div class="flex items-center gap-2">
-        <span class="text-base">📜</span>
+        <AppIcon name="shield" size="sm" class="text-emerald-700" />
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">NIB & Sertifikasi Halal Gratis (SEHATI)</h3>
       </div>
       <div class="space-y-1 text-xs text-slate-600">

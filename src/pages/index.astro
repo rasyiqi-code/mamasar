@@ -15,6 +15,7 @@ const url = new URL(Astro.request.url);
 const currentZone = url.searchParams.get('zona') || 'semua';
 const currentCategory = url.searchParams.get('kategori') || 'semua';
 const currentStock = url.searchParams.get('stok') || 'semua';
+const currentVerified = url.searchParams.get('terverifikasi') || '0';
 const searchQuery = url.searchParams.get('q') || '';
 const currentSort = url.searchParams.get('sort') || 'newest';
 
@@ -29,6 +30,7 @@ const products = await getProducts({
   search: searchQuery,
   stockStatus: currentStock,
   sort: currentSort,
+  verifiedOnly: currentVerified === '1',
 });
 
 // Premium / Featured products (Top 4 products for the top showcase section)
@@ -37,12 +39,24 @@ const premiumProducts = products.slice(0, 4);
 // Most favorited products (Middle showcase with seller avatars, items 4-8 or slice)
 const favoritedProducts = products.length >= 8 ? products.slice(4, 8) : products.slice(0, 4);
 
-const isFiltered = currentZone !== 'semua' || currentCategory !== 'semua' || searchQuery !== '' || currentStock !== 'semua';
+const isFiltered =
+  currentZone !== 'semua' ||
+  currentCategory !== 'semua' ||
+  searchQuery !== '' ||
+  currentStock !== 'semua' ||
+  currentVerified === '1';
+
+const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
+const nowMs = Date.now();
+function isRecentlyListed(createdAt: string): boolean {
+  const ts = new Date(createdAt).getTime();
+  return Number.isFinite(ts) && nowMs - ts <= SEVEN_DAYS_MS;
+}
 
 function buildFilterUrl(updates: Record<string, string | null>) {
   const params = new URLSearchParams(url.searchParams);
   for (const [key, val] of Object.entries(updates)) {
-    if (val === null || val === 'semua' || val === '') {
+    if (val === null || val === 'semua' || val === '' || val === '0') {
       params.delete(key);
     } else {
       params.set(key, val);
@@ -80,7 +94,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           <select
             name="zona"
             aria-label="Pilih Wilayah MWC"
-            class="w-full appearance-none bg-transparent pl-8 pr-7 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-slate-800 focus:outline-none cursor-pointer"
+            class="w-full appearance-none bg-transparent pl-8 pr-7 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-slate-800 cursor-pointer"
           >
             <option value="semua" class="bg-white text-slate-900">Semua Wilayah MWC</option>
             {zones.map((z) => (
@@ -230,7 +244,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             {premiumProducts.map((p) => (
               <ProductCard
                 product={p}
-                badge="Baru Dipasang"
+                badge={isRecentlyListed(p.created_at) ? 'Baru Dipasang' : undefined}
                 badgeColor="indigo"
               />
             ))}
@@ -410,13 +424,14 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             <input type="hidden" name="zona" value={currentZone} />
             <input type="hidden" name="kategori" value={currentCategory} />
             <input type="hidden" name="stok" value={currentStock} />
+            <input type="hidden" name="terverifikasi" value={currentVerified} />
             <input type="hidden" name="q" value={searchQuery} />
             <label for="sort-select" class="text-slate-600 font-bold">Urut:</label>
             <select
               id="sort-select"
               name="sort"
               onchange="this.form.submit()"
-              class="bg-white border border-slate-300 text-slate-800 rounded-lg py-1.5 px-2 text-xs font-semibold focus:outline-none cursor-pointer"
+              class="bg-white border border-slate-300 text-slate-800 rounded-lg py-1.5 px-2 text-xs font-semibold cursor-pointer"
             >
               <option value="newest" selected={currentSort === 'newest'}>Terbaru</option>
               <option value="price_asc" selected={currentSort === 'price_asc'}>Harga Termurah</option>
@@ -435,10 +450,10 @@ function buildFilterUrl(updates: Record<string, string | null>) {
         </div>
       </div>
 
-      <!-- Quick Filter Pills: Ketersediaan Stok -->
+      <!-- Quick Filter Pills: Ketersediaan Stok & Verifikasi -->
       <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 text-xs">
-        <span class="text-slate-400 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1">
-          Ketersediaan:
+        <span class="text-slate-500 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shrink-0 mr-1">
+          Filter:
         </span>
         <a
           href={buildFilterUrl({ stok: 'semua' })}
@@ -471,6 +486,17 @@ function buildFilterUrl(updates: Record<string, string | null>) {
         >
           <span class={`w-1.5 h-1.5 rounded-full ${currentStock === 'po' ? 'bg-slate-900' : 'bg-amber-500'}`}></span>
           <span>Pre-Order (PO)</span>
+        </a>
+        <a
+          href={buildFilterUrl({ terverifikasi: currentVerified === '1' ? '0' : '1' })}
+          class={`px-3 py-1 rounded-full font-medium transition shrink-0 border flex items-center gap-1.5 text-[11px] sm:text-xs ${
+            currentVerified === '1'
+              ? 'bg-emerald-700 text-white border-emerald-700 shadow-2xs font-semibold'
+              : 'bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50'
+          }`}
+        >
+          <AppIcon name="verified" size="xs" />
+          <span>Hanya Toko Terverifikasi</span>
         </a>
       </div>
 

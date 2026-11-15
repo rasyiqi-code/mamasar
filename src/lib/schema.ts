@@ -43,27 +43,38 @@ export const sessions = pgTable('sessions', {
   expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
 });
 
-export const umkm = pgTable('umkm', {
-  id: serial('id').primaryKey(),
-  user_id: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
-  created_by_user_id: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
-  name: varchar('name', { length: 255 }).notNull(),
-  phone: varchar('phone', { length: 50 }).notNull(),
-  zone_id: integer('zone_id')
-    .notNull()
-    .references(() => zones.id),
-  ranting: varchar('ranting', { length: 255 }),
-  is_verified: integer('is_verified').default(1),
-  address: text('address'),
-  nib: varchar('nib', { length: 100 }),
-  halal_cert: varchar('halal_cert', { length: 100 }),
-  pirt: varchar('pirt', { length: 100 }),
-  bpom: varchar('bpom', { length: 100 }),
-  other_legalities: text('other_legalities'),
-  bump_credits: integer('bump_credits').default(3),
-  claimed_at: timestamp('claimed_at', { withTimezone: true }),
-  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
-});
+export const umkm = pgTable(
+  'umkm',
+  {
+    id: serial('id').primaryKey(),
+    user_id: integer('user_id').references(() => users.id, { onDelete: 'set null' }),
+    created_by_user_id: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    phone: varchar('phone', { length: 50 }).notNull(),
+    zone_id: integer('zone_id')
+      .notNull()
+      .references(() => zones.id),
+    ranting: varchar('ranting', { length: 255 }),
+    is_verified: integer('is_verified').default(0),
+    verified_by_user_id: integer('verified_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    verified_at: timestamp('verified_at', { withTimezone: true }),
+    verification_note: text('verification_note'),
+    address: text('address'),
+    nib: varchar('nib', { length: 100 }),
+    halal_cert: varchar('halal_cert', { length: 100 }),
+    pirt: varchar('pirt', { length: 100 }),
+    bpom: varchar('bpom', { length: 100 }),
+    other_legalities: text('other_legalities'),
+    bump_credits: integer('bump_credits').default(3),
+    claimed_at: timestamp('claimed_at', { withTimezone: true }),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('uq_umkm_user_id')
+      .on(t.user_id)
+      .where(sql`${t.user_id} IS NOT NULL`),
+  ]
+);
 
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
@@ -127,6 +138,9 @@ export const cashbook = pgTable(
     user_id: integer('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    umkm_id: integer('umkm_id').references(() => umkm.id, { onDelete: 'cascade' }),
+    reference_type: varchar('reference_type', { length: 30 }),
+    reference_id: integer('reference_id'),
     title: varchar('title', { length: 255 }).notNull(),
     amount: integer('amount').notNull(),
     type: varchar('type', { length: 20 })
@@ -138,7 +152,10 @@ export const cashbook = pgTable(
     transaction_date: date('transaction_date').default(sql`CURRENT_DATE`),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
-  (t) => [index('idx_cashbook_user').on(t.user_id, t.transaction_date.desc())]
+  (t) => [
+    index('idx_cashbook_user').on(t.user_id, t.transaction_date.desc()),
+    index('idx_cashbook_umkm').on(t.umkm_id, t.transaction_date.desc()),
+  ]
 );
 
 export const favorites = pgTable(
@@ -179,10 +196,57 @@ export const adPromotions = pgTable(
     starts_at: timestamp('starts_at', { withTimezone: true }),
     expires_at: timestamp('expires_at', { withTimezone: true }),
     reviewed_by_user_id: integer('reviewed_by_user_id').references(() => users.id, { onDelete: 'set null' }),
+    reviewed_at: timestamp('reviewed_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
   },
   (t) => [
     index('idx_ad_promotions_umkm').on(t.umkm_id),
     index('idx_ad_promotions_status').on(t.status),
   ]
+);
+
+export const bumpLedger = pgTable(
+  'bump_ledger',
+  {
+    id: serial('id').primaryKey(),
+    umkm_id: integer('umkm_id')
+      .notNull()
+      .references(() => umkm.id, { onDelete: 'cascade' }),
+    delta: integer('delta').notNull(),
+    reason: varchar('reason', { length: 50 }).notNull(), // 'purchase' | 'bump' | 'welcome_bonus' | 'admin_adjust'
+    reference_id: integer('reference_id'),
+    balance_after: integer('balance_after').notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index('idx_bump_ledger_umkm').on(t.umkm_id, t.created_at.desc())]
+);
+
+export const auditLog = pgTable(
+  'audit_log',
+  {
+    id: serial('id').primaryKey(),
+    actor_user_id: integer('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+    action: varchar('action', { length: 80 }).notNull(),
+    target_type: varchar('target_type', { length: 40 }).notNull(),
+    target_id: integer('target_id'),
+    metadata_json: text('metadata_json'),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index('idx_audit_log_actor').on(t.actor_user_id, t.created_at.desc())]
+);
+
+export const notifications = pgTable(
+  'notifications',
+  {
+    id: serial('id').primaryKey(),
+    user_id: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 200 }).notNull(),
+    body: text('body').notNull(),
+    link: varchar('link', { length: 255 }),
+    is_read: integer('is_read').notNull().default(0),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [index('idx_notifications_user').on(t.user_id, t.is_read, t.created_at.desc())]
 );

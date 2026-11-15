@@ -1,5 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
 import { getUserFromSession, getUserFavoriteIds, getProductsByIds } from '../lib/db';
 import { DEFAULT_PRODUCT_IMAGE } from '../lib/constants';
 
@@ -69,13 +70,14 @@ function formatRupiah(amount: number) {
     <div class="bg-white border-y sm:border border-slate-200 sm:rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
       <div class="space-y-1">
         <h1 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-          <span>⭐</span> Produk yang Anda Simpan
+          <AppIcon name="star" size="lg" class="text-amber-500" />
+          <span>Produk yang Anda Simpan</span>
         </h1>
-        <p class="text-xs text-slate-500">
+        <p class="text-xs text-slate-600">
           {user ? (
             <span>Tersimpan di akun Anda (<strong>{user.email || user.name}</strong>) dan tersinkronisasi di semua perangkat.</span>
           ) : (
-            <span>Tersimpan sementara di browser HP ini. Masuk ke akun untuk menyimpan permanen.</span>
+            <span>Tersimpan di perangkat ini (lokal browser). Masuk ke akun untuk menyimpan ke cloud.</span>
           )}
         </p>
       </div>
@@ -106,10 +108,11 @@ function formatRupiah(amount: number) {
             <button
               type="button"
               title="Hapus dari simpanan"
+              aria-label={`Hapus ${p.name} dari favorit`}
               data-remove-fav={p.id}
               class="absolute top-2 right-2 z-20 w-7 h-7 rounded-full bg-white/90 hover:bg-white text-rose-600 border border-slate-200 flex items-center justify-center text-xs shadow-xs cursor-pointer"
             >
-              ✕
+              <AppIcon name="x" size="xs" />
             </button>
 
             <div>
@@ -126,8 +129,9 @@ function formatRupiah(amount: number) {
               </a>
 
               <div class="p-2.5 space-y-1">
-                <span class="text-[10px] text-slate-500 font-medium truncate block">
-                  📍 {p.zone_name}
+                <span class="text-[10px] text-slate-500 font-medium truncate flex items-center gap-1">
+                  <AppIcon name="map-pin" size="xs" class="text-slate-500" />
+                  <span class="truncate">{p.zone_name}</span>
                 </span>
                 <a
                   href={`/p/${p.slug}`}
@@ -135,8 +139,9 @@ function formatRupiah(amount: number) {
                 >
                   {p.name}
                 </a>
-                <span class="text-[10px] text-slate-500 block truncate">
-                  🏪 {p.umkm_name}
+                <span class="text-[10px] text-slate-500 truncate flex items-center gap-1">
+                  <AppIcon name="store" size="xs" class="text-slate-500" />
+                  <span class="truncate">{p.umkm_name}</span>
                 </span>
               </div>
             </div>
@@ -146,7 +151,7 @@ function formatRupiah(amount: number) {
                 href={`https://wa.me/${p.umkm_phone}?text=${waMsg}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="w-full py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition"
+                class="w-full py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-1 transition"
               >
                 <span>Chat WA</span>
               </a>
@@ -163,10 +168,12 @@ function formatRupiah(amount: number) {
         serverFavorites.length > 0 ? 'hidden' : ''
       }`}
     >
-      <div class="text-4xl">⭐</div>
+      <div class="w-12 h-12 mx-auto rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
+        <AppIcon name="star" size="lg" />
+      </div>
       <h3 class="font-extrabold text-slate-900 text-base">Belum Ada Produk yang Disimpan</h3>
-      <p class="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
-        Jelajahi produk UMKM warga Nahdliyin di beranda, lalu klik ikon bintang ⭐ pada produk yang Anda minati.
+      <p class="text-xs text-slate-600 max-w-sm mx-auto leading-relaxed">
+        Jelajahi produk UMKM warga Nahdliyin di beranda, lalu klik ikon bintang pada produk yang Anda minati.
       </p>
       <a
         href="/"
@@ -308,10 +315,12 @@ function formatRupiah(amount: number) {
             body: JSON.stringify({ guestProductIds: favIds }),
           });
           const data = await res.json();
-          if (res.ok && data.success && data.syncedCount > 0) {
+          if (res.ok && data.success) {
             localStorage.removeItem('mamasar_favorites');
-            window.location.reload();
-            return;
+            if (data.syncedCount > 0) {
+              window.location.reload();
+              return;
+            }
           }
         } catch (e) {
           console.error('Failed to sync favorites', e);

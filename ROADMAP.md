@@ -41,7 +41,7 @@ gantt
     Konfigurasi Capacitor Android :done, f5_2, 2026-11-04, 1d
     section Fase 6: Cloud & Neon Postgres
     Neon Auth (Google & Email) :done, f6_1, 2026-11-06, 1d
-    ImageKit, S3 Avatar, 27 MWC :done, f6_2, 2026-11-07, 1d
+    ImageKit, S3 Avatar, 24 MWC :done, f6_2, 2026-11-07, 1d
     Migrasi Penuh ke Neon Postgres :done, f6_3, 2026-11-08, 1d
     section Fase 7: Upgrade Besar RBAC & Admin
     RBAC 3 Roles & Superadmin Console :done, f7_1, 2026-11-09, 1d
@@ -134,7 +134,7 @@ gantt
   - [x] Foto profil ke Neon Object Storage S3 bucket dengan fallback disk lokal.
   - [x] Endpoint pemantauan kesehatan `/api/neon/services`.
 - [x] **6.3. Penyelarasan Wilayah & Shopee Store Link**
-  - [x] 27 zona MWC: 18 daratan dan 9 kepulauan di Kabupaten Sumenep.
+  - [x] 24 zona MWC: 18 daratan dan 6 kepulauan di Kabupaten Sumenep.
   - [x] Kolom `shopee_url` pada produk untuk tombol checkout marketplace alternatif.
 - [x] **6.4. Migrasi Total ke Neon PostgreSQL Serverless**
   - [x] Seluruh operasi CRUD di `src/lib/db.ts` berjalan 100% di Neon PostgreSQL via Drizzle ORM.
@@ -178,16 +178,18 @@ gantt
 
 ---
 
-### Fase 8: Rencana Pengembangan Masa Depan (Next Milestones) - [DALAM PERENCANAAN 🚀]
-- [ ] **8.1. Galeri Multi-Foto Produk (2–4 Foto Detail)**
-  - Menambahkan dukungan multi-unggah foto detail tampak samping, bahan, dan kemasan untuk produk kerajinan/batik.
-- [ ] **8.2. Dasbor Statistik Kontribusi Kader Lapangan**
+### Fase 8: Rencana Pengembangan Masa Depan & Penguatan Operasional - [AKTIF 🚀]
+- [x] **8.1. Galeri Multi-Foto Produk (2–4 Foto Detail)**
+  - Dukungan multi-unggah foto detail produk hingga 4 foto dan validasi magic-byte + ukuran di sisi server.
+- [x] **8.2. Penguatan Keamanan, RBAC Zona & Integrasi Transaksional**
+  - Policy RBAC terpadu (`can()`), pembatasan zona MWCNU pada verifikasi/pembuatan toko & review promosi, single-store constraint per akun, `bump_ledger`, `audit_log`, `notifications`, auto expense buku kas promosi, dan endpoint cron kedaluwarsa slot unggulan (`/api/cron/expire-promotions`).
+- [ ] **8.3. Dasbor Statistik Kontribusi Kader Lapangan**
   - Menampilkan pencapaian kuantitatif di `/petugas`: *"Sahabat telah membantu mendaftarkan X toko dan Y produk di MWC Anda"*.
-- [ ] **8.3. Filter Periode Bulan pada Buku Kas**
+- [ ] **8.4. Filter Periode Bulan pada Buku Kas**
   - Dropdown filter per bulan (misal: Rekap Kas November 2026) di `/dashboard` untuk memudahkan pembukuan bulanan.
-- [ ] **8.4. Pencarian Cerdas & Autocomplete Dropdown**
+- [ ] **8.5. Pencarian Cerdas & Autocomplete Dropdown**
   - Dropdown saran pencarian instan di hero search bar saat pengguna mengetik minimal 2 karakter.
-- [ ] **8.5. Brosur Digital UMKM Siap Cetak (Katalog PDF per MWC)**
+- [ ] **8.6. Brosur Digital UMKM Siap Cetak (Katalog PDF per MWC)**
   - Ekspor 1-klik brosur katalog UMKM per kecamatan dalam format PDF siap cetak untuk dibagikan pada pengajian akbar atau Lailatul Ijtima'.
-- [ ] **8.6. Integrasi Notifikasi WhatsApp Admin**
+- [ ] **8.7. Integrasi Notifikasi WhatsApp Admin**
   - Webhook notifikasi WhatsApp ke nomor admin ketika ada pengajuan kader petugas baru.

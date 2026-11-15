@@ -4,6 +4,8 @@ import { getDb } from '../client';
 import { formatPhoneForWhatsApp } from '../utils';
 import type { ClaimCandidate, SetupUMKMResult, UMKM, UMKMVerificationRow, Product } from './types';
 import { productSelect, toProduct, lastBumpedFirst } from './products';
+import { recordAuditLog } from './audit';
+import { createNotification } from './notifications';
 
 export type UMKMJoinRow = typeof schema.umkm.$inferSelect & {
   zone_name: string;
@@ -20,7 +22,7 @@ export function toUMKM(row: UMKMJoinRow): UMKM & { zone_name: string; zone_slug:
     zone_name: row.zone_name,
     zone_slug: row.zone_slug,
     ranting: row.ranting ?? undefined,
-    is_verified: row.is_verified ?? 1,
+    is_verified: row.is_verified ?? 0,
     address: row.address ?? undefined,
     nib: row.nib ?? undefined,
     halal_cert: row.halal_cert ?? undefined,
@@ -120,7 +122,9 @@ export async function getUMKMByUserId(
     })
     .from(schema.umkm)
     .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
-    .where(eq(schema.umkm.user_id, userId));
+    .where(eq(schema.umkm.user_id, userId))
+    .orderBy(asc(schema.umkm.id))
+    .limit(1);
 
   if (!store) return undefined;
 
@@ -181,7 +185,7 @@ export async function setupUMKMForUser(
     return await getDb().transaction(async (tx) => {
       const [claimed] = await tx
         .update(schema.umkm)
-        .set({ user_id: userId })
+        .set({ user_id: userId, claimed_at: new Date() })
         .where(
           and(
             eq(schema.umkm.id, options.claimStoreId!),
@@ -228,8 +232,8 @@ export async function setupUMKMForUser(
   return { outcome: 'linked', storeId: created.id, claimed: false };
 }
 
-export async function getUMKMForVerification(): Promise<UMKMVerificationRow[]> {
-  const rows = await getDb()
+export async function getUMKMForVerification(zoneId?: number): Promise<UMKMVerificationRow[]> {
+  const query = getDb()
     .select({
       id: schema.umkm.id,
       name: schema.umkm.name,
@@ -237,6 +241,8 @@ export async function getUMKMForVerification(): Promise<UMKMVerificationRow[]> {
       address: schema.umkm.address,
       ranting: schema.umkm.ranting,
       is_verified: schema.umkm.is_verified,
+      verified_at: schema.umkm.verified_at,
+      verification_note: schema.umkm.verification_note,
       zone_id: schema.umkm.zone_id,
       zone_name: schema.zones.name,
       zone_slug: schema.zones.slug,
@@ -246,7 +252,9 @@ export async function getUMKMForVerification(): Promise<UMKMVerificationRow[]> {
     })
     .from(schema.umkm)
     .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
-    .leftJoin(schema.users, eq(schema.umkm.user_id, schema.users.id))
+    .leftJoin(schema.users, eq(schema.umkm.user_id, schema.users.id));
+
+  const rows = await (zoneId ? query.where(eq(schema.umkm.zone_id, zoneId)) : query)
     .orderBy(asc(schema.umkm.is_verified), asc(schema.umkm.created_at));
 
   return rows.map((row) => ({
@@ -255,7 +263,9 @@ export async function getUMKMForVerification(): Promise<UMKMVerificationRow[]> {
     phone: row.phone,
     address: row.address ?? undefined,
     ranting: row.ranting ?? undefined,
-    is_verified: row.is_verified ?? 1,
+    is_verified: row.is_verified ?? 0,
+    verified_at: row.verified_at ? row.verified_at.toISOString() : undefined,
+    verification_note: row.verification_note ?? undefined,
     zone_id: row.zone_id,
     zone_name: row.zone_name,
     zone_slug: row.zone_slug,
@@ -265,21 +275,102 @@ export async function getUMKMForVerification(): Promise<UMKMVerificationRow[]> {
   }));
 }
 
-export async function setUMKMVerified(umkmId: number, verified: boolean): Promise<boolean> {
-  const rows = await getDb()
-    .update(schema.umkm)
-    .set({ is_verified: verified ? 1 : 0 })
+export async function getUMKMScope(umkmId: number): Promise<{
+  id: number;
+  name: string;
+  zone_id: number;
+  user_id: number | null;
+} | undefined> {
+  const [row] = await getDb()
+    .select({
+      id: schema.umkm.id,
+      name: schema.umkm.name,
+      zone_id: schema.umkm.zone_id,
+      user_id: schema.umkm.user_id,
+    })
+    .from(schema.umkm)
     .where(eq(schema.umkm.id, umkmId))
-    .returning({ id: schema.umkm.id });
-  return rows.length > 0;
+    .limit(1);
+  return row;
 }
 
-export async function deleteUMKM(umkmId: number): Promise<boolean> {
-  const rows = await getDb()
-    .delete(schema.umkm)
-    .where(eq(schema.umkm.id, umkmId))
-    .returning({ id: schema.umkm.id });
-  return rows.length > 0;
+export async function setUMKMVerified(
+  umkmId: number,
+  verified: boolean,
+  options?: { actorUserId?: number; note?: string }
+): Promise<boolean> {
+  return await getDb().transaction(async (tx) => {
+    const now = new Date();
+    const rows = await tx
+      .update(schema.umkm)
+      .set({
+        is_verified: verified ? 1 : 0,
+        verified_by_user_id: options?.actorUserId ?? null,
+        verified_at: verified ? now : null,
+        verification_note: options?.note ?? null,
+      })
+      .where(eq(schema.umkm.id, umkmId))
+      .returning({
+        id: schema.umkm.id,
+        name: schema.umkm.name,
+        user_id: schema.umkm.user_id,
+        zone_id: schema.umkm.zone_id,
+      });
+
+    if (rows.length === 0) return false;
+    const store = rows[0];
+
+    await recordAuditLog(
+      {
+        actorUserId: options?.actorUserId,
+        action: verified ? 'umkm.verify' : 'umkm.unverify',
+        targetType: 'umkm',
+        targetId: store.id,
+        metadata: { zone_id: store.zone_id, note: options?.note },
+      },
+      tx
+    );
+
+    if (store.user_id) {
+      await createNotification(
+        {
+          userId: store.user_id,
+          title: verified ? 'Toko Anda Telah Diverifikasi' : 'Status Verifikasi Toko Diperbarui',
+          body: verified
+            ? `Toko "${store.name}" telah diverifikasi oleh pengurus dan lencana terverifikasi kini aktif di katalog.`
+            : `Status verifikasi toko "${store.name}" dicabut${options?.note ? `: ${options.note}` : '.'}`,
+          link: '/dashboard',
+        },
+        tx
+      );
+    }
+
+    return true;
+  });
+}
+
+export async function deleteUMKM(umkmId: number, options?: { actorUserId?: number }): Promise<boolean> {
+  return await getDb().transaction(async (tx) => {
+    const rows = await tx
+      .delete(schema.umkm)
+      .where(eq(schema.umkm.id, umkmId))
+      .returning({ id: schema.umkm.id, name: schema.umkm.name, zone_id: schema.umkm.zone_id });
+
+    if (rows.length === 0) return false;
+
+    await recordAuditLog(
+      {
+        actorUserId: options?.actorUserId,
+        action: 'umkm.delete',
+        targetType: 'umkm',
+        targetId: rows[0].id,
+        metadata: { name: rows[0].name, zone_id: rows[0].zone_id },
+      },
+      tx
+    );
+
+    return true;
+  });
 }
 
 export async function updateUMKMProfile(
@@ -342,7 +433,8 @@ export async function createStoreByPetugas(
     pirt?: string;
     bpom?: string;
     otherLegalities?: string;
-  }
+  },
+  options?: { verified?: boolean }
 ): Promise<{
   storeId: number;
   isExisting: boolean;
@@ -391,6 +483,9 @@ export async function createStoreByPetugas(
     .where(eq(schema.zones.id, data.zoneId))
     .limit(1);
 
+  const isVerified = options?.verified === true;
+  const now = new Date();
+
   const [created] = await db
     .insert(schema.umkm)
     .values({
@@ -398,7 +493,9 @@ export async function createStoreByPetugas(
       phone: cleanPhone,
       zone_id: data.zoneId,
       ranting: data.ranting || null,
-      is_verified: 1, // Verified direct entry by officer
+      is_verified: isVerified ? 1 : 0,
+      verified_by_user_id: isVerified ? createdByUserId : null,
+      verified_at: isVerified ? now : null,
       address: data.address || '',
       created_by_user_id: createdByUserId,
       nib: data.nib || null,
@@ -408,6 +505,14 @@ export async function createStoreByPetugas(
       other_legalities: data.otherLegalities || null,
     })
     .returning({ id: schema.umkm.id, name: schema.umkm.name, phone: schema.umkm.phone });
+
+  await recordAuditLog({
+    actorUserId: createdByUserId,
+    action: 'umkm.create_by_officer',
+    targetType: 'umkm',
+    targetId: created.id,
+    metadata: { zone_id: data.zoneId, is_verified: isVerified ? 1 : 0 },
+  });
 
   return {
     storeId: created.id,

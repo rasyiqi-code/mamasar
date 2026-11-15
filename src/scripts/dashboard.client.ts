@@ -727,18 +727,18 @@ export function initDashboardClient() {
     function switchCategory(category: 'featured' | 'bump') {
       if (category === 'featured') {
         tabFeatured?.classList.add('border-amber-500', 'text-amber-950');
-        tabFeatured?.classList.remove('border-transparent', 'text-slate-400');
+        tabFeatured?.classList.remove('border-transparent', 'text-slate-500');
         tabBump?.classList.remove('border-amber-500', 'text-amber-950');
-        tabBump?.classList.add('border-transparent', 'text-slate-400');
+        tabBump?.classList.add('border-transparent', 'text-slate-500');
         secFeatured?.classList.remove('hidden');
         secBump?.classList.add('hidden');
 
         selectPackage('featured_14d');
       } else {
         tabBump?.classList.add('border-amber-500', 'text-amber-950');
-        tabBump?.classList.remove('border-transparent', 'text-slate-400');
+        tabBump?.classList.remove('border-transparent', 'text-slate-500');
         tabFeatured?.classList.remove('border-amber-500', 'text-amber-950');
-        tabFeatured?.classList.add('border-transparent', 'text-slate-400');
+        tabFeatured?.classList.add('border-transparent', 'text-slate-500');
         secBump?.classList.remove('hidden');
         secFeatured?.classList.add('hidden');
 
@@ -839,14 +839,26 @@ export function initDashboardClient() {
 
     form?.addEventListener('submit', async (e) => {
       e.preventDefault();
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Mengirim Pesanan...';
-      }
 
       if (modalAlert) {
         modalAlert.className = 'hidden';
         modalAlert.textContent = '';
+      }
+
+      const hasProofFile = Boolean(proofInput?.files && proofInput.files.length > 0);
+      const hasProofBase64 = Boolean(proofBase64?.value && proofBase64.value.includes(';base64,'));
+      if (!hasProofFile && !hasProofBase64) {
+        if (modalAlert) {
+          modalAlert.className = 'm-4 p-3 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 block';
+          modalAlert.textContent = 'Unggah foto bukti pembayaran (QRIS / transfer) sebelum mengajukan promosi.';
+        }
+        proofInput?.focus();
+        return;
+      }
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Mengirim Pesanan...';
       }
 
       try {

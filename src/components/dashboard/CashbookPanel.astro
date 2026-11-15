@@ -1,5 +1,6 @@
 ---
 import { formatRupiah } from '../../lib/utils';
+import AppIcon from '../common/AppIcon.astro';
 
 interface Props {
   summary: {
@@ -41,7 +42,7 @@ const { summary, entries, products = [] } = Astro.props;
         class="py-1 px-2.5 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded border border-slate-200 transition cursor-pointer flex items-center gap-1"
         title="Unduh CSV"
       >
-        <span>📊 CSV</span>
+        <span>Unduh CSV</span>
       </button>
       <button
         type="button"
@@ -188,18 +189,19 @@ const { summary, entries, products = [] } = Astro.props;
               <td class="py-2.5 px-2 text-center">
                 <button
                   type="button"
-                  class="btn-delete-cash text-slate-400 hover:text-rose-600 p-1 cursor-pointer transition"
+                  class="btn-delete-cash text-slate-500 hover:text-rose-600 p-1 cursor-pointer transition"
                   data-id={c.id}
                   title="Hapus"
+                  aria-label={`Hapus catatan ${c.title}`}
                 >
-                  ✕
+                  <AppIcon name="x" size="xs" />
                 </button>
               </td>
             </tr>
           ))
         ) : (
           <tr>
-            <td colspan="5" class="py-8 text-center text-slate-400 text-xs">
+            <td colspan="5" class="py-8 text-center text-slate-500 text-xs">
               Belum ada catatan buku kas.
             </td>
           </tr>

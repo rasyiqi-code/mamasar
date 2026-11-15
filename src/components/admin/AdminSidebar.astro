@@ -1,4 +1,6 @@
 ---
+import AppIcon from '../common/AppIcon.astro';
+
 interface Props {
   user: {
     id: number;
@@ -104,7 +106,7 @@ const roleSub = isSuper
         class="md:hidden text-slate-600 hover:text-slate-900 p-1 cursor-pointer"
         aria-label="Tutup Menu Admin"
       >
-        ✕
+        <AppIcon name="x" size="sm" />
       </button>
     </div>
 
@@ -117,7 +119,7 @@ const roleSub = isSuper
           class="admin-nav-tab active w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
-            <span class="text-sm">🛡️</span>
+            <AppIcon name="shield" size="sm" class="text-slate-600" />
             <span>Pengguna & Peran</span>
           </div>
           {pendingPetugasCount > 0 ? (
@@ -139,7 +141,7 @@ const roleSub = isSuper
           class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
-            <span class="text-sm">🏪</span>
+            <AppIcon name="store" size="sm" class="text-slate-600" />
             <span>Moderasi Toko</span>
           </div>
           {pendingStoresCount > 0 ? (
@@ -158,7 +160,7 @@ const roleSub = isSuper
           data-admin-tab="entry"
           class="admin-nav-tab active w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
         >
-          <span class="text-sm">📝</span>
+          <AppIcon name="clipboard" size="sm" class="text-slate-600" />
           <span>Entri Jemput Bola</span>
         </button>
       )}
@@ -169,7 +171,7 @@ const roleSub = isSuper
           data-admin-tab="entry"
           class="admin-nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
         >
-          <span class="text-sm">📝</span>
+          <AppIcon name="clipboard" size="sm" class="text-slate-600" />
           <span>Entri Jemput Bola</span>
         </button>
       ) : (
@@ -179,7 +181,7 @@ const roleSub = isSuper
           class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
         >
           <div class="flex items-center gap-2.5">
-            <span class="text-sm">🏪</span>
+            <AppIcon name="store" size="sm" class="text-slate-600" />
             <span>Toko Binaan MWC</span>
           </div>
           <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
@@ -193,29 +195,31 @@ const roleSub = isSuper
         data-admin-tab="events"
         class="admin-nav-tab w-full flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
       >
-        <span class="text-sm">🎪</span>
+        <AppIcon name="tent" size="sm" class="text-slate-600" />
         <span>Agenda Kegiatan</span>
       </button>
 
-      <button
-        type="button"
-        data-admin-tab="promotions"
-        class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
-      >
-        <div class="flex items-center gap-2.5">
-          <span class="text-sm">⭐</span>
-          <span>Iklan & Promosi</span>
-        </div>
-        {pendingPromotionsCount > 0 ? (
-          <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-950">
-            {pendingPromotionsCount}
-          </span>
-        ) : (
-          <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
-            0
-          </span>
-        )}
-      </button>
+      {(isSuper || isMwcAdmin) && (
+        <button
+          type="button"
+          data-admin-tab="promotions"
+          class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+        >
+          <div class="flex items-center gap-2.5">
+            <AppIcon name="star" size="sm" class="text-amber-600" />
+            <span>Iklan & Promosi</span>
+          </div>
+          {pendingPromotionsCount > 0 ? (
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-200 text-amber-950">
+              {pendingPromotionsCount}
+            </span>
+          ) : (
+            <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+              0
+            </span>
+          )}
+        </button>
+      )}
 
       <button
         type="button"
@@ -223,7 +227,7 @@ const roleSub = isSuper
         class="admin-nav-tab w-full flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
       >
         <div class="flex items-center gap-2.5">
-          <span class="text-sm">🗺️</span>
+          <AppIcon name="map-pin" size="sm" class="text-slate-600" />
           <span>Peta Sebaran Wilayah</span>
         </div>
         <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
@@ -234,16 +238,16 @@ const roleSub = isSuper
       <div class="pt-3 mt-2 border-t border-slate-200/60 space-y-1">
         <a
           href="/dashboard"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
         >
-          <span class="text-sm">🏬</span>
+          <AppIcon name="store" size="sm" />
           <span>Dashboard Toko Saya</span>
         </a>
         <a
           href="/"
-          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
+          class="flex items-center gap-2.5 px-3 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100/70 transition font-medium"
         >
-          <span class="text-sm">🌐</span>
+          <AppIcon name="globe" size="sm" />
           <span>Lihat Katalog Depan</span>
         </a>
       </div>
@@ -258,13 +262,20 @@ const roleSub = isSuper
             {isSuper ? 'Superadmin PCNU' : isMwcAdmin ? `Pengurus MWC ${assignedZoneName}` : user.agent_ranting ? `Kader Ranting ${user.agent_ranting} • MWC ${assignedZoneName}` : `Kader MWC ${assignedZoneName}`}
           </span>
         </div>
-        <a
-          href="/api/auth/logout"
-          class="p-1.5 text-slate-600 hover:text-rose-700 rounded-md transition"
-          title="Keluar"
+        <form
+          method="POST"
+          action="/api/auth/logout"
+          onsubmit="try{localStorage.removeItem('mamasar_favorites')}catch{}"
         >
-          🚪
-        </a>
+          <button
+            type="submit"
+            class="p-1.5 text-slate-600 hover:text-rose-700 rounded-md transition cursor-pointer"
+            title="Keluar"
+            aria-label="Keluar dari akun"
+          >
+            <AppIcon name="log-out" size="sm" />
+          </button>
+        </form>
       </div>
     </div>
   </div>

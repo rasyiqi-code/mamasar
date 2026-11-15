@@ -1,9 +1,8 @@
 import type { APIRoute } from 'astro';
-import { getUserFromSession, isSuperadmin, setUMKMVerified } from '../../../lib/db';
+import { can, getUMKMScope, getUserFromSession, isPCNU, setUMKMVerified } from '../../../lib/db';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
-    // Hanya Superadmin atau Pengurus boleh memverifikasi toko.
     const sessionCookie = cookies.get('mamasar_session')?.value;
     const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
 
@@ -14,7 +13,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    if (!isSuperadmin(user) && user.role !== 'mwcnu') {
+    if (!isPCNU(user) && user.role !== 'mwcnu') {
       return new Response(JSON.stringify({ success: false, message: 'Akses khusus Admin PCNU / Pengurus MWCNU.' }), {
         status: 403,
         headers: { 'Content-Type': 'application/json' },
@@ -24,6 +23,7 @@ export const POST: APIRoute = async ({ request, cookies }) => {
     const formData = await request.formData();
     const umkmId = Number(formData.get('umkmId'));
     const verified = formData.get('verified')?.toString() === '1';
+    const note = formData.get('note')?.toString().trim() || undefined;
 
     if (!umkmId) {
       return new Response(JSON.stringify({ success: false, message: 'ID Toko diperlukan.' }), {
@@ -32,7 +32,22 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    const success = await setUMKMVerified(umkmId, verified);
+    const scope = await getUMKMScope(umkmId);
+    if (!scope) {
+      return new Response(JSON.stringify({ success: false, message: 'Toko tidak ditemukan.' }), {
+        status: 404,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!can(user, 'umkm:verify', { zoneId: scope.zone_id })) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Anda hanya dapat memverifikasi toko pada wilayah MWCNU Anda.' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const success = await setUMKMVerified(umkmId, verified, { actorUserId: user.id, note });
 
     if (!success) {
       return new Response(JSON.stringify({ success: false, message: 'Toko tidak ditemukan.' }), {

@@ -1,8 +1,28 @@
-import { and, desc, eq, gt, lt, getTableColumns, sql } from 'drizzle-orm';
+import crypto from 'node:crypto';
+import { and, asc, desc, eq, gt, lt, getTableColumns, sql } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
 import { getEnv } from '../neon';
 import type { User, UMKM } from './types';
+
+export const ROLES = {
+  PCNU: 'pcnu',
+  MWCNU: 'mwcnu',
+  RANTING: 'ranting',
+  WARGA: 'warga',
+} as const;
+
+export type Permission =
+  | 'admin:access'
+  | 'umkm:create_verified'
+  | 'umkm:verify'
+  | 'umkm:delete'
+  | 'product:create'
+  | 'promotion:review'
+  | 'zones:manage'
+  | 'users:manage'
+  | 'articles:manage'
+  | 'events:manage';
 
 export function isPCNU(user?: { role?: string; email?: string } | null): boolean {
   if (!user) return false;
@@ -14,19 +34,30 @@ export function isPCNU(user?: { role?: string; email?: string } | null): boolean
 }
 export const isSuperadmin = isPCNU;
 
-export function isMWCNU(user?: { role?: string; email?: string } | null): boolean {
+function hasBlockedAgentStatus(user?: { agent_status?: string } | null): boolean {
+  return (
+    user?.agent_status === 'pending' ||
+    user?.agent_status === 'pending_mwcnu' ||
+    user?.agent_status === 'rejected'
+  );
+}
+
+export function isMWCNU(user?: { role?: string; agent_status?: string; email?: string } | null): boolean {
   if (!user) return false;
-  return user.role === 'mwcnu' || isPCNU(user);
+  if (isPCNU(user)) return true;
+  if (hasBlockedAgentStatus(user)) return false;
+  return user.role === 'mwcnu';
 }
 export const isPengurus = isMWCNU;
 
 export function isRanting(user?: { role?: string; agent_status?: string; email?: string } | null): boolean {
   if (!user) return false;
+  if (isPCNU(user)) return true;
+  if (hasBlockedAgentStatus(user)) return false;
   return (
     user.role === 'ranting' ||
     user.role === 'mwcnu' ||
-    user.agent_status === 'active' ||
-    isPCNU(user)
+    user.agent_status === 'active'
   );
 }
 export const isPetugas = isRanting;
@@ -34,6 +65,75 @@ export const isPetugas = isRanting;
 export function isMerchant(user?: { role?: string; umkm?: any } | null): boolean {
   if (!user) return false;
   return Boolean(user.umkm);
+}
+
+function matchesAssignedZone(
+  user: { assigned_zone_id?: number | null },
+  zoneId?: number | null
+): boolean {
+  return (
+    typeof zoneId === 'number' &&
+    typeof user.assigned_zone_id === 'number' &&
+    user.assigned_zone_id === zoneId
+  );
+}
+
+/**
+ * Unified RBAC + zone authorization guard.
+ * PCNU / superadmin has global scope; MWCNU and Ranting officers are bounded to assigned_zone_id.
+ */
+export function can(
+  user: {
+    id: number;
+    role?: string;
+    agent_status?: string;
+    email?: string;
+    assigned_zone_id?: number | null;
+    umkm?: { id: number } | null;
+  } | null | undefined,
+  permission: Permission,
+  context?: { zoneId?: number | null; umkmId?: number | null }
+): boolean {
+  if (!user) return false;
+
+  switch (permission) {
+    case 'admin:access':
+      return isPetugas(user);
+
+    case 'zones:manage':
+    case 'users:manage':
+    case 'articles:manage':
+      return isPCNU(user);
+
+    case 'events:manage':
+      return isPetugas(user);
+
+    case 'umkm:create_verified': {
+      if (!isPetugas(user)) return false;
+      if (isPCNU(user)) return true;
+      return matchesAssignedZone(user, context?.zoneId);
+    }
+
+    case 'umkm:verify':
+    case 'umkm:delete':
+    case 'promotion:review': {
+      if (isPCNU(user)) return true;
+      if (!isMWCNU(user)) return false;
+      return matchesAssignedZone(user, context?.zoneId);
+    }
+
+    case 'product:create': {
+      if (context?.umkmId != null && user.umkm?.id === context.umkmId) {
+        return true;
+      }
+      if (!isPetugas(user)) return false;
+      if (isPCNU(user)) return true;
+      return matchesAssignedZone(user, context?.zoneId);
+    }
+
+    default:
+      return false;
+  }
 }
 
 export function toUser(row: typeof schema.users.$inferSelect, zoneName?: string): User {
@@ -138,7 +238,7 @@ export async function updateUserProfile(userId: number, data: { name?: string; a
 }
 
 export async function createSession(userId: number): Promise<string> {
-  const sessionId = `sess_${Date.now()}_${Math.random().toString(36).substring(2)}${Math.random().toString(36).substring(2)}`;
+  const sessionId = `sess_${crypto.randomBytes(24).toString('hex')}`;
   const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
   await getDb().insert(schema.sessions).values({
@@ -194,7 +294,9 @@ export async function getUserFromSession(sessionId: string): Promise<(User & { u
     .innerJoin(schema.users, eq(schema.sessions.user_id, schema.users.id))
     .leftJoin(schema.umkm, eq(schema.umkm.user_id, schema.users.id))
     .leftJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
-    .where(eq(schema.sessions.id, sessionId));
+    .where(eq(schema.sessions.id, sessionId))
+    .orderBy(asc(schema.umkm.id))
+    .limit(1);
 
   if (!row) return null;
 
@@ -231,7 +333,7 @@ export async function getUserFromSession(sessionId: string): Promise<(User & { u
       zone_id: row.umkm_zone_id!,
       zone_name: row.zone_name,
       zone_slug: row.zone_slug,
-      is_verified: row.umkm_is_verified ?? 1,
+      is_verified: row.umkm_is_verified ?? 0,
       address: row.umkm_address ?? undefined,
     };
   }

@@ -22,3 +22,5 @@ export * from './modules/products';
 export * from './modules/cashbook';
 export * from './modules/favorites';
 export * from './modules/promotions';
+export * from './modules/audit';
+export * from './modules/notifications';

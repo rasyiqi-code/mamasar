@@ -2,7 +2,7 @@ import type { APIRoute } from 'astro';
 import { deleteSession, deleteUserSessions, getUserFromSession } from '../../../lib/db';
 import { getNeonAuthBaseUrl, parseCookieString } from '../../../lib/neon-auth';
 
-export const ALL: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
   const cookieHeader = request.headers.get('cookie') || '';
   const parsedCookies = parseCookieString(cookieHeader);

@@ -48,8 +48,20 @@ async function runMigration() {
       name VARCHAR(255) NOT NULL,
       phone VARCHAR(50) NOT NULL,
       zone_id INTEGER NOT NULL REFERENCES zones(id),
-      is_verified INTEGER DEFAULT 1,
+      is_verified INTEGER DEFAULT 0,
+      verified_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      verified_at TIMESTAMP WITH TIME ZONE,
+      verification_note TEXT,
       address TEXT,
+      ranting VARCHAR(255),
+      nib VARCHAR(100),
+      halal_cert VARCHAR(100),
+      pirt VARCHAR(100),
+      bpom VARCHAR(100),
+      other_legalities TEXT,
+      bump_credits INTEGER DEFAULT 0,
+      created_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      claimed_at TIMESTAMP WITH TIME ZONE,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -61,33 +73,53 @@ async function runMigration() {
       name VARCHAR(255) NOT NULL,
       slug VARCHAR(255) NOT NULL UNIQUE,
       price INTEGER NOT NULL,
+      original_price INTEGER,
       category VARCHAR(100) NOT NULL,
       image_url TEXT NOT NULL,
+      gallery_images TEXT DEFAULT '[]',
       description TEXT,
       views INTEGER DEFAULT 0,
+      is_featured INTEGER DEFAULT 0,
+      featured_until TIMESTAMP WITH TIME ZONE,
       is_sold_out INTEGER DEFAULT 0,
+      stock_status VARCHAR(20) NOT NULL DEFAULT 'ready',
+      production_capacity VARCHAR(255),
       shopee_url TEXT,
       bumped_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `;
 
-  // Kolom tambahan untuk database Neon yang sudah dibuat sebelumnya
-  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS shopee_url TEXT;`;
-  await sql`ALTER TABLE products ALTER COLUMN views SET DEFAULT 0;`;
-  // Kolom yang pernah dibuat tapi tidak pernah dipakai aplikasi
-  await sql`ALTER TABLE products DROP COLUMN IF EXISTS gallery_images;`;
-  await sql`ALTER TABLE products DROP COLUMN IF EXISTS is_featured;`;
-  // 3 Core Roles RBAC: 'superadmin', 'petugas', 'warga' (kepemilikan toko berbasis relasi entitas umkm)
+  // Kolom tambahan idempotent agar database eksisting tetap tersinkron
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) NOT NULL DEFAULT 'warga';`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS agent_status VARCHAR(20) NOT NULL DEFAULT 'none';`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS assigned_zone_id INTEGER REFERENCES zones(id);`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS agent_org VARCHAR(255);`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS agent_phone VARCHAR(50);`;
 
-  // Kolom tracking pembuat toko jemput bola & riwayat klaim
+  await sql`ALTER TABLE umkm ALTER COLUMN is_verified SET DEFAULT 0;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS verified_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS verified_at TIMESTAMP WITH TIME ZONE;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS verification_note TEXT;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS ranting VARCHAR(255);`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS nib VARCHAR(100);`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS halal_cert VARCHAR(100);`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS pirt VARCHAR(100);`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS bpom VARCHAR(100);`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS other_legalities TEXT;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS bump_credits INTEGER DEFAULT 0;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS created_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMP WITH TIME ZONE;`;
+  await sql`CREATE UNIQUE INDEX IF NOT EXISTS uq_umkm_user_id ON umkm(user_id) WHERE user_id IS NOT NULL;`;
+
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS original_price INTEGER;`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS gallery_images TEXT DEFAULT '[]';`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS is_featured INTEGER DEFAULT 0;`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS featured_until TIMESTAMP WITH TIME ZONE;`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS stock_status VARCHAR(20) NOT NULL DEFAULT 'ready';`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS production_capacity VARCHAR(255);`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS shopee_url TEXT;`;
+  await sql`ALTER TABLE products ALTER COLUMN views SET DEFAULT 0;`;
 
   // Tabel Favorit Sinkron Database
   await sql`
@@ -139,19 +171,93 @@ async function runMigration() {
     CREATE TABLE IF NOT EXISTS cashbook (
       id SERIAL PRIMARY KEY,
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      umkm_id INTEGER REFERENCES umkm(id) ON DELETE CASCADE,
       title VARCHAR(255) NOT NULL,
       amount INTEGER NOT NULL,
       type VARCHAR(20) NOT NULL DEFAULT 'income',
       category VARCHAR(100) DEFAULT 'Penjualan',
+      reference_type VARCHAR(50),
+      reference_id INTEGER,
       notes TEXT,
       transaction_date DATE DEFAULT CURRENT_DATE,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `;
+  await sql`ALTER TABLE cashbook ADD COLUMN IF NOT EXISTS umkm_id INTEGER REFERENCES umkm(id) ON DELETE CASCADE;`;
+  await sql`ALTER TABLE cashbook ADD COLUMN IF NOT EXISTS reference_type VARCHAR(50);`;
+  await sql`ALTER TABLE cashbook ADD COLUMN IF NOT EXISTS reference_id INTEGER;`;
 
   await sql`
     CREATE INDEX IF NOT EXISTS idx_cashbook_user ON cashbook(user_id, transaction_date DESC);
   `;
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_cashbook_umkm ON cashbook(umkm_id, transaction_date DESC);
+  `;
+
+  // Tabel Promosi / Iklan Berbayar & Token Sundul
+  await sql`
+    CREATE TABLE IF NOT EXISTS ad_promotions (
+      id SERIAL PRIMARY KEY,
+      umkm_id INTEGER NOT NULL REFERENCES umkm(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
+      type VARCHAR(50) NOT NULL,
+      amount INTEGER NOT NULL,
+      status VARCHAR(20) NOT NULL DEFAULT 'pending',
+      payment_method VARCHAR(50) DEFAULT 'qris',
+      proof_image_url TEXT,
+      notes TEXT,
+      duration_days INTEGER,
+      bump_amount INTEGER,
+      reviewed_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      reviewed_at TIMESTAMP WITH TIME ZONE,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  await sql`ALTER TABLE ad_promotions ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMP WITH TIME ZONE;`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_ad_promotions_umkm ON ad_promotions(umkm_id, status);`;
+
+  // Riwayat transaksi token sundul
+  await sql`
+    CREATE TABLE IF NOT EXISTS bump_ledger (
+      id SERIAL PRIMARY KEY,
+      umkm_id INTEGER NOT NULL REFERENCES umkm(id) ON DELETE CASCADE,
+      product_id INTEGER REFERENCES products(id) ON DELETE SET NULL,
+      promotion_id INTEGER REFERENCES ad_promotions(id) ON DELETE SET NULL,
+      delta INTEGER NOT NULL,
+      reason VARCHAR(50) NOT NULL,
+      note TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_bump_ledger_umkm ON bump_ledger(umkm_id, created_at DESC);`;
+
+  // Jejak audit & notifikasi warga
+  await sql`
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id SERIAL PRIMARY KEY,
+      actor_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      action VARCHAR(100) NOT NULL,
+      target_type VARCHAR(50) NOT NULL,
+      target_id INTEGER,
+      metadata TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_audit_log_created ON audit_log(created_at DESC);`;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      title VARCHAR(255) NOT NULL,
+      message TEXT NOT NULL,
+      link_url TEXT,
+      is_read INTEGER NOT NULL DEFAULT 0,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+  await sql`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read, created_at DESC);`;
 
   console.log('✅ Skema tabel berhasil dibuat di Neon PostgreSQL!');
 

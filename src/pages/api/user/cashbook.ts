@@ -15,17 +15,19 @@ export const POST: APIRoute = async ({ request, cookies }) => {
 
     const body = await request.json();
     const { title, amount, type, category, notes, transactionDate } = body;
+    const numericAmount = Math.round(Number(amount));
 
-    if (!title || !amount) {
-      return new Response(JSON.stringify({ success: false, message: 'Judul dan nominal transaksi wajib diisi.' }), {
+    if (!title || !Number.isFinite(numericAmount) || numericAmount <= 0) {
+      return new Response(JSON.stringify({ success: false, message: 'Judul dan nominal transaksi yang valid wajib diisi.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
     }
 
     const entry = await addCashbookEntry(user.id, {
-      title,
-      amount: Math.abs(Number(amount)),
+      umkmId: user.umkm?.id,
+      title: String(title).trim(),
+      amount: numericAmount,
       type: type === 'expense' ? 'expense' : 'income',
       category: category || 'Penjualan',
       notes,
@@ -70,7 +72,7 @@ export const DELETE: APIRoute = async ({ request, cookies }) => {
       });
     }
 
-    const deleted = await deleteCashbookEntry(Number(id), user.id);
+    const deleted = await deleteCashbookEntry(Number(id), user.id, user.umkm?.id);
     return new Response(JSON.stringify({ success: deleted }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },

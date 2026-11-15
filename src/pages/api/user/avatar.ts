@@ -1,18 +1,22 @@
 import type { APIRoute } from 'astro';
-import { saveAccountAvatar } from '../../../lib/storage';
+import { InvalidUploadError, saveAccountAvatar } from '../../../lib/storage';
 import { updateUserProfile, getUserFromSession } from '../../../lib/db';
 
 export const POST: APIRoute = async ({ request, cookies }) => {
   try {
     const sessionCookie = cookies.get('mamasar_session')?.value;
     const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Silakan login terlebih dahulu.' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     const contentType = request.headers.get('content-type') || '';
 
     let imageFile: File | null = null;
     let imageBase64: string | null = null;
-    // Always derive the file prefix from the authenticated user; a client
-    // must not be able to write avatars under another user's prefix.
-    const userId: string | number = user?.id || 'guest';
+    const userId = user.id;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await request.formData();
@@ -54,9 +58,15 @@ export const POST: APIRoute = async ({ request, cookies }) => {
       }
     );
   } catch (err: any) {
+    if (err instanceof InvalidUploadError) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     return new Response(
       JSON.stringify({
-        error: err.message || 'Gagal mengunggah foto profil',
+        error: 'Gagal mengunggah foto profil',
       }),
       {
         status: 500,

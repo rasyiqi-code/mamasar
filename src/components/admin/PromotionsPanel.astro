@@ -47,7 +47,7 @@ const totalPendingAmount = pendingPromotions.reduce((sum, p) => sum + p.amount, 
 
     <div class="flex items-center gap-3">
       <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-right">
-        <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Total Nilai Infaq Pending</span>
+        <span class="text-[10px] uppercase font-bold text-slate-500 block tracking-wider">Total Nilai Infaq Pending</span>
         <span class="text-sm font-black font-mono text-emerald-700">{formatRupiah(totalPendingAmount)}</span>
       </div>
     </div>
@@ -93,7 +93,7 @@ const totalPendingAmount = pendingPromotions.reduce((sum, p) => sum + p.amount, 
                     </span>
                   </a>
                 ) : (
-                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-400 text-[10px] text-center p-1 font-semibold">
+                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-slate-100 border border-slate-200 flex flex-col items-center justify-center text-slate-500 text-[10px] text-center p-1 font-semibold">
                     <span>Tanpa Bukti</span>
                   </div>
                 )}
@@ -109,13 +109,13 @@ const totalPendingAmount = pendingPromotions.reduce((sum, p) => sum + p.amount, 
                     {promo.umkm_name || 'Toko UMKM'}
                   </span>
                   {promo.user_email && (
-                    <span class="text-[11px] text-slate-400 font-mono">({promo.user_email})</span>
+                    <span class="text-[11px] text-slate-500 font-mono">({promo.user_email})</span>
                   )}
                 </div>
 
                 {pkgInfo.isFeatured && promo.product_name && (
                   <div class="text-xs text-slate-700 font-medium flex items-center gap-1.5">
-                    <span class="text-slate-400">Produk yang diiklankan:</span>
+                    <span class="text-slate-500">Produk yang diiklankan:</span>
                     {promo.product_slug ? (
                       <a
                         href={`/p/${promo.product_slug}`}
@@ -136,7 +136,7 @@ const totalPendingAmount = pendingPromotions.reduce((sum, p) => sum + p.amount, 
                   <span class="text-slate-300">•</span>
                   <span class="text-[11px] text-slate-500 uppercase">{promo.payment_method}</span>
                   <span class="text-slate-300">•</span>
-                  <span class="text-[11px] text-slate-400">{dateStr}</span>
+                  <span class="text-[11px] text-slate-500">{dateStr}</span>
                 </div>
 
                 {promo.notes && (

@@ -1,7 +1,17 @@
-import { and, desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, or, sql } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
 import type { CashbookEntry } from './types';
+
+function cashbookScopeCondition(userId: number, umkmId?: number) {
+  if (umkmId) {
+    return or(
+      eq(schema.cashbook.umkm_id, umkmId),
+      and(isNull(schema.cashbook.umkm_id), eq(schema.cashbook.user_id, userId))
+    )!;
+  }
+  return eq(schema.cashbook.user_id, userId);
+}
 
 function toCashbookEntry(row: typeof schema.cashbook.$inferSelect): CashbookEntry {
   return {
@@ -17,24 +27,31 @@ function toCashbookEntry(row: typeof schema.cashbook.$inferSelect): CashbookEntr
   };
 }
 
-export async function getCashbookEntries(userId: number, limit: number = 30): Promise<CashbookEntry[]> {
+export async function getCashbookEntries(
+  userId: number,
+  limit: number = 30,
+  umkmId?: number
+): Promise<CashbookEntry[]> {
   const rows = await getDb()
     .select()
     .from(schema.cashbook)
-    .where(eq(schema.cashbook.user_id, userId))
+    .where(cashbookScopeCondition(userId, umkmId))
     .orderBy(desc(schema.cashbook.transaction_date), desc(schema.cashbook.id))
     .limit(limit);
   return rows.map(toCashbookEntry);
 }
 
-export async function getCashbookSummary(userId: number): Promise<{ totalIncome: number; totalExpense: number; balance: number }> {
+export async function getCashbookSummary(
+  userId: number,
+  umkmId?: number
+): Promise<{ totalIncome: number; totalExpense: number; balance: number }> {
   const [row] = await getDb()
     .select({
       total_income: sql<string | number>`COALESCE(SUM(CASE WHEN ${schema.cashbook.type} = 'income' THEN ${schema.cashbook.amount} ELSE 0 END), 0)`,
       total_expense: sql<string | number>`COALESCE(SUM(CASE WHEN ${schema.cashbook.type} = 'expense' THEN ${schema.cashbook.amount} ELSE 0 END), 0)`,
     })
     .from(schema.cashbook)
-    .where(eq(schema.cashbook.user_id, userId));
+    .where(cashbookScopeCondition(userId, umkmId));
 
   const totalIncome = Number(row?.total_income ?? 0);
   const totalExpense = Number(row?.total_expense ?? 0);
@@ -45,14 +62,18 @@ export async function getCashbookSummary(userId: number): Promise<{ totalIncome:
   };
 }
 
-export async function addCashbookEntry(userId: number, data: {
-  title: string;
-  amount: number;
-  type?: 'income' | 'expense';
-  category?: string;
-  notes?: string;
-  transactionDate?: string;
-}): Promise<CashbookEntry> {
+export async function addCashbookEntry(
+  userId: number,
+  data: {
+    umkmId?: number;
+    title: string;
+    amount: number;
+    type?: 'income' | 'expense';
+    category?: string;
+    notes?: string;
+    transactionDate?: string;
+  }
+): Promise<CashbookEntry> {
   const type = data.type || 'income';
   const category = data.category || 'Penjualan';
   const transactionDate = data.transactionDate || new Date().toISOString().split('T')[0];
@@ -61,6 +82,7 @@ export async function addCashbookEntry(userId: number, data: {
     .insert(schema.cashbook)
     .values({
       user_id: userId,
+      umkm_id: data.umkmId ?? null,
       title: data.title,
       amount: data.amount,
       type,
@@ -83,10 +105,10 @@ export async function addCashbookEntry(userId: number, data: {
   };
 }
 
-export async function deleteCashbookEntry(id: number, userId: number): Promise<boolean> {
+export async function deleteCashbookEntry(id: number, userId: number, umkmId?: number): Promise<boolean> {
   const rows = await getDb()
     .delete(schema.cashbook)
-    .where(and(eq(schema.cashbook.id, id), eq(schema.cashbook.user_id, userId)))
+    .where(and(eq(schema.cashbook.id, id), cashbookScopeCondition(userId, umkmId)))
     .returning({ id: schema.cashbook.id });
   return rows.length > 0;
 }

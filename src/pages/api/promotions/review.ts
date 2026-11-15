@@ -1,14 +1,21 @@
 import type { APIRoute } from 'astro';
 import { resolveUser } from '../../../lib/neon-auth';
-import { approveAdOrder, rejectAdOrder, isSuperadmin, isPetugas } from '../../../lib/db';
+import { approveAdOrder, can, getAdOrderScope, isPCNU, rejectAdOrder } from '../../../lib/db';
 
 export const POST: APIRoute = async ({ request }) => {
   try {
     const user = await resolveUser(request);
 
-    if (!user || (!isSuperadmin(user) && !isPetugas(user) && user.role !== 'mwcnu')) {
+    if (!user) {
       return new Response(
-        JSON.stringify({ success: false, message: 'Tidak memiliki hak akses moderasi promosi iklan.' }),
+        JSON.stringify({ success: false, message: 'Silakan masuk terlebih dahulu.' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!isPCNU(user) && user.role !== 'mwcnu') {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Akses moderasi promosi khusus Admin PCNU atau Pengurus MWCNU.' }),
         { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
@@ -22,6 +29,21 @@ export const POST: APIRoute = async ({ request }) => {
       return new Response(
         JSON.stringify({ success: false, message: 'ID Pesanan dan tindakan (action) diperlukan.' }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const scope = await getAdOrderScope(orderId);
+    if (!scope) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Pesanan iklan tidak ditemukan.' }),
+        { status: 404, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!can(user, 'promotion:review', { zoneId: scope.zone_id })) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'Anda hanya dapat meninjau promosi iklan di wilayah MWCNU Anda.' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -46,7 +68,7 @@ export const POST: APIRoute = async ({ request }) => {
   } catch (error: any) {
     console.error('Error reviewing ad promotion:', error);
     return new Response(
-      JSON.stringify({ success: false, message: error.message || 'Terjadi kesalahan server.' }),
+      JSON.stringify({ success: false, message: 'Terjadi kesalahan server.' }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
   }

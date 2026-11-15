@@ -1,5 +1,6 @@
 ---
 import AppIcon from '../common/AppIcon.astro';
+import { safeJsonLd } from '../../lib/security';
 
 interface Zone {
   id: number;
@@ -93,6 +94,7 @@ const kepulauan = enrichedZones.filter((z) => z.type === 'kepulauan');
 
 const totalStores = enrichedZones.reduce((acc, z) => acc + z.storeCount, 0);
 const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
+const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
 ---
 
 <!-- Leaflet CSS & JS for Interactive Map -->
@@ -131,9 +133,9 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
       <button
         type="button"
         id="btn-recenter-map"
-        class="py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer active:scale-98"
+        class="py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-bold rounded-xl shadow-2xs transition flex items-center gap-1.5 cursor-pointer active:scale-95"
       >
-        <span>🎯</span>
+        <AppIcon name="map-pin" size="xs" />
         <span>Pusatkan Sumenep</span>
       </button>
 
@@ -141,9 +143,9 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
         href="https://www.google.com/maps/search/?api=1&query=Kabupaten+Sumenep+Madura"
         target="_blank"
         rel="noopener noreferrer"
-        class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer active:scale-98"
+        class="py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer active:scale-95"
       >
-        <span>🗺️</span>
+        <AppIcon name="globe" size="xs" />
         <span>Buka Google Maps ↗</span>
       </a>
     </div>
@@ -152,39 +154,39 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
   <!-- Key Metrics Bar -->
   <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
     <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Total Wilayah MWC</span>
+      <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Total Wilayah MWC</span>
       <div class="flex items-baseline gap-2">
         <span class="text-xl sm:text-2xl font-black text-slate-900 font-mono">{enrichedZones.length}</span>
-        <span class="text-[11px] text-slate-500 font-semibold">Kecamatan</span>
+        <span class="text-[11px] text-slate-600 font-semibold">Kecamatan</span>
       </div>
       <p class="text-[10px] text-emerald-700 font-bold">{daratan.length} Daratan • {kepulauan.length} Kepulauan</p>
     </div>
 
     <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Toko UMKM Terdata</span>
+      <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Toko UMKM Terdata</span>
       <div class="flex items-baseline gap-2">
         <span class="text-xl sm:text-2xl font-black text-emerald-700 font-mono">{totalStores}</span>
-        <span class="text-[11px] text-slate-500 font-semibold">Unit Usaha</span>
+        <span class="text-[11px] text-slate-600 font-semibold">Unit Usaha</span>
       </div>
-      <p class="text-[10px] text-slate-500">Pendataan kader lapangan MWC</p>
+      <p class="text-[10px] text-slate-600">Pendataan kader lapangan MWC</p>
     </div>
 
     <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Produk Terkatalog</span>
+      <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">Produk Terkatalog</span>
       <div class="flex items-baseline gap-2">
         <span class="text-xl sm:text-2xl font-black text-indigo-700 font-mono">{totalProducts}</span>
-        <span class="text-[11px] text-slate-500 font-semibold">Iklan Aktif</span>
+        <span class="text-[11px] text-slate-600 font-semibold">Iklan Aktif</span>
       </div>
-      <p class="text-[10px] text-slate-500">Tersedia di katalog Mamasar</p>
+      <p class="text-[10px] text-slate-600">Tersedia di katalog Mamasar</p>
     </div>
 
     <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-      <span class="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Cakupan Wilayah</span>
+      <span class="text-[10px] uppercase font-bold text-slate-500 tracking-wider block">MWC Memiliki Toko</span>
       <div class="flex items-baseline gap-2">
-        <span class="text-xl sm:text-2xl font-black text-emerald-800 font-mono">100%</span>
-        <span class="text-[11px] text-emerald-700 font-bold">Terpetakan</span>
+        <span class="text-xl sm:text-2xl font-black text-emerald-800 font-mono">{zonesWithStores}</span>
+        <span class="text-[11px] text-emerald-800 font-bold">dari {enrichedZones.length} MWC</span>
       </div>
-      <p class="text-[10px] text-slate-500">Seluruh MWC memiliki koordinat</p>
+      <p class="text-[10px] text-slate-600">Wilayah dengan UMKM terdata</p>
     </div>
   </div>
 
@@ -217,8 +219,8 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
       </button>
     </div>
 
-    <p class="text-xs text-slate-500">
-      <span class="text-emerald-700 font-bold">Klik pin di peta</span> atau tombol <span class="font-bold">📍 Lihat di Peta</span> pada daftar untuk melompat ke lokasi.
+    <p class="text-xs text-slate-600">
+      <span class="text-emerald-700 font-bold">Klik pin di peta</span> atau tombol <span class="font-bold">Lihat di Peta</span> pada daftar untuk melompat ke lokasi.
     </p>
   </div>
 
@@ -231,11 +233,11 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
       <p class="font-bold text-slate-800 leading-tight">Legenda Peta MWC NU:</p>
       <div class="flex items-center gap-2">
         <span class="w-3 h-3 rounded-full bg-emerald-600 border border-emerald-800"></span>
-        <span class="text-slate-600">MWC Daratan (18 Kecamatan)</span>
+        <span class="text-slate-700">MWC Daratan ({daratan.length} Kecamatan)</span>
       </div>
       <div class="flex items-center gap-2">
         <span class="w-3 h-3 rounded-full bg-teal-600 border border-teal-800"></span>
-        <span class="text-slate-600">MWC Kepulauan (9 Kecamatan)</span>
+        <span class="text-slate-700">MWC Kepulauan ({kepulauan.length} Kecamatan)</span>
       </div>
     </div>
   </div>
@@ -378,7 +380,7 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
   </div>
 
   <!-- Raw Zones Geo Data for Client Script -->
-  <script id="zones-geo-data-json" type="application/json" set:html={JSON.stringify(enrichedZones)} />
+  <script id="zones-geo-data-json" type="application/json" set:html={safeJsonLd(enrichedZones)} />
 </section>
 
 <style is:global>

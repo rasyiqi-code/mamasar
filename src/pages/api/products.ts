@@ -1,7 +1,7 @@
 import type { APIRoute } from 'astro';
-import { createUMKMAndProduct, addProductToUMKM, getUMKMByUserId } from '../../lib/db';
+import { addProductToUMKM, can, createUMKMAndProduct, getUMKMByUserId, getUMKMScope } from '../../lib/db';
 import { resolveUser } from '../../lib/neon-auth';
-import { saveUploadedImage } from '../../lib/storage';
+import { InvalidUploadError, saveUploadedImage } from '../../lib/storage';
 import { isValidIndonesianPhone } from '../../lib/utils';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -20,24 +20,81 @@ export const POST: APIRoute = async ({ request }) => {
 
     const formData = await request.formData();
 
-    // Check if the user already has a store or passed a store ID
-    const explicitUmkmId = formData.get('umkmId') ? Number(formData.get('umkmId')) : undefined;
+    const rawUmkmId = formData.get('umkmId')?.toString().trim();
+    const explicitUmkmId = rawUmkmId ? Number(rawUmkmId) : undefined;
+    if (rawUmkmId && (!Number.isInteger(explicitUmkmId) || (explicitUmkmId ?? 0) <= 0)) {
+      return new Response(
+        JSON.stringify({ success: false, message: 'ID toko tidak valid.' }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     const userStore = await getUMKMByUserId(user.id);
-    const targetUmkmId = explicitUmkmId || userStore?.id || user.umkm?.id;
+
+    if (explicitUmkmId !== undefined) {
+      const scope = await getUMKMScope(explicitUmkmId);
+      if (!scope) {
+        return new Response(
+          JSON.stringify({ success: false, message: 'Toko tujuan tidak ditemukan.' }),
+          { status: 404, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const actor = { ...user, umkm: userStore ? { id: userStore.id } : user.umkm };
+      if (!can(actor, 'product:create', { umkmId: explicitUmkmId, zoneId: scope.zone_id })) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: 'Anda tidak memiliki izin menambahkan produk ke toko ini.',
+          }),
+          { status: 403, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    const targetUmkmId = explicitUmkmId ?? userStore?.id ?? user.umkm?.id;
 
     const productName = formData.get('productName')?.toString().trim();
     const price = Number(formData.get('price'));
     const category = formData.get('category')?.toString().trim() || 'Makanan & Minuman';
     const description = formData.get('description')?.toString().trim();
 
-    if (!productName || !price) {
+    if (!productName || !Number.isFinite(price) || price <= 0) {
       return new Response(
         JSON.stringify({
           success: false,
-          message: 'Nama produk dan harga wajib diisi.',
+          message: 'Nama produk dan harga valid wajib diisi.',
         }),
         { status: 400, headers: { 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Validate Scenario 2 fields before touching storage when user has no store yet
+    const umkmName = formData.get('umkmName')?.toString().trim();
+    const phone = formData.get('phone')?.toString().trim();
+    const zoneId = Number(formData.get('zoneId'));
+    const address = formData.get('address')?.toString().trim();
+
+    if (!targetUmkmId) {
+      if (!umkmName || !phone || !zoneId) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: 'Profil toko belum ada. Lengkapi nama usaha, WhatsApp, dan wilayah terlebih dahulu.',
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!isValidIndonesianPhone(phone)) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            message: 'Nomor WhatsApp tidak valid. Masukkan nomor HP Indonesia yang aktif (contoh: 08123456789 atau 628123456789).',
+          }),
+          { status: 400, headers: { 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
     const imageFile = formData.get('image') as File | null;
@@ -50,19 +107,20 @@ export const POST: APIRoute = async ({ request }) => {
     const galleryJson = formData.get('galleryImages')?.toString()?.trim();
     let galleryImages: string[] = [];
     if (galleryJson) {
+      let parsed: unknown = null;
       try {
-        const parsed = JSON.parse(galleryJson);
-        if (Array.isArray(parsed)) {
-          galleryImages = await Promise.all(
-            parsed.map(async (item: string) => {
-              if (typeof item === 'string' && item.startsWith('data:image')) {
-                return await saveUploadedImage({ imageBase64: item });
-              }
-              return item;
-            })
-          );
-        }
+        parsed = JSON.parse(galleryJson);
       } catch (_) {}
+      if (Array.isArray(parsed)) {
+        galleryImages = await Promise.all(
+          parsed.map(async (item: string) => {
+            if (typeof item === 'string' && item.startsWith('data:image')) {
+              return await saveUploadedImage({ imageBase64: item });
+            }
+            return item;
+          })
+        );
+      }
     }
     const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
 
@@ -93,35 +151,9 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     // SCENARIO 2: No Store Yet (Store + Product combined creation fallback)
-    const umkmName = formData.get('umkmName')?.toString().trim();
-    const phone = formData.get('phone')?.toString().trim();
-    const zoneId = Number(formData.get('zoneId'));
-    const address = formData.get('address')?.toString().trim();
-
-    if (!umkmName || !phone || !zoneId) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: 'Profil toko belum ada. Lengkapi nama usaha, WhatsApp, dan wilayah terlebih dahulu.',
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Strict Indonesian phone number validation for WhatsApp direct-link integrity
-    if (!isValidIndonesianPhone(phone)) {
-      return new Response(
-        JSON.stringify({
-          success: false,
-          message: 'Nomor WhatsApp tidak valid. Masukkan nomor HP Indonesia yang aktif (contoh: 08123456789 atau 628123456789).',
-        }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
-
     const result = await createUMKMAndProduct({
-      umkmName,
-      phone,
+      umkmName: umkmName!,
+      phone: phone!,
       zoneId,
       address,
       productName,
@@ -147,11 +179,23 @@ export const POST: APIRoute = async ({ request }) => {
       { status: 201, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (error: any) {
+    if (error instanceof InvalidUploadError) {
+      return new Response(JSON.stringify({ success: false, message: error.message }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    if (error?.message?.includes('Nomor WhatsApp toko ini sudah terdaftar')) {
+      return new Response(JSON.stringify({ success: false, message: error.message }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     console.error('Error saving product:', error);
     return new Response(
       JSON.stringify({
         success: false,
-        message: error.message || 'Terjadi kesalahan pada server.',
+        message: 'Terjadi kesalahan pada server.',
       }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );

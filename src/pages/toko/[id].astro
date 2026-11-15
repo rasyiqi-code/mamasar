@@ -76,8 +76,9 @@ const storeSchema = {
       <div class="h-28 sm:h-36 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 relative overflow-hidden">
         <div class="absolute inset-0 opacity-15 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
         <div class="absolute top-3 right-3 sm:top-4 sm:right-4 flex items-center gap-2">
-          <span class="bg-white/20 backdrop-blur-md text-white border border-white/30 text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-xs">
-            📍 Wilayah {store.zone_name}
+          <span class="bg-white/20 backdrop-blur-md text-white border border-white/30 text-[10px] sm:text-xs font-bold px-3 py-1 rounded-full shadow-xs inline-flex items-center gap-1.5">
+            <AppIcon name="map-pin" size="xs" />
+            <span>Wilayah {store.zone_name}</span>
           </span>
         </div>
       </div>
@@ -93,8 +94,8 @@ const storeSchema = {
                 {initials}
               </div>
               {Boolean(store.is_verified) && (
-                <span class="absolute -top-1 -right-1 bg-emerald-600 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-sm" title="Terverifikasi MWC NU">
-                  ✓
+                <span class="absolute -top-1 -right-1 bg-emerald-700 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center shadow-sm" title="Terverifikasi MWC NU">
+                  <AppIcon name="check" size="xs" />
                 </span>
               )}
             </div>
@@ -104,10 +105,14 @@ const storeSchema = {
                 <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
                   {store.name}
                 </h1>
-                {Boolean(store.is_verified) && (
+                {Boolean(store.is_verified) ? (
                   <span class="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2 py-0.5 rounded-md shadow-2xs">
-                    <span>✓</span>
-                    <span>Verified</span>
+                    <AppIcon name="check" size="xs" />
+                    <span>Terverifikasi MWC</span>
+                  </span>
+                ) : (
+                  <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-700 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-md">
+                    <span>Belum Verifikasi</span>
                   </span>
                 )}
                 {store.halal_cert && (
@@ -132,7 +137,8 @@ const storeSchema = {
                 )}
               </div>
               <p class="text-xs sm:text-sm text-slate-600 flex items-center gap-1.5 truncate">
-                <span>📍 {store.ranting ? `Ranting ${store.ranting}, ` : ''}{store.zone_name}{store.address ? ` — ${store.address}` : ''}</span>
+                <AppIcon name="map-pin" size="xs" class="text-emerald-700 shrink-0" />
+                <span class="truncate">{store.ranting ? `Ranting ${store.ranting}, ` : ''}{store.zone_name}{store.address ? ` - ${store.address}` : ''}</span>
               </p>
             </div>
           </div>
@@ -143,7 +149,7 @@ const storeSchema = {
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              class="flex-1 sm:flex-initial py-2.5 sm:py-3 px-5 sm:px-6 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs sm:text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+              class="flex-1 sm:flex-initial py-2.5 sm:py-3 px-5 sm:px-6 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white font-black text-xs sm:text-sm rounded-xl transition shadow-xs flex items-center justify-center gap-2 cursor-pointer active:scale-95"
             >
               <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
@@ -176,8 +182,10 @@ const storeSchema = {
             <span class="font-extrabold text-slate-900 text-sm">{store.zone_name}</span>
           </div>
           <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
-            <span class="text-slate-500 block text-[10px] uppercase font-bold">Status Binaan</span>
-            <span class="font-extrabold text-emerald-700 text-sm">Kader NU Sumenep</span>
+            <span class="text-slate-500 block text-[10px] uppercase font-bold">Status Verifikasi</span>
+            <span class={`font-extrabold text-sm ${Boolean(store.is_verified) ? 'text-emerald-700' : 'text-slate-700'}`}>
+              {Boolean(store.is_verified) ? 'Terverifikasi MWC NU' : 'Menunggu Verifikasi MWC'}
+            </span>
           </div>
           <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200">
             <span class="text-slate-500 block text-[10px] uppercase font-bold">Layanan Transaksi</span>
@@ -248,15 +256,15 @@ const storeSchema = {
           <!-- Verification Checklist -->
           <div class="pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
             <div class="flex items-center gap-2 text-slate-700">
-              <AppIcon name="check" size="xs" class="text-emerald-600" />
-              <span>100% Produk Asli Lokal</span>
+              <AppIcon name="check" size="xs" class="text-emerald-700" />
+              <span>Produk UMKM Lokal Sumenep</span>
             </div>
             <div class="flex items-center gap-2 text-slate-700">
-              <AppIcon name="check" size="xs" class="text-emerald-600" />
-              <span>Terdata di MWC NU Setempat</span>
+              <AppIcon name={Boolean(store.is_verified) ? 'check' : 'clock'} size="xs" class={Boolean(store.is_verified) ? 'text-emerald-700' : 'text-slate-500'} />
+              <span>{Boolean(store.is_verified) ? 'Terverifikasi MWC NU Setempat' : 'Menunggu Verifikasi MWC NU'}</span>
             </div>
             <div class="flex items-center gap-2 text-slate-700">
-              <span class="text-emerald-600 font-bold">✓</span>
+              <AppIcon name="check" size="xs" class="text-emerald-700" />
               <span>Dukungan Pembelian COD</span>
             </div>
           </div>
@@ -325,7 +333,7 @@ const storeSchema = {
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              class="w-full py-3.5 px-4 bg-[#4f46e5] hover:bg-[#4338ca] active:bg-[#3730a3] text-white rounded-xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition active:scale-98 cursor-pointer"
+              class="w-full py-3.5 px-4 bg-[#4f46e5] hover:bg-[#4338ca] active:bg-[#3730a3] text-white rounded-xl font-black text-sm sm:text-base flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg transition active:scale-95 cursor-pointer"
             >
               <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>
@@ -342,7 +350,7 @@ const storeSchema = {
 
             <div class="space-y-2.5 text-xs text-slate-600">
               <div class="flex items-start gap-2">
-                <span class="text-emerald-700 text-sm shrink-0">📍</span>
+                <AppIcon name="map-pin" size="xs" class="text-emerald-700 shrink-0 mt-0.5" />
                 <div>
                   <strong class="text-slate-800 block">Alamat Usaha:</strong>
                   <p class="text-[11px] leading-relaxed">{store.address || 'Kabupaten Sumenep, Madura'}</p>
@@ -350,7 +358,7 @@ const storeSchema = {
               </div>
 
               <div class="flex items-start gap-2">
-                <span class="text-emerald-700 text-sm shrink-0">🏛️</span>
+                <AppIcon name="building" size="xs" class="text-emerald-700 shrink-0 mt-0.5" />
                 <div>
                   <strong class="text-slate-800 block">Wilayah MWC NU:</strong>
                   <p class="text-[11px]">{store.zone_name}</p>
@@ -358,7 +366,7 @@ const storeSchema = {
               </div>
 
               <div class="flex items-start gap-2">
-                <span class="text-emerald-700 text-sm shrink-0">📱</span>
+                <AppIcon name="phone" size="xs" class="text-emerald-700 shrink-0 mt-0.5" />
                 <div>
                   <strong class="text-slate-800 block">Nomor WhatsApp:</strong>
                   <p class="text-[11px] font-mono text-slate-800 font-bold">+62 {store.phone.slice(2, 6)}•••• (Aktif)</p>
@@ -373,7 +381,7 @@ const storeSchema = {
               rel="noopener noreferrer"
               class="w-full py-2.5 px-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold rounded-xl flex items-center justify-center gap-1.5 transition cursor-pointer"
             >
-              <span>🗺️</span>
+              <AppIcon name="map" size="xs" class="text-emerald-700" />
               <span>Buka Petunjuk Arah Google Maps</span>
             </a>
           </div>
@@ -381,16 +389,17 @@ const storeSchema = {
           <!-- Safety Tips Box (Integrated) -->
           <div class="p-4 sm:p-5 bg-amber-50/80 border-t border-amber-200/80 space-y-3">
             <h4 class="text-xs font-black text-amber-900 uppercase tracking-wider flex items-center gap-1.5">
-              <span>⚠️</span> Belanja Aman & Berkah
+              <AppIcon name="alert" size="xs" class="text-amber-700" />
+              <span>Belanja Aman & Berkah</span>
             </h4>
             
             <ul class="text-[11px] text-amber-950 space-y-2 leading-relaxed">
               <li class="flex items-start gap-2">
-                <span class="text-indigo-600 text-xs shrink-0">🛡️</span>
+                <AppIcon name="shield" size="xs" class="text-indigo-700 shrink-0 mt-0.5" />
                 <span>Sepakati metode pembayaran aman (COD / transfer saat barang siap kirim).</span>
               </li>
               <li class="flex items-start gap-2">
-                <span class="text-indigo-600 text-xs shrink-0">📍</span>
+                <AppIcon name="map-pin" size="xs" class="text-indigo-700 shrink-0 mt-0.5" />
                 <span>Untuk pesanan jumlah banyak (grosir/hajatan), Anda dapat berkunjung langsung ke alamat UMKM di atas.</span>
               </li>
             </ul>
@@ -415,7 +424,7 @@ const storeSchema = {
           href={waLink}
           target="_blank"
           rel="noopener noreferrer"
-          class="flex-1 py-3 px-4 bg-emerald-600 active:bg-emerald-700 text-white rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-md transition active:scale-98"
+          class="flex-1 py-3 px-4 bg-emerald-700 active:bg-emerald-800 text-white rounded-xl font-black text-xs flex items-center justify-center gap-2 shadow-md transition active:scale-95"
         >
           <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"/>

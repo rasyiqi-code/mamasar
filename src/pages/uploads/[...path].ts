@@ -24,7 +24,9 @@ export const GET: APIRoute = async ({ params }) => {
   if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';
   else if (ext === '.png') contentType = 'image/png';
   else if (ext === '.webp') contentType = 'image/webp';
-  else if (ext === '.svg') contentType = 'image/svg+xml';
+  else {
+    return new Response('Unsupported file type', { status: 403 });
+  }
 
   const fileBuffer = fs.readFileSync(fullPath);
 
@@ -32,6 +34,7 @@ export const GET: APIRoute = async ({ params }) => {
     status: 200,
     headers: {
       'Content-Type': contentType,
+      'X-Content-Type-Options': 'nosniff',
       'Cache-Control': 'public, max-age=31536000, immutable',
     },
   });

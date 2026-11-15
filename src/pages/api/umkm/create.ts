@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { resolveUser } from '../../../lib/neon-auth';
-import { createStoreByPetugas } from '../../../lib/db';
+import { can, createStoreByPetugas, isPetugas } from '../../../lib/db';
 import { isValidIndonesianPhone } from '../../../lib/utils';
 
 export const POST: APIRoute = async ({ request }) => {
@@ -14,6 +14,16 @@ export const POST: APIRoute = async ({ request }) => {
           message: 'Silakan masuk ke akun petugas/admin terlebih dahulu.',
         }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!isPetugas(user)) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Akses ditolak. Hanya petugas atau admin yang dapat mendaftarkan toko.',
+        }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
@@ -39,6 +49,16 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
+    if (!can(user, 'umkm:create_verified', { zoneId })) {
+      return new Response(
+        JSON.stringify({
+          success: false,
+          message: 'Anda hanya dapat mendaftarkan toko terverifikasi pada wilayah MWCNU yang ditugaskan.',
+        }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (!isValidIndonesianPhone(phone)) {
       return new Response(
         JSON.stringify({
@@ -49,18 +69,22 @@ export const POST: APIRoute = async ({ request }) => {
       );
     }
 
-    const result = await createStoreByPetugas(user.id, {
-      name,
-      phone,
-      zoneId,
-      address,
-      ranting,
-      nib,
-      halalCert,
-      pirt,
-      bpom,
-      otherLegalities,
-    });
+    const result = await createStoreByPetugas(
+      user.id,
+      {
+        name,
+        phone,
+        zoneId,
+        address,
+        ranting,
+        nib,
+        halalCert,
+        pirt,
+        bpom,
+        otherLegalities,
+      },
+      { verified: true }
+    );
 
     return new Response(
       JSON.stringify({

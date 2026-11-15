@@ -1,7 +1,9 @@
-import { desc, eq, sql } from 'drizzle-orm';
+import { and, desc, eq, isNotNull, lte, sql } from 'drizzle-orm';
 import * as schema from '../schema';
 import { getDb } from '../client';
-import type { AdPromotion } from './types';
+import type { AdPromotion, BumpLedgerEntry } from './types';
+import { recordAuditLog } from './audit';
+import { createNotification } from './notifications';
 
 export interface AdPackage {
   id: string;
@@ -164,8 +166,8 @@ export async function getAdOrdersByUmkm(umkmId: number): Promise<AdPromotion[]> 
   }));
 }
 
-export async function getAllPendingAdOrders(): Promise<AdPromotion[]> {
-  const rows = await getDb()
+export async function getAllPendingAdOrders(zoneId?: number): Promise<AdPromotion[]> {
+  const baseQuery = getDb()
     .select({
       id: schema.adPromotions.id,
       umkm_id: schema.adPromotions.umkm_id,
@@ -188,9 +190,13 @@ export async function getAllPendingAdOrders(): Promise<AdPromotion[]> {
     .from(schema.adPromotions)
     .innerJoin(schema.umkm, eq(schema.adPromotions.umkm_id, schema.umkm.id))
     .innerJoin(schema.users, eq(schema.adPromotions.user_id, schema.users.id))
-    .leftJoin(schema.products, eq(schema.adPromotions.product_id, schema.products.id))
-    .where(eq(schema.adPromotions.status, 'pending'))
-    .orderBy(desc(schema.adPromotions.created_at));
+    .leftJoin(schema.products, eq(schema.adPromotions.product_id, schema.products.id));
+
+  const condition = zoneId
+    ? and(eq(schema.adPromotions.status, 'pending'), eq(schema.umkm.zone_id, zoneId))
+    : eq(schema.adPromotions.status, 'pending');
+
+  const rows = await baseQuery.where(condition).orderBy(desc(schema.adPromotions.created_at));
 
   return rows.map((r) => ({
     id: r.id,
@@ -213,6 +219,49 @@ export async function getAllPendingAdOrders(): Promise<AdPromotion[]> {
   }));
 }
 
+export async function getAdOrderScope(orderId: number): Promise<{
+  id: number;
+  status: string;
+  umkm_id: number;
+  zone_id: number;
+  user_id: number;
+  proof_image_url: string | null;
+} | undefined> {
+  const [row] = await getDb()
+    .select({
+      id: schema.adPromotions.id,
+      status: schema.adPromotions.status,
+      umkm_id: schema.adPromotions.umkm_id,
+      zone_id: schema.umkm.zone_id,
+      user_id: schema.adPromotions.user_id,
+      proof_image_url: schema.adPromotions.proof_image_url,
+    })
+    .from(schema.adPromotions)
+    .innerJoin(schema.umkm, eq(schema.adPromotions.umkm_id, schema.umkm.id))
+    .where(eq(schema.adPromotions.id, orderId))
+    .limit(1);
+  return row;
+}
+
+export async function getBumpLedgerByUmkm(umkmId: number, limit = 15): Promise<BumpLedgerEntry[]> {
+  const rows = await getDb()
+    .select()
+    .from(schema.bumpLedger)
+    .where(eq(schema.bumpLedger.umkm_id, umkmId))
+    .orderBy(desc(schema.bumpLedger.created_at), desc(schema.bumpLedger.id))
+    .limit(limit);
+
+  return rows.map((r) => ({
+    id: r.id,
+    umkm_id: r.umkm_id,
+    delta: r.delta,
+    reason: r.reason,
+    reference_id: r.reference_id ?? undefined,
+    balance_after: r.balance_after,
+    created_at: r.created_at!.toISOString(),
+  }));
+}
+
 export async function approveAdOrder(
   orderId: number,
   reviewerUserId: number
@@ -228,11 +277,19 @@ export async function approveAdOrder(
     return { success: false, message: 'Pesanan iklan tidak ditemukan.' };
   }
 
+  if (order.status !== 'pending') {
+    return { success: false, message: 'Pesanan promosi ini sudah diproses sebelumnya.' };
+  }
+
+  if (!order.proof_image_url || order.proof_image_url.trim() === '') {
+    return { success: false, message: 'Pesanan belum dilengkapi bukti pembayaran yang valid.' };
+  }
+
   const pkg = getPackageById(order.type);
   const now = new Date();
+  const transactionDate = now.toISOString().slice(0, 10);
 
   await db.transaction(async (tx) => {
-    // 1. Featured Ad Activation
     if (pkg && pkg.category === 'featured' && order.product_id) {
       const days = pkg.days || 7;
       const expiresAt = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
@@ -243,7 +300,7 @@ export async function approveAdOrder(
           is_featured: 1,
           featured_until: expiresAt,
         })
-        .where(eq(schema.products.id, order.product_id));
+        .where(and(eq(schema.products.id, order.product_id), eq(schema.products.umkm_id, order.umkm_id)));
 
       await tx
         .update(schema.adPromotions)
@@ -252,19 +309,27 @@ export async function approveAdOrder(
           starts_at: now,
           expires_at: expiresAt,
           reviewed_by_user_id: reviewerUserId,
+          reviewed_at: now,
         })
         .where(eq(schema.adPromotions.id, orderId));
-    }
-    // 2. Bump Tokens Addition
-    else if (pkg && pkg.category === 'bump') {
+    } else if (pkg && pkg.category === 'bump') {
       const bumps = pkg.bumps || 5;
 
-      await tx
+      const [updatedStore] = await tx
         .update(schema.umkm)
         .set({
           bump_credits: sql`COALESCE(${schema.umkm.bump_credits}, 0) + ${bumps}`,
         })
-        .where(eq(schema.umkm.id, order.umkm_id));
+        .where(eq(schema.umkm.id, order.umkm_id))
+        .returning({ bump_credits: schema.umkm.bump_credits });
+
+      await tx.insert(schema.bumpLedger).values({
+        umkm_id: order.umkm_id,
+        delta: bumps,
+        reason: 'purchase',
+        reference_id: orderId,
+        balance_after: updatedStore?.bump_credits ?? bumps,
+      });
 
       await tx
         .update(schema.adPromotions)
@@ -272,6 +337,7 @@ export async function approveAdOrder(
           status: 'active',
           starts_at: now,
           reviewed_by_user_id: reviewerUserId,
+          reviewed_at: now,
         })
         .where(eq(schema.adPromotions.id, orderId));
     } else {
@@ -281,9 +347,44 @@ export async function approveAdOrder(
           status: 'active',
           starts_at: now,
           reviewed_by_user_id: reviewerUserId,
+          reviewed_at: now,
         })
         .where(eq(schema.adPromotions.id, orderId));
     }
+
+    await tx.insert(schema.cashbook).values({
+      user_id: order.user_id,
+      umkm_id: order.umkm_id,
+      reference_type: 'promotion',
+      reference_id: orderId,
+      title: `Promosi: ${pkg ? pkg.name : order.type}`,
+      amount: order.amount,
+      type: 'expense',
+      category: 'Iklan',
+      notes: `Pesanan #${orderId} disetujui`,
+      transaction_date: transactionDate,
+    });
+
+    await recordAuditLog(
+      {
+        actorUserId: reviewerUserId,
+        action: 'promotion.approve',
+        targetType: 'ad_promotion',
+        targetId: orderId,
+        metadata: { umkm_id: order.umkm_id, type: order.type, amount: order.amount },
+      },
+      tx
+    );
+
+    await createNotification(
+      {
+        userId: order.user_id,
+        title: 'Promosi Iklan Disetujui',
+        body: `Pesanan ${pkg ? pkg.name : order.type} Anda telah diaktifkan dan tercatat otomatis di Buku Kas.`,
+        link: '/dashboard',
+      },
+      tx
+    );
   });
 
   return { success: true, message: 'Alhamdulillah! Pesanan promosi iklan berhasil disetujui & diaktifkan.' };
@@ -294,14 +395,90 @@ export async function rejectAdOrder(
   reviewerUserId: number,
   reason?: string
 ): Promise<{ success: boolean; message: string }> {
-  await getDb()
-    .update(schema.adPromotions)
-    .set({
-      status: 'rejected',
-      notes: reason || 'Bukti pembayaran tidak sesuai atau tidak valid.',
-      reviewed_by_user_id: reviewerUserId,
-    })
-    .where(eq(schema.adPromotions.id, orderId));
+  const db = getDb();
+  const [order] = await db
+    .select()
+    .from(schema.adPromotions)
+    .where(eq(schema.adPromotions.id, orderId))
+    .limit(1);
+
+  if (!order) {
+    return { success: false, message: 'Pesanan iklan tidak ditemukan.' };
+  }
+
+  if (order.status !== 'pending') {
+    return { success: false, message: 'Pesanan promosi ini sudah diproses sebelumnya.' };
+  }
+
+  const finalReason = reason || 'Bukti pembayaran tidak sesuai atau tidak valid.';
+  const now = new Date();
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(schema.adPromotions)
+      .set({
+        status: 'rejected',
+        notes: finalReason,
+        reviewed_by_user_id: reviewerUserId,
+        reviewed_at: now,
+      })
+      .where(eq(schema.adPromotions.id, orderId));
+
+    await recordAuditLog(
+      {
+        actorUserId: reviewerUserId,
+        action: 'promotion.reject',
+        targetType: 'ad_promotion',
+        targetId: orderId,
+        metadata: { umkm_id: order.umkm_id, reason: finalReason },
+      },
+      tx
+    );
+
+    await createNotification(
+      {
+        userId: order.user_id,
+        title: 'Pesanan Promosi Ditolak',
+        body: `Pesanan promosi #${orderId} ditolak: ${finalReason}`,
+        link: '/dashboard',
+      },
+      tx
+    );
+  });
 
   return { success: true, message: 'Pesanan iklan telah ditolak.' };
+}
+
+export async function expireStalePromotions(): Promise<{ expiredOrders: number; expiredProducts: number }> {
+  const now = new Date();
+  return await getDb().transaction(async (tx) => {
+    const expiredOrders = await tx
+      .update(schema.adPromotions)
+      .set({ status: 'expired' })
+      .where(
+        and(
+          eq(schema.adPromotions.status, 'active'),
+          isNotNull(schema.adPromotions.expires_at),
+          lte(schema.adPromotions.expires_at, now)
+        )
+      )
+      .returning({ id: schema.adPromotions.id });
+
+    const expiredProducts = await tx
+      .update(schema.products)
+      .set({ is_featured: 0, featured_until: null })
+      .where(
+        and(
+          eq(schema.products.is_featured, 1),
+          isNotNull(schema.products.featured_until),
+          lte(schema.products.featured_until, now)
+        )
+      )
+      .returning({ id: schema.products.id });
+
+    return {
+      expiredOrders: expiredOrders.length,
+      expiredProducts: expiredProducts.length,
+    };
+  });
 }

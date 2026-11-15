@@ -1,5 +1,6 @@
 ---
 import Layout from '../../layouts/Layout.astro';
+import AppIcon from '../../components/common/AppIcon.astro';
 import { getEventBySlug, getProducts } from '../../lib/db';
 import { formatPhoneForWhatsApp } from '../../lib/utils';
 
@@ -124,19 +125,19 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 bg-slate-50 border border-slate-200 rounded-2xl text-xs">
         <div class="space-y-0.5">
-          <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Hari & Tanggal</span>
+          <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">Hari & Tanggal</span>
           <p class="font-extrabold text-slate-900 text-sm">{formattedDate}</p>
-          <p class="text-slate-500 text-[11px]">⏰ {event.time_description}</p>
+          <p class="text-slate-500 text-[11px]">{event.time_description}</p>
         </div>
 
         <div class="space-y-0.5">
-          <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Lokasi Acara</span>
+          <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">Lokasi Acara</span>
           <p class="font-extrabold text-slate-900 text-sm">{event.location_name}</p>
           <p class="text-slate-500 text-[11px] truncate">{event.location_address || event.zone_name}</p>
         </div>
 
         <div class="space-y-0.5">
-          <span class="text-slate-400 block text-[10px] font-bold uppercase tracking-wider">Estimasi Jamaah</span>
+          <span class="text-slate-500 block text-[10px] font-bold uppercase tracking-wider">Estimasi Jamaah</span>
           <p class="font-extrabold text-emerald-700 text-sm">~{event.estimated_attendance} Orang</p>
           <p class="text-slate-500 text-[11px]">Potensi pasar konsumsi & kerumunan pembeli</p>
         </div>
@@ -203,9 +204,10 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
                     href={orderWaLink}
                     target="_blank"
                     rel="noopener noreferrer"
-                    class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-98"
+                    class="w-full py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1.5 transition active:scale-95"
                   >
-                    <span>💬 Pesan Konsumsi</span>
+                    <AppIcon name="phone" size="xs" />
+                    <span>Pesan Konsumsi</span>
                   </a>
                 </div>
               );
@@ -245,12 +247,13 @@ const formattedDate = evDate.toLocaleDateString('id-ID', {
             href={coordinatorWaLink}
             target="_blank"
             rel="noopener noreferrer"
-            class="w-full py-3 px-4 bg-[#4f46e5] hover:bg-[#4338ca] text-white rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-98 cursor-pointer"
+            class="w-full py-3 px-4 bg-[#4f46e5] hover:bg-[#4338ca] text-white rounded-xl font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-sm transition active:scale-95 cursor-pointer"
           >
-            <span>💬 Hubungi Koordinator Acara via WA</span>
+            <AppIcon name="phone" size="sm" />
+            <span>Hubungi Koordinator Acara via WA</span>
           </a>
 
-          <p class="text-[10px] text-slate-400 text-center">
+          <p class="text-[10px] text-slate-500 text-center">
             Hubungi panitia terlebih dahulu sebelum hari-H untuk alokasi tempat lapak jualan.
           </p>
         </div>

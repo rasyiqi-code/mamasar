@@ -99,8 +99,9 @@ function formatDate(iso: string): string {
                 data-action="delete-store"
                 data-id={store.id}
                 data-name={store.name}
-                class="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                class="p-1.5 text-slate-500 hover:text-rose-600 rounded transition cursor-pointer"
                 title="Hapus Toko"
+                aria-label={`Hapus toko ${store.name}`}
               >
                 <AppIcon name="trash" size="xs" />
               </button>
@@ -109,7 +110,7 @@ function formatDate(iso: string): string {
         ))}
       </div>
     ) : (
-      <p class="text-xs text-slate-400 py-3">Tidak ada toko baru yang menunggu verifikasi.</p>
+      <p class="text-xs text-slate-500 py-3">Tidak ada toko baru yang menunggu verifikasi.</p>
     )}
   </div>
 
@@ -174,8 +175,9 @@ function formatDate(iso: string): string {
                 data-action="delete-store"
                 data-id={store.id}
                 data-name={store.name}
-                class="p-1 text-slate-400 hover:text-rose-600 rounded transition cursor-pointer"
+                class="p-1.5 text-slate-500 hover:text-rose-600 rounded transition cursor-pointer"
                 title="Hapus Toko"
+                aria-label={`Hapus toko ${store.name}`}
               >
                 <AppIcon name="trash" size="xs" />
               </button>
@@ -184,7 +186,7 @@ function formatDate(iso: string): string {
         ))}
       </div>
     ) : (
-      <p class="text-xs text-slate-400 py-3">Belum ada toko yang terverifikasi.</p>
+      <p class="text-xs text-slate-500 py-3">Belum ada toko yang terverifikasi.</p>
     )}
   </div>
 </section>
