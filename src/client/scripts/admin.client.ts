@@ -318,7 +318,7 @@ export function initAdminClient() {
       });
 
       if (countLabel) {
-        countLabel.textContent = `Menampilkan ${visible} dari ${userRows.length} akun`;
+        countLabel.textContent = `${visible}/${userRows.length} akun`;
       }
       if (userEmptyRow) {
         userEmptyRow.classList.toggle('hidden', visible > 0 || userRows.length === 0);
@@ -819,8 +819,8 @@ export function initAdminClient() {
       }
       if (btnEmptyCreateStoreLabel) {
         btnEmptyCreateStoreLabel.textContent = rawQuery
-          ? `Daftarkan "${rawQuery}"`
-          : 'Daftarkan Toko Baru';
+          ? `Tambah "${rawQuery}"`
+          : 'Toko Baru';
       }
     }
   }
@@ -930,7 +930,7 @@ export function initAdminClient() {
     } finally {
       if (btnSubmitStep1) {
         btnSubmitStep1.disabled = false;
-        btnSubmitStep1.textContent = 'Lanjut ke Step 2: Produk';
+        btnSubmitStep1.textContent = 'Lanjut';
       }
     }
   });

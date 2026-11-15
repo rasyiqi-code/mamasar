@@ -104,7 +104,7 @@ function storeInitials(name: string): string {
         type="button"
         data-store-filter="all"
         aria-pressed="true"
-        class="store-filter-btn min-h-[40px] sm:min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold bg-slate-900 text-white border border-slate-900 transition cursor-pointer shrink-0 font-mono tabular-nums"
+        class="store-filter-btn h-8 px-2.5 rounded-md text-xs font-semibold bg-slate-900 text-white border border-slate-900 transition cursor-pointer shrink-0 font-mono tabular-nums"
       >
         Semua ({totalStoresCount})
       </button>
@@ -112,7 +112,7 @@ function storeInitials(name: string): string {
         type="button"
         data-store-filter="pending"
         aria-pressed="false"
-        class="store-filter-btn min-h-[40px] sm:min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 border border-slate-300 transition cursor-pointer shrink-0 font-mono tabular-nums"
+        class="store-filter-btn h-8 px-2.5 rounded-md text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 border border-slate-300 transition cursor-pointer shrink-0 font-mono tabular-nums"
       >
         Antrean ({pendingStores.length})
       </button>
@@ -120,7 +120,7 @@ function storeInitials(name: string): string {
         type="button"
         data-store-filter="verified"
         aria-pressed="false"
-        class="store-filter-btn min-h-[40px] sm:min-h-[36px] px-3 py-1 rounded-lg text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 border border-slate-300 transition cursor-pointer shrink-0 font-mono tabular-nums"
+        class="store-filter-btn h-8 px-2.5 rounded-md text-xs font-semibold bg-white text-slate-700 hover:text-slate-900 border border-slate-300 transition cursor-pointer shrink-0 font-mono tabular-nums"
       >
         Terverifikasi ({verifiedStores.length})
       </button>
@@ -130,8 +130,8 @@ function storeInitials(name: string): string {
   {/* Section 1: Antrean Menunggu Verifikasi */}
   <div id="stores-section-pending" class="border-b border-slate-200">
     <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
-        Menunggu Verifikasi (<span class="font-mono tabular-nums">{pendingStores.length}</span>)
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 whitespace-nowrap">
+        Menunggu (<span class="font-mono tabular-nums">{pendingStores.length}</span>)
       </h2>
     </div>
 
@@ -199,7 +199,7 @@ function storeInitials(name: string): string {
                   data-action="verify-store"
                   data-id={store.id}
                   data-verified="1"
-                  class="inline-flex items-center justify-center gap-1 min-h-[44px] sm:min-h-[38px] py-1 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
+                  class="inline-flex items-center justify-center gap-1 h-8 px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer"
                 >
                   <AppIcon name="check" size="xs" />
                   <span>Verifikasi</span>
@@ -209,7 +209,7 @@ function storeInitials(name: string): string {
                   data-action="delete-store"
                   data-id={store.id}
                   data-name={store.name}
-                  class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-[38px] sm:min-w-[38px] p-1.5 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200 transition cursor-pointer"
+                  class="inline-flex items-center justify-center w-8 h-8 p-1 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-transparent hover:border-rose-200 transition cursor-pointer"
                   title="Hapus Toko"
                   aria-label={`Hapus toko ${store.name}`}
                 >
@@ -222,7 +222,7 @@ function storeInitials(name: string): string {
       </div>
     ) : (
       <p class="text-xs text-slate-600 py-5 px-4 sm:px-6 lg:px-8 bg-white">
-        Semua pengajuan toko baru telah ditinjau.
+        Belum ada antrean.
       </p>
     )}
   </div>
@@ -230,8 +230,8 @@ function storeInitials(name: string): string {
   {/* Section 2: Toko Terverifikasi */}
   <div id="stores-section-verified" class="border-b border-slate-200">
     <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800">
-        Toko Terverifikasi (<span class="font-mono tabular-nums">{verifiedStores.length}</span>)
+      <h2 class="text-xs font-bold uppercase tracking-wider text-slate-800 whitespace-nowrap">
+        Terverifikasi (<span class="font-mono tabular-nums">{verifiedStores.length}</span>)
       </h2>
     </div>
 
@@ -289,11 +289,11 @@ function storeInitials(name: string): string {
                 </div>
               </div>
 
-              <div class="grid grid-cols-[1fr_1fr_44px] sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
+              <div class="grid grid-cols-[1fr_1fr_32px] sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto">
                 <a
                   href={`/toko/${store.slug || store.id}`}
                   target="_blank"
-                  class="inline-flex items-center justify-center gap-1 min-h-[44px] sm:min-h-[38px] px-3 py-1 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-lg transition"
+                  class="inline-flex items-center justify-center gap-1 h-8 px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition"
                 >
                   <span>Lihat</span>
                   <AppIcon name="external-link" size="xs" />
@@ -303,7 +303,7 @@ function storeInitials(name: string): string {
                   data-action="verify-store"
                   data-id={store.id}
                   data-verified="0"
-                  class="min-h-[44px] sm:min-h-[38px] py-1 px-3 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-semibold text-xs rounded-lg transition cursor-pointer"
+                  class="h-8 px-2.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-semibold text-xs rounded-md transition cursor-pointer"
                   title="Cabut status verifikasi"
                 >
                   Cabut
@@ -313,7 +313,7 @@ function storeInitials(name: string): string {
                   data-action="delete-store"
                   data-id={store.id}
                   data-name={store.name}
-                  class="inline-flex items-center justify-center min-h-[44px] min-w-[44px] sm:min-h-[38px] sm:min-w-[38px] p-1.5 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-lg border border-transparent hover:border-rose-200 transition cursor-pointer"
+                  class="inline-flex items-center justify-center w-8 h-8 p-1 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-transparent hover:border-rose-200 transition cursor-pointer"
                   title="Hapus Toko"
                   aria-label={`Hapus toko ${store.name}`}
                 >
@@ -326,12 +326,12 @@ function storeInitials(name: string): string {
       </div>
     ) : (
       <p class="text-xs text-slate-600 py-5 px-4 sm:px-6 lg:px-8 bg-white">
-        Belum ada toko terverifikasi di cakupan wilayah ini.
+        Belum ada toko terverifikasi.
       </p>
     )}
   </div>
 
-  <div id="store-directory-empty" class="hidden px-4 sm:px-6 lg:px-8 py-12 text-center text-xs text-slate-600 bg-white border-b border-slate-200">
-    Tidak ada toko yang cocok dengan pencarian Anda.
+  <div id="store-directory-empty" class="hidden px-4 sm:px-6 lg:px-8 py-10 text-center text-xs text-slate-600 bg-white border-b border-slate-200">
+    Toko tidak ditemukan.
   </div>
 </section>

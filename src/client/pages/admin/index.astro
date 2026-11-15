@@ -102,32 +102,32 @@ const scopeBadgeText = isSuper ? 'PCNU Sumenep' : `MWC ${assignedZone?.name || '
         <div class="shrink-0">
           {/* Header Actions: Tab Pengguna & Peran */}
           <div data-admin-header-group="agents" class={isSuper ? '' : 'hidden'}>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
               <a
                 href="/dashboard"
-                class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5"
+                class="h-8 px-2.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1 whitespace-nowrap"
               >
                 <AppIcon name="store" size="xs" />
-                <span>Toko Saya</span>
+                <span>Toko</span>
               </a>
               <button
                 type="button"
                 data-open-add-user
-                class="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1.5 cursor-pointer"
+                class="h-8 px-2.5 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
               >
                 <AppIcon name="plus" size="xs" />
-                <span>Daftarkan Akun</span>
+                <span>Daftarkan</span>
               </button>
             </div>
           </div>
 
           {/* Header Actions: Tab Agenda Kegiatan */}
           <div data-admin-header-group="events" class="hidden">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
               <a
                 href="/kegiatan"
                 target="_blank"
-                class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5"
+                class="h-8 px-2.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1 whitespace-nowrap"
               >
                 <span>Direktori</span>
                 <AppIcon name="external-link" size="xs" />
@@ -135,59 +135,59 @@ const scopeBadgeText = isSuper ? 'PCNU Sumenep' : `MWC ${assignedZone?.name || '
               <button
                 type="button"
                 data-open-add-event
-                class="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1.5 cursor-pointer"
+                class="h-8 px-2.5 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1 cursor-pointer whitespace-nowrap"
               >
                 <AppIcon name="plus" size="xs" />
-                <span>Tambah Agenda</span>
+                <span>Tambah</span>
               </button>
             </div>
           </div>
 
           {/* Header Actions: Tab Entri Jemput Bola */}
           <div data-admin-header-group="entry" class={isSuper ? 'hidden' : ''}>
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
               <a
                 href="/"
-                class="min-h-[36px] px-2.5 py-1.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition inline-flex items-center gap-1.5"
+                class="h-8 px-2.5 rounded-md text-slate-700 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition inline-flex items-center gap-1 whitespace-nowrap"
               >
                 <AppIcon name="globe" size="xs" />
-                <span>Katalog Publik</span>
+                <span>Katalog</span>
               </a>
               <a
                 href="/dashboard"
-                class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5"
+                class="h-8 px-2.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1 whitespace-nowrap"
               >
                 <AppIcon name="store" size="xs" />
-                <span>Toko Saya</span>
+                <span>Toko</span>
               </a>
             </div>
           </div>
 
           {/* Header Actions: Default (Toko, Promosi, Wilayah) */}
           <div data-admin-header-group="default" class="hidden">
-            <div class="flex items-center gap-2">
+            <div class="flex items-center gap-1.5">
               <a
                 href="/"
-                class="min-h-[36px] px-2.5 py-1.5 rounded-lg text-slate-700 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition inline-flex items-center gap-1.5"
+                class="h-8 px-2.5 rounded-md text-slate-700 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium transition inline-flex items-center gap-1 whitespace-nowrap"
               >
                 <AppIcon name="globe" size="xs" />
-                <span>Katalog Publik</span>
+                <span>Katalog</span>
               </a>
               <a
                 href="/dashboard"
-                class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5"
+                class="h-8 px-2.5 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1 whitespace-nowrap"
               >
                 <AppIcon name="store" size="xs" />
-                <span>Toko Saya</span>
+                <span>Toko</span>
               </a>
               <button
                 type="button"
                 id="admin-quick-entry-btn"
                 data-jump-admin-tab="entry"
-                class={`min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition items-center gap-1.5 cursor-pointer ${isSuper ? 'inline-flex' : 'hidden'}`}
+                class={`h-8 px-2.5 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition items-center gap-1 cursor-pointer whitespace-nowrap ${isSuper ? 'inline-flex' : 'hidden'}`}
               >
                 <AppIcon name="plus" size="xs" />
-                <span>Entri UMKM</span>
+                <span>Entri</span>
               </button>
             </div>
           </div>

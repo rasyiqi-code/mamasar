@@ -83,18 +83,18 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
   </div>
 
   {/* Toolbar */}
-  <div class="px-4 sm:px-6 lg:px-8 py-3.5 border-b border-slate-200 flex items-center justify-between gap-3 bg-white">
-    <h2 id="events-table-heading" class="text-xs font-bold uppercase tracking-wider text-slate-800">
-      Daftar Agenda Kegiatan NU
+  <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 flex items-center justify-between gap-2 bg-white">
+    <h2 id="events-table-heading" class="text-xs font-bold uppercase tracking-wider text-slate-800 whitespace-nowrap truncate">
+      Agenda NU
     </h2>
 
     {/* Mobile-only actions (moved to sticky top header on md+) */}
     <div class="md:hidden shrink-0">
-      <div class="flex items-center gap-2">
+      <div class="flex items-center gap-1.5">
         <a
           href="/kegiatan"
           target="_blank"
-          class="inline-flex items-center gap-1.5 min-h-[44px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-lg border border-slate-300 transition"
+          class="inline-flex items-center gap-1 h-8 px-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-md border border-slate-300 transition whitespace-nowrap"
         >
           <span>Direktori</span>
           <AppIcon name="external-link" size="xs" />
@@ -103,10 +103,10 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
           type="button"
           id="btn-open-add-event"
           data-open-add-event
-          class="min-h-[44px] py-1.5 px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center gap-1.5"
+          class="h-8 px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
         >
           <AppIcon name="plus" size="xs" />
-          <span>Tambah Agenda</span>
+          <span>Tambah</span>
         </button>
       </div>
     </div>
@@ -188,7 +188,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
         ) : (
           <tr>
             <td colspan="5" class="py-10 px-4 text-center text-slate-600 text-xs">
-              Belum ada agenda kegiatan terdaftar. Gunakan tombol Tambah Agenda di atas untuk mempublikasikan agenda baru.
+              Belum ada agenda. Klik Tambah untuk membuat baru.
             </td>
           </tr>
         )}
@@ -202,14 +202,9 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
   {/* Pengajuan Konsumsi & Lapak Bazar Masuk */}
   <div class="pt-4">
     <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 bg-white flex items-center justify-between">
-      <div>
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
-          Pengajuan Konsumsi &amp; Lapak Bazar (<span class="font-mono tabular-nums">{eventOrders.length}</span>)
-        </h3>
-        <p class="hidden sm:block text-xs text-slate-600 mt-0.5">
-          Penawaran konsumsi dan permintaan lapak UMKM warga pada agenda kegiatan NU.
-        </p>
-      </div>
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 whitespace-nowrap">
+        Pengajuan Bazar (<span class="font-mono tabular-nums">{eventOrders.length}</span>)
+      </h3>
     </div>
 
     {eventOrders.length > 0 ? (
@@ -251,7 +246,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
                   data-id={order.id}
                   data-status="accepted"
                   disabled={order.status === 'accepted'}
-                  class="min-h-[44px] sm:min-h-[38px] px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-semibold text-xs rounded-lg transition cursor-pointer"
+                  class="h-8 px-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-semibold text-xs rounded-md transition cursor-pointer"
                 >
                   Terima
                 </button>
@@ -261,7 +256,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
                   data-id={order.id}
                   data-status="rejected"
                   disabled={order.status === 'rejected'}
-                  class="min-h-[44px] sm:min-h-[38px] px-3.5 py-1.5 bg-white hover:bg-rose-50 disabled:opacity-40 text-rose-700 border border-rose-300 font-semibold text-xs rounded-lg transition cursor-pointer"
+                  class="h-8 px-2.5 bg-white hover:bg-rose-50 disabled:opacity-40 text-rose-700 border border-rose-300 font-semibold text-xs rounded-md transition cursor-pointer"
                 >
                   Tolak
                 </button>
@@ -272,7 +267,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
       </div>
     ) : (
       <p class="text-xs text-slate-600 py-8 px-4 sm:px-6 lg:px-8 text-center border-b border-slate-200 bg-white">
-        Belum ada pengajuan konsumsi atau lapak bazar masuk pada wilayah Anda.
+        Belum ada pengajuan masuk.
       </p>
     )}
   </div>
