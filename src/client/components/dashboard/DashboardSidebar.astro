@@ -185,17 +185,6 @@ const {
         </a>
 
         <a
-          href="/dashboard/profil"
-          aria-current={activeSection === 'profile' ? 'page' : undefined}
-          class={`nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-left ${
-            activeSection === 'profile' ? 'active' : ''
-          }`}
-        >
-          <AppIcon name="store" size="sm" />
-          <span>Profil Usaha</span>
-        </a>
-
-        <a
           href="/dashboard/kemitraan"
           aria-current={activeSection === 'services' ? 'page' : undefined}
           class={`nav-tab-btn w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg text-left ${
@@ -229,8 +218,17 @@ const {
         <AppIcon name="external-link" size="xs" />
       </a>
 
-      <div class="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-2 text-xs">
-        <div class="flex items-center gap-2.5 min-w-0">
+      <div class="pt-2 border-t border-slate-200/70 flex items-center justify-between gap-1.5 text-xs">
+        <a
+          href="/dashboard/profil"
+          aria-current={activeSection === 'profile' ? 'page' : undefined}
+          title="Buka Profil Toko & Akun"
+          class={`flex-1 min-w-0 flex items-center gap-2.5 p-1.5 rounded-lg transition group ${
+            activeSection === 'profile'
+              ? 'bg-emerald-50 ring-1 ring-emerald-200'
+              : 'hover:bg-slate-100'
+          }`}
+        >
           {avatarUrl ? (
             <img
               src={avatarUrl}
@@ -245,11 +243,16 @@ const {
               {user.name.slice(0, 2).toUpperCase()}
             </span>
           )}
-          <div class="min-w-0">
-            <span class="font-semibold text-slate-900 block truncate text-xs">{user.name}</span>
+          <div class="min-w-0 flex-1">
+            <span class="font-semibold text-slate-900 group-hover:text-emerald-800 block truncate text-xs">{user.name}</span>
             <span class="text-xs text-slate-600 block truncate">{user.email}</span>
           </div>
-        </div>
+          <AppIcon
+            name="chevron-right"
+            size="xs"
+            class={`shrink-0 transition ${activeSection === 'profile' ? 'text-emerald-700' : 'text-slate-400 group-hover:text-slate-700'}`}
+          />
+        </a>
         <form
           method="POST"
           action="/api/auth/logout"
