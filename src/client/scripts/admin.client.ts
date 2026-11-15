@@ -179,14 +179,54 @@ export function initAdminClient() {
     });
   });
 
-  // Form Daftarkan / Tetapkan Akun Peran Khusus (Admin PCNU)
+  // Fallback light-dismiss for browsers without native dialog `closedby="any"`
+  function attachDialogLightDismiss(dialog: HTMLDialogElement | null) {
+    dialog?.addEventListener('click', (e) => {
+      if ('closedBy' in HTMLDialogElement.prototype) return;
+      if (e.target !== dialog) return;
+      const rect = dialog.getBoundingClientRect();
+      const clickedInDialog =
+        rect.top <= e.clientY &&
+        e.clientY <= rect.top + rect.height &&
+        rect.left <= e.clientX &&
+        e.clientX <= rect.left + rect.width;
+      if (!clickedInDialog) closeNativeDialog(dialog);
+    });
+  }
+
+  // Form Daftarkan / Tetapkan Akun Peran Khusus (Modal PCNU)
   function initAdminUserManagement() {
+    const addUserModal = document.getElementById('modal-add-user') as HTMLDialogElement | null;
+    const btnOpenAddUser = document.getElementById('btn-open-add-user');
+    const btnCloseAddUser = document.getElementById('btn-close-add-user-modal');
+    const btnCancelAddUser = document.getElementById('btn-cancel-add-user-modal');
     const addUserForm = document.getElementById('form-admin-add-user') as HTMLFormElement | null;
     const addUserRole = document.getElementById('addUserRole') as HTMLSelectElement | null;
     const addUserZone = document.getElementById('addUserZone') as HTMLSelectElement | null;
     const addUserZoneMark = document.getElementById('addUserZoneRequiredMark');
     const addUserStatus = document.getElementById('admin-add-user-status');
     const addUserBtn = document.getElementById('btn-admin-add-user') as HTMLButtonElement | null;
+
+    function resetAddUserForm() {
+      addUserForm?.reset();
+      if (addUserStatus) {
+        addUserStatus.textContent = '';
+        addUserStatus.classList.add('hidden');
+      }
+      if (addUserBtn) {
+        addUserBtn.disabled = false;
+        addUserBtn.textContent = 'Simpan & Tetapkan Akun';
+      }
+      syncAddUserZoneReq();
+    }
+
+    btnOpenAddUser?.addEventListener('click', () => {
+      resetAddUserForm();
+      openNativeDialog(addUserModal);
+    });
+    btnCloseAddUser?.addEventListener('click', () => closeNativeDialog(addUserModal));
+    btnCancelAddUser?.addEventListener('click', () => closeNativeDialog(addUserModal));
+    attachDialogLightDismiss(addUserModal);
 
     function syncAddUserZoneReq() {
       if (!addUserRole || !addUserZone) return;
@@ -222,7 +262,8 @@ export function initAdminClient() {
             addUserStatus.classList.remove('hidden');
           }
           notify(data.message || 'Akun berhasil ditetapkan.');
-          setTimeout(() => window.location.reload(), 1000);
+          closeNativeDialog(addUserModal);
+          setTimeout(() => window.location.reload(), 900);
         } else {
           if (addUserStatus) {
             addUserStatus.className = 'p-2.5 rounded-lg text-xs font-semibold bg-rose-50 text-rose-900 border border-rose-200';
@@ -521,17 +562,7 @@ export function initAdminClient() {
 
   btnCloseEventModal?.addEventListener('click', closeEventModal);
   btnCancelEventModal?.addEventListener('click', closeEventModal);
-  eventModal?.addEventListener('click', (e) => {
-    if ('closedBy' in HTMLDialogElement.prototype) return;
-    if (e.target !== eventModal) return;
-    const rect = eventModal.getBoundingClientRect();
-    const clickedInDialog =
-      rect.top <= e.clientY &&
-      e.clientY <= rect.top + rect.height &&
-      rect.left <= e.clientX &&
-      e.clientX <= rect.left + rect.width;
-    if (!clickedInDialog) closeEventModal();
-  });
+  attachDialogLightDismiss(eventModal);
 
   // Edit Event trigger
   document.querySelectorAll<HTMLButtonElement>('[data-action="edit-event"]').forEach((btn) => {
