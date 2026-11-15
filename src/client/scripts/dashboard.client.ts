@@ -399,7 +399,7 @@ export function initDashboardClient() {
   });
 
   // Cashbook Entry & Quick Sale Recording
-  const btnToggleCash = document.getElementById('btn-toggle-cashbook-form');
+  const cashToggleBtns = document.querySelectorAll<HTMLButtonElement>('[data-trigger="toggle-cashbook"], #btn-toggle-cashbook-form');
   const btnCancelCash = document.getElementById('btn-cancel-cashbook');
   const cashContainer = document.getElementById('cashbook-form-container');
   const cashForm = document.getElementById('cashbook-entry-form') as HTMLFormElement | null;
@@ -472,11 +472,13 @@ export function initDashboardClient() {
     }
   }
 
-  btnToggleCash?.addEventListener('click', () => {
-    cashContainer?.classList.toggle('hidden');
-    if (!cashContainer?.classList.contains('hidden')) {
-      document.getElementById('cashTitle')?.focus();
-    }
+  cashToggleBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      cashContainer?.classList.toggle('hidden');
+      if (!cashContainer?.classList.contains('hidden')) {
+        document.getElementById('cashTitle')?.focus();
+      }
+    });
   });
 
   btnCancelCash?.addEventListener('click', () => {
@@ -539,35 +541,37 @@ export function initDashboardClient() {
   });
 
   // Export Cashbook to CSV
-  document.getElementById('btn-export-csv')?.addEventListener('click', () => {
-    const rows = document.querySelectorAll('#cashbook-rows tr');
-    if (!rows || rows.length === 0 || rows[0].querySelector('td[colspan]')) {
-      notify('Belum ada data catatan buku kas untuk diunduh.', true);
-      return;
-    }
-    let csvContent = '\uFEFF';
-    csvContent += 'Tanggal,Keterangan,Jenis,Nominal (Rp)\r\n';
-    rows.forEach((row) => {
-      const cols = row.querySelectorAll('td');
-      if (cols.length >= 4) {
-        const date = cols[0].textContent?.trim() || '';
-        const title = `"${cols[1].textContent?.trim().replace(/"/g, '""')}"`;
-        const type = cols[2].textContent?.trim() || '';
-        const rawAmount = cols[3].textContent?.trim() || '';
-        const cleanAmount = rawAmount.replace(/[^\d]/g, '');
-        const prefix = rawAmount.startsWith('+') ? '' : '-';
-        csvContent += `${date},${title},${type},${prefix}${cleanAmount}\r\n`;
+  document.querySelectorAll<HTMLButtonElement>('[data-trigger="export-csv"], #btn-export-csv').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const rows = document.querySelectorAll('#cashbook-rows tr');
+      if (!rows || rows.length === 0 || rows[0].querySelector('td[colspan]')) {
+        notify('Belum ada data catatan buku kas untuk diunduh.', true);
+        return;
       }
+      let csvContent = '\uFEFF';
+      csvContent += 'Tanggal,Keterangan,Jenis,Nominal (Rp)\r\n';
+      rows.forEach((row) => {
+        const cols = row.querySelectorAll('td');
+        if (cols.length >= 4) {
+          const date = cols[0].textContent?.trim() || '';
+          const title = `"${cols[1].textContent?.trim().replace(/"/g, '""')}"`;
+          const type = cols[2].textContent?.trim() || '';
+          const rawAmount = cols[3].textContent?.trim() || '';
+          const cleanAmount = rawAmount.replace(/[^\d]/g, '');
+          const prefix = rawAmount.startsWith('+') ? '' : '-';
+          csvContent += `${date},${title},${type},${prefix}${cleanAmount}\r\n`;
+        }
+      });
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `Rekap-Kas-Mamasar-${new Date().toISOString().slice(0, 10)}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
     });
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Rekap-Kas-Mamasar-${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   });
 
   // Neon Auth Email Toggle (State 1)
@@ -771,7 +775,7 @@ export function initDashboardClient() {
   // Promosi Iklan Berbayar & Kuota Token Sundul
   function initAdPromotionModal() {
     const modal = document.getElementById('modal-ad-promo');
-    const btnOpen = document.getElementById('btn-open-promo-modal');
+    const promoTriggerBtns = document.querySelectorAll<HTMLButtonElement>('[data-trigger="open-promo"], #btn-open-promo-modal');
     const btnClose = document.getElementById('btn-close-ad-promo');
     const btnCancel = document.getElementById('btn-cancel-promo');
     const form = document.getElementById('form-order-promo') as HTMLFormElement | null;
@@ -861,7 +865,9 @@ export function initDashboardClient() {
       });
     }
 
-    btnOpen?.addEventListener('click', () => openPromoModal('featured'));
+    promoTriggerBtns.forEach((btn) => {
+      btn.addEventListener('click', () => openPromoModal('featured'));
+    });
     btnClose?.addEventListener('click', closePromoModal);
     btnCancel?.addEventListener('click', closePromoModal);
 
