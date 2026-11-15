@@ -380,28 +380,71 @@ export function initAdminClient() {
       }
     }
 
-    storeRows.forEach((row) => {
-      const headerTrigger = row.querySelector<HTMLElement>('[data-store-header]');
-      const toggleBtn = row.querySelector<HTMLButtonElement>('[data-store-toggle]');
-      const chevronEl = row.querySelector<HTMLElement>('[data-store-chevron]');
+    const mobileOverlayClasses = [
+      'flex',
+      'absolute',
+      'inset-0',
+      'z-10',
+      'bg-slate-100/95',
+      'backdrop-blur-xs',
+      'px-4',
+      'items-center',
+      'justify-center',
+      'gap-2',
+    ];
+
+    function setStoreOverlayOpen(row: HTMLElement, open: boolean) {
+      const trigger = row.querySelector<HTMLButtonElement>('[data-store-overlay-trigger]');
       const actionsPanel = row.querySelector<HTMLElement>('[data-store-actions]');
-      if (!headerTrigger || !actionsPanel) return;
+      if (!actionsPanel) return;
 
-      headerTrigger.addEventListener('click', () => {
-        if (!window.matchMedia('(max-width: 639px)').matches) return;
-        const isOpen = toggleBtn?.getAttribute('aria-expanded') === 'true';
-        const nextOpen = !isOpen;
+      if (open) {
+        actionsPanel.classList.remove('hidden');
+        actionsPanel.classList.add(...mobileOverlayClasses);
+      } else {
+        actionsPanel.classList.add('hidden');
+        actionsPanel.classList.remove(...mobileOverlayClasses);
+      }
+      trigger?.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
 
-        if (nextOpen) {
-          actionsPanel.classList.remove('hidden');
-          actionsPanel.classList.add('grid', 'grid-cols-[1fr_1fr_32px]');
-        } else {
-          actionsPanel.classList.add('hidden');
-          actionsPanel.classList.remove('grid', 'grid-cols-[1fr_1fr_32px]');
-        }
-        toggleBtn?.setAttribute('aria-expanded', nextOpen ? 'true' : 'false');
-        chevronEl?.classList.toggle('rotate-180', nextOpen);
+    function closeAllStoreOverlays(exceptRow?: HTMLElement) {
+      storeRows.forEach((other) => {
+        if (other !== exceptRow) setStoreOverlayOpen(other, false);
       });
+    }
+
+    storeRows.forEach((row) => {
+      const trigger = row.querySelector<HTMLButtonElement>('[data-store-overlay-trigger]');
+      const actionsPanel = row.querySelector<HTMLElement>('[data-store-actions]');
+      if (!trigger || !actionsPanel) return;
+
+      trigger.addEventListener('click', () => {
+        if (!window.matchMedia('(max-width: 639px)').matches) return;
+        const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+        closeAllStoreOverlays(row);
+        setStoreOverlayOpen(row, !isOpen);
+      });
+
+      // Tapping the overlay backdrop outside the 3 buttons dismisses it
+      actionsPanel.addEventListener('click', (e) => {
+        if (!window.matchMedia('(max-width: 639px)').matches) return;
+        if (e.target === actionsPanel) {
+          setStoreOverlayOpen(row, false);
+        }
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!window.matchMedia('(max-width: 639px)').matches) return;
+      const target = e.target as HTMLElement | null;
+      if (!target?.closest('[data-store-row]')) {
+        closeAllStoreOverlays();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeAllStoreOverlays();
     });
 
     storeFilterBtns.forEach((btn) => {

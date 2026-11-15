@@ -144,11 +144,20 @@ function storeInitials(name: string): string {
               data-store-row
               data-store-status="pending"
               data-search={searchKey}
-              class="px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 hover:bg-slate-50/70 transition"
+              class="relative px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 hover:bg-slate-50/70 transition"
             >
+              <button
+                type="button"
+                data-store-overlay-trigger
+                aria-expanded="false"
+                aria-controls={`store-actions-pending-${store.id}`}
+                aria-label={`Tampilkan aksi untuk ${store.name}`}
+                class="sm:hidden absolute inset-0 z-[1] bg-transparent cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-700 focus-visible:-outline-offset-2"
+              ></button>
+
               <div
                 data-store-header
-                class="w-full sm:w-auto flex-1 flex items-start justify-between gap-3 min-w-0 cursor-pointer sm:cursor-default select-none sm:select-text"
+                class="w-full sm:w-auto flex-1 flex items-start justify-between gap-3 min-w-0"
               >
                 <div class="flex items-start gap-3 min-w-0">
                   {store.logo_url ? (
@@ -188,30 +197,17 @@ function storeInitials(name: string): string {
                     )}
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  data-store-toggle
-                  aria-expanded="false"
-                  aria-controls={`store-actions-pending-${store.id}`}
-                  aria-label={`Tampilkan aksi untuk ${store.name}`}
-                  class="sm:hidden shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer mt-0.5"
-                >
-                  <span data-store-chevron class="inline-flex transition-transform duration-150">
-                    <AppIcon name="chevron-down" size="xs" />
-                  </span>
-                </button>
               </div>
 
               <div
                 id={`store-actions-pending-${store.id}`}
                 data-store-actions
-                class="hidden sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto pt-1 sm:pt-0"
+                class="hidden sm:flex items-center gap-1.5 shrink-0 sm:static sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:p-0 sm:justify-start"
               >
                 <a
                   href={`/toko/${store.slug || store.id}`}
                   target="_blank"
-                  class="inline-flex items-center justify-center gap-1 h-8 px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition"
+                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition"
                 >
                   <span>Lihat</span>
                   <AppIcon name="external-link" size="xs" />
@@ -221,7 +217,7 @@ function storeInitials(name: string): string {
                   data-action="verify-store"
                   data-id={store.id}
                   data-verified="1"
-                  class="inline-flex items-center justify-center gap-1 h-8 px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer"
+                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer"
                 >
                   <AppIcon name="check" size="xs" />
                   <span>Verifikasi</span>
@@ -231,7 +227,7 @@ function storeInitials(name: string): string {
                   data-action="delete-store"
                   data-id={store.id}
                   data-name={store.name}
-                  class="inline-flex items-center justify-center w-8 h-8 p-1 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-transparent hover:border-rose-200 transition cursor-pointer"
+                  class="inline-flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 p-1 bg-white sm:bg-transparent text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-slate-300 sm:border-transparent hover:border-rose-200 transition cursor-pointer"
                   title="Hapus Toko"
                   aria-label={`Hapus toko ${store.name}`}
                 >
@@ -266,11 +262,20 @@ function storeInitials(name: string): string {
               data-store-row
               data-store-status="verified"
               data-search={searchKey}
-              class="px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 hover:bg-slate-50/70 transition"
+              class="relative px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 hover:bg-slate-50/70 transition"
             >
+              <button
+                type="button"
+                data-store-overlay-trigger
+                aria-expanded="false"
+                aria-controls={`store-actions-verified-${store.id}`}
+                aria-label={`Tampilkan aksi untuk ${store.name}`}
+                class="sm:hidden absolute inset-0 z-[1] bg-transparent cursor-pointer focus-visible:outline-2 focus-visible:outline-emerald-700 focus-visible:-outline-offset-2"
+              ></button>
+
               <div
                 data-store-header
-                class="w-full sm:w-auto flex-1 flex items-start justify-between gap-3 min-w-0 cursor-pointer sm:cursor-default select-none sm:select-text"
+                class="w-full sm:w-auto flex-1 flex items-start justify-between gap-3 min-w-0"
               >
                 <div class="flex items-start gap-3 min-w-0">
                   {store.logo_url ? (
@@ -314,30 +319,17 @@ function storeInitials(name: string): string {
                     )}
                   </div>
                 </div>
-
-                <button
-                  type="button"
-                  data-store-toggle
-                  aria-expanded="false"
-                  aria-controls={`store-actions-verified-${store.id}`}
-                  aria-label={`Tampilkan aksi untuk ${store.name}`}
-                  class="sm:hidden shrink-0 w-7 h-7 flex items-center justify-center rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer mt-0.5"
-                >
-                  <span data-store-chevron class="inline-flex transition-transform duration-150">
-                    <AppIcon name="chevron-down" size="xs" />
-                  </span>
-                </button>
               </div>
 
               <div
                 id={`store-actions-verified-${store.id}`}
                 data-store-actions
-                class="hidden sm:flex items-center gap-1.5 shrink-0 w-full sm:w-auto pt-1 sm:pt-0"
+                class="hidden sm:flex items-center gap-1.5 shrink-0 sm:static sm:z-auto sm:bg-transparent sm:backdrop-blur-none sm:p-0 sm:justify-start"
               >
                 <a
                   href={`/toko/${store.slug || store.id}`}
                   target="_blank"
-                  class="inline-flex items-center justify-center gap-1 h-8 px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition"
+                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition"
                 >
                   <span>Lihat</span>
                   <AppIcon name="external-link" size="xs" />
@@ -347,7 +339,7 @@ function storeInitials(name: string): string {
                   data-action="verify-store"
                   data-id={store.id}
                   data-verified="0"
-                  class="h-8 px-2.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-semibold text-xs rounded-md transition cursor-pointer"
+                  class="h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-semibold text-xs rounded-md transition cursor-pointer"
                   title="Cabut status verifikasi"
                 >
                   Cabut
@@ -357,7 +349,7 @@ function storeInitials(name: string): string {
                   data-action="delete-store"
                   data-id={store.id}
                   data-name={store.name}
-                  class="inline-flex items-center justify-center w-8 h-8 p-1 text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-transparent hover:border-rose-200 transition cursor-pointer"
+                  class="inline-flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 p-1 bg-white sm:bg-transparent text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-slate-300 sm:border-transparent hover:border-rose-200 transition cursor-pointer"
                   title="Hapus Toko"
                   aria-label={`Hapus toko ${store.name}`}
                 >
