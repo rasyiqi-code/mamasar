@@ -6,6 +6,7 @@ interface Props {
   store: {
     id: number;
     name: string;
+    logo_url?: string | null;
     phone: string;
     zone_id: number;
     ranting?: string | null;
@@ -23,6 +24,74 @@ const { store, zones } = Astro.props;
 ---
 
 <section id="panel-profile" class="tab-panel px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+  <!-- FORM UPLOAD LOGO TOKO -->
+  <div id="store-logo-section" class="space-y-4 pb-6 border-b border-slate-200">
+    <div class="pb-1.5 border-b border-slate-200 flex items-center justify-between gap-2">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+        <AppIcon name="camera" size="xs" class="text-slate-600" />
+        <span>Logo Toko</span>
+      </h3>
+      <span class="text-xs text-slate-600 shrink-0">Opsional</span>
+    </div>
+
+    <form id="store-logo-form" class="flex flex-col sm:flex-row sm:items-center gap-4">
+      <div class="w-20 h-20 rounded-xl border border-slate-200 bg-slate-50 overflow-hidden shrink-0 flex items-center justify-center">
+        <img
+          id="store-logo-preview-img"
+          src={store.logo_url || ''}
+          alt={`Logo ${store.name}`}
+          class={`w-full h-full object-cover ${store.logo_url ? '' : 'hidden'}`}
+        />
+        <span
+          id="store-logo-preview-fallback"
+          class={`w-full h-full bg-emerald-700 text-white flex items-center justify-center font-bold text-xl tracking-tight ${store.logo_url ? 'hidden' : ''}`}
+        >
+          {store.name.slice(0, 2).toUpperCase()}
+        </span>
+      </div>
+
+      <div class="space-y-2.5 min-w-0 flex-1">
+        <div class="flex flex-wrap items-center gap-2">
+          <input
+            type="file"
+            id="store-logo-input"
+            name="imageFile"
+            accept="image/jpeg,image/png,image/webp"
+            class="sr-only"
+          />
+          <label
+            for="store-logo-input"
+            class="min-h-[40px] px-3.5 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5 cursor-pointer transition"
+          >
+            <AppIcon name="upload" size="xs" class="text-slate-600" />
+            <span>Pilih Gambar Logo</span>
+          </label>
+
+          <button
+            type="submit"
+            id="btn-submit-store-logo"
+            disabled
+            class="min-h-[40px] px-4 py-2 rounded-lg bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer transition"
+          >
+            <span>Unggah Logo</span>
+          </button>
+
+          <button
+            type="button"
+            id="btn-remove-store-logo"
+            class={`min-h-[40px] px-3 py-2 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-semibold inline-flex items-center gap-1 cursor-pointer transition ${store.logo_url ? '' : 'hidden'}`}
+          >
+            <span>Hapus Logo</span>
+          </button>
+        </div>
+
+        <p id="store-logo-file-info" class="text-xs text-slate-600 leading-relaxed">
+          Format JPG, PNG, atau WebP (maks. 2 MB). Disarankan gambar persegi (1:1).
+        </p>
+      </div>
+    </form>
+  </div>
+
   <form id="edit-store-form" class="space-y-6">
     <!-- SECTION 1: Informasi Usaha & Kontak Dasar -->
     <div class="space-y-4">

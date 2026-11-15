@@ -165,9 +165,21 @@ const storeInitials =
           aria-label={`Lihat toko ${product.umkm_name}`}
           class="absolute top-2.5 left-2.5 z-20 inline-flex items-center justify-center group/avatar"
         >
-          <span class="w-9 h-9 rounded-full bg-emerald-900 text-white border-2 border-white ring-2 ring-emerald-600 shadow-sm flex items-center justify-center text-xs font-black tracking-tight group-hover/avatar:scale-105 transition">
-            {storeInitials}
-          </span>
+          {product.umkm_logo_url ? (
+            <img
+              src={getOptimizedImageUrl(product.umkm_logo_url, 96)}
+              alt={product.umkm_name}
+              width="36"
+              height="36"
+              loading="lazy"
+              decoding="async"
+              class="w-9 h-9 rounded-full object-cover bg-white border-2 border-white ring-2 ring-emerald-600 shadow-sm group-hover/avatar:scale-105 transition"
+            />
+          ) : (
+            <span class="w-9 h-9 rounded-full bg-emerald-900 text-white border-2 border-white ring-2 ring-emerald-600 shadow-sm flex items-center justify-center text-xs font-black tracking-tight group-hover/avatar:scale-105 transition">
+              {storeInitials}
+            </span>
+          )}
           {(isVerifiedStore || isFeatured) && (
             <span class="absolute -bottom-1 -right-1.5 bg-emerald-700 text-white text-xs font-black uppercase px-1 py-0.5 rounded leading-none ring-1 ring-white">
               {isVerifiedStore ? 'VERIF' : 'PRO'}

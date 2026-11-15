@@ -12,6 +12,7 @@ interface Props {
     id: number;
     slug?: string;
     name: string;
+    logo_url?: string | null;
     zone_name: string;
     is_verified?: boolean | number | null;
     products?: any[];
@@ -79,9 +80,26 @@ const {
     <!-- Sidebar Brand / Store Profile (Matches sticky h-14 header hairline) -->
     <div class="px-4 h-14 border-b border-slate-200 flex items-center justify-between gap-2 shrink-0">
       <div class="flex items-center gap-3 min-w-0">
-        <div class="w-9 h-9 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm shrink-0">
-          {store.name.slice(0, 2).toUpperCase()}
-        </div>
+        <a
+          href="/dashboard/profil#store-logo-section"
+          id="sidebar-store-logo-link"
+          title="Ubah Logo Toko"
+          aria-label="Ubah Logo Toko"
+          class="shrink-0 block rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-700/30 hover:ring-2 hover:ring-emerald-600/30 transition"
+        >
+          <img
+            id="sidebar-store-logo-img"
+            src={store.logo_url || ''}
+            alt={`Logo ${store.name}`}
+            class={`w-9 h-9 rounded-lg object-cover border border-slate-200 bg-white ${store.logo_url ? '' : 'hidden'}`}
+          />
+          <div
+            id="sidebar-store-logo-fallback"
+            class={`w-9 h-9 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-sm ${store.logo_url ? 'hidden' : ''}`}
+          >
+            {store.name.slice(0, 2).toUpperCase()}
+          </div>
+        </a>
         <div class="min-w-0">
           <div class="text-xs font-bold text-slate-900 truncate" title={store.name}>{store.name}</div>
           <div class="flex items-center gap-1.5 pt-0.5">

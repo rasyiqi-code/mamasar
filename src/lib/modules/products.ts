@@ -5,6 +5,7 @@ import { formatPhoneForWhatsApp, slugify } from '../utils';
 import { getOrSetCache, invalidateCache } from '../cache';
 import type { Product } from './types';
 import { generateStoreSlug } from './stores';
+import { resolveAvatarUrl } from '../neon';
 
 function invalidateCatalogCaches() {
   invalidateCache('products:');
@@ -12,9 +13,20 @@ function invalidateCatalogCaches() {
   invalidateCache('zones:');
 }
 
+export async function resolveProductStoreLogos(items: Product[]): Promise<Product[]> {
+  if (items.length === 0) return items;
+  return Promise.all(
+    items.map(async (item) => ({
+      ...item,
+      umkm_logo_url: (await resolveAvatarUrl(item.umkm_logo_url)) ?? undefined,
+    }))
+  );
+}
+
 export type ProductRow = typeof schema.products.$inferSelect & {
   umkm_slug?: string | null;
   umkm_name: string;
+  umkm_logo_url?: string | null;
   umkm_phone: string;
   umkm_address: string | null;
   umkm_ranting?: string | null;
@@ -34,6 +46,7 @@ export function toProduct(row: ProductRow): Product {
     umkm_id: row.umkm_id,
     umkm_slug: row.umkm_slug ?? undefined,
     umkm_name: row.umkm_name,
+    umkm_logo_url: row.umkm_logo_url ?? undefined,
     umkm_phone: row.umkm_phone,
     umkm_address: row.umkm_address ?? '',
     umkm_ranting: row.umkm_ranting ?? undefined,
@@ -80,6 +93,7 @@ export function productSelect() {
       ...getTableColumns(schema.products),
       umkm_slug: schema.umkm.slug,
       umkm_name: schema.umkm.name,
+      umkm_logo_url: schema.umkm.logo_url,
       umkm_phone: schema.umkm.phone,
       umkm_address: schema.umkm.address,
       umkm_ranting: schema.umkm.ranting,
@@ -193,7 +207,7 @@ export async function getProducts(options?: ProductFilterOptions): Promise<Produ
         ? await baseQuery.limit(options.limit).offset(Math.max(0, options.offset ?? 0))
         : await baseQuery;
 
-    return rows.map(toProduct);
+    return resolveProductStoreLogos(rows.map(toProduct));
   };
 
   const cacheKey = buildProductCacheKey('products:list', options);
@@ -224,7 +238,9 @@ export async function getProductsCount(options?: ProductFilterOptions): Promise<
 
 export async function getProductBySlug(slug: string): Promise<Product | undefined> {
   const [row] = await productSelect().where(eq(schema.products.slug, slug));
-  return row ? toProduct(row) : undefined;
+  if (!row) return undefined;
+  const [resolved] = await resolveProductStoreLogos([toProduct(row)]);
+  return resolved;
 }
 
 export async function createUMKMAndProduct(data: {

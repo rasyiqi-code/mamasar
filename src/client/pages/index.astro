@@ -699,6 +699,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
       image_url: string;
       zone_name?: string;
       umkm_name?: string;
+      umkm_logo_url?: string;
       is_verified?: boolean;
       is_featured?: boolean;
       photo_count?: number;
@@ -756,11 +757,22 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
           const avatarWrap = document.createElement('span');
           avatarWrap.className = 'absolute top-2.5 left-2.5 z-10 inline-flex items-center justify-center';
-          const avatarCircle = document.createElement('span');
-          avatarCircle.className =
-            'w-9 h-9 rounded-full bg-emerald-900 text-white border-2 border-white ring-2 ring-emerald-600 shadow-sm flex items-center justify-center text-xs font-black tracking-tight';
-          avatarCircle.textContent = getInitialsClient(p.umkm_name);
-          avatarWrap.appendChild(avatarCircle);
+          if (p.umkm_logo_url && safeImageSrc(p.umkm_logo_url)) {
+            const avatarImg = document.createElement('img');
+            avatarImg.src = safeImageSrc(p.umkm_logo_url);
+            avatarImg.alt = p.umkm_name || 'Toko';
+            avatarImg.loading = 'lazy';
+            avatarImg.decoding = 'async';
+            avatarImg.className =
+              'w-9 h-9 rounded-full object-cover bg-white border-2 border-white ring-2 ring-emerald-600 shadow-sm';
+            avatarWrap.appendChild(avatarImg);
+          } else {
+            const avatarCircle = document.createElement('span');
+            avatarCircle.className =
+              'w-9 h-9 rounded-full bg-emerald-900 text-white border-2 border-white ring-2 ring-emerald-600 shadow-sm flex items-center justify-center text-xs font-black tracking-tight';
+            avatarCircle.textContent = getInitialsClient(p.umkm_name);
+            avatarWrap.appendChild(avatarCircle);
+          }
           if (p.is_verified || p.is_featured) {
             const verifTag = document.createElement('span');
             verifTag.className =

@@ -71,5 +71,15 @@ describe('Elysia backend (/api)', () => {
 
     const exportRes = await app.handle(new Request('http://localhost/api/user/export'));
     assert.equal(exportRes.status, 401);
+
+    const logoPostRes = await app.handle(
+      new Request('http://localhost/api/umkm/logo', { method: 'POST', body: new FormData() })
+    );
+    assert.equal(logoPostRes.status, 401);
+
+    const logoDeleteRes = await app.handle(
+      new Request('http://localhost/api/umkm/logo', { method: 'DELETE' })
+    );
+    assert.equal(logoDeleteRes.status, 401);
   });
 });

@@ -9,16 +9,20 @@ export const GET: APIRoute = async ({ params }) => {
     return new Response('Not found', { status: 404 });
   }
 
-  // Prevent directory traversal
-  const safeFilename = path.basename(filePathParam);
+  // Prevent directory traversal while supporting subdirectories (e.g. logos/, avatars/)
   const uploadsDir = path.resolve(process.cwd(), 'data/uploads');
-  const fullPath = path.join(uploadsDir, safeFilename);
+  const relativePath = filePathParam.replace(/^\/+/, '');
+  const fullPath = path.resolve(uploadsDir, relativePath);
+
+  if (!fullPath.startsWith(uploadsDir + path.sep)) {
+    return new Response('Forbidden', { status: 403 });
+  }
 
   if (!fs.existsSync(fullPath)) {
     return new Response('Image not found', { status: 404 });
   }
 
-  const ext = path.extname(safeFilename).toLowerCase();
+  const ext = path.extname(fullPath).toLowerCase();
   let contentType = 'application/octet-stream';
 
   if (ext === '.jpg' || ext === '.jpeg') contentType = 'image/jpeg';

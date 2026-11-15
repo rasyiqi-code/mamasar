@@ -4,7 +4,7 @@ import ProductCard from '../../components/ProductCard.astro';
 import AppIcon from '../../components/common/AppIcon.astro';
 import NotFoundView from '../../components/common/NotFoundView.astro';
 import { getUMKMById } from '../../../lib/db';
-import { formatPhoneForWhatsApp } from '../../../lib/utils';
+import { formatPhoneForWhatsApp, getOptimizedImageUrl } from '../../../lib/utils';
 
 const { id } = Astro.params;
 
@@ -122,9 +122,19 @@ const storeSchema = store
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div class="flex items-start sm:items-center gap-3.5 sm:gap-4 min-w-0">
               <div class="relative shrink-0">
-                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-emerald-800 text-white flex items-center justify-center font-black text-xl sm:text-2xl tracking-tight">
-                  {initials}
-                </div>
+                {store.logo_url ? (
+                  <img
+                    src={getOptimizedImageUrl(store.logo_url, 200)}
+                    alt={`Logo ${store.name}`}
+                    width="80"
+                    height="80"
+                    class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border border-slate-200 bg-white"
+                  />
+                ) : (
+                  <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-emerald-800 text-white flex items-center justify-center font-black text-xl sm:text-2xl tracking-tight">
+                    {initials}
+                  </div>
+                )}
                 {Boolean(store.is_verified) && (
                   <span
                     class="absolute -bottom-1 -right-1 bg-emerald-700 text-white w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-xs"

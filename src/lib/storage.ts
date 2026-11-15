@@ -84,6 +84,7 @@ export async function extractAndValidateImage(options: {
 
 const UPLOADS_DIR = path.resolve(process.cwd(), 'data/uploads');
 const AVATARS_DIR = path.resolve(process.cwd(), 'data/uploads/avatars');
+const LOGOS_DIR = path.resolve(process.cwd(), 'data/uploads/logos');
 
 /**
  * Ensures the uploads directories exist
@@ -91,6 +92,7 @@ const AVATARS_DIR = path.resolve(process.cwd(), 'data/uploads/avatars');
 export async function ensureUploadsDir(): Promise<void> {
   await fs.mkdir(UPLOADS_DIR, { recursive: true });
   await fs.mkdir(AVATARS_DIR, { recursive: true });
+  await fs.mkdir(LOGOS_DIR, { recursive: true });
 }
 
 /**
@@ -193,4 +195,51 @@ export async function saveAccountAvatar(options: {
   const filePath = path.join(AVATARS_DIR, baseName);
   await fs.writeFile(filePath, validated.buffer);
   return `/uploads/avatars/${baseName}`;
+}
+
+/**
+ * 3. Store Logos -> Neon Object Storage (S3) -> ImageKit -> Local disk fallback
+ */
+export async function saveStoreLogo(options: {
+  imageFile?: File | null;
+  imageBase64?: string | null;
+  storeId: number | string;
+}): Promise<string> {
+  const { storeId } = options;
+  const validated = await extractAndValidateImage(options);
+
+  if (!validated) {
+    throw new InvalidUploadError('Pilih file gambar logo terlebih dahulu (JPEG, PNG, atau WebP).');
+  }
+
+  const baseName = `store-${storeId}-${crypto.randomUUID()}${validated.ext}`;
+  const objectKey = `logos/${baseName}`;
+
+  if (getNeonS3Client()) {
+    try {
+      return await uploadToNeonStorage(validated.buffer, objectKey, validated.mime);
+    } catch (err) {
+      console.warn('Neon S3 store logo upload failed, falling back:', err);
+    }
+  }
+
+  const imagekit = getImageKitClient();
+  if (imagekit) {
+    try {
+      const res = await imagekit.upload({
+        file: validated.buffer,
+        fileName: baseName,
+        folder: '/logos',
+        useUniqueFileName: true,
+      });
+      return res.url;
+    } catch (err) {
+      console.warn('ImageKit store logo upload failed, falling back to local storage:', err);
+    }
+  }
+
+  await ensureUploadsDir();
+  const filePath = path.join(LOGOS_DIR, baseName);
+  await fs.writeFile(filePath, validated.buffer);
+  return `/uploads/logos/${baseName}`;
 }

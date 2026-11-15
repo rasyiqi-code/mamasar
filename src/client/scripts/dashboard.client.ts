@@ -188,6 +188,130 @@ export function initDashboardClient() {
     }
   });
 
+  // Store Logo Upload & Remove Form
+  const storeLogoForm = document.getElementById('store-logo-form') as HTMLFormElement | null;
+  const storeLogoInput = document.getElementById('store-logo-input') as HTMLInputElement | null;
+  const storeLogoPreviewImg = document.getElementById('store-logo-preview-img') as HTMLImageElement | null;
+  const storeLogoPreviewFallback = document.getElementById('store-logo-preview-fallback');
+  const sidebarLogoImg = document.getElementById('sidebar-store-logo-img') as HTMLImageElement | null;
+  const sidebarLogoFallback = document.getElementById('sidebar-store-logo-fallback');
+  const storeLogoSubmitBtn = document.getElementById('btn-submit-store-logo') as HTMLButtonElement | null;
+  const storeLogoRemoveBtn = document.getElementById('btn-remove-store-logo') as HTMLButtonElement | null;
+  const storeLogoFileInfo = document.getElementById('store-logo-file-info');
+  const defaultLogoInfoText = 'Format JPG, PNG, atau WebP (maks. 2 MB). Disarankan gambar persegi (1:1).';
+  let storeLogoPreviewObjectUrl: string | null = null;
+  let hasServerStoreLogo = Boolean(storeLogoPreviewImg && !storeLogoPreviewImg.classList.contains('hidden'));
+
+  const applyStoreLogoDom = (url: string | null) => {
+    const hasImg = Boolean(url);
+    [storeLogoPreviewImg, sidebarLogoImg].forEach((img) => {
+      if (!img) return;
+      if (url) img.src = url;
+      else img.removeAttribute('src');
+      img.classList.toggle('hidden', !hasImg);
+    });
+    [storeLogoPreviewFallback, sidebarLogoFallback].forEach((fb) => {
+      fb?.classList.toggle('hidden', hasImg);
+    });
+  };
+
+  storeLogoInput?.addEventListener('change', () => {
+    const file = storeLogoInput.files?.[0];
+    if (!file) {
+      if (storeLogoSubmitBtn) storeLogoSubmitBtn.disabled = true;
+      return;
+    }
+
+    const allowed = ['image/jpeg', 'image/png', 'image/webp'];
+    if (!allowed.includes(file.type)) {
+      notify('Format logo tidak didukung. Gunakan JPG, PNG, atau WebP.', true);
+      storeLogoInput.value = '';
+      if (storeLogoSubmitBtn) storeLogoSubmitBtn.disabled = true;
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      notify('Ukuran logo maksimal 2 MB.', true);
+      storeLogoInput.value = '';
+      if (storeLogoSubmitBtn) storeLogoSubmitBtn.disabled = true;
+      return;
+    }
+
+    if (storeLogoPreviewObjectUrl) {
+      URL.revokeObjectURL(storeLogoPreviewObjectUrl);
+    }
+    storeLogoPreviewObjectUrl = URL.createObjectURL(file);
+
+    if (storeLogoPreviewImg) {
+      storeLogoPreviewImg.src = storeLogoPreviewObjectUrl;
+      storeLogoPreviewImg.classList.remove('hidden');
+    }
+    storeLogoPreviewFallback?.classList.add('hidden');
+
+    if (storeLogoFileInfo) {
+      const sizeKb = Math.max(1, Math.round(file.size / 1024));
+      storeLogoFileInfo.textContent = `File siap diunggah: ${file.name} (${sizeKb} KB). Klik "Unggah Logo" untuk menyimpan.`;
+    }
+    if (storeLogoSubmitBtn) storeLogoSubmitBtn.disabled = false;
+  });
+
+  storeLogoForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const file = storeLogoInput?.files?.[0];
+    if (!file) {
+      notify('Pilih file gambar logo terlebih dahulu.', true);
+      return;
+    }
+
+    if (storeLogoSubmitBtn) storeLogoSubmitBtn.disabled = true;
+    try {
+      const formData = new FormData();
+      formData.append('imageFile', file);
+      const res = await fetch('/api/umkm/logo', { method: 'POST', body: formData });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        hasServerStoreLogo = true;
+        applyStoreLogoDom(data.logoUrl);
+        storeLogoRemoveBtn?.classList.remove('hidden');
+        if (storeLogoInput) storeLogoInput.value = '';
+        if (storeLogoFileInfo) storeLogoFileInfo.textContent = defaultLogoInfoText;
+        notify('Logo toko berhasil diperbarui!');
+      } else {
+        if (storeLogoSubmitBtn) storeLogoSubmitBtn.disabled = false;
+        notify(data.message || 'Gagal mengunggah logo toko.', true);
+      }
+    } catch (err: any) {
+      if (storeLogoSubmitBtn) storeLogoSubmitBtn.disabled = false;
+      notify('Kendala koneksi: ' + err.message, true);
+    }
+  });
+
+  storeLogoRemoveBtn?.addEventListener('click', async () => {
+    storeLogoRemoveBtn.disabled = true;
+    try {
+      const res = await fetch('/api/umkm/logo', { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        hasServerStoreLogo = false;
+        applyStoreLogoDom(null);
+        storeLogoRemoveBtn.classList.add('hidden');
+        if (storeLogoInput) storeLogoInput.value = '';
+        if (storeLogoSubmitBtn) storeLogoSubmitBtn.disabled = true;
+        if (storeLogoFileInfo) storeLogoFileInfo.textContent = defaultLogoInfoText;
+        notify('Logo toko berhasil dihapus.');
+      } else {
+        notify(data.message || 'Gagal menghapus logo toko.', true);
+      }
+    } catch (err: any) {
+      notify('Kendala server: ' + err.message, true);
+    } finally {
+      storeLogoRemoveBtn.disabled = false;
+      if (!hasServerStoreLogo && storeLogoInput && !storeLogoInput.files?.length && storeLogoSubmitBtn) {
+        storeLogoSubmitBtn.disabled = true;
+      }
+    }
+  });
+
   // Edit Store Profile Form
   const editStoreForm = document.getElementById('edit-store-form') as HTMLFormElement | null;
   editStoreForm?.addEventListener('submit', async (e) => {

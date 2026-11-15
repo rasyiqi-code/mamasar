@@ -440,9 +440,19 @@ const pageDescription = product
             <div class="pt-5 border-t border-slate-200 space-y-4">
               <div class="flex items-start gap-3">
                 <a href={storeHref} class="shrink-0 block group">
-                  <div class="w-12 h-12 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-black text-base group-hover:bg-emerald-900 transition">
-                    {product.umkm_name.slice(0, 2).toUpperCase()}
-                  </div>
+                  {product.umkm_logo_url ? (
+                    <img
+                      src={getOptimizedImageUrl(product.umkm_logo_url, 120)}
+                      alt={`Logo ${product.umkm_name}`}
+                      width="48"
+                      height="48"
+                      class="w-12 h-12 rounded-lg object-cover border border-slate-200 bg-white group-hover:border-emerald-500 transition"
+                    />
+                  ) : (
+                    <div class="w-12 h-12 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-black text-base group-hover:bg-emerald-900 transition">
+                      {product.umkm_name.slice(0, 2).toUpperCase()}
+                    </div>
+                  )}
                 </a>
                 <div class="space-y-0.5 min-w-0">
                   <a

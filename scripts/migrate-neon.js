@@ -46,6 +46,7 @@ async function runMigration() {
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
       name VARCHAR(255) NOT NULL,
+      logo_url TEXT,
       phone VARCHAR(50) NOT NULL,
       zone_id INTEGER NOT NULL REFERENCES zones(id),
       is_verified INTEGER DEFAULT 0,
@@ -111,6 +112,7 @@ async function runMigration() {
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS bump_credits INTEGER DEFAULT 0;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS created_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS slug VARCHAR(255);`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS logo_url TEXT;`;
   await sql`CREATE UNIQUE INDEX IF NOT EXISTS uq_umkm_slug ON umkm(slug) WHERE slug IS NOT NULL;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMP WITH TIME ZONE;`;
   await sql`CREATE UNIQUE INDEX IF NOT EXISTS uq_umkm_user_id ON umkm(user_id) WHERE user_id IS NOT NULL;`;

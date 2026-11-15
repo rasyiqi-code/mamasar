@@ -9,9 +9,10 @@ import {
   isPetugas,
   setUMKMVerified,
   setupUMKMForUser,
+  updateUMKMLogo,
   updateUMKMProfile,
 } from '../../lib/db';
-import { InvalidUploadError, saveUploadedImage } from '../../lib/storage';
+import { InvalidUploadError, resolveAvatarUrl, saveStoreLogo, saveUploadedImage } from '../../lib/storage';
 import { isValidIndonesianPhone } from '../../lib/utils';
 import {
   fileField,
@@ -265,6 +266,81 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
       );
     } catch (err) {
       return jsonError(500, 'Terjadi kesalahan server.', err);
+    }
+  })
+  .post('/logo', async ({ request, body }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user || !user.umkm) {
+        return jsonResponse(
+          { success: false, message: 'Silakan masuk dengan akun pemilik toko.' },
+          401
+        );
+      }
+
+      const data = body as ParsedBody;
+      const imageFile = fileField(data, 'imageFile');
+      const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : null;
+
+      if (!imageFile && !imageBase64) {
+        return jsonResponse(
+          { success: false, message: 'Pilih file gambar logo terlebih dahulu (JPEG, PNG, atau WebP).' },
+          400
+        );
+      }
+
+      const rawLogoUrl = await saveStoreLogo({
+        imageFile,
+        imageBase64,
+        storeId: user.umkm.id,
+      });
+
+      const saved = await updateUMKMLogo(user.umkm.id, user.id, rawLogoUrl);
+      if (!saved) {
+        return jsonResponse({ success: false, message: 'Gagal memperbarui logo toko.' }, 404);
+      }
+
+      const logoUrl = (await resolveAvatarUrl(rawLogoUrl)) || rawLogoUrl;
+
+      return jsonResponse(
+        {
+          success: true,
+          logoUrl,
+          message: 'Logo toko berhasil diperbarui.',
+        },
+        200
+      );
+    } catch (err) {
+      if (err instanceof InvalidUploadError) {
+        return jsonResponse({ success: false, message: err.message }, 400);
+      }
+      return jsonError(500, 'Terjadi kesalahan server saat mengunggah logo.', err);
+    }
+  })
+  .delete('/logo', async ({ request }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user || !user.umkm) {
+        return jsonResponse(
+          { success: false, message: 'Silakan masuk dengan akun pemilik toko.' },
+          401
+        );
+      }
+
+      const updated = await updateUMKMLogo(user.umkm.id, user.id, null);
+      if (!updated) {
+        return jsonResponse({ success: false, message: 'Gagal menghapus logo toko.' }, 404);
+      }
+
+      return jsonResponse(
+        {
+          success: true,
+          message: 'Logo toko berhasil dihapus.',
+        },
+        200
+      );
+    } catch (err) {
+      return jsonError(500, 'Terjadi kesalahan server saat menghapus logo.', err);
     }
   })
   .post('/verify', async ({ request, body }) => {

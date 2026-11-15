@@ -51,6 +51,7 @@ export const umkm = pgTable(
     created_by_user_id: integer('created_by_user_id').references(() => users.id, { onDelete: 'set null' }),
     name: varchar('name', { length: 255 }).notNull(),
     slug: varchar('slug', { length: 255 }).unique(),
+    logo_url: text('logo_url'),
     phone: varchar('phone', { length: 50 }).notNull(),
     zone_id: integer('zone_id')
       .notNull()

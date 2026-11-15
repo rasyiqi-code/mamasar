@@ -61,6 +61,7 @@ export interface UMKM {
   user_id?: number;
   name: string;
   slug?: string;
+  logo_url?: string;
   phone: string;
   zone_id: number;
   zone_name?: string;
@@ -83,6 +84,7 @@ export interface Product {
   umkm_id: number;
   umkm_slug?: string;
   umkm_name: string;
+  umkm_logo_url?: string;
   umkm_phone: string;
   umkm_address: string;
   umkm_ranting?: string;

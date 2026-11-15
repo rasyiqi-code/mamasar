@@ -4,7 +4,8 @@ import { getDb } from '../client';
 import { formatPhoneForWhatsApp, slugify } from '../utils';
 import { getOrSetCache, invalidateCache } from '../cache';
 import type { ClaimCandidate, SetupUMKMResult, UMKM, UMKMVerificationRow, Product } from './types';
-import { productSelect, toProduct, lastBumpedFirst } from './products';
+import { productSelect, toProduct, lastBumpedFirst, resolveProductStoreLogos } from './products';
+import { resolveAvatarUrl } from '../neon';
 import { recordAuditLog } from './audit';
 import { createNotification } from './notifications';
 
@@ -30,6 +31,7 @@ export function toUMKM(row: UMKMJoinRow): UMKM & { zone_name: string; zone_slug:
     user_id: row.user_id ?? undefined,
     name: row.name,
     slug: row.slug ?? undefined,
+    logo_url: row.logo_url ?? undefined,
     phone: row.phone,
     zone_id: row.zone_id,
     zone_name: row.zone_name,
@@ -83,11 +85,14 @@ export async function getAllUMKM(options?: {
       .groupBy(schema.umkm.id, schema.zones.name, schema.zones.slug)
       .orderBy(desc(sql`count(${schema.products.id})`), asc(schema.umkm.id));
 
-    return rows.map((r) => ({
-      ...toUMKM(r),
-      product_count: r.product_count,
-      sample_images: r.sample_images_str ? String(r.sample_images_str).split(',').filter(Boolean) : [],
-    }));
+    return Promise.all(
+      rows.map(async (r) => ({
+        ...toUMKM(r),
+        logo_url: (await resolveAvatarUrl(r.logo_url)) ?? undefined,
+        product_count: r.product_count,
+        sample_images: r.sample_images_str ? String(r.sample_images_str).split(',').filter(Boolean) : [],
+      }))
+    );
   };
 
   if (!options?.search) {
@@ -126,10 +131,14 @@ export async function getUMKMById(idOrSlug: number | string): Promise<(UMKM & {
     .where(eq(schema.products.umkm_id, store.id))
     .orderBy(desc(schema.products.id));
 
+  const resolvedLogo = (await resolveAvatarUrl(store.logo_url)) ?? undefined;
+  const resolvedProducts = await resolveProductStoreLogos(productRows.map(toProduct));
+
   return {
     ...toUMKM(store),
+    logo_url: resolvedLogo,
     product_count: store.product_count,
-    products: productRows.map(toProduct),
+    products: resolvedProducts,
   };
 }
 
@@ -154,9 +163,13 @@ export async function getUMKMByUserId(
     .where(eq(schema.products.umkm_id, store.id))
     .orderBy(...lastBumpedFirst);
 
+  const resolvedLogo = (await resolveAvatarUrl(store.logo_url)) ?? undefined;
+  const resolvedProducts = await resolveProductStoreLogos(productRows.map(toProduct));
+
   return {
     ...toUMKM(store),
-    products: productRows.map(toProduct),
+    logo_url: resolvedLogo,
+    products: resolvedProducts,
   };
 }
 
@@ -447,6 +460,27 @@ export async function updateUMKMProfile(
   await getDb()
     .update(schema.umkm)
     .set(updateFields)
+    .where(eq(schema.umkm.id, umkmId));
+
+  invalidateCatalogCaches();
+  return true;
+}
+
+export async function updateUMKMLogo(
+  umkmId: number,
+  userId: number,
+  logoUrl: string | null
+): Promise<boolean> {
+  const [existing] = await getDb()
+    .select({ id: schema.umkm.id })
+    .from(schema.umkm)
+    .where(and(eq(schema.umkm.id, umkmId), eq(schema.umkm.user_id, userId)));
+
+  if (!existing) return false;
+
+  await getDb()
+    .update(schema.umkm)
+    .set({ logo_url: logoUrl })
     .where(eq(schema.umkm.id, umkmId));
 
   invalidateCatalogCaches();
