@@ -11,6 +11,7 @@ interface Props {
   hidePhotoCount?: boolean;
   showWaButton?: boolean;
   showSellerAvatar?: boolean;
+  showFavButton?: boolean;
   badge?: string;
   badgeColor?: 'indigo' | 'amber' | 'emerald' | 'rose';
   isSoldOut?: boolean;
@@ -24,6 +25,7 @@ const {
   hidePhotoCount = false,
   showWaButton = variant === 'default',
   showSellerAvatar = variant === 'spotlight' || variant === 'compact',
+  showFavButton = variant === 'default',
   badge,
   badgeColor = 'emerald',
   isSoldOut = Boolean(product.is_sold_out),
@@ -90,12 +92,14 @@ const storeInitials =
 ---
 
 <article
-  class={`h-full bg-white rounded-xl overflow-hidden transition duration-200 flex flex-col justify-between group relative ${
+  class={`h-full rounded-lg overflow-hidden transition duration-200 flex flex-col justify-between group relative ${
     highlight
-      ? 'border-2 border-emerald-600 shadow-sm'
-      : isFeatured && !isSpotlight
-        ? 'border border-emerald-300 shadow-xs'
-        : 'border border-slate-200 hover:border-emerald-400 shadow-xs hover:shadow-md'
+      ? 'bg-white border-2 border-emerald-600 shadow-sm'
+      : isSpotlight
+        ? 'bg-white/85 hover:bg-white border border-emerald-200/75 shadow-xs hover:shadow-md'
+        : isFeatured
+          ? 'bg-white border border-emerald-300 shadow-xs'
+          : 'bg-white border border-slate-200 hover:border-emerald-400 shadow-xs hover:shadow-md'
   } ${isSoldOut ? 'opacity-80' : ''}`}
 >
   <div>
@@ -124,11 +128,11 @@ const storeInitials =
               </span>
             )}
             <div class="flex items-baseline gap-1.5 flex-wrap">
-              <span class="text-sm sm:text-base font-extrabold font-mono tracking-tight text-white drop-shadow-sm">
+              <span class="text-sm sm:text-base font-extrabold tracking-tight text-white tabular-nums drop-shadow-sm">
                 {formatRupiah(product.price)}
               </span>
               {hasDiscount && (
-                <span class="text-xs text-slate-200 line-through font-mono">
+                <span class="text-xs text-slate-200 line-through tabular-nums">
                   {formatRupiah(product.original_price!)}
                 </span>
               )}
@@ -136,7 +140,7 @@ const storeInitials =
           </div>
 
           {!hidePhotoCount && (
-            <span class="inline-flex items-center gap-1 text-xs font-semibold bg-black/65 text-white px-2 py-0.5 rounded-md shrink-0 tabular-nums">
+            <span class="inline-flex items-center gap-1 text-xs font-bold text-white/95 shrink-0 tabular-nums drop-shadow-sm">
               <AppIcon name="camera" size="xs" />
               <span>{photoCount}x</span>
             </span>
@@ -192,21 +196,23 @@ const storeInitials =
         </div>
       )}
 
-      <!-- Favorite Star Button (>= 44px touch target) -->
-      <div class="absolute top-1 right-1 z-20">
-        <button
-          type="button"
-          data-fav-btn
-          data-id={product.id}
-          data-name={product.name}
-          aria-label={`Simpan ${product.name} ke Favorit`}
-          class="min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer select-none group/fav"
-        >
-          <span class="w-8 h-8 rounded-full bg-white/95 group-hover/fav:bg-white border border-slate-200 text-slate-600 group-hover/fav:text-amber-600 flex items-center justify-center shadow-xs transition">
-            <AppIcon name="star" size="xs" />
-          </span>
-        </button>
-      </div>
+      <!-- Favorite Star Button (>= 44px touch target, shown on default full cards) -->
+      {showFavButton && (
+        <div class="absolute top-1 right-1 z-20">
+          <button
+            type="button"
+            data-fav-btn
+            data-id={product.id}
+            data-name={product.name}
+            aria-label={`Simpan ${product.name} ke Favorit`}
+            class="min-w-[44px] min-h-[44px] flex items-center justify-center cursor-pointer select-none group/fav"
+          >
+            <span class="w-8 h-8 rounded-full bg-white/95 group-hover/fav:bg-white border border-slate-200 text-slate-600 group-hover/fav:text-amber-600 flex items-center justify-center shadow-xs transition">
+              <AppIcon name="star" size="xs" />
+            </span>
+          </button>
+        </div>
+      )}
     </div>
 
     <!-- Card Body -->

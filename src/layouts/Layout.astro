@@ -87,7 +87,7 @@ const navLinkClass = (active: boolean) =>
       <script type="application/ld+json" set:html={safeJsonLd(schema)} />
     )}
   </head>
-  <body class={`min-h-full flex flex-col font-sans antialiased bg-[#f8fafc] text-slate-900 ${hideMobileNav ? '' : 'pb-16 md:pb-0'}`}>
+  <body class={`min-h-full flex flex-col font-sans antialiased overflow-x-clip bg-[#f8fafc] text-slate-900 ${hideMobileNav ? '' : 'pb-16 md:pb-0'}`}>
     <a href="#main" class="skip-link">Langsung ke konten</a>
 
     <!-- Top Classifieds Header (OsClass Light Aesthetic) -->
