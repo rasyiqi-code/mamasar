@@ -33,7 +33,7 @@ const featuredPromoCount = pendingPromotions.filter((p) => p.type.startsWith('fe
 const bumpPromoCount = pendingPromotions.filter((p) => p.type.startsWith('bump_pack_')).length;
 ---
 
-<section id="panel-promotions" class="admin-tab-panel w-full min-w-0 max-w-full hidden">
+<section id="panel-promotions" class="admin-tab-panel w-full min-w-0 max-w-full overflow-x-clip hidden">
   {/* Hairline Operational Metric Strip: Horizontal Scroll on Mobile, 4-Col Grid on Desktop */}
   <div
     tabindex="0"

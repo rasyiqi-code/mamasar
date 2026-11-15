@@ -21,7 +21,7 @@ const mwcCount = allUsers.filter((u) => u.role === 'mwcnu').length;
 const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
 ---
 
-<section id="panel-agents" class="admin-tab-panel w-full min-w-0 max-w-full">
+<section id="panel-agents" class="admin-tab-panel w-full min-w-0 max-w-full overflow-x-clip">
   {/* Hairline Operational Metric Strip: Horizontal Scroll on Mobile, 4-Col Grid on Desktop */}
   <div
     tabindex="0"
@@ -181,7 +181,7 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
     </div>
 
     <search class="flex flex-col sm:flex-row gap-2.5 px-4 sm:px-6 lg:px-8 w-full max-w-full min-w-0">
-      <div class="relative flex-1">
+      <div class="relative flex-1 min-w-0 w-full">
         <label for="user-directory-search" class="sr-only">Cari nama, email, atau toko pengguna</label>
         <input
           type="search"
@@ -193,7 +193,7 @@ const rantingCount = allUsers.filter((u) => u.role === 'ranting').length;
           class="w-full min-h-[44px] sm:min-h-[40px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
         />
       </div>
-      <div class="sm:w-56">
+      <div class="w-full sm:w-56 min-w-0">
         <label for="user-directory-role-filter" class="sr-only">Filter berdasarkan peran</label>
         <select
           id="user-directory-role-filter"

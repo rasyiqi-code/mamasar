@@ -18,7 +18,7 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
 ---
 
 <!doctype html>
-<html lang="id" class="h-full bg-white text-slate-900 overflow-x-clip">
+<html lang="id" class="h-full bg-white text-slate-900 overflow-x-clip overscroll-x-contain">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
@@ -36,7 +36,7 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Mamasar" />
   </head>
-  <body class="min-h-full bg-white text-slate-900 font-sans antialiased flex flex-col overflow-x-clip selection:bg-emerald-500 selection:text-white">
+  <body class="min-h-full bg-white text-slate-900 font-sans antialiased flex flex-col overflow-x-clip overscroll-x-contain selection:bg-emerald-500 selection:text-white">
     <a href="#main" class="skip-link">Langsung ke konten</a>
 
     <!-- Main App Slot (Zero Front Web Header or Footer) -->

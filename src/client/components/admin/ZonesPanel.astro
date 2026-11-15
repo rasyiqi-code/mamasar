@@ -92,7 +92,7 @@ const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
 const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
 ---
 
-<section id="panel-zones" class="admin-tab-panel w-full min-w-0 max-w-full hidden">
+<section id="panel-zones" class="admin-tab-panel w-full min-w-0 max-w-full overflow-x-clip hidden">
   {/* Hairline Operational Metric Strip: Horizontal Scroll on Mobile, 4-Col Grid on Desktop */}
   <div
     tabindex="0"

@@ -35,7 +35,7 @@ const { user, assignedZone, zones, stores = [], isDefaultActive = false } = Astr
 const scopeText = assignedZone ? `MWC ${assignedZone.name}` : 'PCNU Sumenep';
 ---
 
-<section id="panel-entry" class={`admin-tab-panel w-full min-w-0 max-w-full ${isDefaultActive ? '' : 'hidden'}`}>
+<section id="panel-entry" class={`admin-tab-panel w-full min-w-0 max-w-full overflow-x-clip ${isDefaultActive ? '' : 'hidden'}`}>
   {/* Unified Top Control Strip: Clean 2-Step Progress */}
   <div class="border-b border-slate-200 bg-white px-4 sm:px-6 lg:px-8 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
     {/* Compact Stepper */}
