@@ -3,12 +3,13 @@
   "type": "module",
   "version": "1.0.0",
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "check": "astro check",
-    "test": "node --import ./tests/register-ts.mjs --test tests/*.test.ts",
-    "preview": "astro preview",
-    "start": "node dist/server/entry.mjs",
+    "dev": "bunx --bun astro dev",
+    "build": "bunx --bun astro build",
+    "check": "bunx --bun astro check",
+    "test": "bun test tests/*.test.ts",
+    "preview": "bunx --bun astro preview",
+    "server": "bun run src/server/serve.ts",
+    "start": "bun run dist/server/entry.mjs",
     "astro": "astro"
   },
   "dependencies": {
@@ -25,12 +26,14 @@
     "@types/leaflet": "^1.9.22",
     "astro": "^7.4.12",
     "drizzle-orm": "^0.45.4",
+    "elysia": "^1.4.32",
     "imagekit": "^6.0.0",
     "leaflet": "^1.9.4",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@types/bun": "^1.4.4",
     "@types/node": "^26.6.6",
     "drizzle-kit": "^0.31.11",
     "typescript": "^6.0.3"
