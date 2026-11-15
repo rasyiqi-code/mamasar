@@ -700,20 +700,27 @@ export function initAdminClient() {
   const step2Indicator = document.getElementById('step2-indicator');
   const step2Badge = document.getElementById('step2-badge');
   const step2Title = document.getElementById('step2-title');
-  const entryModeBar = document.getElementById('entry-mode-bar');
 
   const step1Container = document.getElementById('jemput-step-1');
   const step2Container = document.getElementById('jemput-step-2');
   const jemputAlertBox = document.getElementById('jemput-alert-box');
 
-  const btnModeNewStore = document.getElementById('btn-mode-new-store');
-  const btnModeExistingStore = document.getElementById('btn-mode-existing-store');
-  const railChooseExistingBtn = document.getElementById('rail-choose-existing-store');
+  const sectionStorePicker = document.getElementById('section-store-picker');
+  const storePickerSearchInput = document.getElementById('store-picker-search') as HTMLInputElement | null;
+  const storePickerCount = document.getElementById('store-picker-count');
+  const storePickerList = document.getElementById('store-picker-list');
+  const pickStoreBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-pick-store]'));
+  const storePickerEmpty = document.getElementById('store-picker-empty');
+  const storePickerEmptyText = document.getElementById('store-picker-empty-text');
+  const storePickerFooter = document.getElementById('store-picker-footer');
+  const btnEmptyCreateStore = document.getElementById('btn-empty-create-store');
+  const btnEmptyCreateStoreLabel = document.getElementById('btn-empty-create-store-label');
+  const btnShowNewStoreForm = document.getElementById('btn-show-new-store-form');
+  const btnBackToStorePicker = document.getElementById('btn-back-to-store-picker');
+
   const formStep1Store = document.getElementById('form-petugas-step1-store') as HTMLFormElement | null;
-  const sectionChooseExistingStore = document.getElementById('section-choose-existing-store');
-  const existingStoreFilterInput = document.getElementById('existing-store-filter') as HTMLInputElement | null;
-  const selectExistingStore = document.getElementById('select-existing-store') as HTMLSelectElement | null;
-  const btnUseExistingStore = document.getElementById('btn-use-existing-store');
+  const umkmNameInput = document.getElementById('umkmName') as HTMLInputElement | null;
+  const storePhoneInput = document.getElementById('storePhone') as HTMLInputElement | null;
   const btnSubmitStep1 = document.getElementById('btn-submit-step1') as HTMLButtonElement | null;
 
   const activeStoreName = document.getElementById('active-store-name');
@@ -752,10 +759,91 @@ export function initAdminClient() {
     jemputAlertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+  function openNewStoreForm(prefillName = '') {
+    sectionStorePicker?.classList.add('hidden');
+    formStep1Store?.classList.remove('hidden');
+    const cleanName = prefillName.trim();
+    if (cleanName && umkmNameInput) {
+      umkmNameInput.value = cleanName;
+      storePhoneInput?.focus();
+    } else {
+      umkmNameInput?.focus();
+    }
+  }
+
+  function openStorePicker() {
+    formStep1Store?.classList.add('hidden');
+    sectionStorePicker?.classList.remove('hidden');
+    storePickerSearchInput?.focus();
+  }
+
+  function filterStorePicker() {
+    const rawQuery = (storePickerSearchInput?.value || '').trim();
+    const q = rawQuery.toLowerCase();
+    let visible = 0;
+
+    pickStoreBtns.forEach((btn) => {
+      const hay = btn.getAttribute('data-search') || '';
+      const matched = !q || hay.includes(q);
+      btn.classList.toggle('hidden', !matched);
+      btn.classList.toggle('flex', matched);
+      if (matched) visible += 1;
+    });
+
+    if (storePickerCount) {
+      storePickerCount.textContent = q
+        ? `${visible} dari ${pickStoreBtns.length} toko`
+        : `${pickStoreBtns.length} toko`;
+    }
+
+    const noMatches = visible === 0;
+    storePickerList?.classList.toggle('hidden', noMatches);
+    storePickerFooter?.classList.toggle('hidden', noMatches);
+    storePickerEmpty?.classList.toggle('hidden', !noMatches);
+
+    if (noMatches) {
+      if (storePickerEmptyText) {
+        storePickerEmptyText.textContent = rawQuery
+          ? `Toko "${rawQuery}" belum terdaftar.`
+          : 'Belum ada toko terdata di cakupan MWC ini.';
+      }
+      if (btnEmptyCreateStoreLabel) {
+        btnEmptyCreateStoreLabel.textContent = rawQuery
+          ? `Daftarkan "${rawQuery}"`
+          : 'Daftarkan Toko Baru';
+      }
+    }
+  }
+
+  storePickerSearchInput?.addEventListener('input', filterStorePicker);
+  btnShowNewStoreForm?.addEventListener('click', () => openNewStoreForm(storePickerSearchInput?.value || ''));
+  btnEmptyCreateStore?.addEventListener('click', () => openNewStoreForm(storePickerSearchInput?.value || ''));
+  btnBackToStorePicker?.addEventListener('click', openStorePicker);
+
+  pickStoreBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const storeId = Number(btn.getAttribute('data-id'));
+      if (!storeId) return;
+      const storeName = btn.getAttribute('data-name') || 'Toko UMKM';
+      const storePhone = btn.getAttribute('data-phone') || '';
+      const storeZone = btn.getAttribute('data-zone') || '';
+      const storeRanting = btn.getAttribute('data-ranting') || undefined;
+
+      showJemputAlert(`Toko "${storeName}" dipilih. Silakan masukkan produk untuk toko ini.`, false);
+      goToStep2({
+        id: storeId,
+        name: storeName,
+        phone: storePhone,
+        zoneName: storeZone,
+        ranting: storeRanting,
+      });
+    });
+  });
+
   function goToStep1() {
     step1Container?.classList.remove('hidden');
     step2Container?.classList.add('hidden');
-    entryModeBar?.classList.remove('hidden');
+    openStorePicker();
 
     // Step 1 Active Indicator
     step1Indicator?.classList.remove('bg-emerald-50/60', 'border-emerald-200', 'bg-slate-50', 'border-slate-200');
@@ -785,7 +873,6 @@ export function initAdminClient() {
 
     step1Container?.classList.add('hidden');
     step2Container?.classList.remove('hidden');
-    entryModeBar?.classList.add('hidden');
 
     // Step 1 Completed Indicator
     step1Indicator?.classList.remove('bg-emerald-50', 'border-emerald-300');
@@ -805,48 +892,6 @@ export function initAdminClient() {
 
     step2Container?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
-
-  function setStep1Mode(mode: 'new' | 'existing') {
-    const isNew = mode === 'new';
-    btnModeNewStore?.classList.toggle('bg-white', isNew);
-    btnModeNewStore?.classList.toggle('text-slate-900', isNew);
-    btnModeNewStore?.classList.toggle('border', isNew);
-    btnModeNewStore?.classList.toggle('border-slate-200', isNew);
-    btnModeNewStore?.classList.toggle('text-slate-600', !isNew);
-
-    btnModeExistingStore?.classList.toggle('bg-white', !isNew);
-    btnModeExistingStore?.classList.toggle('text-slate-900', !isNew);
-    btnModeExistingStore?.classList.toggle('border', !isNew);
-    btnModeExistingStore?.classList.toggle('border-slate-200', !isNew);
-    btnModeExistingStore?.classList.toggle('text-slate-600', isNew);
-
-    formStep1Store?.classList.toggle('hidden', !isNew);
-    sectionChooseExistingStore?.classList.toggle('hidden', isNew);
-  }
-
-  // Toggle Step 1 Mode: Daftarkan Baru vs Pilih Terdaftar
-  btnModeNewStore?.addEventListener('click', () => setStep1Mode('new'));
-  btnModeExistingStore?.addEventListener('click', () => setStep1Mode('existing'));
-  railChooseExistingBtn?.addEventListener('click', () => {
-    setStep1Mode('existing');
-    existingStoreFilterInput?.focus();
-  });
-
-  existingStoreFilterInput?.addEventListener('input', () => {
-    if (!selectExistingStore) return;
-    const q = existingStoreFilterInput.value.trim().toLowerCase();
-    let firstMatchValue = '';
-    Array.from(selectExistingStore.options).forEach((opt) => {
-      if (!opt.value) return;
-      const hay = opt.getAttribute('data-search') || opt.textContent?.toLowerCase() || '';
-      const matched = !q || hay.includes(q);
-      opt.hidden = !matched;
-      if (matched && !firstMatchValue) firstMatchValue = opt.value;
-    });
-    if (q && firstMatchValue) {
-      selectExistingStore.value = firstMatchValue;
-    }
-  });
 
   // Step 1: Submit Form Daftarkan Toko Baru
   formStep1Store?.addEventListener('submit', async (e) => {
@@ -878,28 +923,6 @@ export function initAdminClient() {
         btnSubmitStep1.textContent = 'Lanjut ke Step 2: Produk';
       }
     }
-  });
-
-  // Step 1: Choose Existing Store
-  btnUseExistingStore?.addEventListener('click', () => {
-    if (!selectExistingStore || !selectExistingStore.value) {
-      showJemputAlert('Silakan pilih salah satu toko UMKM terlebih dahulu.', true);
-      return;
-    }
-
-    const selectedOpt = selectExistingStore.options[selectExistingStore.selectedIndex];
-    const storeId = Number(selectExistingStore.value);
-    const storeName = selectedOpt.getAttribute('data-name') || 'Toko UMKM';
-    const storePhone = selectedOpt.getAttribute('data-phone') || '';
-    const storeZone = selectedOpt.getAttribute('data-zone') || '';
-
-    showJemputAlert(`Toko "${storeName}" dipilih. Silakan masukkan produk untuk toko ini.`, false);
-    goToStep2({
-      id: storeId,
-      name: storeName,
-      phone: storePhone,
-      zoneName: storeZone,
-    });
   });
 
   // Return to Step 1 Button
