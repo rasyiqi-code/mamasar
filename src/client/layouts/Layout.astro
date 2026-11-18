@@ -65,6 +65,7 @@ const navLinkClass = (active: boolean) =>
 
     <!-- PWA & Mobile Meta Tags -->
     <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="/icon-192.png" />
     <meta name="theme-color" content="#059669" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -187,6 +188,16 @@ const navLinkClass = (active: boolean) =>
               <span>{user?.role === 'mwcnu' ? 'Pengurus MWC' : 'Petugas MWC'}</span>
             </a>
           )}
+          <!-- Desktop Header PWA Install Button -->
+          <button
+            id="pwa-install-desktop-btn"
+            type="button"
+            class="hidden lg:inline-flex items-center gap-1.5 text-xs text-emerald-800 bg-emerald-50 hover:bg-emerald-100 font-bold px-2.5 py-1.5 rounded-lg border border-emerald-300 transition cursor-pointer"
+          >
+            <AppIcon name="download" size="xs" class="text-emerald-700" />
+            <span>Install App</span>
+          </button>
+
           <a
             href={user ? "/dashboard" : "/login"}
             class="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-700 hover:text-emerald-700 font-bold transition px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100"
@@ -266,6 +277,19 @@ const navLinkClass = (active: boolean) =>
           <AppIcon name="plus" size="sm" />
           <span>{isPetugas ? 'Portal Pengurus / Petugas' : 'Daftar Kader / Pengurus NU'}</span>
         </a>
+
+        <!-- Tombol Install PWA (Otomatis tampil saat didukung peramban) -->
+        <button
+          id="pwa-install-drawer-btn"
+          type="button"
+          class="hidden w-full items-center justify-between p-2.5 rounded-xl bg-emerald-50 text-emerald-900 border border-emerald-200 font-bold hover:bg-emerald-100 transition cursor-pointer text-xs"
+        >
+          <div class="flex items-center gap-2.5">
+            <AppIcon name="download" size="sm" class="text-emerald-700" />
+            <span>Install Aplikasi Mamasar</span>
+          </div>
+          <span class="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-emerald-700 text-white">App</span>
+        </button>
         <a href="/" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
           <AppIcon name="clipboard" size="sm" class="text-slate-400" />
           <span>Katalog Iklan</span>
@@ -535,6 +559,63 @@ const navLinkClass = (active: boolean) =>
       <span id="mamasar-toast-msg">Notifikasi</span>
     </div>
 
+    <!-- PWA Install Prompt Banner (Mobile & Desktop) -->
+    <aside
+      id="pwa-install-banner"
+      role="dialog"
+      aria-labelledby="pwa-banner-title"
+      aria-describedby="pwa-banner-desc"
+      class="hidden fixed bottom-20 inset-x-3 sm:inset-x-auto sm:right-6 sm:bottom-6 z-40 max-w-sm bg-white border border-slate-200 rounded-2xl shadow-xl p-4 transition-all duration-300 transform translate-y-4 opacity-0"
+    >
+      <div class="flex items-start gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-700 text-white flex items-center justify-center shrink-0 shadow-xs">
+          <AppIcon name="download" size="md" />
+        </div>
+        <div class="min-w-0 flex-1 space-y-1">
+          <div class="flex items-center justify-between gap-2">
+            <h3 id="pwa-banner-title" class="text-xs sm:text-sm font-black text-slate-900 leading-tight">
+              Pasang Aplikasi Mamasar
+            </h3>
+            <button
+              id="pwa-banner-close-btn"
+              type="button"
+              aria-label="Tutup pemberitahuan pasang aplikasi"
+              class="text-slate-400 hover:text-slate-600 p-1 -mr-1 -mt-1 rounded-md transition cursor-pointer"
+            >
+              <AppIcon name="close" size="xs" />
+            </button>
+          </div>
+          <p id="pwa-banner-desc" class="text-xs text-slate-600 leading-relaxed">
+            Akses cepat direktori UMKM Nahdliyin langsung dari layar utama perangkat Anda. Ringan, hemat kuota, dan tetap bisa dibuka saat offline.
+          </p>
+
+          <!-- Petunjuk Safari iOS (Khusus perangkat Apple) -->
+          <div id="pwa-ios-instructions" class="hidden pt-2 text-[11px] text-slate-600 border-t border-slate-100 space-y-1">
+            <p class="font-semibold text-slate-800">Cara pasang di iPhone / iPad:</p>
+            <p>Ketuk ikon <strong>Bagikan (Share)</strong> di menu bawah Safari, lalu pilih <strong>Tambahkan ke Layar Utama</strong>.</p>
+          </div>
+
+          <div class="pt-2 flex items-center gap-2">
+            <button
+              id="pwa-banner-install-btn"
+              type="button"
+              class="flex-1 min-h-[38px] px-3.5 py-1.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white text-xs font-bold rounded-lg transition inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+            >
+              <AppIcon name="download" size="xs" />
+              <span>Install Sekarang</span>
+            </button>
+            <button
+              id="pwa-banner-later-btn"
+              type="button"
+              class="min-h-[38px] px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition cursor-pointer"
+            >
+              Nanti Saja
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
+
     <!-- Favorite Syncer & Drawer Script -->
     <script>
       // Drawer Logic
@@ -687,6 +768,133 @@ const navLinkClass = (active: boolean) =>
           const icon = btn.querySelector('svg');
           if (icon) icon.classList.toggle('rotate-180', isClosed);
         });
+      });
+
+      // PWA Service Worker & Install Prompt System
+      if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker
+            .register('/sw.js', { scope: '/' })
+            .then((reg) => {
+              reg.addEventListener('updatefound', () => {
+                const installingWorker = reg.installing;
+                if (installingWorker) {
+                  installingWorker.addEventListener('statechange', () => {
+                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      console.info('PWA: Versi baru telah tersedia');
+                    }
+                  });
+                }
+              });
+            })
+            .catch((err) => {
+              console.warn('PWA: Registrasi Service Worker gagal:', err);
+            });
+        });
+      }
+
+      let deferredPwaPrompt: any = null;
+      const pwaInstallDrawerBtn = document.getElementById('pwa-install-drawer-btn');
+      const pwaInstallDesktopBtn = document.getElementById('pwa-install-desktop-btn');
+      const pwaBanner = document.getElementById('pwa-install-banner');
+      const pwaBannerInstallBtn = document.getElementById('pwa-banner-install-btn');
+      const pwaBannerCloseBtn = document.getElementById('pwa-banner-close-btn');
+      const pwaBannerLaterBtn = document.getElementById('pwa-banner-later-btn');
+      const pwaIosInstructions = document.getElementById('pwa-ios-instructions');
+
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as any).standalone === true;
+
+      const isIos =
+        /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
+      function isPwaDismissedRecently(): boolean {
+        try {
+          const raw = localStorage.getItem('mamasar_pwa_dismissed');
+          if (!raw) return false;
+          const dismissedAt = Number(raw);
+          const sevenDays = 7 * 24 * 60 * 60 * 1000;
+          return Date.now() - dismissedAt < sevenDays;
+        } catch {
+          return false;
+        }
+      }
+
+      function dismissPwaBanner() {
+        if (!pwaBanner) return;
+        pwaBanner.classList.add('opacity-0', 'translate-y-4');
+        setTimeout(() => {
+          pwaBanner.classList.add('hidden');
+          pwaBanner.classList.remove('flex');
+        }, 300);
+        try {
+          localStorage.setItem('mamasar_pwa_dismissed', Date.now().toString());
+        } catch {}
+      }
+
+      function showPwaBanner() {
+        if (!pwaBanner || isStandalone || isPwaDismissedRecently()) return;
+        pwaBanner.classList.remove('hidden');
+        pwaBanner.classList.add('flex');
+        requestAnimationFrame(() => {
+          pwaBanner.classList.remove('opacity-0', 'translate-y-4');
+          pwaBanner.classList.add('opacity-100', 'translate-y-0');
+        });
+      }
+
+      // Capture beforeinstallprompt (Chrome / Edge / Android)
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+
+        if (pwaInstallDrawerBtn) {
+          pwaInstallDrawerBtn.classList.remove('hidden');
+          pwaInstallDrawerBtn.classList.add('flex');
+        }
+        if (pwaInstallDesktopBtn) {
+          pwaInstallDesktopBtn.classList.remove('hidden');
+          pwaInstallDesktopBtn.classList.add('lg:inline-flex');
+        }
+
+        setTimeout(showPwaBanner, 2000);
+      });
+
+      async function triggerPwaInstall() {
+        if (deferredPwaPrompt) {
+          deferredPwaPrompt.prompt();
+          const { outcome } = await deferredPwaPrompt.userChoice;
+          if (outcome === 'accepted') {
+            dismissPwaBanner();
+            if (pwaInstallDrawerBtn) pwaInstallDrawerBtn.classList.add('hidden');
+            if (pwaInstallDesktopBtn) pwaInstallDesktopBtn.classList.add('hidden');
+          }
+          deferredPwaPrompt = null;
+        } else if (isIos && pwaIosInstructions) {
+          pwaIosInstructions.classList.toggle('hidden');
+        }
+      }
+
+      pwaBannerInstallBtn?.addEventListener('click', triggerPwaInstall);
+      pwaInstallDrawerBtn?.addEventListener('click', triggerPwaInstall);
+      pwaInstallDesktopBtn?.addEventListener('click', triggerPwaInstall);
+      pwaBannerCloseBtn?.addEventListener('click', dismissPwaBanner);
+      pwaBannerLaterBtn?.addEventListener('click', dismissPwaBanner);
+
+      // Handle iOS Safari banner if not installed
+      if (isIos && !isStandalone && !isPwaDismissedRecently()) {
+        setTimeout(() => {
+          if (pwaIosInstructions) pwaIosInstructions.classList.remove('hidden');
+          if (pwaBannerInstallBtn) pwaBannerInstallBtn.classList.add('hidden');
+          showPwaBanner();
+        }, 3000);
+      }
+
+      window.addEventListener('appinstalled', () => {
+        dismissPwaBanner();
+        if (pwaInstallDrawerBtn) pwaInstallDrawerBtn.classList.add('hidden');
+        if (pwaInstallDesktopBtn) pwaInstallDesktopBtn.classList.add('hidden');
+        console.info('PWA: Aplikasi Mamasar berhasil di-install.');
       });
     </script>
   </body>

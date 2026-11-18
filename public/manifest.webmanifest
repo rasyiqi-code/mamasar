@@ -1,12 +1,15 @@
 {
+  "id": "/?source=pwa",
   "name": "Mamasar - Direktori UMKM Sumenep",
   "short_name": "Mamasar",
   "description": "Direktori & Marketplace Produk UMKM Warga Nahdliyin se-Kabupaten Sumenep, Madura",
-  "start_url": "/",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#059669",
   "orientation": "portrait",
+  "categories": ["shopping", "business", "lifestyle"],
   "icons": [
     {
       "src": "/icon-192.png",
@@ -31,6 +34,36 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Pasang Iklan",
+      "short_name": "Iklan",
+      "description": "Pasang iklan produk UMKM gratis",
+      "url": "/pasang-iklan",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Katalog Produk",
+      "short_name": "Katalog",
+      "description": "Lihat direktori produk UMKM Nahdliyin",
+      "url": "/",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Toko & Pengrajin",
+      "short_name": "Toko",
+      "description": "Daftar toko dan sentra warga NU Sumenep",
+      "url": "/toko",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Pusat Edukasi",
+      "short_name": "Edukasi",
+      "description": "Panduan usaha dan rubrik ekonomi pekarangan",
+      "url": "/edukasi",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
