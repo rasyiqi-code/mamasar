@@ -3,7 +3,7 @@ import Layout from '../../layouts/Layout.astro';
 import ProductCard from '../../components/ProductCard.astro';
 import NotFoundView from '../../components/common/NotFoundView.astro';
 import AppIcon from '../../components/common/AppIcon.astro';
-import { getProductBySlug, getProducts, incrementProductViews } from '../../../lib/db';
+import { getProductBySlug, getProducts, incrementProductViews, type Product } from '../../../lib/db';
 import { formatRupiah, createProductWhatsAppUrl, getOptimizedImageUrl, getImageSrcSet } from '../../../lib/utils';
 import { DEFAULT_PRODUCT_IMAGE, SITE_CONFIG } from '../../../lib/constants';
 import { isHttpsRequest } from '../../../lib/security';
@@ -82,13 +82,19 @@ const waLink = product
     })
   : '#';
 
-const relatedProducts = product
-  ? await getProducts({
-      category: product.category,
-      excludeProductId: product.id,
-      limit: 4,
-    })
-  : [];
+let relatedProducts: Product[] = [];
+if (product) {
+  const sameCategory = await getProducts({
+    category: product.category,
+    excludeProductId: product.id,
+    limit: 12,
+  });
+
+  const existingIds = new Set([product.id, ...sameCategory.map((p) => p.id)]);
+  const backfill = await getProducts({ limit: 16 });
+  const additional = backfill.filter((p) => !existingIds.has(p.id));
+  relatedProducts = [...sameCategory, ...additional].slice(0, 12);
+}
 
 const priceValidUntil = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
@@ -153,9 +159,9 @@ const pageDescription = product
   ) : (
     <>
       <div class="pb-24 md:pb-12">
-        <!-- Full-Bleed Top Breadcrumb Strip (Desktop Only — App Mode on Mobile) -->
-        <div class="hidden md:block w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
-          <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 py-3 flex items-center justify-between text-xs text-slate-600">
+        <!-- Top Breadcrumb Strip (Desktop Only - App Mode on Mobile) -->
+        <div class="hidden md:block -mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-3 bg-white border-b border-slate-200">
+          <div class="flex items-center justify-between text-xs text-slate-600">
             <nav aria-label="Breadcrumb" class="flex items-center gap-2 truncate">
               <a href="/" class="hover:text-emerald-700 transition">Beranda</a>
               <span aria-hidden="true">›</span>
@@ -186,6 +192,7 @@ const pageDescription = product
                   height="500"
                   alt={product.name}
                   fetchpriority="high"
+                  onerror={`this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}';`}
                   class="w-full h-full object-cover transition duration-300"
                 />
 
@@ -201,9 +208,12 @@ const pageDescription = product
                     </span>
                   )}
                   {Boolean(product.is_verified) && (
-                    <span class="bg-emerald-700 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-xs inline-flex items-center gap-1">
-                      <AppIcon name="check" size="xs" />
-                      <span>Terverifikasi</span>
+                    <span
+                      class="bg-emerald-700 text-white w-6 h-6 rounded-full shadow-xs flex items-center justify-center ring-2 ring-white"
+                      title="Produk Terverifikasi MWC NU"
+                      aria-label="Terverifikasi"
+                    >
+                      <AppIcon name="check" size="xs" class="w-3.5 h-3.5" />
                     </span>
                   )}
                   {hasDiscount && (
@@ -353,12 +363,12 @@ const pageDescription = product
                   </div>
                 </div>
                 <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.umkm_name} ${product.zone_name} Sumenep`)}`}
+                  href={product.umkm_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${product.umkm_name} ${product.zone_name} Sumenep`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   class="text-emerald-700 hover:text-emerald-900 font-bold inline-flex items-center gap-1 shrink-0"
                 >
-                  <span>Google Maps</span>
+                  <span>{product.umkm_maps_url ? 'Buka Google Maps' : 'Cari di Maps'}</span>
                   <AppIcon name="arrow-right" size="xs" />
                 </a>
               </div>
@@ -525,6 +535,29 @@ const pageDescription = product
                   <span>+62 {product.umkm_phone.slice(2, 6)}••••</span>
                 </a>
 
+                {product.umkm_maps_url && (
+                  <a
+                    href={product.umkm_maps_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="w-full min-h-[44px] py-2 px-3 bg-white hover:bg-emerald-50 border border-emerald-300 text-emerald-800 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
+                  >
+                    <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+                    <span>Petunjuk Arah Google Maps</span>
+                  </a>
+                )}
+
+                {product.umkm_qris_image_url && (
+                  <button
+                    type="button"
+                    id="btn-sidebar-qris"
+                    class="w-full min-h-[44px] py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer shadow-xs"
+                  >
+                    <AppIcon name="qrcode" size="xs" />
+                    <span>Bayar via QRIS Toko</span>
+                  </button>
+                )}
+
                 <a
                   href={storeHref}
                   class="w-full min-h-[44px] py-2 px-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition cursor-pointer"
@@ -587,11 +620,30 @@ const pageDescription = product
               </a>
             </div>
 
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-              {relatedProducts.map((rp) => (
-                <ProductCard product={rp} showSellerAvatar={false} />
+            <div
+              id="related-products-grid"
+              class="-mx-3 sm:mx-0 grid grid-cols-2 md:grid-cols-4 gap-px sm:gap-4 bg-slate-200 sm:bg-transparent border-y sm:border-0 border-slate-200 [&_article]:rounded-none sm:[&_article]:rounded-lg [&_article]:border-0 sm:[&_article]:border [&_article]:shadow-none sm:[&_article]:shadow-xs"
+            >
+              {relatedProducts.map((rp, idx) => (
+                <div class:list={['related-product-item h-full', idx >= 4 && 'hidden']}>
+                  <ProductCard product={rp} variant="compact" showSellerAvatar={false} />
+                </div>
               ))}
             </div>
+
+            {relatedProducts.length > 4 && (
+              <div id="load-more-wrapper" class="pt-3 flex justify-center">
+                <button
+                  type="button"
+                  id="btn-load-more-related"
+                  class="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-white hover:bg-slate-50 active:scale-[0.98] text-slate-800 border border-slate-300 rounded-xl font-bold text-xs shadow-xs transition flex items-center justify-center gap-2 cursor-pointer select-none"
+                  aria-label="Muat lebih banyak iklan terkait"
+                >
+                  <AppIcon name="refresh" size="xs" class="text-slate-500" />
+                  <span>Muat Lebih Banyak</span>
+                </button>
+              </div>
+            )}
           </section>
         )}
         </div>
@@ -712,13 +764,13 @@ const pageDescription = product
                 </div>
               </div>
 
-              <div class="py-2 flex flex-col items-center justify-center space-y-2 bg-slate-50 rounded-xl p-3 border border-slate-200">
+              <div class="py-2 flex flex-col items-center justify-center space-y-2">
                 <img
                   src={qrCodeUrl}
                   alt={`QR Code untuk ${product.name}`}
                   width="176"
                   height="176"
-                  class="w-44 h-44 object-contain bg-white p-1 rounded-lg border border-slate-300 shadow-2xs"
+                  class="w-44 h-44 object-contain"
                   loading="eager"
                 />
                 <div class="text-center space-y-0.5">
@@ -757,6 +809,42 @@ const pageDescription = product
           </div>
         </div>
       </dialog>
+
+      <!-- QRIS Pembayaran Toko Modal -->
+      {product.umkm_qris_image_url && (
+        <dialog
+          id="modal-qris-product"
+          class="p-0 rounded-2xl bg-white shadow-2xl backdrop:bg-slate-950/60 max-w-sm w-[90vw] mx-auto my-auto border border-slate-200"
+        >
+          <div class="p-6 text-center space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-extrabold text-xs">QRIS RESMI</span>
+                <h3 class="text-sm font-bold text-slate-900 truncate max-w-[180px]">{product.umkm_name}</h3>
+              </div>
+              <button
+                type="button"
+                id="btn-close-qris-product"
+                aria-label="Tutup Modal QRIS"
+                class="w-8 h-8 rounded-full hover:bg-slate-100 inline-flex items-center justify-center text-slate-500 hover:text-slate-700 cursor-pointer"
+              >
+                <AppIcon name="x" size="sm" />
+              </button>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-center">
+              <img
+                src={product.umkm_qris_image_url}
+                alt={`QRIS Toko ${product.umkm_name}`}
+                class="max-w-full max-h-80 object-contain rounded-lg"
+                loading="eager"
+              />
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Pindai dengan aplikasi m-Banking (BCA, BRI, BNI, Mandiri, BSI, dll) atau e-Wallet (GoPay, OVO, Dana, LinkAja) untuk pembayaran langsung ke penjual.
+            </p>
+          </div>
+        </dialog>
+      )}
 
       <style>
         @media print {
@@ -857,6 +945,31 @@ const pageDescription = product
         window.addEventListener('afterprint', () => {
           document.body.classList.remove('printing-label');
         });
+
+        // Load More for Related Products (reveal 4 at a time to maintain 2x2 grid)
+        const loadMoreBtn = document.getElementById('btn-load-more-related');
+        const loadMoreWrapper = document.getElementById('load-more-wrapper');
+        loadMoreBtn?.addEventListener('click', () => {
+          const hiddenItems = Array.from(document.querySelectorAll('.related-product-item.hidden'));
+          const nextBatch = hiddenItems.slice(0, 4);
+          nextBatch.forEach((el) => el.classList.remove('hidden'));
+
+          const remainingHidden = document.querySelectorAll('.related-product-item.hidden');
+          if (remainingHidden.length === 0 && loadMoreWrapper) {
+            loadMoreWrapper.classList.add('hidden');
+          }
+        });
+
+        const btnSidebarQris = document.getElementById('btn-sidebar-qris');
+        const modalQrisProduct = document.getElementById('modal-qris-product') as HTMLDialogElement | null;
+        const btnCloseQrisProduct = document.getElementById('btn-close-qris-product');
+        if (btnSidebarQris && modalQrisProduct) {
+          btnSidebarQris.addEventListener('click', () => modalQrisProduct.showModal());
+          btnCloseQrisProduct?.addEventListener('click', () => modalQrisProduct.close());
+          modalQrisProduct.addEventListener('click', (e) => {
+            if (e.target === modalQrisProduct) modalQrisProduct.close();
+          });
+        }
 
         try {
           const viewedId = Number(mainImg?.getAttribute('data-recent-product-id') || '0');

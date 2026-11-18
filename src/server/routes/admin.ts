@@ -1,15 +1,28 @@
 import { Elysia } from 'elysia';
 import {
+  can,
+  createArticle,
+  createCaseStudy,
   createOrPreRegisterUserByAdmin,
+  deleteArticle,
+  deleteCaseStudy,
   deleteUserSessions,
+  getArticleById,
+  getArticles,
+  getCaseStudyById,
   isSuperadmin,
   registerPetugas,
   reviewPetugas,
+  updateArticle,
+  updateCaseStudy,
   updateUserRoleByAdmin,
   type UserRole,
 } from '../../lib/db';
+import { isSafeMediaUrl } from '../../lib/security';
+import { InvalidUploadError, saveUploadedImage } from '../../lib/storage';
 import { isValidIndonesianPhone } from '../../lib/utils';
 import {
+  fileField,
   jsonError,
   jsonResponse,
   resolveRequestUser,
@@ -207,5 +220,284 @@ export const adminRoutes = new Elysia({ name: 'routes:admin' })
         return jsonError(400, rawMsg, err);
       }
       return jsonError(500, 'Terjadi kesalahan server saat memperbarui peran pengguna.', err);
+    }
+  })
+  .get('/admin/articles', async ({ request }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user || !can(user, 'articles:manage')) {
+        return jsonResponse(
+          { success: false, message: 'Akses khusus Admin / Pengurus PCNU Sumenep.' },
+          403
+        );
+      }
+      const list = await getArticles();
+      return jsonResponse({ success: true, articles: list });
+    } catch (err) {
+      return jsonError(500, 'Gagal memuat artikel edukasi.', err);
+    }
+  })
+  .post('/admin/articles', async ({ request, body }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user || !can(user, 'articles:manage')) {
+        return jsonResponse(
+          { success: false, message: 'Akses khusus Admin / Pengurus PCNU Sumenep.' },
+          403
+        );
+      }
+
+      const data = body as ParsedBody;
+      const action = strField(data, 'action') || 'create';
+
+      if (action === 'delete') {
+        const id = Number(strField(data, 'id'));
+        if (!id || !Number.isInteger(id)) {
+          return jsonResponse({ success: false, message: 'ID artikel tidak valid.' }, 400);
+        }
+        const success = await deleteArticle(id);
+        if (!success) {
+          return jsonResponse({ success: false, message: 'Artikel tidak ditemukan.' }, 404);
+        }
+        return jsonResponse({ success: true, message: 'Artikel edukasi berhasil dihapus.' }, 200);
+      }
+
+      if (action === 'update') {
+        const id = Number(strField(data, 'id'));
+        if (!id || !Number.isInteger(id)) {
+          return jsonResponse({ success: false, message: 'ID artikel tidak valid.' }, 400);
+        }
+
+        const existing = await getArticleById(id);
+        if (!existing) {
+          return jsonResponse({ success: false, message: 'Artikel tidak ditemukan.' }, 404);
+        }
+
+        const title = strField(data, 'title');
+        const category = strField(data, 'category');
+        const summary = strField(data, 'summary');
+        const content = typeof data?.content === 'string' ? data.content : undefined;
+        let imageUrl = strField(data, 'imageUrl');
+
+        const imageFile = fileField(data, 'image');
+        const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : undefined;
+        if (imageFile || imageBase64) {
+          imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
+        } else if (imageUrl && !isSafeMediaUrl(imageUrl)) {
+          return jsonResponse(
+            { success: false, message: 'URL gambar artikel tidak valid atau tidak aman.' },
+            400
+          );
+        }
+
+        const updated = await updateArticle(id, {
+          title: title || undefined,
+          category: category || undefined,
+          summary: summary || undefined,
+          content,
+          imageUrl: imageUrl || undefined,
+        });
+
+        return jsonResponse(
+          { success: true, article: updated, message: 'Artikel edukasi berhasil diperbarui.' },
+          200
+        );
+      }
+
+      const title = strField(data, 'title');
+      const category = strField(data, 'category') || 'Edukasi UMKM';
+      const summary = strField(data, 'summary');
+      const content = typeof data?.content === 'string' ? data.content : undefined;
+      let imageUrl = strField(data, 'imageUrl');
+
+      if (!title || !summary) {
+        return jsonResponse(
+          { success: false, message: 'Judul dan ringkasan artikel wajib diisi.' },
+          400
+        );
+      }
+
+      const imageFile = fileField(data, 'image');
+      const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : undefined;
+      if (imageFile || imageBase64) {
+        imageUrl = await saveUploadedImage({
+          imageFile,
+          imageBase64,
+        });
+      } else if (!imageUrl) {
+        imageUrl = 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=1200&q=80';
+      } else if (!isSafeMediaUrl(imageUrl)) {
+        return jsonResponse(
+          { success: false, message: 'URL gambar artikel tidak valid atau tidak aman.' },
+          400
+        );
+      }
+
+      const created = await createArticle({
+        title,
+        category,
+        imageUrl,
+        summary,
+        content,
+      });
+
+      return jsonResponse(
+        {
+          success: true,
+          article: created,
+          message: 'Alhamdulillah! Artikel edukasi berhasil diterbitkan.',
+        },
+        201
+      );
+    } catch (err: any) {
+      if (err instanceof InvalidUploadError) {
+        return jsonResponse({ success: false, message: err.message }, 400);
+      }
+      return jsonError(500, 'Terjadi kesalahan server saat memproses artikel.', err);
+    }
+  })
+  .delete('/admin/articles/:id', async ({ request, params }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user || !can(user, 'articles:manage')) {
+        return jsonResponse(
+          { success: false, message: 'Akses khusus Admin / Pengurus PCNU Sumenep.' },
+          403
+        );
+      }
+
+      const id = Number(params?.id);
+      if (!id || !Number.isInteger(id)) {
+        return jsonResponse({ success: false, message: 'ID artikel tidak valid.' }, 400);
+      }
+
+      const success = await deleteArticle(id);
+      if (!success) {
+        return jsonResponse({ success: false, message: 'Artikel tidak ditemukan.' }, 404);
+      }
+
+      return jsonResponse({ success: true, message: 'Artikel edukasi berhasil dihapus.' }, 200);
+    } catch (err) {
+      return jsonError(500, 'Terjadi kesalahan server saat menghapus artikel.', err);
+    }
+  })
+  .post('/admin/case-studies', async ({ request, body }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user || !can(user, 'articles:manage')) {
+        return jsonResponse(
+          { success: false, message: 'Akses khusus Admin / Pengurus PCNU Sumenep.' },
+          403
+        );
+      }
+
+      const data = body as ParsedBody;
+      const action = strField(data, 'action');
+      const id = Number(strField(data, 'id'));
+      const title = strField(data, 'title');
+      const channelName = strField(data, 'channelName');
+      const tag = strField(data, 'tag') || 'Praktik Lapangan';
+      const duration = strField(data, 'duration') || '15 Menit';
+      const videoUrl = strField(data, 'videoUrl');
+      const thumbnailUrl = strField(data, 'thumbnailUrl');
+      const practiceSummary = strField(data, 'practiceSummary');
+      const opportunitySummary = strField(data, 'opportunitySummary');
+      const sortOrder = Number(strField(data, 'sortOrder')) || 0;
+      const isActive = strField(data, 'isActive') === '0' ? 0 : 1;
+
+      if (!title || !channelName || !videoUrl || !thumbnailUrl) {
+        return jsonResponse(
+          { success: false, message: 'Judul, nama channel, URL video, dan URL thumbnail wajib diisi.' },
+          400
+        );
+      }
+
+      if (!isSafeMediaUrl(thumbnailUrl)) {
+        return jsonResponse(
+          { success: false, message: 'URL thumbnail video tidak valid atau tidak aman.' },
+          400
+        );
+      }
+
+      if (!isSafeMediaUrl(videoUrl)) {
+        return jsonResponse(
+          { success: false, message: 'URL video tidak valid atau tidak aman.' },
+          400
+        );
+      }
+
+      if (action === 'update') {
+        if (!id || !Number.isInteger(id) || id <= 0) {
+          return jsonResponse({ success: false, message: 'ID video tidak valid.' }, 400);
+        }
+
+        const existing = await getCaseStudyById(id);
+        if (!existing) {
+          return jsonResponse({ success: false, message: 'Video studi kasus tidak ditemukan.' }, 404);
+        }
+
+        const updated = await updateCaseStudy(id, {
+          title,
+          channelName,
+          tag,
+          duration,
+          videoUrl,
+          thumbnailUrl,
+          practiceSummary,
+          opportunitySummary,
+          sortOrder,
+          isActive,
+        });
+
+        return jsonResponse(
+          { success: true, caseStudy: updated, message: 'Video studi kasus berhasil diperbarui.' },
+          200
+        );
+      }
+
+      const created = await createCaseStudy({
+        title,
+        channelName,
+        tag,
+        duration,
+        videoUrl,
+        thumbnailUrl,
+        practiceSummary,
+        opportunitySummary,
+        sortOrder,
+        isActive,
+      });
+
+      return jsonResponse(
+        { success: true, caseStudy: created, message: 'Video studi kasus berhasil ditambahkan.' },
+        201
+      );
+    } catch (err: any) {
+      return jsonError(500, 'Terjadi kesalahan server saat memproses studi kasus.', err);
+    }
+  })
+  .delete('/admin/case-studies/:id', async ({ request, params }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user || !can(user, 'articles:manage')) {
+        return jsonResponse(
+          { success: false, message: 'Akses khusus Admin / Pengurus PCNU Sumenep.' },
+          403
+        );
+      }
+
+      const id = Number(params?.id);
+      if (!id || !Number.isInteger(id)) {
+        return jsonResponse({ success: false, message: 'ID video tidak valid.' }, 400);
+      }
+
+      const success = await deleteCaseStudy(id);
+      if (!success) {
+        return jsonResponse({ success: false, message: 'Video studi kasus tidak ditemukan.' }, 404);
+      }
+
+      return jsonResponse({ success: true, message: 'Video studi kasus berhasil dihapus.' }, 200);
+    } catch (err) {
+      return jsonError(500, 'Terjadi kesalahan server saat menghapus studi kasus.', err);
     }
   });

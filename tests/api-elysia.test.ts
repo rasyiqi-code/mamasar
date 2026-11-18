@@ -69,6 +69,20 @@ describe('Elysia backend (/api)', () => {
     );
     assert.equal(cronRes.status, 401);
 
+    const articleGetRes = await app.handle(
+      new Request('http://localhost/api/admin/articles')
+    );
+    assert.equal(articleGetRes.status, 403);
+
+    const articlePostRes = await app.handle(
+      new Request('http://localhost/api/admin/articles', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'create', title: 'Test', summary: 'Test' }),
+      })
+    );
+    assert.equal(articlePostRes.status, 403);
+
     const exportRes = await app.handle(new Request('http://localhost/api/user/export'));
     assert.equal(exportRes.status, 401);
 
@@ -81,5 +95,30 @@ describe('Elysia backend (/api)', () => {
       new Request('http://localhost/api/umkm/logo', { method: 'DELETE' })
     );
     assert.equal(logoDeleteRes.status, 401);
+
+    const cashbookExportRes = await app.handle(
+      new Request('http://localhost/api/user/cashbook/export')
+    );
+    assert.equal(cashbookExportRes.status, 401);
+
+    const adminArticlesGetRes = await app.handle(
+      new Request('http://localhost/api/admin/articles')
+    );
+    assert.equal(adminArticlesGetRes.status, 403);
+
+    const adminArticlesPostRes = await app.handle(
+      new Request('http://localhost/api/admin/articles', { method: 'POST', body: new FormData() })
+    );
+    assert.equal(adminArticlesPostRes.status, 403);
+
+    const adminArticlesDeleteRes = await app.handle(
+      new Request('http://localhost/api/admin/articles/999', { method: 'DELETE' })
+    );
+    assert.equal(adminArticlesDeleteRes.status, 403);
+
+    const eventPostRes = await app.handle(
+      new Request('http://localhost/api/events', { method: 'POST', body: new FormData() })
+    );
+    assert.equal(eventPostRes.status, 401);
   });
 });

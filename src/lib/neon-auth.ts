@@ -30,7 +30,10 @@ export function parseCookieString(cookieHeader: string | null): Record<string, s
 /**
  * Validates session against Neon Auth and syncs with local/Postgres user table.
  */
-export async function getNeonAuthUser(cookieHeader: string | null): Promise<{
+export async function getNeonAuthUser(
+  cookieHeader: string | null,
+  requestOrigin?: string
+): Promise<{
   user: User;
   neonSession: any;
   sessionId: string;
@@ -69,11 +72,18 @@ export async function getNeonAuthUser(cookieHeader: string | null): Promise<{
     }
     const upstreamCookie = Array.from(cookieMap.entries()).map(([k, v]) => `${k}=${v}`).join('; ');
 
+    const origin =
+      requestOrigin ||
+      getEnv('SITE_URL') ||
+      (typeof process !== 'undefined' && process.env.VERCEL_URL
+        ? `https://${process.env.VERCEL_URL}`
+        : 'https://mamasar.vercel.app');
+
     const res = await fetch(`${baseUrl}/get-session`, {
       method: 'GET',
       headers: {
         Cookie: upstreamCookie,
-        Origin: 'https://mamasar.vercel.app',
+        Origin: origin,
         'x-neon-auth-middleware': 'true',
       },
     });
@@ -113,11 +123,17 @@ export async function resolveUser(
   requestOrCookies: Request | { headers: Headers } | string | null
 ): Promise<(User & { umkm?: UMKM & { zone_name: string; zone_slug: string } }) | null> {
   let cookieHeader = '';
+  let requestOrigin: string | undefined;
 
   if (typeof requestOrCookies === 'string') {
     cookieHeader = requestOrCookies;
   } else if (requestOrCookies && 'headers' in requestOrCookies) {
     cookieHeader = requestOrCookies.headers.get('cookie') || '';
+    if ('url' in requestOrCookies && typeof (requestOrCookies as any).url === 'string') {
+      try {
+        requestOrigin = new URL((requestOrCookies as any).url).origin;
+      } catch {}
+    }
   }
 
   // 1. Try local mamasar_session cookie first (fast-path)
@@ -130,7 +146,7 @@ export async function resolveUser(
   }
 
   // 2. Try Neon Auth session token
-  const neonResult = await getNeonAuthUser(cookieHeader);
+  const neonResult = await getNeonAuthUser(cookieHeader, requestOrigin);
   if (neonResult) {
     const store = await getUMKMByUserId(neonResult.user.id);
     return {

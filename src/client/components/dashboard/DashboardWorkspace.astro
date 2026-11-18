@@ -14,7 +14,6 @@ import {
 import { resolveUser } from '../../../lib/neon-auth';
 import { resolveAvatarUrl } from '../../../lib/storage';
 
-import AuthCard from './AuthCard.astro';
 import StoreSetupCard from './StoreSetupCard.astro';
 import DashboardSidebar from './DashboardSidebar.astro';
 import OverviewPanel from './OverviewPanel.astro';
@@ -30,33 +29,41 @@ export type DashboardSection = 'overview' | 'products' | 'cashbook' | 'profile' 
 
 interface Props {
   activeSection?: DashboardSection;
+  user?: NonNullable<Awaited<ReturnType<typeof resolveUser>>>;
 }
 
-const { activeSection = 'overview' } = Astro.props;
+const { activeSection = 'overview', user: propUser } = Astro.props;
 
-const user = await resolveUser(Astro.request);
-const store = user ? await getUMKMByUserId(user.id) : undefined;
+const user = propUser || (await resolveUser(Astro.request));
+
+if (!user) {
+  const currentPath = Astro.url.pathname + Astro.url.search;
+  const redirectQuery = currentPath && currentPath !== '/dashboard' ? `?redirect=${encodeURIComponent(currentPath)}` : '';
+  return Astro.redirect(`/login${redirectQuery}`);
+}
+
+const store = await getUMKMByUserId(user.id);
 const zones = await getAllZones();
-const avatarUrl = await resolveAvatarUrl(user?.avatar_url);
+const avatarUrl = await resolveAvatarUrl(user.avatar_url);
 
-const cashbookSummary = user
-  ? await getCashbookSummary(user.id, store?.id)
-  : { totalIncome: 0, totalExpense: 0, balance: 0 };
-const cashbookEntries = user ? await getCashbookEntries(user.id, 50, store?.id) : [];
+const cashbookSummary = await getCashbookSummary(user.id, store?.id);
+const cashbookEntries = await getCashbookEntries(user.id, 50, store?.id);
 const adOrders = store && activeSection === 'products' ? await getAdOrdersByUmkm(store.id) : [];
 const bumpLedger = store && activeSection === 'products' ? await getBumpLedgerByUmkm(store.id, 10) : [];
 const notifications =
-  user && (activeSection === 'overview' || activeSection === 'products')
+  activeSection === 'overview' || activeSection === 'products'
     ? await getNotificationsForUser(user.id, 5)
     : [];
 
 const authError = Astro.url.searchParams.get('error');
-const isLoggedOut = Astro.url.searchParams.get('logged_out') === '1';
 const intent = Astro.url.searchParams.get('intent');
-const initialOnboardTab = intent === 'daftar-kader' || activeSection === 'services' ? 'kader' : 'store';
+if (intent === 'daftar-kader') {
+  return Astro.redirect('/daftar-kader');
+}
+
 const isSuper = isSuperadmin(user);
 const isCadre = isPetugas(user);
-const assignedZone = user ? zones.find((z) => z.id === user.assigned_zone_id) : undefined;
+const assignedZone = zones.find((z) => z.id === user.assigned_zone_id);
 
 const sectionTitleMap: Record<DashboardSection, string> = {
   overview: 'Ringkasan Toko',
@@ -67,11 +74,9 @@ const sectionTitleMap: Record<DashboardSection, string> = {
 };
 
 const activeLabel = sectionTitleMap[activeSection];
-const pageTitle = user
-  ? store
-    ? `${activeLabel} — ${store.name} | Mamasar`
-    : `Akun & Pendaftaran Peran: ${user.name} | Mamasar`
-  : 'Masuk atau Daftar Akun | Mamasar';
+const pageTitle = store
+  ? `${activeLabel}: ${store.name} | Mamasar`
+  : `Buka Toko UMKM: ${user.name} | Mamasar`;
 ---
 
 <AppLayout
@@ -79,13 +84,13 @@ const pageTitle = user
   description="Portal swalayan pemilik UMKM Nahdliyin, Kader Ranting, Pengurus MWC, dan Admin PCNU Sumenep."
 >
   <!-- Banner Akses Terbatas /admin -->
-  {user && authError === 'unauthorized_admin' && (
+  {authError === 'unauthorized_admin' && (
     <div role="alert" class="bg-amber-50 border-b border-amber-300 px-4 py-3 text-xs text-amber-950">
       <div class="max-w-5xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <p class="font-semibold">
-          Halaman Portal Admin & Kader (<code>/admin</code>) khusus untuk Kader Ranting, Pengurus MWC, atau Admin PCNU yang sudah disetujui.
+          Halaman Portal Admin &amp; Kader (<code>/admin</code>) khusus untuk Kader Ranting, Pengurus MWC, atau Admin PCNU yang sudah disetujui.
         </p>
-        <a href="/petugas" class="shrink-0 font-bold text-emerald-800 underline hover:text-emerald-900 inline-flex items-center gap-1">
+        <a href="/daftar-kader" class="shrink-0 font-bold text-emerald-800 underline hover:text-emerald-900 inline-flex items-center gap-1">
           <span>Ajukan Peran Kader MWC</span>
           <AppIcon name="arrow-right" size="xs" />
         </a>
@@ -93,23 +98,19 @@ const pageTitle = user
     </div>
   )}
 
-  <!-- KONDISI 1: Belum Login -->
-  {!user && <AuthCard authError={authError} isLoggedOut={isLoggedOut} intent={intent} />}
-
-  <!-- KONDISI 2: Sudah Login, Belum Punya Profil Toko -->
-  {user && !store && (
+  <!-- KONDISI 1: Sudah Login, Belum Punya Profil Toko -->
+  {!store && (
     <StoreSetupCard
       user={user}
       zones={zones}
       assignedZone={assignedZone}
       isSuper={isSuper}
       isCadre={isCadre}
-      initialTab={initialOnboardTab}
     />
   )}
 
-  <!-- KONDISI 3: Workspace Toko Siap (Full-Viewport App Shell with Sticky App Header) -->
-  {user && store && (
+  <!-- KONDISI 2: Workspace Toko Siap (Full-Viewport App Shell with Sticky App Header) -->
+  {store && (
     <div class="min-h-screen w-full max-w-full overflow-x-clip bg-white flex flex-col md:flex-row">
       <!-- Sidebar Navigasi -->
       <DashboardSidebar
@@ -150,9 +151,9 @@ const pageTitle = user
             <a
               href={`/toko/${store.slug || store.id}`}
               target="_blank"
-              class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5"
+              class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5 active:scale-[0.98]"
             >
-              <span>Lihat Etalase</span>
+              <span>Etalase</span>
               <AppIcon name="external-link" size="xs" />
             </a>
 
@@ -161,17 +162,17 @@ const pageTitle = user
                 <span class="h-4 w-px bg-slate-200 mx-0.5" aria-hidden="true"></span>
                 <a
                   href="/dashboard/produk"
-                  class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5"
+                  class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5 active:scale-[0.98]"
                 >
                   <AppIcon name="package" size="xs" />
-                  <span>Kelola Produk</span>
+                  <span>Produk</span>
                 </a>
                 <a
                   href="/pasang-iklan"
-                  class="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1.5"
+                  class="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1.5 active:scale-[0.98]"
                 >
                   <AppIcon name="plus" size="xs" />
-                  <span>Pasang Iklan</span>
+                  <span>Iklan</span>
                 </a>
               </>
             )}
@@ -182,17 +183,17 @@ const pageTitle = user
                 <button
                   type="button"
                   data-trigger="open-promo"
-                  class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5 cursor-pointer"
+                  class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-2xs hover:shadow-xs transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <AppIcon name="zap" size="xs" class="text-amber-600" />
-                  <span>Promosi &amp; Sundul</span>
+                  <span>Promosi</span>
                 </button>
                 <a
                   href="/pasang-iklan"
-                  class="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1.5"
+                  class="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 shadow-2xs hover:shadow-xs transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <AppIcon name="plus" size="xs" />
-                  <span>Tambah Produk</span>
+                  <span>Tambah</span>
                 </a>
               </>
             )}
@@ -204,18 +205,18 @@ const pageTitle = user
                   type="button"
                   data-trigger="export-csv"
                   title="Unduh CSV"
-                  class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold transition inline-flex items-center gap-1.5 cursor-pointer"
+                  class="min-h-[36px] px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-2xs hover:shadow-xs transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <AppIcon name="download" size="xs" />
-                  <span>Ekspor CSV</span>
+                  <span>Ekspor</span>
                 </button>
                 <button
                   type="button"
                   data-trigger="toggle-cashbook"
-                  class="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1.5 cursor-pointer"
+                  class="min-h-[36px] px-3.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold inline-flex items-center gap-1.5 cursor-pointer shadow-2xs hover:shadow-xs transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
                 >
                   <AppIcon name="plus" size="xs" />
-                  <span>Catat Transaksi</span>
+                  <span>Catat</span>
                 </button>
               </>
             )}
@@ -297,12 +298,6 @@ const pageTitle = user
       border-color: transparent;
     }
   </style>
-
-  {isLoggedOut && (
-    <script is:inline>
-      try { localStorage.removeItem('mamasar_favorites'); } catch {}
-    </script>
-  )}
 </AppLayout>
 
 <script src="../../scripts/dashboard.client.ts"></script>

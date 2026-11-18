@@ -94,9 +94,8 @@ const storeSchema = store
   ) : (
     <div class="pb-24 md:pb-10">
       <!-- Full-Bleed Top Identity Header (Box-Free Hairline Layout) -->
-      <header class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
-        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5">
-          <!-- Breadcrumb (Desktop Only) -->
+      <header class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5 bg-white border-b border-slate-200">
+        <!-- Breadcrumb (Desktop Only) -->
           <div class="hidden md:flex items-center justify-between text-xs text-slate-600">
             <nav aria-label="Breadcrumb" class="flex items-center gap-2 truncate">
               <a href="/" class="hover:text-emerald-700 transition">Beranda</a>
@@ -162,13 +161,24 @@ const storeSchema = store
                   )}
                 </div>
 
-                <p class="text-xs sm:text-sm text-slate-600 flex items-center gap-1.5 min-w-0">
+                <p class="text-xs sm:text-sm text-slate-600 flex items-center gap-1.5 min-w-0 flex-wrap">
                   <AppIcon name="map-pin" size="xs" class="text-emerald-700 shrink-0" />
                   <span class="truncate">
                     {store.ranting ? `Ranting ${store.ranting}, ` : ''}
                     {store.zone_name}
                     {store.address ? ` • ${store.address}` : ''}
                   </span>
+                  {store.maps_url && (
+                    <a
+                      href={store.maps_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline inline-flex items-center gap-0.5 ml-1 shrink-0"
+                    >
+                      <span>Buka Google Maps</span>
+                      <AppIcon name="arrow-right" size="xs" />
+                    </a>
+                  )}
                 </p>
 
                 {legalityItems.length > 0 && (
@@ -191,7 +201,7 @@ const storeSchema = store
             </div>
 
             <!-- Primary Actions -->
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-2 shrink-0 flex-wrap">
               <a
                 href={waLink}
                 target="_blank"
@@ -203,6 +213,33 @@ const storeSchema = store
                 </svg>
                 <span>Chat WhatsApp</span>
               </a>
+
+              {store.maps_url && (
+                <a
+                  href={store.maps_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="Petunjuk Arah Google Maps"
+                  title="Buka Lokasi Toko di Google Maps"
+                  class="min-w-[44px] min-h-[44px] px-3.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold inline-flex items-center gap-1.5 transition"
+                >
+                  <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+                  <span class="hidden sm:inline">Peta Lokasi</span>
+                </a>
+              )}
+
+              {store.qris_image_url && (
+                <button
+                  type="button"
+                  id="btn-show-store-qris"
+                  aria-label="Tampilkan QRIS Toko"
+                  title="Bayar Non-Tunai lewat QRIS"
+                  class="min-w-[44px] min-h-[44px] px-3.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-900 text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer"
+                >
+                  <AppIcon name="qrcode" size="xs" class="text-emerald-700" />
+                  <span>QRIS Toko</span>
+                </button>
+              )}
 
               <a
                 href={`https://wa.me/?text=${encodeURIComponent(`Kunjungi Toko ${store.name} di Mamasar Sumenep: ${currentUrl}`)}`}
@@ -240,7 +277,6 @@ const storeSchema = store
               <dd class="text-sm font-extrabold text-slate-900 mt-0.5">COD / Kirim Paket</dd>
             </div>
           </dl>
-        </div>
       </header>
 
       <!-- Open Canvas 2-Column Content (No Box Containers) -->
@@ -411,6 +447,55 @@ const storeSchema = store
           </a>
         </div>
       </div>
+
+      <!-- QRIS Toko Modal -->
+      {store.qris_image_url && (
+        <dialog
+          id="modal-store-qris"
+          class="p-0 rounded-2xl bg-white shadow-2xl backdrop:bg-slate-950/60 max-w-sm w-[90vw] mx-auto my-auto border border-slate-200"
+        >
+          <div class="p-6 text-center space-y-4">
+            <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-extrabold text-xs">QRIS RESMI</span>
+                <h3 class="text-sm font-bold text-slate-900 truncate max-w-[180px]">{store.name}</h3>
+              </div>
+              <button
+                type="button"
+                id="btn-close-store-qris"
+                aria-label="Tutup Modal QRIS"
+                class="w-8 h-8 rounded-full hover:bg-slate-100 inline-flex items-center justify-center text-slate-500 hover:text-slate-700 cursor-pointer"
+              >
+                <AppIcon name="x" size="sm" />
+              </button>
+            </div>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex justify-center">
+              <img
+                src={store.qris_image_url}
+                alt={`QRIS Toko ${store.name}`}
+                class="max-w-full max-h-80 object-contain rounded-lg"
+                loading="eager"
+              />
+            </div>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Pindai dengan aplikasi m-Banking (BCA, BRI, BNI, Mandiri, BSI, dll) atau e-Wallet (GoPay, OVO, Dana, LinkAja) untuk pembayaran langsung ke rekening pemilik toko.
+            </p>
+          </div>
+        </dialog>
+      )}
+
+      <script>
+        const btnShowQris = document.getElementById('btn-show-store-qris');
+        const modalQris = document.getElementById('modal-store-qris') as HTMLDialogElement | null;
+        const btnCloseQris = document.getElementById('btn-close-store-qris');
+        if (btnShowQris && modalQris) {
+          btnShowQris.addEventListener('click', () => modalQris.showModal());
+          btnCloseQris?.addEventListener('click', () => modalQris.close());
+          modalQris.addEventListener('click', (e) => {
+            if (e.target === modalQris) modalQris.close();
+          });
+        }
+      </script>
     </div>
   )}
 </Layout>

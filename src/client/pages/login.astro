@@ -1,0 +1,41 @@
+---
+import AppLayout from '../layouts/AppLayout.astro';
+import AuthCard from '../components/dashboard/AuthCard.astro';
+import { resolveUser } from '../../lib/neon-auth';
+
+const user = await resolveUser(Astro.request);
+const redirectParam = Astro.url.searchParams.get('redirect');
+
+// Jika sudah masuk, arahkan langsung ke halaman tujuan atau /dashboard
+if (user) {
+  const safeRedirect =
+    redirectParam && redirectParam.startsWith('/') && !redirectParam.startsWith('//')
+      ? redirectParam
+      : '/dashboard';
+  return Astro.redirect(safeRedirect);
+}
+
+const authError = Astro.url.searchParams.get('error');
+const isLoggedOut = Astro.url.searchParams.get('logged_out') === '1';
+const intent = Astro.url.searchParams.get('intent');
+---
+
+<AppLayout
+  title="Masuk atau Buat Akun | Mamasar"
+  description="Masuk ke portal Mamasar untuk mengelola toko UMKM, pembukuan kas usaha, atau pendaftaran peran kader dan pengurus MWC NU."
+>
+  <AuthCard
+    authError={authError}
+    isLoggedOut={isLoggedOut}
+    intent={intent}
+    redirectUrl={redirectParam}
+  />
+
+  {isLoggedOut && (
+    <script is:inline>
+      try { localStorage.removeItem('mamasar_favorites'); } catch {}
+    </script>
+  )}
+</AppLayout>
+
+<script src="../scripts/dashboard.client.ts"></script>

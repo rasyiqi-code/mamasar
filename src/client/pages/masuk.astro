@@ -1,0 +1,6 @@
+---
+// Pengalihan alias bahasa Indonesia /masuk ke /login
+const redirectParam = Astro.url.searchParams.get('redirect');
+const query = redirectParam ? `?redirect=${encodeURIComponent(redirectParam)}` : '';
+return Astro.redirect(`/login${query}`, 301);
+---

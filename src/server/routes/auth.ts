@@ -52,14 +52,14 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
     const clientIp = getClientIp(request);
     const limit = checkRateLimit(`auth-oauth:ip:${clientIp}`, 20, 10 * 60 * 1000);
     if (!limit.allowed) {
-      return redirectResponse('/dashboard?error=rate_limited');
+      return redirectResponse('/login?error=rate_limited');
     }
 
     const url = new URL(request.url);
     try {
       const baseUrl = getNeonAuthBaseUrl();
       if (!baseUrl) {
-        return redirectResponse('/dashboard?error=neon_auth_unconfigured');
+        return redirectResponse('/login?error=neon_auth_unconfigured');
       }
 
       const origin = url.origin;
@@ -84,10 +84,10 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
       }
 
       console.error('Neon Auth sign-in social failed:', neonRes.status, data);
-      return redirectResponse('/dashboard?error=neon_auth_init_failed');
+      return redirectResponse('/login?error=neon_auth_init_failed');
     } catch (err) {
       console.error('Neon Auth Login Exception:', err);
-      return redirectResponse('/dashboard?error=neon_auth_error');
+      return redirectResponse('/login?error=neon_auth_error');
     }
   })
   .post('/email', async ({ request, body }) => {
@@ -268,7 +268,7 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
     }
 
     headers.set('Clear-Site-Data', '"cookies", "storage", "cache"');
-    return redirectResponse('/dashboard?logged_out=1', 302, headers);
+    return redirectResponse('/login?logged_out=1', 302, headers);
   })
   .get('/callback/google', async ({ request }) => {
     const url = new URL(request.url);
@@ -276,7 +276,7 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
     const error = url.searchParams.get('error');
 
     if (error || !code) {
-      return redirectResponse('/dashboard?error=auth_failed');
+      return redirectResponse('/login?error=auth_failed');
     }
 
     const clientId = getEnv('GOOGLE_CLIENT_ID');
@@ -284,7 +284,7 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
     const redirectUri = getEnv('GOOGLE_REDIRECT_URI') || `${url.origin}/api/auth/callback/google`;
 
     if (!clientId || !clientSecret) {
-      return redirectResponse('/dashboard?error=missing_credentials');
+      return redirectResponse('/login?error=missing_credentials');
     }
 
     try {
@@ -303,7 +303,7 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
       const tokenData = await tokenResponse.json();
       if (!tokenResponse.ok || !tokenData.access_token) {
         console.error('Google token exchange error:', tokenData);
-        return redirectResponse('/dashboard?error=token_exchange_failed');
+        return redirectResponse('/login?error=token_exchange_failed');
       }
 
       const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
@@ -312,7 +312,7 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
 
       const userInfo = await userInfoResponse.json();
       if (!userInfoResponse.ok || !userInfo.sub || !userInfo.email) {
-        return redirectResponse('/dashboard?error=profile_fetch_failed');
+        return redirectResponse('/login?error=profile_fetch_failed');
       }
 
       const user = await findOrCreateUserByGoogle({
@@ -328,7 +328,7 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
       return redirectResponse('/dashboard', 302, headers);
     } catch (err) {
       console.error('OAuth Callback Exception:', err);
-      return redirectResponse('/dashboard?error=server_error');
+      return redirectResponse('/login?error=server_error');
     }
   })
   .get('/callback/neon', async ({ request }) => {
@@ -347,12 +347,12 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
 
     if (error) {
       console.error('Neon Auth callback error:', error);
-      return redirectResponse(`/dashboard?error=${encodeURIComponent(error)}`);
+      return redirectResponse(`/login?error=${encodeURIComponent(error)}`);
     }
 
     const baseUrl = getNeonAuthBaseUrl();
     if (!baseUrl) {
-      return redirectResponse('/dashboard?error=neon_auth_unconfigured');
+      return redirectResponse('/login?error=neon_auth_unconfigured');
     }
 
     try {
@@ -391,13 +391,13 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
       const setCookies = getSetCookies(upstreamRes);
       if (!upstreamRes.ok) {
         console.error('Neon Auth upstream verification failed:', upstreamRes.status, await upstreamRes.text());
-        return redirectResponse('/dashboard?error=neon_session_failed');
+        return redirectResponse('/login?error=neon_session_failed');
       }
 
       const data = await upstreamRes.json();
       if (!data || !data.user) {
         console.error('Neon Auth returned invalid user data:', data);
-        return redirectResponse('/dashboard?error=invalid_user_data');
+        return redirectResponse('/login?error=invalid_user_data');
       }
 
       const appUser = await findOrCreateUserByGoogle({
@@ -415,6 +415,6 @@ export const authRoutes = new Elysia({ name: 'routes:auth', prefix: '/auth' })
       return redirectResponse('/dashboard', 302, headers);
     } catch (err) {
       console.error('Neon Auth Callback Exception:', err);
-      return redirectResponse('/dashboard?error=neon_server_error');
+      return redirectResponse('/login?error=neon_server_error');
     }
   });

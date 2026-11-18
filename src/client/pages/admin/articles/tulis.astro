@@ -1,0 +1,22 @@
+---
+import AppLayout from '../../../layouts/AppLayout.astro';
+import { resolveUser } from '../../../../lib/neon-auth';
+import { isSuperadmin } from '../../../../lib/db';
+import ArticleEditor from '../../../components/admin/ArticleEditor.astro';
+
+const user = await resolveUser(Astro.request);
+const isSuper = !!user && isSuperadmin(user);
+
+if (!user || !isSuper) {
+  return Astro.redirect('/login?error=unauthorized_admin&redirect=/admin/articles/tulis');
+}
+---
+
+<AppLayout
+  title="Tulis Panduan Baru | Admin PCNU Sumenep"
+  description="Halaman penulisan materi edukasi dan literasi usaha warga NU Sumenep dengan editor visual WYSIWYG."
+>
+  <div class="min-h-screen w-full bg-white">
+    <ArticleEditor mode="create" />
+  </div>
+</AppLayout>

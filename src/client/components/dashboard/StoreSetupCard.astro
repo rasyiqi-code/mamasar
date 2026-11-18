@@ -1,6 +1,4 @@
 ---
-import KaderRegisterForm from './KaderRegisterForm.astro';
-import PrivacyAccountPanel from './PrivacyAccountPanel.astro';
 import AppIcon from '../common/AppIcon.astro';
 
 interface Zone {
@@ -24,7 +22,7 @@ interface Props {
   assignedZone?: Zone;
   isSuper?: boolean;
   isCadre?: boolean;
-  initialTab?: 'store' | 'kader';
+  notice?: string | null;
 }
 
 const {
@@ -33,287 +31,572 @@ const {
   assignedZone,
   isSuper = false,
   isCadre = false,
-  initialTab = 'store',
+  notice = null,
 } = Astro.props;
 
-const isPending = user.agent_status === 'pending' || user.agent_status === 'pending_mwcnu';
-const roleLabel = isSuper
-  ? 'Superadmin PCNU'
-  : user.role === 'mwcnu'
-    ? 'Pengurus MWC NU'
-    : isCadre
-      ? 'Kader Ranting Aktif'
-      : isPending
-        ? 'Menunggu Verifikasi Kader'
-        : 'Warga';
-
-const showKaderFirst = initialTab === 'kader';
+const SAMPLE_STORE_IMAGE = 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80';
 ---
 
-<main id="main" tabindex="-1" class="min-h-screen w-full bg-white px-4 sm:px-8 lg:px-12 py-5 sm:py-12">
-<div class="max-w-4xl mx-auto space-y-6">
-  <!-- Account Status & Quick Actions (App Mode, No Front Header) -->
-  <div class="-mx-4 px-4 sm:mx-0 sm:px-0 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
-    <div class="min-w-0 space-y-0.5">
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="text-sm font-bold text-slate-900 truncate">{user.name}</span>
-        <span class={`text-xs font-semibold px-2 py-0.5 rounded-md border ${
-          isSuper
-            ? 'bg-rose-50 text-rose-800 border-rose-200'
-            : isCadre
-              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              : isPending
-                ? 'bg-amber-50 text-amber-900 border-amber-200'
-                : 'bg-slate-100 text-slate-700 border-slate-200'
-        }`}>
-          {roleLabel}
+<div class="pb-12 space-y-2.5 sm:space-y-6">
+  {/* Hairline Page Header */}
+  <header class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-2 sm:space-y-3 bg-white border-b border-slate-200">
+      <div class="hidden md:flex items-center justify-between text-xs text-slate-600">
+        <nav aria-label="Breadcrumb" class="flex items-center gap-1.5">
+          <a href="/" class="hover:text-emerald-700 font-medium">Beranda</a>
+          <AppIcon name="chevron-right" size="xs" class="text-slate-400" />
+          <span class="text-slate-900 font-bold">Buka Toko</span>
+        </nav>
+      </div>
+
+      <div>
+        <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          Buka Profil Toko Anda
+        </h1>
+        <p class="hidden sm:block text-xs sm:text-sm text-slate-600">
+          Lengkapi profil toko usaha Anda untuk mulai memajang produk di pasar UMKM Nahdliyin Sumenep.
+        </p>
+      </div>
+  </header>
+
+  <div class="px-3 sm:px-0 space-y-4 sm:space-y-5">
+    {notice === 'need_store' && (
+      <div role="alert" class="-mx-3 sm:mx-0 px-3.5 py-3 sm:p-4 rounded-none sm:rounded-lg bg-amber-50 border-y sm:border border-amber-300 text-amber-950 text-xs flex items-center gap-2">
+        <AppIcon name="info" size="xs" class="text-amber-700 shrink-0" />
+        <span>Lengkapi profil toko usaha Anda terlebih dahulu sebelum dapat menerbitkan iklan produk di katalog.</span>
+      </div>
+    )}
+
+    {/* Quick Portal Banner for Superadmin / Active Kader */}
+    {(isSuper || isCadre) && (
+      <div class="-mx-3 sm:mx-0 px-3.5 py-3 sm:p-4 rounded-none sm:rounded-lg border-y sm:border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs ${
+        isSuper ? 'bg-rose-50/70 border-rose-200' : 'bg-emerald-50/70 border-emerald-200'
+      }">
+        <div class="space-y-0.5">
+          <p class="font-bold text-slate-900">
+            {isSuper
+              ? 'Akun Superadmin PCNU Aktif'
+              : user.role === 'mwcnu'
+                ? `Akun Pengurus MWC ${assignedZone?.name || 'Sumenep'} Aktif`
+                : `Akun Kader Ranting ${user.agent_ranting || ''} (MWC ${assignedZone?.name || 'Sumenep'}) Aktif`}
+          </p>
+          <p class="text-slate-600">
+            {isSuper
+              ? 'Atur seluruh peran akun, setujui pengajuan kader, dan kelola wilayah di Konsol Admin.'
+              : 'Anda dapat masuk ke portal kerja untuk mendata UMKM warga jemput bola.'}
+          </p>
+        </div>
+        <a
+          href={isSuper ? '/admin' : '/admin#entry'}
+          class={`inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold text-white transition shrink-0 ${
+            isSuper ? 'bg-rose-700 hover:bg-rose-800' : 'bg-emerald-700 hover:bg-emerald-800'
+          }`}
+        >
+          <span>{isSuper ? 'Konsol Admin' : 'Portal Kerja Petugas'}</span>
+          <AppIcon name="arrow-right" size="xs" />
+        </a>
+      </div>
+    )}
+
+    {/* Informasi Pendaftaran Kader (Understated & Sebaris di Mobile) */}
+    <div class="-mx-3 sm:mx-0 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-none sm:rounded-lg bg-slate-50 border-y sm:border border-slate-200 flex items-center justify-between gap-2 text-xs text-slate-600">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <AppIcon name="info" size="xs" class="text-slate-400 shrink-0" />
+        <span class="truncate">
+          <span class="hidden sm:inline">Ingin bertugas sebagai <strong>Kader Ranting</strong> atau <strong>Pengurus MWC NU</strong>?</span>
+          <span class="sm:hidden">Ingin jadi <strong>Kader</strong> atau <strong>Pengurus NU</strong>?</span>
         </span>
       </div>
-      <p class="hidden sm:block text-xs text-slate-600 truncate font-mono">{user.email}</p>
-    </div>
-
-    <div class="flex items-center gap-2 shrink-0 w-full sm:w-auto">
       <a
-        href="/"
-        class="flex-1 sm:flex-initial inline-flex items-center justify-center min-h-[44px] px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition"
+        href="/daftar-kader"
+        class="shrink-0 font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 transition text-xs whitespace-nowrap"
       >
-        Lihat Pasar
-      </a>
-      <form
-        method="POST"
-        action="/api/auth/logout"
-        onsubmit="try{localStorage.removeItem('mamasar_favorites')}catch{}"
-        class="flex-1 sm:flex-initial"
-      >
-        <button
-          type="submit"
-          class="w-full inline-flex items-center justify-center min-h-[44px] px-3.5 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-xs font-semibold text-rose-800 transition cursor-pointer"
-        >
-          Keluar Akun
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Quick Portal Banner for Superadmin / Active Pengurus / Active Kader -->
-  {(isSuper || isCadre) && (
-    <div class={`-mx-4 sm:mx-0 px-4 py-3.5 sm:p-4 rounded-none sm:rounded-lg border-y sm:border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-      isSuper ? 'bg-rose-50/70 border-rose-200' : 'bg-emerald-50/70 border-emerald-200'
-    }`}>
-      <div class="space-y-0.5">
-        <p class="text-xs font-bold text-slate-900">
-          {isSuper
-            ? 'Anda masuk dengan akun Superadmin PCNU'
-            : user.role === 'mwcnu'
-              ? `Anda aktif sebagai Pengurus MWC ${assignedZone?.name || 'Sumenep'}`
-              : `Anda aktif sebagai Kader Ranting ${user.agent_ranting || ''} (MWC ${assignedZone?.name || 'Sumenep'})`}
-        </p>
-        <p class="text-xs text-slate-700">
-          {isSuper
-            ? 'Atur peran seluruh akun, setujui pengajuan kader/MWC, dan moderasi toko dari Konsol Admin.'
-            : 'Masuk ke portal tugas untuk mendata UMKM warga atau mengelola toko binaan di wilayah Anda.'}
-        </p>
-      </div>
-      <a
-        href={isSuper ? '/admin' : '/admin#entry'}
-        class={`inline-flex items-center justify-center gap-1.5 min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold text-white transition shrink-0 ${
-          isSuper ? 'bg-rose-700 hover:bg-rose-800' : 'bg-emerald-700 hover:bg-emerald-800'
-        }`}
-      >
-        <span>{isSuper ? 'Konsol Admin' : 'Portal Tugas'}</span>
+        <span class="hidden sm:inline">Daftar Kader</span>
+        <span class="sm:hidden">Daftar</span>
         <AppIcon name="arrow-right" size="xs" />
       </a>
     </div>
-  )}
 
-  {/* Role Onboarding Header + Accessible Tab Switcher */}
-  <div class="space-y-4">
-    <div class="space-y-1">
-      <h1 class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-        Pilih Tujuan Akun Anda
-      </h1>
-      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">
-        Ingin berjualan di pasar UMKM atau bertugas sebagai Kader Ranting / Pengurus MWC NU? Pilih tab di bawah ini sesuai kebutuhan Anda.
-      </p>
-    </div>
+    {/* Notification Alert Box */}
+    <div id="setup-status" role="status" aria-live="polite" class="hidden -mx-3 sm:mx-0 px-3.5 py-3.5 sm:p-4 rounded-none sm:rounded-lg text-xs font-semibold"></div>
 
-    <div
-      role="tablist"
-      aria-label="Pilihan pendaftaran peran akun"
-      class="-mx-4 sm:mx-0 flex border-b border-slate-200 overflow-x-auto"
-    >
-      <button
-        type="button"
-        role="tab"
-        id="onboard-tab-store"
-        data-onboard-tab="store"
-        aria-selected={showKaderFirst ? 'false' : 'true'}
-        tabindex={showKaderFirst ? '-1' : '0'}
-        class={`relative flex-1 min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap cursor-pointer transition border-b-2 inline-flex items-center justify-center gap-2 ${
-          !showKaderFirst
-            ? 'border-emerald-700 text-emerald-800 bg-emerald-50/50'
-            : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-        }`}
-      >
-        <AppIcon name="store" size="xs" />
-        <span>Buka / Klaim Toko</span>
-      </button>
-      <button
-        type="button"
-        role="tab"
-        id="onboard-tab-kader"
-        data-onboard-tab="kader"
-        aria-selected={showKaderFirst ? 'true' : 'false'}
-        tabindex={showKaderFirst ? '0' : '-1'}
-        class={`relative flex-1 min-h-[44px] px-4 py-2.5 text-xs sm:text-sm font-semibold whitespace-nowrap cursor-pointer transition border-b-2 inline-flex items-center justify-center gap-2 ${
-          showKaderFirst
-            ? 'border-emerald-700 text-emerald-800 bg-emerald-50/50'
-            : 'border-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-        }`}
-      >
-        <AppIcon name="users" size="xs" />
-        <span>Daftar Kader / Pengurus</span>
-      </button>
-    </div>
-  </div>
+    {/* Main Grid 2 Kolom Asimetris (Persis pasang-iklan.astro) */}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      {/* Kolom Kiri: Form Utama (8 Kolom, Tanpa Box Card) */}
+      <form id="store-setup-form" class="lg:col-span-8 space-y-6" aria-label="Formulir pembukaan profil toko UMKM">
+        <input type="hidden" id="claimStoreIdInput" name="claimStoreId" value="" />
+        <input type="hidden" id="skipClaimInput" name="skipClaim" value="" />
 
-  <!-- Panel 1: Buka / Klaim Toko UMKM -->
-  <div
-    id="onboard-panel-store"
-    role="tabpanel"
-    aria-labelledby="onboard-tab-store"
-    hidden={showKaderFirst}
-    class="space-y-5"
-  >
-    <div id="setup-status" role="status" aria-live="polite" class="hidden -mx-4 sm:mx-0 px-4 sm:px-3 py-3 rounded-none sm:rounded-lg text-xs font-semibold"></div>
+        {/* Section 1: Informasi Toko */}
+        <div class="space-y-4">
+          <div class="pb-2 border-b border-slate-200 flex items-center justify-between">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+              <AppIcon name="store" size="xs" class="text-emerald-700" />
+              <span>Informasi Toko</span>
+            </h2>
+            <span class="text-xs text-slate-600">* Wajib</span>
+          </div>
 
-    <form id="store-setup-form" class="space-y-4" aria-label="Formulir pembukaan profil toko UMKM">
-      <input type="hidden" id="claimStoreIdInput" name="claimStoreId" value="" />
-      <input type="hidden" id="skipClaimInput" name="skipClaim" value="" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label for="storeName" class="block text-xs font-bold text-slate-700">
+                Nama Toko / Usaha <span class="text-rose-600">*</span>
+              </label>
+              <input
+                type="text"
+                id="storeName"
+                name="name"
+                placeholder="Contoh: Toko Barokah Gapura"
+                required
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+              />
+            </div>
 
-      <div class="space-y-1.5">
-        <label for="storeName" class="block text-xs font-medium text-slate-700">Nama Toko / Usaha <span class="text-rose-500">*</span></label>
-        <input
-          type="text"
-          id="storeName"
-          name="name"
-          placeholder="Contoh: Toko Barokah Gapura"
-          required
-          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
-        />
-      </div>
+            <div class="space-y-1.5">
+              <label for="storePhone" class="block text-xs font-bold text-slate-700">
+                Nomor WhatsApp Aktif <span class="text-rose-600">*</span>
+              </label>
+              <input
+                type="tel"
+                id="storePhone"
+                name="phone"
+                placeholder="Contoh: 081234567890"
+                required
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+              />
+              <p class="text-[11px] text-slate-500">
+                Pastikan nomor aktif di WhatsApp untuk menerima pesanan langsung.
+              </p>
+            </div>
+          </div>
 
-      <div class="space-y-1.5">
-        <label for="storePhone" class="block text-xs font-medium text-slate-700">Nomor WhatsApp Aktif <span class="text-rose-500">*</span></label>
-        <input
-          type="tel"
-          id="storePhone"
-          name="phone"
-          placeholder="Contoh: 081234567890"
-          required
-          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 font-mono focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
-        />
-        <p class="text-xs text-slate-600">Pastikan nomor ini aktif di WhatsApp untuk menerima pesanan dari jamaah.</p>
-      </div>
-
-      {/* Pending Claim Card (Shown if phone matches an orphan store) */}
-      <div id="claim-offer" class="hidden -mx-4 sm:mx-0 px-4 py-4 sm:p-4 rounded-none sm:rounded-lg bg-amber-50 border-y sm:border border-amber-300 space-y-3">
-        <span class="text-xs font-semibold uppercase tracking-wider text-amber-900">Toko Terdeteksi</span>
-        <p id="claim-offer-text" class="text-xs text-amber-950 leading-relaxed font-medium"></p>
-        <div class="flex flex-wrap items-center gap-2 pt-1">
-          <button
-            type="button"
-            id="btn-claim-store"
-            class="min-h-[40px] py-1.5 px-3 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs rounded-md transition cursor-pointer inline-flex items-center gap-1.5"
-          >
-            <AppIcon name="check" size="xs" />
-            <span>Klaim Toko Ini</span>
-          </button>
-          <button
-            type="button"
-            id="btn-skip-claim"
-            class="min-h-[40px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium text-xs rounded-md transition cursor-pointer"
-          >
-            Buat Baru
-          </button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="space-y-1.5">
-          <label for="storeZoneId" class="block text-xs font-medium text-slate-700">Wilayah MWC NU (Kecamatan) <span class="text-rose-500">*</span></label>
-          <select
-            id="storeZoneId"
-            name="zoneId"
-            required
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-medium text-slate-800 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15 cursor-pointer"
-          >
-            <option value="" disabled selected>Pilih Wilayah MWC Kecamatan</option>
-            {zones.map((z) => (
-              <option value={z.id}>{z.name}</option>
-            ))}
-          </select>
+          {/* Pending Claim Card (Jika nomor telepon cocok dengan toko yatim) */}
+          <div id="claim-offer" class="hidden -mx-3 sm:mx-0 px-3.5 py-3.5 sm:p-4 rounded-none sm:rounded-lg bg-amber-50 border-y sm:border border-amber-300 space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-900">Toko Terdeteksi di Sistem</span>
+            <p id="claim-offer-text" class="text-xs text-amber-950 leading-relaxed font-medium"></p>
+            <div class="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                id="btn-claim-store"
+                class="min-h-[40px] py-1.5 px-3.5 bg-amber-700 hover:bg-amber-800 text-white font-semibold text-xs rounded-md transition cursor-pointer inline-flex items-center gap-1.5"
+              >
+                <AppIcon name="check" size="xs" />
+                <span>Klaim Toko Ini</span>
+              </button>
+              <button
+                type="button"
+                id="btn-skip-claim"
+                class="min-h-[40px] py-1.5 px-3 bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium text-xs rounded-md transition cursor-pointer"
+              >
+                Buat Baru Saja
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div class="space-y-1.5">
-          <label for="storeRanting" class="block text-xs font-medium text-slate-700">Ranting NU (Desa / Kelurahan)</label>
+        {/* Section 2: Wilayah & Alamat Operasional */}
+        <div class="space-y-4 pt-2">
+          <div class="pb-2 border-b border-slate-200 flex items-center justify-between">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+              <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+              <span>Wilayah &amp; Alamat Toko</span>
+            </h2>
+            <span class="text-xs text-slate-600">* Wajib</span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label for="storeZoneId" class="block text-xs font-bold text-slate-700">
+                Wilayah MWC NU (Kecamatan) <span class="text-rose-600">*</span>
+              </label>
+              <select
+                id="storeZoneId"
+                name="zoneId"
+                required
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 cursor-pointer transition"
+              >
+                <option value="" disabled selected>Pilih Wilayah MWC Kecamatan</option>
+                {zones.map((z) => (
+                  <option value={z.id}>{z.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="storeRanting" class="block text-xs font-bold text-slate-700">
+                Ranting NU (Desa / Kelurahan)
+              </label>
+              <input
+                type="text"
+                id="storeRanting"
+                name="ranting"
+                placeholder="Contoh: Gapura Barat / Paberasan"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+              />
+            </div>
+          </div>
+
+          <div class="space-y-1.5">
+            <label for="storeAddress" class="block text-xs font-bold text-slate-700">
+              Alamat Lengkap / Dusun
+            </label>
+            <input
+              type="text"
+              id="storeAddress"
+              name="address"
+              placeholder="Contoh: Dusun Karang Anyar, RT 01 RW 02"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+            />
+          </div>
+        </div>
+
+        {/* Section 3: Persetujuan Privasi (Persis pasang-iklan.astro) */}
+        <label for="storeSetupConsent" class="flex items-start gap-2.5 pt-2 cursor-pointer text-xs text-slate-700">
           <input
-            type="text"
-            id="storeRanting"
-            name="ranting"
-            placeholder="Contoh: Gapura Barat / Paberasan"
-            class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
+            type="checkbox"
+            id="storeSetupConsent"
+            required
+            class="mt-0.5 w-4 h-4 accent-emerald-700 shrink-0 rounded border-slate-300"
           />
+          <span>
+            Saya menyetujui <a href="/privasi" target="_blank" class="text-emerald-700 font-semibold underline">Kebijakan Privasi Mamasar</a> untuk menampilkan data kontak toko di direktori publik.
+          </span>
+        </label>
+
+        {/* Section 4: Bilah Tombol Aksi (Batal & Buka Toko) */}
+        <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <a
+            href="/"
+            class="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center px-5 py-2.5 text-xs font-bold text-slate-700 hover:text-slate-900 border border-slate-300 rounded-lg text-center hover:bg-slate-50 transition"
+          >
+            Batal
+          </a>
+
+          <button
+            type="submit"
+            id="btn-save-store"
+            class="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-lg transition flex items-center justify-center cursor-pointer shadow-xs"
+          >
+            Buka Toko
+          </button>
         </div>
-      </div>
+      </form>
 
-      <div class="space-y-1.5">
-        <label for="storeAddress" class="block text-xs font-medium text-slate-700">Alamat Lengkap / Dusun</label>
-        <input
-          type="text"
-          id="storeAddress"
-          name="address"
-          placeholder="Contoh: Dusun Karang Anyar, RT 01 RW 02"
-          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
-        />
-      </div>
+      {/* Backdrop for Mobile Drawer */}
+      <div
+        id="sidebar-drawer-backdrop"
+        class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden transition-opacity lg:hidden"
+        aria-hidden="true"
+      ></div>
 
-      <label for="storeSetupConsent" class="flex items-start gap-2.5 pt-1 cursor-pointer text-xs text-slate-700">
-        <input
-          type="checkbox"
-          id="storeSetupConsent"
-          required
-          class="mt-0.5 w-4 h-4 accent-emerald-700 shrink-0 rounded border-slate-300"
-        />
-        <span>
-          Saya menyetujui <a href="/privasi" target="_blank" class="text-emerald-700 font-semibold underline">Kebijakan Privasi Mamasar</a> untuk menampilkan data kontak toko di direktori publik.
-        </span>
-      </label>
+      {/* Right Docked Sidebar (Desktop) / Slide-in Drawer (Mobile) */}
+      <aside
+        id="sidebar-drawer"
+        aria-label="Pratinjau dan Tips Toko"
+        class="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md bg-white p-5 shadow-2xl overflow-y-auto transition-transform duration-300 ease-in-out translate-x-full lg:translate-x-0 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:p-0 lg:shadow-none lg:overflow-visible lg:col-span-4 lg:space-y-6 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20"
+      >
+        {/* Mobile Drawer Header with Close Button (Hidden on Desktop) */}
+        <div class="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-200 lg:hidden">
+          <div class="flex items-center gap-2">
+            <AppIcon name="eye" size="xs" class="text-emerald-700" />
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-900">
+              Pratinjau &amp; Tips
+            </h2>
+          </div>
+          <button
+            type="button"
+            id="close-sidebar-drawer"
+            class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition"
+            aria-label="Tutup Pratinjau"
+          >
+            <AppIcon name="x" size="xs" />
+          </button>
+        </div>
 
-      <div class="pt-2">
-        <button
-          type="submit"
-          id="btn-save-store"
-          class="w-full min-h-[44px] py-2.5 px-6 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition cursor-pointer inline-flex items-center justify-center gap-2"
-        >
-          <span>Buka Toko</span>
-          <AppIcon name="arrow-right" size="xs" />
-        </button>
-      </div>
-    </form>
+        {/* Pratinjau Toko (Live Card Preview - Persis Card Direktori Toko) */}
+        <section aria-labelledby="preview-heading" class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 id="preview-heading" class="text-xs font-black uppercase tracking-wider text-slate-800">
+              Pratinjau Toko
+            </h2>
+            <span class="text-xs text-slate-600">Katalog</span>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-xs aspect-square flex flex-col justify-between" aria-hidden="true">
+            <div class="flex-1 min-h-0 flex flex-col justify-between">
+              {/* Top Banner with Image and Overlay */}
+              <div class="relative flex-1 min-h-0 bg-slate-100 overflow-hidden border-b border-slate-200">
+                <img
+                  src={SAMPLE_STORE_IMAGE}
+                  alt=""
+                  width="360"
+                  height="160"
+                  loading="lazy"
+                  class="w-full h-full object-cover"
+                />
+                <div class="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950/85 via-slate-950/35 to-transparent px-3 py-2 flex items-center justify-between gap-2">
+                  <span class="text-xs font-semibold text-white truncate flex items-center gap-1">
+                    <AppIcon name="map-pin" size="xs" class="text-emerald-300 shrink-0" />
+                    <span id="preview-store-zone" class="truncate">
+                      {assignedZone ? (assignedZone.name.startsWith('MWC') ? assignedZone.name : `MWC ${assignedZone.name}`) : 'MWC Gapura'}
+                    </span>
+                  </span>
+                  <span class="text-xs font-bold text-white tabular-nums shrink-0">
+                    1 produk
+                  </span>
+                </div>
+              </div>
+
+              {/* Store Information */}
+              <div class="p-3.5 sm:p-4 space-y-2 shrink-0">
+                <div class="flex items-start gap-3">
+                  <div
+                    id="preview-store-avatar"
+                    class="w-10 h-10 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-black text-sm shrink-0 select-none uppercase tracking-wider"
+                  >
+                    UB
+                  </div>
+
+                  <div class="min-w-0 flex-1 space-y-0.5">
+                    <p
+                      id="preview-store-name"
+                      class="font-bold text-sm sm:text-base text-slate-900 truncate block leading-snug"
+                    >
+                      UD Barokah Jaya
+                    </p>
+                    <div class="flex items-center gap-1.5 text-xs text-slate-600 min-w-0">
+                      <span
+                        class="shrink-0 inline-flex items-center gap-0.5 font-bold text-emerald-700"
+                        title="Terverifikasi MWC NU"
+                      >
+                        <AppIcon name="check" size="xs" />
+                        <span>Terverifikasi</span>
+                        <span aria-hidden="true" class="text-slate-300 px-0.5">·</span>
+                      </span>
+                      <p id="preview-store-address" class="truncate text-slate-500">
+                        Dusun Karang Anyar, Gapura
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Action Buttons (Matching exact card) */}
+            <div class="px-3.5 py-2.5 sm:px-4 sm:py-3 border-t border-slate-100 grid grid-cols-2 gap-2 shrink-0">
+              <span
+                class="min-h-[44px] px-3 bg-white border border-slate-300 text-slate-800 text-xs font-bold rounded-lg inline-flex items-center justify-center cursor-default select-none"
+              >
+                Lihat Etalase
+              </span>
+
+              <span
+                class="min-h-[44px] px-3 bg-emerald-700 text-white text-xs font-bold rounded-lg inline-flex items-center justify-center gap-1.5 cursor-default select-none shadow-xs"
+              >
+                <svg class="w-3.5 h-3.5 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
+                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
+                </svg>
+                <span>WhatsApp</span>
+              </span>
+            </div>
+          </div>
+        </section>
+
+        {/* Checklist Kelengkapan Profil Toko */}
+        <section aria-labelledby="checklist-heading" class="lg:pt-5 lg:border-t lg:border-slate-200 space-y-2.5">
+          <h2 id="checklist-heading" class="text-xs font-black uppercase tracking-wider text-slate-800">
+            Kelengkapan Profil Toko
+          </h2>
+          <ul class="grid grid-cols-2 gap-2 text-xs" id="store-readiness-list">
+            <li id="chk-store-name" class="flex items-center gap-1.5 text-slate-600">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0" data-dot></span>
+              <span>Nama Toko</span>
+            </li>
+            <li id="chk-store-phone" class="flex items-center gap-1.5 text-slate-600">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0" data-dot></span>
+              <span>WhatsApp</span>
+            </li>
+            <li id="chk-store-zone" class="flex items-center gap-1.5 text-slate-600">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0" data-dot></span>
+              <span>Wilayah MWC</span>
+            </li>
+            <li id="chk-store-address" class="flex items-center gap-1.5 text-slate-600">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0" data-dot></span>
+              <span>Alamat Usaha</span>
+            </li>
+          </ul>
+        </section>
+
+        {/* Tips Toko (Collapsible on Mobile, Auto-Open on Desktop) */}
+        <details id="tips-store-details" class="pt-5 border-t border-slate-200 group">
+          <summary class="min-h-[44px] flex items-center justify-between cursor-pointer list-none select-none text-xs font-black uppercase tracking-wider text-slate-800">
+            <span class="flex items-center gap-1.5">
+              <AppIcon name="info" size="xs" class="text-emerald-700" />
+              <span>Tips Pengisian Profil Toko</span>
+            </span>
+            <AppIcon name="chevron-down" size="xs" class="text-slate-500 transition-transform group-open:rotate-180 lg:hidden" />
+          </summary>
+          <ul class="mt-2 divide-y divide-slate-100 text-xs text-slate-700">
+            <li class="py-2 first:pt-0 space-y-0.5">
+              <strong class="text-slate-900 block">Nama Toko Jelas</strong>
+              <span>Gunakan nama yang mudah dikenali oleh jamaah dan pembeli sekitar.</span>
+            </li>
+            <li class="py-2 space-y-0.5">
+              <strong class="text-slate-900 block">WhatsApp Aktif</strong>
+              <span>Nomor ini yang akan langsung dihubungi pembeli dari tombol katalog produk.</span>
+            </li>
+            <li class="py-2 space-y-0.5">
+              <strong class="text-slate-900 block">Pilih Kecamatan Sesuai</strong>
+              <span>Mempermudah filter pencarian produk warga di tingkat kecamatan.</span>
+            </li>
+            <li class="py-2 last:pb-0 space-y-0.5">
+              <strong class="text-slate-900 block">Langsung Pasang Iklan</strong>
+              <span>Setelah profil toko dibuka, Anda langsung bisa menerbitkan produk gratis.</span>
+            </li>
+          </ul>
+        </details>
+      </aside>
+    </div>
   </div>
 
-  <!-- Panel 2: Daftar Kader Ranting / Pengurus MWC NU -->
-  <div
-    id="onboard-panel-kader"
-    role="tabpanel"
-    aria-labelledby="onboard-tab-kader"
-    hidden={!showKaderFirst}
-    class="space-y-4"
+  {/* Floating Trigger Button for Mobile Drawer */}
+  <button
+    type="button"
+    class="open-sidebar-drawer-btn lg:hidden fixed bottom-20 right-3.5 z-30 min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3.5 py-2.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20 active:scale-95 transition cursor-pointer"
+    aria-label="Buka Pratinjau & Tips"
   >
-    <KaderRegisterForm user={user} zones={zones} assignedZone={assignedZone} />
-  </div>
-
-  <PrivacyAccountPanel hasStore={false} />
+    <AppIcon name="eye" size="xs" class="text-white" />
+    <span>Pratinjau</span>
+  </button>
 </div>
-</main>
+
+{/* Live Preview Script */}
+<script is:inline>
+  (function() {
+    // Drawer Management for Mobile
+    var sidebarDrawer = document.getElementById('sidebar-drawer');
+    var drawerBackdrop = document.getElementById('sidebar-drawer-backdrop');
+    var closeDrawerBtn = document.getElementById('close-sidebar-drawer');
+    var openDrawerBtns = document.querySelectorAll('.open-sidebar-drawer-btn');
+
+    function openSidebarDrawer() {
+      if (!sidebarDrawer || !drawerBackdrop) return;
+      drawerBackdrop.classList.remove('hidden');
+      sidebarDrawer.classList.remove('translate-x-full');
+      document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+    }
+
+    function closeSidebarDrawer() {
+      if (!sidebarDrawer || !drawerBackdrop) return;
+      sidebarDrawer.classList.add('translate-x-full');
+      drawerBackdrop.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+    }
+
+    openDrawerBtns.forEach(function(btn) {
+      btn.addEventListener('click', openSidebarDrawer);
+    });
+    if (closeDrawerBtn) closeDrawerBtn.addEventListener('click', closeSidebarDrawer);
+    if (drawerBackdrop) drawerBackdrop.addEventListener('click', closeSidebarDrawer);
+
+    window.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') closeSidebarDrawer();
+    });
+
+    window.addEventListener('resize', function() {
+      if (window.innerWidth >= 1024) closeSidebarDrawer();
+    });
+
+    var tipsDetails = document.getElementById('tips-store-details');
+    if (tipsDetails && window.matchMedia('(min-width: 1024px)').matches) {
+      tipsDetails.open = true;
+    }
+    var nameInput = document.getElementById('storeName');
+    var phoneInput = document.getElementById('storePhone');
+    var zoneSelect = document.getElementById('storeZoneId');
+    var rantingInput = document.getElementById('storeRanting');
+    var addressInput = document.getElementById('storeAddress');
+
+    var pName = document.getElementById('preview-store-name');
+    var pAvatar = document.getElementById('preview-store-avatar');
+    var pZone = document.getElementById('preview-store-zone');
+    var pAddress = document.getElementById('preview-store-address');
+
+    var chkName = document.getElementById('chk-store-name');
+    var chkPhone = document.getElementById('chk-store-phone');
+    var chkZone = document.getElementById('chk-store-zone');
+    var chkAddress = document.getElementById('chk-store-address');
+
+    function updateDot(el, isDone) {
+      if (!el) return;
+      var dot = el.querySelector('[data-dot]');
+      if (!dot) return;
+      if (isDone) {
+        dot.className = 'w-2 h-2 rounded-full bg-emerald-600 shrink-0';
+        el.className = 'flex items-center gap-1.5 text-slate-900 font-semibold';
+      } else {
+        dot.className = 'w-2 h-2 rounded-full bg-slate-300 shrink-0';
+        el.className = 'flex items-center gap-1.5 text-slate-500';
+      }
+    }
+
+    function syncStorePreview() {
+      if (nameInput && pName) {
+        var val = nameInput.value.trim();
+        pName.textContent = val || 'UD Barokah Jaya';
+        if (pAvatar) {
+          var words = (val || 'UD Barokah Jaya').split(/\s+/).filter(Boolean);
+          var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : val ? val.slice(0, 2).toUpperCase() : 'UB';
+          pAvatar.textContent = initials;
+        }
+        updateDot(chkName, Boolean(val));
+      }
+      if (phoneInput) {
+        var pVal = phoneInput.value.trim();
+        updateDot(chkPhone, pVal.length >= 8);
+      }
+      if (zoneSelect && pZone) {
+        var opt = zoneSelect.options[zoneSelect.selectedIndex];
+        var zVal = opt && opt.value ? opt.textContent : 'Gapura';
+        if (zVal && !zVal.startsWith('MWC')) zVal = 'MWC ' + zVal;
+        pZone.textContent = zVal;
+        updateDot(chkZone, Boolean(opt && opt.value));
+      }
+      if (pAddress) {
+        var aVal = addressInput ? addressInput.value.trim() : '';
+        var rVal = rantingInput ? rantingInput.value.trim() : '';
+        var parts = [aVal, rVal].filter(Boolean);
+        pAddress.textContent = parts.length > 0 ? parts.join(', ') : 'Dusun Karang Anyar, Gapura';
+        if (chkAddress) updateDot(chkAddress, Boolean(aVal));
+      }
+    }
+
+    if (nameInput) nameInput.addEventListener('input', syncStorePreview);
+    if (phoneInput) phoneInput.addEventListener('input', syncStorePreview);
+    if (zoneSelect) zoneSelect.addEventListener('change', syncStorePreview);
+    if (rantingInput) rantingInput.addEventListener('input', syncStorePreview);
+    if (addressInput) addressInput.addEventListener('input', syncStorePreview);
+
+    // Initial sync
+    syncStorePreview();
+
+    // Claim Offer buttons
+    var btnClaim = document.getElementById('btn-claim-store');
+    var btnSkip = document.getElementById('btn-skip-claim');
+    var form = document.getElementById('store-setup-form');
+    var skipInput = document.getElementById('skipClaimInput');
+    var claimOffer = document.getElementById('claim-offer');
+
+    if (btnClaim && form) {
+      btnClaim.addEventListener('click', function() {
+        form.requestSubmit();
+      });
+    }
+    if (btnSkip && form && skipInput) {
+      btnSkip.addEventListener('click', function() {
+        skipInput.value = '1';
+        if (claimOffer) claimOffer.classList.add('hidden');
+        form.requestSubmit();
+      });
+    }
+  })();
+</script>

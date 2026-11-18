@@ -6,70 +6,58 @@ import { resolveUser } from '../../lib/neon-auth';
 import { PRODUCT_CATEGORIES, DEFAULT_PRODUCT_IMAGE } from '../../lib/constants';
 
 const user = await resolveUser(Astro.request);
-const userStore = user ? await getUMKMByUserId(user.id) : null;
+if (!user) {
+  return Astro.redirect('/login?redirect=/pasang-iklan');
+}
+
+const userStore = await getUMKMByUserId(user.id);
+if (!userStore) {
+  return Astro.redirect('/buka-toko?notice=need_store&redirect=/pasang-iklan');
+}
 ---
 
 <Layout
   title="Pasang Iklan Produk | Mamasar"
   description="Pasang iklan produk UMKM Anda langsung di direktori Mamasar Sumenep. Transaksi langsung via WhatsApp tanpa potongan biaya komisi."
 >
-  <div class="pb-12 space-y-6">
-    {/* Full-Bleed Hairline Page Header */}
-    <header class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
-      <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-2 sm:space-y-3">
+  <div class="pb-12 space-y-2.5 sm:space-y-6">
+    {/* Hairline Page Header */}
+    <header class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-2 sm:space-y-3 bg-white border-b border-slate-200">
         <div class="hidden md:flex items-center justify-between text-xs text-slate-600">
           <nav aria-label="Breadcrumb" class="flex items-center gap-1.5">
             <a href="/" class="hover:text-emerald-700 font-medium">Beranda</a>
             <AppIcon name="chevron-right" size="xs" class="text-slate-400" />
             <span class="text-slate-900 font-bold">Pasang Iklan</span>
           </nav>
-
-          <a
-            href="/dashboard"
-            class="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 transition"
-          >
-            <AppIcon name="store" size="xs" />
-            <span>{userStore ? 'Kelola Toko' : 'Dashboard Toko'}</span>
-          </a>
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
-          <div>
-            <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
-              Pasang Iklan
-            </h1>
-            <p class="hidden sm:block text-xs sm:text-sm text-slate-600">
-              Terbitkan produk ke katalog Mamasar Sumenep tanpa potongan komisi.
-            </p>
-          </div>
-          {userStore && (
-            <div class="text-xs text-slate-700 flex items-center gap-1.5 shrink-0">
-              <AppIcon name="store" size="xs" class="text-emerald-700" />
-              <strong class="text-slate-900">{userStore.name}</strong>
-              <span aria-hidden="true" class="text-slate-300">·</span>
-              <span>{userStore.zone_name}</span>
-            </div>
-          )}
+        <div>
+          <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Pasang Iklan
+          </h1>
+          <p class="hidden sm:block text-xs sm:text-sm text-slate-600">
+            Terbitkan produk ke katalog Mamasar Sumenep tanpa potongan komisi.
+          </p>
         </div>
-      </div>
     </header>
 
-    <div class="px-3 sm:px-0 space-y-5">
+    <div class="px-3 sm:px-0 space-y-4 sm:space-y-5">
       {!userStore && (
-        <div class="-mx-3 sm:mx-0 px-3.5 py-3.5 sm:p-4 rounded-none sm:rounded-lg bg-amber-50 border-y sm:border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div class="flex items-center gap-2.5 text-amber-950">
-            <AppIcon name="info" size="sm" class="text-amber-700 shrink-0" />
-            <span>
+        <div class="-mx-3 sm:mx-0 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-none sm:rounded-lg bg-slate-50 border-y sm:border border-slate-200 flex items-center justify-between gap-2 text-xs text-slate-600">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <AppIcon name="info" size="xs" class="text-slate-400 shrink-0" />
+            <span class="truncate">
               {user
-                ? 'Lengkapi profil toko dulu agar nomor WhatsApp toko Anda tampil di katalog.'
-                : 'Masuk terlebih dahulu untuk melengkapi toko sebelum menerbitkan iklan.'}
+                ? 'Lengkapi profil toko agar nomor WhatsApp tampil di katalog.'
+                : 'Masuk akun untuk melengkapi profil toko Anda.'}
             </span>
           </div>
           <a
-            href="/dashboard"
-            class="shrink-0 min-h-[44px] px-4 py-2 bg-amber-800 hover:bg-amber-900 text-white font-bold rounded-lg transition inline-flex items-center justify-center"
+            href={user ? '/buka-toko' : '/login?redirect=/pasang-iklan'}
+            class="shrink-0 font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 transition text-xs whitespace-nowrap"
           >
-            {user ? 'Lengkapi Profil' : 'Masuk'}
+            <span>{user ? 'Lengkapi' : 'Masuk'}</span>
+            <AppIcon name="arrow-right" size="xs" />
           </a>
         </div>
       )}
@@ -286,17 +274,46 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
             <button
               type="submit"
               id="btn-submit-product"
-              class="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-lg transition flex items-center justify-center cursor-pointer"
+              class="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-lg flex items-center justify-center cursor-pointer shadow-2xs hover:shadow-xs transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
             >
               Terbitkan
             </button>
           </div>
         </form>
 
-        {/* Right Docked Sidebar: Live Card Preview (Desktop) + Checklist & Collapsible Tips */}
-        <aside class="lg:col-span-4 space-y-6 border-t border-slate-200 pt-6 lg:border-t-0 lg:pt-0 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20">
-          {/* Live Katalog Preview (Hidden on Mobile to Keep Form Compact) */}
-          <section aria-labelledby="preview-heading" class="hidden lg:block space-y-3">
+        {/* Backdrop for Mobile Drawer */}
+        <div
+          id="sidebar-drawer-backdrop"
+          class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden transition-opacity lg:hidden"
+          aria-hidden="true"
+        ></div>
+
+        {/* Right Docked Sidebar (Desktop) / Slide-in Drawer (Mobile) */}
+        <aside
+          id="sidebar-drawer"
+          aria-label="Pratinjau dan Bantuan"
+          class="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md bg-white p-5 shadow-2xl overflow-y-auto transition-transform duration-300 ease-in-out translate-x-full lg:translate-x-0 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:p-0 lg:shadow-none lg:overflow-visible lg:col-span-4 lg:space-y-6 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20"
+        >
+          {/* Mobile Drawer Header with Close Button (Hidden on Desktop) */}
+          <div class="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-200 lg:hidden">
+            <div class="flex items-center gap-2">
+              <AppIcon name="eye" size="xs" class="text-emerald-700" />
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-900">
+                Pratinjau &amp; Bantuan
+              </h2>
+            </div>
+            <button
+              type="button"
+              id="close-sidebar-drawer"
+              class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition"
+              aria-label="Tutup Pratinjau"
+            >
+              <AppIcon name="x" size="xs" />
+            </button>
+          </div>
+
+          {/* Live Katalog Preview (Shown both in Mobile Drawer and Desktop Sidebar) */}
+          <section aria-labelledby="preview-heading" class="space-y-3">
             <div class="flex items-center justify-between">
               <h2 id="preview-heading" class="text-xs font-black uppercase tracking-wider text-slate-800">
                 Pratinjau Katalog
@@ -410,6 +427,16 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
       </div>
     </div>
   </div>
+
+  {/* Floating Trigger Button for Mobile Drawer */}
+  <button
+    type="button"
+    class="open-sidebar-drawer-btn lg:hidden fixed bottom-20 right-3.5 z-30 min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3.5 py-2.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20 active:scale-95 transition cursor-pointer"
+    aria-label="Buka Pratinjau & Bantuan"
+  >
+    <AppIcon name="eye" size="xs" class="text-white" />
+    <span>Pratinjau</span>
+  </button>
 
   <script>
     const productForm = document.getElementById('product-form') as HTMLFormElement | null;
@@ -745,6 +772,38 @@ const userStore = user ? await getUMKMByUserId(user.id) : null;
           btnSubmitProduct.innerHTML = '<span>Terbitkan</span>';
         }
       }
+    });
+
+    // Drawer Management for Mobile
+    const sidebarDrawer = document.getElementById('sidebar-drawer');
+    const drawerBackdrop = document.getElementById('sidebar-drawer-backdrop');
+    const closeDrawerBtn = document.getElementById('close-sidebar-drawer');
+    const openDrawerBtns = document.querySelectorAll('.open-sidebar-drawer-btn');
+
+    function openSidebarDrawer() {
+      if (!sidebarDrawer || !drawerBackdrop) return;
+      drawerBackdrop.classList.remove('hidden');
+      sidebarDrawer.classList.remove('translate-x-full');
+      document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+    }
+
+    function closeSidebarDrawer() {
+      if (!sidebarDrawer || !drawerBackdrop) return;
+      sidebarDrawer.classList.add('translate-x-full');
+      drawerBackdrop.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+    }
+
+    openDrawerBtns.forEach((btn) => btn.addEventListener('click', openSidebarDrawer));
+    closeDrawerBtn?.addEventListener('click', closeSidebarDrawer);
+    drawerBackdrop?.addEventListener('click', closeSidebarDrawer);
+
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeSidebarDrawer();
+    });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 1024) closeSidebarDrawer();
     });
 
     const tipsDetails = document.getElementById('tips-input-details') as HTMLDetailsElement | null;

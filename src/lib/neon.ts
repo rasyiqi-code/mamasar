@@ -8,11 +8,13 @@ import { createRealtime, rawSql } from '@neon/realtime/server';
  * and standalone Node scripts / CLI (process.env).
  */
 export function getEnv(key: string): string | undefined {
-  if (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env[key]) {
-    return (import.meta as any).env[key];
+  const procVal = typeof process !== 'undefined' && process.env ? process.env[key] : undefined;
+  if (procVal && procVal !== '[SENSITIVE]') {
+    return procVal;
   }
-  if (typeof process !== 'undefined' && process.env && process.env[key]) {
-    return process.env[key];
+  const metaVal = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env[key] : undefined;
+  if (metaVal && metaVal !== '[SENSITIVE]') {
+    return metaVal;
   }
   return undefined;
 }

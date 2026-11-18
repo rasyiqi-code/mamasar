@@ -207,7 +207,7 @@ function storeInitials(name: string): string {
                 <a
                   href={`/toko/${store.slug || store.id}`}
                   target="_blank"
-                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition"
+                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition active:scale-[0.98]"
                 >
                   <span>Lihat</span>
                   <AppIcon name="external-link" size="xs" />
@@ -217,7 +217,7 @@ function storeInitials(name: string): string {
                   data-action="verify-store"
                   data-id={store.id}
                   data-verified="1"
-                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer"
+                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer active:scale-[0.98]"
                 >
                   <AppIcon name="check" size="xs" />
                   <span>Verifikasi</span>
@@ -227,7 +227,7 @@ function storeInitials(name: string): string {
                   data-action="delete-store"
                   data-id={store.id}
                   data-name={store.name}
-                  class="inline-flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 p-1 bg-white sm:bg-transparent text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-slate-300 sm:border-transparent hover:border-rose-200 transition cursor-pointer"
+                  class="inline-flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 p-1 bg-white sm:bg-transparent text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-slate-300 sm:border-transparent hover:border-rose-200 transition cursor-pointer active:scale-[0.98]"
                   title="Hapus Toko"
                   aria-label={`Hapus toko ${store.name}`}
                 >
@@ -329,7 +329,7 @@ function storeInitials(name: string): string {
                 <a
                   href={`/toko/${store.slug || store.id}`}
                   target="_blank"
-                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition"
+                  class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold rounded-md transition active:scale-[0.98]"
                 >
                   <span>Lihat</span>
                   <AppIcon name="external-link" size="xs" />
@@ -339,7 +339,7 @@ function storeInitials(name: string): string {
                   data-action="verify-store"
                   data-id={store.id}
                   data-verified="0"
-                  class="h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-semibold text-xs rounded-md transition cursor-pointer"
+                  class="h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-semibold text-xs rounded-md transition cursor-pointer active:scale-[0.98]"
                   title="Cabut status verifikasi"
                 >
                   Cabut
@@ -349,7 +349,7 @@ function storeInitials(name: string): string {
                   data-action="delete-store"
                   data-id={store.id}
                   data-name={store.name}
-                  class="inline-flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 p-1 bg-white sm:bg-transparent text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-slate-300 sm:border-transparent hover:border-rose-200 transition cursor-pointer"
+                  class="inline-flex items-center justify-center w-9 h-9 sm:w-8 sm:h-8 p-1 bg-white sm:bg-transparent text-slate-600 hover:text-rose-700 hover:bg-rose-50 rounded-md border border-slate-300 sm:border-transparent hover:border-rose-200 transition cursor-pointer active:scale-[0.98]"
                   title="Hapus Toko"
                   aria-label={`Hapus toko ${store.name}`}
                 >

@@ -4,6 +4,7 @@ import {
   deleteCashbookEntry,
   deleteUserAccount,
   exportUserAccountData,
+  getAllCashbookEntries,
   updateUserProfile,
 } from '../../lib/db';
 import { isHttpsRequest } from '../../lib/security';
@@ -107,6 +108,40 @@ export const userRoutes = new Elysia({ name: 'routes:user', prefix: '/user' })
       return jsonResponse({ success: deleted }, 200);
     } catch (err) {
       return jsonError(500, 'Gagal menghapus catatan kas.', err);
+    }
+  })
+  .get('/cashbook/export', async ({ request }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user) {
+        return jsonError(401, 'Silakan masuk terlebih dahulu untuk mengunduh rekap buku kas.');
+      }
+
+      const entries = await getAllCashbookEntries(user.id, user.umkm?.id);
+      let csv = '\uFEFFTanggal,Keterangan,Kategori,Jenis,Nominal (Rp),Catatan\r\n';
+
+      for (const entry of entries) {
+        const date = entry.transaction_date || '';
+        const title = `"${(entry.title || '').replace(/"/g, '""')}"`;
+        const category = `"${(entry.category || 'Penjualan').replace(/"/g, '""')}"`;
+        const type = entry.type === 'income' ? 'Pemasukan' : 'Pengeluaran';
+        const amountPrefix = entry.type === 'income' ? '' : '-';
+        const amount = `${amountPrefix}${entry.amount}`;
+        const notes = `"${(entry.notes || '').replace(/"/g, '""')}"`;
+        csv += `${date},${title},${category},${type},${amount},${notes}\r\n`;
+      }
+
+      const dateTag = new Date().toISOString().slice(0, 10);
+      return new Response(csv, {
+        status: 200,
+        headers: {
+          'Content-Type': 'text/csv; charset=utf-8',
+          'Content-Disposition': `attachment; filename="Rekap-Kas-Mamasar-${dateTag}.csv"`,
+          'Cache-Control': 'no-store',
+        },
+      });
+    } catch (err) {
+      return jsonError(500, 'Gagal mengekspor laporan kas.', err);
     }
   })
   .get('/export', async ({ request }) => {

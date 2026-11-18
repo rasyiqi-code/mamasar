@@ -67,6 +67,8 @@ export const umkm = pgTable(
     pirt: varchar('pirt', { length: 100 }),
     bpom: varchar('bpom', { length: 100 }),
     other_legalities: text('other_legalities'),
+    maps_url: text('maps_url'),
+    qris_image_url: text('qris_image_url'),
     bump_credits: integer('bump_credits').default(3),
     claimed_at: timestamp('claimed_at', { withTimezone: true }),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -110,6 +112,21 @@ export const articles = pgTable('articles', {
   image_url: text('image_url').notNull(),
   summary: text('summary').notNull(),
   content: text('content'),
+  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+});
+
+export const caseStudies = pgTable('case_studies', {
+  id: serial('id').primaryKey(),
+  title: varchar('title', { length: 255 }).notNull(),
+  channel_name: varchar('channel_name', { length: 100 }).notNull(),
+  tag: varchar('tag', { length: 100 }).notNull(),
+  duration: varchar('duration', { length: 50 }).notNull().default('15 Menit'),
+  video_url: text('video_url').notNull(),
+  thumbnail_url: text('thumbnail_url').notNull(),
+  practice_summary: text('practice_summary'),
+  opportunity_summary: text('opportunity_summary'),
+  sort_order: integer('sort_order').default(0),
+  is_active: integer('is_active').default(1),
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 

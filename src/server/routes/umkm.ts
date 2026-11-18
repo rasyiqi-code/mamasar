@@ -1,6 +1,5 @@
 import { Elysia } from 'elysia';
 import {
-  addProductToUMKM,
   can,
   createStoreByPetugas,
   deleteUMKM,
@@ -12,7 +11,7 @@ import {
   updateUMKMLogo,
   updateUMKMProfile,
 } from '../../lib/db';
-import { InvalidUploadError, resolveAvatarUrl, saveStoreLogo, saveUploadedImage } from '../../lib/storage';
+import { InvalidUploadError, resolveAvatarUrl, saveStoreLogo } from '../../lib/storage';
 import { isValidIndonesianPhone } from '../../lib/utils';
 import {
   fileField,
@@ -169,7 +168,7 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
             success: false,
             claim_available: true,
             candidate: result.candidate,
-            message: `Nomor WhatsApp ini cocok dengan toko "${result.candidate.name}" di wilayah ${result.candidate.zone_name} — terdaftar dari hasil pendataan petugas lapangan.`,
+            message: `Nomor WhatsApp ini cocok dengan toko "${result.candidate.name}" di wilayah ${result.candidate.zone_name} - terdaftar dari hasil pendataan petugas lapangan.`,
           },
           200
         );
@@ -389,7 +388,7 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
         {
           success: true,
           message: verified
-            ? 'Alhamdulillah! Toko telah diverifikasi — badge Verified tampil di katalog.'
+            ? 'Alhamdulillah! Toko telah diverifikasi - badge Verified tampil di katalog.'
             : 'Verifikasi toko telah dicabut.',
         },
         200
@@ -442,65 +441,6 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
         200
       );
     } catch (err) {
-      return jsonError(500, 'Terjadi kesalahan server.', err);
-    }
-  })
-  .post('/add-product', async ({ request, body }) => {
-    try {
-      const user = await resolveRequestUser(request);
-      if (!user) {
-        return jsonResponse({ success: false, message: 'Silakan login terlebih dahulu.' }, 401);
-      }
-      if (!user.umkm) {
-        return jsonResponse(
-          {
-            success: false,
-            message: 'Lengkapi profil toko Anda terlebih dahulu sebelum mengunggah produk.',
-          },
-          403
-        );
-      }
-
-      const data = body as ParsedBody;
-      const name = strField(data, 'name');
-      const price = Number(strField(data, 'price'));
-      const category = strField(data, 'category') || 'Makanan & Minuman';
-      const description = strField(data, 'description');
-
-      if (!name || !price) {
-        return jsonResponse(
-          { success: false, message: 'Nama produk dan harga wajib diisi.' },
-          400
-        );
-      }
-
-      const imageFile = fileField(data, 'image');
-      const imageBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : undefined;
-      const shopeeUrl = strField(data, 'shopeeUrl') || undefined;
-      const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
-
-      const result = await addProductToUMKM(user.umkm.id, {
-        name,
-        price,
-        category,
-        imageUrl,
-        description,
-        shopeeUrl,
-      });
-
-      return jsonResponse(
-        {
-          success: true,
-          slug: result.slug,
-          productId: result.productId,
-          message: 'Alhamdulillah! Produk berhasil diterbitkan ke katalog.',
-        },
-        201
-      );
-    } catch (err: any) {
-      if (err instanceof InvalidUploadError) {
-        return jsonResponse({ success: false, message: err.message }, 400);
-      }
       return jsonError(500, 'Terjadi kesalahan server.', err);
     }
   });

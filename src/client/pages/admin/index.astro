@@ -11,6 +11,7 @@ import {
   getEvents,
   getEventOrders,
   getAllPendingAdOrders,
+  getArticles,
 } from '../../../lib/db';
 
 import AdminSidebar from '../../components/admin/AdminSidebar.astro';
@@ -27,8 +28,12 @@ const isSuper = !!user && isSuperadmin(user);
 const isCadre = !!user && isPetugas(user);
 
 // Proteksi akses: Khusus semua role selain warga (superadmin, pengurus, atau petugas aktif)
-if (!user || (!isSuper && !isCadre)) {
-  return Astro.redirect('/dashboard?error=unauthorized_admin');
+if (!user) {
+  return Astro.redirect('/login?error=unauthorized_admin&redirect=/admin');
+}
+
+if (!isSuper && !isCadre) {
+  return Astro.redirect('/daftar-kader?notice=unauthorized_admin');
 }
 
 const zones = await getAllZones();
@@ -59,6 +64,8 @@ const pendingPromotions = isSuper
   ? await getAllPendingAdOrders()
   : (canReviewPromos && user.assigned_zone_id ? await getAllPendingAdOrders(user.assigned_zone_id) : []);
 
+const articles = isSuper ? await getArticles() : [];
+
 const portalHeading = isSuper
   ? 'Pusat Kendali Admin PCNU Sumenep'
   : user.role === 'mwcnu'
@@ -84,6 +91,7 @@ const scopeBadgeText = isSuper ? 'PCNU Sumenep' : `MWC ${assignedZone?.name || '
       pendingStoresCount={pendingStores.length}
       zonesCount={zones.length}
       pendingPromotionsCount={pendingPromotions.length}
+      articlesCount={articles.length}
     />
 
     <!-- Kolom Kanan: Sticky Desktop App Header + Workspace Utama -->

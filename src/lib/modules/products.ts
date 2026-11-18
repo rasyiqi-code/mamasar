@@ -34,6 +34,8 @@ export type ProductRow = typeof schema.products.$inferSelect & {
   umkm_halal_cert?: string | null;
   umkm_pirt?: string | null;
   umkm_bpom?: string | null;
+  umkm_maps_url?: string | null;
+  umkm_qris_image_url?: string | null;
   is_verified: number | null;
   zone_id: number;
   zone_name: string;
@@ -54,6 +56,8 @@ export function toProduct(row: ProductRow): Product {
     umkm_halal_cert: row.umkm_halal_cert ?? undefined,
     umkm_pirt: row.umkm_pirt ?? undefined,
     umkm_bpom: row.umkm_bpom ?? undefined,
+    umkm_maps_url: row.umkm_maps_url ?? undefined,
+    umkm_qris_image_url: row.umkm_qris_image_url ?? undefined,
     is_verified: row.is_verified ?? 0,
     zone_id: row.zone_id,
     zone_name: row.zone_name,
@@ -101,6 +105,8 @@ export function productSelect() {
       umkm_halal_cert: schema.umkm.halal_cert,
       umkm_pirt: schema.umkm.pirt,
       umkm_bpom: schema.umkm.bpom,
+      umkm_maps_url: schema.umkm.maps_url,
+      umkm_qris_image_url: schema.umkm.qris_image_url,
       is_verified: schema.umkm.is_verified,
       zone_id: schema.zones.id,
       zone_name: schema.zones.name,

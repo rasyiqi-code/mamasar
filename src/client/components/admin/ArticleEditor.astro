@@ -1,0 +1,1208 @@
+---
+import AppIcon from '../common/AppIcon.astro';
+import type { Article } from '../../../lib/db';
+
+interface Props {
+  article?: Article;
+  mode: 'create' | 'edit';
+}
+
+const { article, mode = 'create' } = Astro.props;
+
+const categories = [
+  'Ekonomi Pekarangan',
+  'Panduan Usaha',
+  'Legalitas & Halal',
+  'Tips Transaksi',
+  'Gerakan Warga',
+  'Edukasi UMKM',
+];
+
+const initialTitle = article?.title || '';
+const initialCategory = article?.category || 'Ekonomi Pekarangan';
+const initialImageUrl = article?.image_url || '';
+const initialSummary = article?.summary || '';
+const initialContent = article?.content || '';
+const isEdit = mode === 'edit';
+---
+
+<div class="w-full max-w-full pb-20 bg-white">
+  {/* Sticky Top Header Navigation Bar (Flat, Seamless) */}
+  <header class="sticky top-0 z-30 h-14 bg-white/95 backdrop-blur-xs border-b border-slate-100 px-4 sm:px-8 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3 min-w-0">
+      <a
+        href="/admin/articles"
+        class="h-8 px-2 rounded-lg hover:bg-slate-100 text-slate-600 hover:text-slate-900 text-xs font-semibold inline-flex items-center gap-1.5 transition active:scale-[0.98]"
+        title="Kembali ke Daftar Panduan"
+      >
+        <AppIcon name="arrow-left" size="xs" />
+        <span class="hidden sm:inline">Daftar Panduan</span>
+      </a>
+
+      <div class="h-4 w-px bg-slate-200 hidden sm:block"></div>
+
+      <div class="flex items-center gap-2.5 min-w-0">
+        <span class="text-xs text-slate-400 hidden sm:inline">Panduan Edukasi /</span>
+        <h1 class="text-xs sm:text-sm font-bold text-slate-800 truncate">
+          {isEdit ? 'Edit Panduan' : 'Tulis Panduan Baru'}
+        </h1>
+        {/* Status text without pill box */}
+        <span id="save-status-text" class="text-xs text-slate-400 font-medium hidden md:inline-flex items-center gap-1.5">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span>Tersimpan</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2 shrink-0">
+      {isEdit && article?.slug && (
+        <a
+          href={`/edukasi/${article.slug}`}
+          target="_blank"
+          rel="noopener"
+          class="h-8 px-3 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition inline-flex items-center gap-1.5 active:scale-[0.98] hidden sm:inline-flex"
+          title="Lihat Pratinjau di Halaman Publik"
+        >
+          <span>Pratinjau</span>
+          <AppIcon name="external-link" size="xs" />
+        </a>
+      )}
+
+      <a
+        href="/admin/articles"
+        class="h-8 px-3 rounded-lg text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition inline-flex items-center justify-center active:scale-[0.98]"
+      >
+        Batal
+      </a>
+
+      <button
+        type="button"
+        id="btn-save-top"
+        class="h-8 px-4 rounded-lg text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 transition shadow-2xs inline-flex items-center gap-1.5 cursor-pointer active:scale-[0.98] disabled:opacity-50"
+      >
+        <AppIcon name="check" size="xs" />
+        <span id="btn-save-top-label">{isEdit ? 'Simpan' : 'Terbitkan'}</span>
+      </button>
+    </div>
+  </header>
+
+  <form id="notion-editor-form" class="max-w-7xl mx-auto px-4 sm:px-8 pt-6">
+    <input type="hidden" name="action" value={isEdit ? 'update' : 'create'} />
+    <input type="hidden" name="id" value={article?.id || ''} />
+    <input type="hidden" name="content" id="article-serialized-content" value="" />
+
+    {/* 2-Column Notion Workspace: Seamless Boxless Canvas on Left, Flat Inspector on Right */}
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+      {/* Kolom Kiri: Document Canvas (8 Cols) - NO BOX, NO BORDER! */}
+      <div class="lg:col-span-8">
+        <div class="py-2 min-h-[750px] relative">
+          {/* Document Title (Auto-expanding multi-line textarea) */}
+          <div class="space-y-3 pb-2">
+            <textarea
+              id="article-title"
+              name="title"
+              rows="1"
+              required
+              minlength="5"
+              placeholder="Judul Panduan..."
+              class="w-full text-2xl sm:text-3xl lg:text-4xl font-extrabold text-slate-900 border-none outline-none focus:outline-none focus:ring-0 placeholder:text-slate-300 tracking-tight leading-snug bg-transparent resize-none overflow-hidden block p-0"
+            >{initialTitle}</textarea>
+
+            {/* Document Summary (Subtitle lead paragraph) */}
+            <textarea
+              id="article-summary"
+              name="summary"
+              rows="2"
+              required
+              maxlength="250"
+              placeholder="Tulis ringkasan singkat 1-2 kalimat untuk pratinjau kartu panduan..."
+              class="w-full text-xs sm:text-sm text-slate-600 italic border-none outline-none focus:outline-none focus:ring-0 placeholder:text-slate-300 resize-none leading-relaxed bg-transparent overflow-hidden block p-0"
+            >{initialSummary}</textarea>
+          </div>
+
+          {/* Clean Separation Line */}
+          <div class="h-px bg-slate-100 my-5"></div>
+
+          {/* NOTION BLOCKS CANVAS CONTAINER */}
+          <div id="notion-blocks-container" class="space-y-1 relative">
+            {/* Dynamic blocks mounted here */}
+          </div>
+
+          {/* Bottom Open Whitespace Drop Zone (No dashed borders, no button boxes!) */}
+          <div
+            id="canvas-bottom-pad"
+            class="h-48 py-10 cursor-text text-slate-300 text-xs font-sans hover:text-slate-400 transition select-none flex items-start"
+            title="Klik untuk lanjut menulis..."
+          >
+            <span>Ketik '/' untuk memilih blok atau klik untuk melanjutkan...</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Kolom Kanan: Pengaturan & Terbitkan (4 Cols) - FLAT INSPECTOR, NO BOXES! */}
+      <aside class="lg:col-span-4 border-t lg:border-t-0 lg:border-l border-slate-100 lg:pl-8 py-2 space-y-7 lg:sticky lg:top-20">
+        {/* Seksi Publikasi & Kategori */}
+        <div class="space-y-2.5">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+              Kategori Panduan <span class="text-rose-600">*</span>
+            </h2>
+            <span class="text-2xs font-mono text-slate-400" id="summary-counter">
+              {initialSummary.length} / 250
+            </span>
+          </div>
+
+          <select
+            id="article-category"
+            name="category"
+            required
+            class="w-full h-9 px-3 text-xs bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-emerald-700 rounded-lg transition focus:outline-none cursor-pointer text-slate-800 font-medium"
+          >
+            {categories.map((cat) => (
+              <option value={cat} selected={cat === initialCategory}>
+                {cat}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Seksi Foto Sampul */}
+        <div class="space-y-2.5">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+            Foto Sampul (Web)
+          </h2>
+
+          <input
+            type="url"
+            id="article-image-url"
+            name="imageUrl"
+            value={initialImageUrl}
+            placeholder="https://images.unsplash.com/..."
+            class="w-full h-8 px-3 text-xs bg-slate-50 hover:bg-slate-100 focus:bg-white border border-slate-200 focus:border-emerald-700 rounded-lg transition focus:outline-none"
+          />
+
+          <div class="aspect-16/10 rounded-xl overflow-hidden border border-slate-100 bg-slate-50 relative flex items-center justify-center text-slate-400 mt-2">
+            <img
+              id="cover-preview-img"
+              src={initialImageUrl || 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=600&q=80'}
+              alt="Pratinjau Sampul"
+              class="w-full h-full object-cover"
+            />
+          </div>
+        </div>
+
+        {/* Seksi Statistik & Pintasan Dokumen */}
+        <div class="space-y-3 pt-2 border-t border-slate-100 text-xs text-slate-600">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-slate-700">
+            Info Dokumen
+          </h2>
+
+          <div class="grid grid-cols-3 gap-2 text-center font-mono py-1">
+            <div class="py-2 bg-slate-50/70 rounded-lg">
+              <span class="text-2xs text-slate-400 block font-sans">Blok</span>
+              <span id="stat-blocks-count" class="font-bold text-slate-800 text-sm">0</span>
+            </div>
+            <div class="py-2 bg-slate-50/70 rounded-lg">
+              <span class="text-2xs text-slate-400 block font-sans">Kata</span>
+              <span id="stat-words" class="font-bold text-slate-800 text-sm">0</span>
+            </div>
+            <div class="py-2 bg-slate-50/70 rounded-lg">
+              <span class="text-2xs text-slate-400 block font-sans">Baca</span>
+              <span id="stat-read-time" class="font-bold text-emerald-700 text-sm">1 mnt</span>
+            </div>
+          </div>
+
+          <div class="text-2xs text-slate-400 space-y-1 pt-1 leading-relaxed">
+            <div class="text-slate-500 font-semibold">Pintasan Cepat:</div>
+            <div><span class="font-mono text-slate-600">Enter</span> — baris baru</div>
+            <div><span class="font-mono text-slate-600">/</span> — menu blok (H2, H3, poin)</div>
+            <div><span class="font-mono text-slate-600">Ctrl+B</span> — teks tebal</div>
+            <div><span class="font-mono text-slate-600">Ctrl+S</span> — simpan perubahan</div>
+          </div>
+        </div>
+
+        {/* Tombol Simpan Sidebar */}
+        <div class="pt-2 space-y-2">
+          <button
+            type="submit"
+            id="btn-save-side"
+            class="w-full min-h-[42px] px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-lg transition shadow-2xs inline-flex items-center justify-center gap-1.5 cursor-pointer active:scale-[0.98] disabled:opacity-50"
+          >
+            <AppIcon name="check" size="xs" />
+            <span id="btn-save-side-label">{isEdit ? 'Simpan Perubahan' : 'Terbitkan Panduan'}</span>
+          </button>
+
+          <div id="editor-feedback-status" class="hidden p-3 rounded-lg text-xs font-semibold"></div>
+        </div>
+      </aside>
+    </div>
+  </form>
+</div>
+
+{/* FLOATING FORMATTING TOOLBAR (Bold, Italic, Underline, Link) */}
+<div
+  id="notion-floating-toolbar"
+  class="hidden fixed z-50 bg-slate-900/95 backdrop-blur-xs text-white rounded-lg shadow-xl px-1.5 py-1 flex items-center gap-1 text-xs border border-slate-700 select-none animate-in fade-in duration-100"
+>
+  <button type="button" data-format="bold" class="w-7 h-7 rounded hover:bg-slate-800 flex items-center justify-center font-bold text-slate-200 hover:text-white transition cursor-pointer" title="Tebal (Ctrl+B)">B</button>
+  <button type="button" data-format="italic" class="w-7 h-7 rounded hover:bg-slate-800 flex items-center justify-center italic font-serif text-slate-200 hover:text-white transition cursor-pointer" title="Miring (Ctrl+I)">I</button>
+  <button type="button" data-format="underline" class="w-7 h-7 rounded hover:bg-slate-800 flex items-center justify-center underline text-slate-200 hover:text-white transition cursor-pointer" title="Garis Bawah (Ctrl+U)">U</button>
+  <div class="w-px h-4 bg-slate-700 mx-0.5"></div>
+  <button type="button" data-format="link" class="w-7 h-7 rounded hover:bg-slate-800 flex items-center justify-center text-slate-200 hover:text-white transition cursor-pointer" title="Sisipkan Tautan Web">
+    <AppIcon name="link" size="xs" />
+  </button>
+  <button type="button" data-format="clear" class="w-7 h-7 rounded hover:bg-slate-800 flex items-center justify-center text-slate-400 hover:text-rose-400 transition cursor-pointer" title="Hapus Format">
+    <AppIcon name="x" size="xs" />
+  </button>
+</div>
+
+{/* SLASH COMMAND POPUP MENU (Gutenberg / Notion Style) */}
+<div
+  id="notion-slash-menu"
+  class="hidden fixed z-50 w-64 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 text-xs text-slate-700 max-h-72 overflow-y-auto animate-in fade-in zoom-in-95 duration-100"
+>
+  <div class="px-3 py-1 text-2xs font-bold uppercase tracking-wider text-slate-500">Pilih Tipe Blok:</div>
+  <button type="button" data-slash-choice="paragraph" class="w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left transition cursor-pointer">
+    <span class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center font-bold text-slate-600">P</span>
+    <div>
+      <div class="font-semibold text-slate-900">Teks Paragraf</div>
+      <div class="text-2xs text-slate-500">Teks bacaan biasa</div>
+    </div>
+  </button>
+  <button type="button" data-slash-choice="h2" class="w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left transition cursor-pointer">
+    <span class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center font-bold text-slate-800">H2</span>
+    <div>
+      <div class="font-semibold text-slate-900">Judul Bab</div>
+      <div class="text-2xs text-slate-500">Bab utama berukuran besar</div>
+    </div>
+  </button>
+  <button type="button" data-slash-choice="h3" class="w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left transition cursor-pointer">
+    <span class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center font-bold text-slate-800">H3</span>
+    <div>
+      <div class="font-semibold text-slate-900">Sub-Bab</div>
+      <div class="text-2xs text-slate-500">Langkah atau rincian bagian</div>
+    </div>
+  </button>
+  <button type="button" data-slash-choice="bullet" class="w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left transition cursor-pointer">
+    <span class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center font-bold text-slate-600">•</span>
+    <div>
+      <div class="font-semibold text-slate-900">Daftar Poin (Bullet)</div>
+      <div class="text-2xs text-slate-500">Daftar butir poin</div>
+    </div>
+  </button>
+  <button type="button" data-slash-choice="number" class="w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left transition cursor-pointer">
+    <span class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center font-mono font-bold text-slate-600">1.</span>
+    <div>
+      <div class="font-semibold text-slate-900">Daftar Angka</div>
+      <div class="text-2xs text-slate-500">Langkah berurutan 1, 2, 3</div>
+    </div>
+  </button>
+  <button type="button" data-slash-choice="quote" class="w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left transition cursor-pointer">
+    <span class="w-6 h-6 rounded bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center font-bold">&ldquo;</span>
+    <div>
+      <div class="font-semibold text-slate-900">Kotak Tips / Kutipan</div>
+      <div class="text-2xs text-slate-500">Himbauan penting beraksen hijau</div>
+    </div>
+  </button>
+  <button type="button" data-slash-choice="image" class="w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left transition cursor-pointer">
+    <span class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center text-slate-600">
+      <AppIcon name="image" size="xs" />
+    </span>
+    <div>
+      <div class="font-semibold text-slate-900">Foto / Gambar</div>
+      <div class="text-2xs text-slate-500">Sisipkan foto atau ilustrasi</div>
+    </div>
+  </button>
+  <button type="button" data-slash-choice="divider" class="w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left transition cursor-pointer">
+    <span class="w-6 h-6 rounded bg-slate-100 flex items-center justify-center font-bold text-slate-500">―</span>
+    <div>
+      <div class="font-semibold text-slate-900">Garis Pembatas</div>
+      <div class="text-2xs text-slate-500">Pemisah horizontal antar-bagian</div>
+    </div>
+  </button>
+</div>
+
+{/* Hidden Initial Content */}
+<script id="article-raw-initial" type="application/json" set:html={JSON.stringify(initialContent)}></script>
+
+<style is:global>
+  /* Notion-style placeholder for empty editable blocks */
+  .notion-editable[contenteditable="true"]:empty:before {
+    content: attr(data-placeholder);
+    color: #cbd5e1;
+    pointer-events: none;
+    display: block;
+  }
+  .notion-editable[contenteditable="true"]:focus:empty:before {
+    color: #94a3b8;
+  }
+
+  /* Inline strong and em styling in editor canvas */
+  .notion-editable strong, .notion-editable b {
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .notion-editable em, .notion-editable i {
+    font-style: italic;
+  }
+</style>
+
+<script>
+  interface NotionBlock {
+    id: string;
+    type: 'paragraph' | 'h2' | 'h3' | 'bullet' | 'number' | 'quote' | 'image' | 'divider';
+    content: string; // Rich HTML content in editor
+    caption?: string;
+  }
+
+  // Convert raw Markdown text to rich HTML for inline viewing
+  function markdownToHtml(md: string): string {
+    if (!md) return '';
+    return md
+      // Bold: **text** or __text__
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/__(.*?)__/g, '<strong>$1</strong>')
+      // Italic: *text* or _text_
+      .replace(/(^|[^\*])\*([^\*]+)\*([^\*]|$)/g, '$1<em>$2</em>$3')
+      .replace(/(^|[^_])_([^_]+)_([^_]|$)/g, '$1<em>$2</em>$3')
+      // Link: [text](url)
+      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank" rel="noopener" class="text-emerald-700 underline font-medium">$1</a>');
+  }
+
+  // Convert rich HTML from contenteditable back to clean Markdown
+  function htmlToMarkdown(html: string): string {
+    if (!html) return '';
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+
+    function walk(node: Node): string {
+      if (node.nodeType === Node.TEXT_NODE) {
+        return node.textContent || '';
+      }
+      if (node.nodeType === Node.ELEMENT_NODE) {
+        const el = node as HTMLElement;
+        const tag = el.tagName.toLowerCase();
+        const inner = Array.from(el.childNodes).map(walk).join('');
+
+        if (tag === 'strong' || tag === 'b') {
+          return inner.trim() ? `**${inner.trim()}**` : '';
+        }
+        if (tag === 'em' || tag === 'i') {
+          return inner.trim() ? `*${inner.trim()}*` : '';
+        }
+        if (tag === 'u') {
+          return inner.trim() ? `<u>${inner.trim()}</u>` : '';
+        }
+        if (tag === 'a') {
+          const href = el.getAttribute('href') || '#';
+          return inner.trim() ? `[${inner.trim()}](${href})` : '';
+        }
+        if (tag === 'br') {
+          return '\n';
+        }
+        return inner;
+      }
+      return '';
+    }
+
+    return walk(temp).trim();
+  }
+
+  function initNotionEditor() {
+    const form = document.getElementById('notion-editor-form') as HTMLFormElement | null;
+    if (!form) return;
+
+    const container = document.getElementById('notion-blocks-container');
+    const canvasBottomPad = document.getElementById('canvas-bottom-pad');
+    const hiddenContentInput = document.getElementById('article-serialized-content') as HTMLInputElement | null;
+    const titleArea = document.getElementById('article-title') as HTMLTextAreaElement | null;
+    const summaryArea = document.getElementById('article-summary') as HTMLTextAreaElement | null;
+    const summaryCounter = document.getElementById('summary-counter');
+    const imageUrlInput = document.getElementById('article-image-url') as HTMLInputElement | null;
+    const coverPreviewImg = document.getElementById('cover-preview-img') as HTMLImageElement | null;
+    const slashMenu = document.getElementById('notion-slash-menu');
+    const floatingToolbar = document.getElementById('notion-floating-toolbar');
+    const saveStatusText = document.getElementById('save-status-text');
+
+    const statBlocksCount = document.getElementById('stat-blocks-count');
+    const statWords = document.getElementById('stat-words');
+    const statReadTime = document.getElementById('stat-read-time');
+    const feedbackStatus = document.getElementById('editor-feedback-status');
+
+    const btnSaveTop = document.getElementById('btn-save-top') as HTMLButtonElement | null;
+    const btnSaveSide = document.getElementById('btn-save-side') as HTMLButtonElement | null;
+
+    let blocks: NotionBlock[] = [];
+    let activeSlashBlockIndex: number | null = null;
+
+    // Auto-resize multi-line textareas (Title & Summary)
+    function autoResizeTextareas() {
+      [titleArea, summaryArea].forEach((area) => {
+        if (!area) return;
+        area.style.height = 'auto';
+        area.style.height = `${area.scrollHeight}px`;
+      });
+    }
+
+    titleArea?.addEventListener('input', autoResizeTextareas);
+    summaryArea?.addEventListener('input', autoResizeTextareas);
+    autoResizeTextareas();
+
+    // Parser from raw markdown/text to Notion-style blocks
+    function parseInitialToBlocks(rawText: string): NotionBlock[] {
+      if (!rawText || !rawText.trim()) {
+        return [{ id: 'nb_' + Math.random().toString(36).slice(2, 8), type: 'paragraph', content: '' }];
+      }
+
+      const lines = rawText.split(/\r?\n/);
+      const parsed: NotionBlock[] = [];
+      let currentParagraph: string[] = [];
+
+      function flushPara() {
+        if (currentParagraph.length > 0) {
+          const text = currentParagraph.join(' ').trim();
+          if (text) {
+            parsed.push({
+              id: 'nb_' + Math.random().toString(36).slice(2, 8),
+              type: 'paragraph',
+              content: markdownToHtml(text),
+            });
+          }
+          currentParagraph = [];
+        }
+      }
+
+      for (const rawLine of lines) {
+        const line = rawLine.trim();
+
+        if (!line) {
+          flushPara();
+          continue;
+        }
+
+        if (line.startsWith('### ')) {
+          flushPara();
+          parsed.push({
+            id: 'nb_' + Math.random().toString(36).slice(2, 8),
+            type: 'h3',
+            content: markdownToHtml(line.replace(/^###\s+/, '')),
+          });
+          continue;
+        }
+
+        if (line.startsWith('## ')) {
+          flushPara();
+          parsed.push({
+            id: 'nb_' + Math.random().toString(36).slice(2, 8),
+            type: 'h2',
+            content: markdownToHtml(line.replace(/^##\s+/, '')),
+          });
+          continue;
+        }
+
+        if (line.startsWith('> ')) {
+          flushPara();
+          parsed.push({
+            id: 'nb_' + Math.random().toString(36).slice(2, 8),
+            type: 'quote',
+            content: markdownToHtml(line.replace(/^>\s+/, '')),
+          });
+          continue;
+        }
+
+        if (/^[-*]\s+/.test(line)) {
+          flushPara();
+          parsed.push({
+            id: 'nb_' + Math.random().toString(36).slice(2, 8),
+            type: 'bullet',
+            content: markdownToHtml(line.replace(/^[-*]\s+/, '')),
+          });
+          continue;
+        }
+
+        if (/^\d+\.\s+/.test(line)) {
+          flushPara();
+          parsed.push({
+            id: 'nb_' + Math.random().toString(36).slice(2, 8),
+            type: 'number',
+            content: markdownToHtml(line.replace(/^\d+\.\s+/, '')),
+          });
+          continue;
+        }
+
+        if (/^!\[(.*?)\]\((.*?)\)/.test(line)) {
+          flushPara();
+          const match = line.match(/^!\[(.*?)\]\((.*?)\)/);
+          parsed.push({
+            id: 'nb_' + Math.random().toString(36).slice(2, 8),
+            type: 'image',
+            caption: match ? match[1] : '',
+            content: match ? match[2] : '',
+          });
+          continue;
+        }
+
+        if (line === '---' || line === '***') {
+          flushPara();
+          parsed.push({
+            id: 'nb_' + Math.random().toString(36).slice(2, 8),
+            type: 'divider',
+            content: '',
+          });
+          continue;
+        }
+
+        currentParagraph.push(line);
+      }
+
+      flushPara();
+      return parsed.length > 0 ? parsed : [{ id: 'nb_1', type: 'paragraph', content: '' }];
+    }
+
+    // Hydrate initial blocks
+    try {
+      const rawJson = document.getElementById('article-raw-initial')?.textContent || '""';
+      const rawText = JSON.parse(rawJson);
+      blocks = parseInitialToBlocks(rawText);
+    } catch {
+      blocks = [{ id: 'nb_1', type: 'paragraph', content: '' }];
+    }
+
+    // Render Notion Blocks
+    function renderNotionBlocks() {
+      if (!container) return;
+      container.innerHTML = '';
+
+      blocks.forEach((block, index) => {
+        const row = document.createElement('div');
+        // Notion row with generous gutter margin (-left-8 to -left-10) so handle NEVER touches text
+        row.className = 'notion-row group relative flex items-start -mx-3 px-3 py-1 my-0.5 rounded-lg hover:bg-slate-50/70 transition';
+        row.dataset.index = String(index);
+        row.dataset.id = block.id;
+
+        // Left Ghost Notion Handle (Hover only, safely in margin)
+        const handle = document.createElement('div');
+        handle.className = 'notion-handle absolute -left-8 sm:-left-10 top-1.5 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity select-none z-10';
+
+        // [+] Add block below button
+        const btnAdd = document.createElement('button');
+        btnAdd.type = 'button';
+        btnAdd.className = 'w-5 h-5 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-xs font-bold transition cursor-pointer';
+        btnAdd.title = 'Tambah blok di bawah';
+        btnAdd.innerHTML = '+';
+        btnAdd.onclick = (e) => {
+          e.stopPropagation();
+          insertBlock(index + 1, 'paragraph');
+        };
+        handle.appendChild(btnAdd);
+
+        // [⋮⋮] Notion Menu Button
+        const btnMenu = document.createElement('button');
+        btnMenu.type = 'button';
+        btnMenu.className = 'w-5 h-5 rounded hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center text-2xs transition cursor-pointer';
+        btnMenu.title = 'Menu Blok';
+        btnMenu.innerHTML = `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="6" r="2"/><circle cx="16" cy="6" r="2"/><circle cx="8" cy="12" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="8" cy="18" r="2"/><circle cx="16" cy="18" r="2"/></svg>`;
+        btnMenu.onclick = (e) => {
+          e.stopPropagation();
+          openContextMenu(btnMenu, index);
+        };
+        handle.appendChild(btnMenu);
+
+        row.appendChild(handle);
+
+        // Block Content Wrap
+        const contentWrap = document.createElement('div');
+        contentWrap.className = 'flex-1 min-w-0';
+
+        if (block.type === 'h2') {
+          const el = document.createElement('div');
+          el.contentEditable = 'true';
+          el.className = 'notion-editable text-xl sm:text-2xl font-black text-slate-900 border-b border-slate-100 pb-1 mt-5 mb-1.5 outline-none tracking-tight leading-snug';
+          el.dataset.placeholder = 'Judul Bab (H2)...';
+          el.innerHTML = block.content;
+          bindEditableEvents(el, index);
+          contentWrap.appendChild(el);
+        } else if (block.type === 'h3') {
+          const el = document.createElement('div');
+          el.contentEditable = 'true';
+          el.className = 'notion-editable text-base sm:text-lg font-bold text-slate-900 mt-4 mb-1 outline-none tracking-tight';
+          el.dataset.placeholder = 'Sub-Bab (H3)...';
+          el.innerHTML = block.content;
+          bindEditableEvents(el, index);
+          contentWrap.appendChild(el);
+        } else if (block.type === 'paragraph') {
+          const el = document.createElement('div');
+          el.contentEditable = 'true';
+          el.className = 'notion-editable text-xs sm:text-sm text-slate-700 leading-relaxed my-1 outline-none';
+          el.dataset.placeholder = "Ketik teks atau '/' untuk memilih blok...";
+          el.innerHTML = block.content;
+          bindEditableEvents(el, index);
+          contentWrap.appendChild(el);
+        } else if (block.type === 'quote') {
+          const quoteWrap = document.createElement('div');
+          quoteWrap.className = 'border-l-4 border-emerald-600 bg-emerald-50/50 pl-4 py-2.5 my-2.5 rounded-r-lg italic text-slate-800';
+          const el = document.createElement('div');
+          el.contentEditable = 'true';
+          el.className = 'notion-editable text-xs sm:text-sm outline-none';
+          el.dataset.placeholder = 'Kutipan atau nasihat penting...';
+          el.innerHTML = block.content;
+          bindEditableEvents(el, index);
+          quoteWrap.appendChild(el);
+          contentWrap.appendChild(quoteWrap);
+        } else if (block.type === 'bullet') {
+          const bulletWrap = document.createElement('div');
+          bulletWrap.className = 'flex items-start gap-3 text-xs sm:text-sm text-slate-700 my-1';
+          const bulletDot = document.createElement('span');
+          bulletDot.className = 'w-1.5 h-1.5 rounded-full bg-slate-500 mt-2 shrink-0 select-none';
+          const el = document.createElement('div');
+          el.contentEditable = 'true';
+          el.className = 'notion-editable flex-1 outline-none leading-relaxed';
+          el.dataset.placeholder = 'Poin bahasan...';
+          el.innerHTML = block.content;
+          bindEditableEvents(el, index);
+          bulletWrap.appendChild(bulletDot);
+          bulletWrap.appendChild(el);
+          contentWrap.appendChild(bulletWrap);
+        } else if (block.type === 'number') {
+          const numWrap = document.createElement('div');
+          numWrap.className = 'flex items-start gap-2.5 text-xs sm:text-sm text-slate-700 my-1';
+          const numIndex = document.createElement('span');
+          numIndex.className = 'font-mono text-emerald-800 select-none text-xs font-bold pt-0.5 shrink-0 w-5 text-right';
+          numIndex.innerText = `${getSequentialNumber(index)}.`;
+          const el = document.createElement('div');
+          el.contentEditable = 'true';
+          el.className = 'notion-editable flex-1 outline-none leading-relaxed';
+          el.dataset.placeholder = 'Langkah atau urutan...';
+          el.innerHTML = block.content;
+          bindEditableEvents(el, index);
+          numWrap.appendChild(numIndex);
+          numWrap.appendChild(el);
+          contentWrap.appendChild(numWrap);
+        } else if (block.type === 'image') {
+          const imgWrap = document.createElement('div');
+          imgWrap.className = 'my-4 group/img relative';
+
+          if (block.content) {
+            imgWrap.innerHTML = `
+              <div class="aspect-16/10 rounded-xl overflow-hidden border border-slate-200 bg-slate-100 max-h-[380px]">
+                <img src="${escapeHtml(block.content)}" alt="${escapeHtml(block.caption || '')}" class="w-full h-full object-cover" />
+              </div>
+              <div contenteditable="true" class="notion-editable block-img-caption text-2xs text-slate-400 text-center mt-1.5 outline-none italic" data-placeholder="Keterangan foto (opsional)...">${escapeHtml(block.caption || '')}</div>
+            `;
+            const captionEl = imgWrap.querySelector('.block-img-caption') as HTMLElement;
+            captionEl.oninput = () => {
+              block.caption = captionEl.innerText;
+            };
+          } else {
+            imgWrap.innerHTML = `
+              <div class="p-6 rounded-xl border border-slate-200 bg-slate-50 text-center space-y-2">
+                <div class="text-xs font-bold text-slate-700">Sisipkan Foto / Gambar</div>
+                <div class="flex items-center gap-2 max-w-md mx-auto">
+                  <input type="url" class="img-url-input flex-1 h-8 px-2.5 text-xs border border-slate-300 rounded-md bg-white focus:border-emerald-700 focus:outline-none" placeholder="Masukkan URL gambar (https://...)" />
+                  <button type="button" class="btn-apply-img h-8 px-3 rounded-md bg-emerald-700 text-white font-semibold text-xs transition cursor-pointer">Terapkan</button>
+                </div>
+              </div>
+            `;
+            const inp = imgWrap.querySelector('.img-url-input') as HTMLInputElement;
+            const btn = imgWrap.querySelector('.btn-apply-img') as HTMLButtonElement;
+            const applyImg = () => {
+              const url = inp.value.trim();
+              if (url) {
+                block.content = url;
+                renderNotionBlocks();
+              }
+            };
+            btn.onclick = applyImg;
+            inp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); applyImg(); } };
+          }
+          contentWrap.appendChild(imgWrap);
+        } else if (block.type === 'divider') {
+          const divWrap = document.createElement('div');
+          divWrap.className = 'my-4 py-1';
+          divWrap.innerHTML = '<hr class="border-slate-200" />';
+          contentWrap.appendChild(divWrap);
+        }
+
+        row.appendChild(contentWrap);
+        container.appendChild(row);
+      });
+
+      updateStats();
+    }
+
+    // Bottom whitespace pad click -> focuses or appends block
+    canvasBottomPad?.addEventListener('click', () => {
+      if (blocks.length > 0 && !blocks[blocks.length - 1].content.trim()) {
+        focusBlock(blocks.length - 1);
+      } else {
+        insertBlock(blocks.length, 'paragraph');
+      }
+    });
+
+    // Calculate sequential number for adjacent 'number' blocks
+    function getSequentialNumber(idx: number): number {
+      let count = 1;
+      for (let i = idx - 1; i >= 0; i--) {
+        if (blocks[i].type === 'number') {
+          count++;
+        } else {
+          break;
+        }
+      }
+      return count;
+    }
+
+    // Bind Keyboard and Input Events on contenteditable elements
+    function bindEditableEvents(el: HTMLElement, index: number) {
+      el.oninput = () => {
+        blocks[index].content = el.innerHTML;
+
+        const text = el.innerText.trim();
+        // Check for Slash Command '/'
+        if (text === '/') {
+          showSlashMenu(el, index);
+        } else if (slashMenu && !slashMenu.classList.contains('hidden') && !text.startsWith('/')) {
+          hideSlashMenu();
+        }
+
+        updateStats();
+      };
+
+      el.onkeydown = (e: KeyboardEvent) => {
+        // Enter: Create new block below (unless Shift is held)
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          hideSlashMenu();
+
+          // Inherit list type if in bullet or number list
+          let nextType: NotionBlock['type'] = 'paragraph';
+          if (blocks[index].type === 'bullet') nextType = 'bullet';
+          else if (blocks[index].type === 'number') nextType = 'number';
+
+          // If current list item is empty, convert to paragraph
+          const textClean = el.innerText.trim();
+          if ((blocks[index].type === 'bullet' || blocks[index].type === 'number') && !textClean) {
+            blocks[index].type = 'paragraph';
+            renderNotionBlocks();
+            focusBlock(index);
+            return;
+          }
+
+          insertBlock(index + 1, nextType);
+          return;
+        }
+
+        // Backspace on empty block: Delete block and focus previous
+        if (e.key === 'Backspace' && !el.innerText.trim()) {
+          if (blocks.length > 1) {
+            e.preventDefault();
+            hideSlashMenu();
+            blocks.splice(index, 1);
+            renderNotionBlocks();
+            focusBlock(Math.max(0, index - 1));
+            return;
+          }
+        }
+
+        // Arrow Up at start: Focus previous
+        if (e.key === 'ArrowUp' && index > 0) {
+          const sel = window.getSelection();
+          if (sel && sel.anchorOffset === 0) {
+            e.preventDefault();
+            focusBlock(index - 1);
+          }
+        }
+
+        // Arrow Down at end: Focus next
+        if (e.key === 'ArrowDown' && index < blocks.length - 1) {
+          const sel = window.getSelection();
+          if (sel && sel.anchorOffset === el.innerText.length) {
+            e.preventDefault();
+            focusBlock(index + 1);
+          }
+        }
+
+        // Escape: Close slash menu & floating toolbar
+        if (e.key === 'Escape') {
+          hideSlashMenu();
+          floatingToolbar?.classList.add('hidden');
+        }
+      };
+    }
+
+    // Focus block by index
+    function focusBlock(idx: number) {
+      setTimeout(() => {
+        const rows = container?.querySelectorAll('.notion-row');
+        const targetRow = rows?.[idx];
+        const editable = targetRow?.querySelector<HTMLElement>('.notion-editable');
+        if (editable) {
+          editable.focus();
+          const range = document.createRange();
+          const sel = window.getSelection();
+          range.selectNodeContents(editable);
+          range.collapse(false);
+          sel?.removeAllRanges();
+          sel?.addRange(range);
+        }
+      }, 30);
+    }
+
+    // Insert block
+    function insertBlock(atIndex: number, type: NotionBlock['type']) {
+      const newBlock: NotionBlock = {
+        id: 'nb_' + Math.random().toString(36).slice(2, 8),
+        type,
+        content: '',
+      };
+      blocks.splice(atIndex, 0, newBlock);
+      renderNotionBlocks();
+      focusBlock(atIndex);
+    }
+
+    // Slash Command Menu Positioning
+    function showSlashMenu(anchorEl: HTMLElement, index: number) {
+      if (!slashMenu) return;
+      activeSlashBlockIndex = index;
+      const rect = anchorEl.getBoundingClientRect();
+      slashMenu.style.top = `${rect.bottom + window.scrollY + 4}px`;
+      slashMenu.style.left = `${Math.min(window.innerWidth - 280, rect.left)}px`;
+      slashMenu.classList.remove('hidden');
+    }
+
+    function hideSlashMenu() {
+      if (!slashMenu) return;
+      slashMenu.classList.add('hidden');
+      activeSlashBlockIndex = null;
+    }
+
+    // Click on Slash Menu Choice
+    slashMenu?.querySelectorAll<HTMLButtonElement>('[data-slash-choice]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (activeSlashBlockIndex === null) return;
+        const choice = btn.getAttribute('data-slash-choice') as NotionBlock['type'];
+        const targetBlock = blocks[activeSlashBlockIndex];
+
+        // Clean out leading slash
+        targetBlock.content = targetBlock.content.replace(/^\s*\/\s*/, '');
+        targetBlock.type = choice;
+        hideSlashMenu();
+        renderNotionBlocks();
+        focusBlock(activeSlashBlockIndex);
+      });
+    });
+
+    // Close slash menu on outside click
+    document.addEventListener('click', (e) => {
+      if (slashMenu && !slashMenu.contains(e.target as Node)) {
+        hideSlashMenu();
+      }
+    });
+
+    // Floating Formatting Toolbar (Bold, Italic, Underline, Link)
+    function handleTextSelection() {
+      if (!floatingToolbar) return;
+      const sel = window.getSelection();
+
+      if (!sel || sel.isCollapsed || !sel.rangeCount) {
+        floatingToolbar.classList.add('hidden');
+        return;
+      }
+
+      const range = sel.getRangeAt(0);
+      const containerEl = range.commonAncestorContainer;
+      const editableEl = (containerEl.nodeType === Node.ELEMENT_NODE ? (containerEl as HTMLElement) : containerEl.parentElement)?.closest('.notion-editable');
+
+      if (!editableEl) {
+        floatingToolbar.classList.add('hidden');
+        return;
+      }
+
+      const rect = range.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) {
+        floatingToolbar.classList.add('hidden');
+        return;
+      }
+
+      floatingToolbar.style.top = `${rect.top + window.scrollY - 44}px`;
+      floatingToolbar.style.left = `${Math.max(12, rect.left + (rect.width / 2) - 80)}px`;
+      floatingToolbar.classList.remove('hidden');
+    }
+
+    document.addEventListener('selectionchange', handleTextSelection);
+
+    floatingToolbar?.querySelectorAll<HTMLButtonElement>('[data-format]').forEach((btn) => {
+      btn.onmousedown = (e) => {
+        e.preventDefault(); // Preserve text selection
+        const format = btn.getAttribute('data-format');
+        const doc = document as any;
+        if (format === 'bold') {
+          doc.execCommand('bold', false);
+        } else if (format === 'italic') {
+          doc.execCommand('italic', false);
+        } else if (format === 'underline') {
+          doc.execCommand('underline', false);
+        } else if (format === 'link') {
+          const url = prompt('Masukkan tautan URL (contoh: https://nahdliyin.id):');
+          if (url) doc.execCommand('createLink', false, url.trim());
+        } else if (format === 'clear') {
+          doc.execCommand('removeFormat', false);
+        }
+
+        // Sync active editable content back to blocks array
+        const sel = window.getSelection();
+        const activeEditable = sel?.anchorNode ? (sel.anchorNode.nodeType === Node.ELEMENT_NODE ? (sel.anchorNode as HTMLElement) : sel.anchorNode.parentElement)?.closest<HTMLElement>('.notion-editable') : null;
+        if (activeEditable) {
+          const parentRow = activeEditable.closest<HTMLElement>('.notion-row');
+          const rowIdx = Number(parentRow?.dataset.index || '-1');
+          if (rowIdx >= 0 && blocks[rowIdx]) {
+            blocks[rowIdx].content = activeEditable.innerHTML;
+            updateStats();
+          }
+        }
+      };
+    });
+
+    // Notion Context Menu (Move up, Move down, Delete)
+    function openContextMenu(anchorBtn: HTMLElement, index: number) {
+      const existingMenu = document.getElementById('notion-context-menu');
+      if (existingMenu) existingMenu.remove();
+
+      const menu = document.createElement('div');
+      menu.id = 'notion-context-menu';
+      menu.className = 'fixed z-50 w-48 bg-white rounded-xl shadow-xl border border-slate-200 py-1.5 text-xs text-slate-700 animate-in fade-in duration-100';
+
+      const rect = anchorBtn.getBoundingClientRect();
+      menu.style.top = `${rect.bottom + 4}px`;
+      menu.style.left = `${Math.max(8, rect.left - 10)}px`;
+
+      menu.innerHTML = `
+        <div class="px-3 py-1 text-2xs font-bold uppercase tracking-wider text-slate-500">Aksi Blok:</div>
+        <button type="button" class="btn-act-up w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left ${index === 0 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}">
+          <svg class="w-3.5 h-3.5 text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7"/></svg>
+          <span>Pindahkan ke Atas</span>
+        </button>
+        <button type="button" class="btn-act-down w-full px-3 py-1.5 flex items-center gap-2 hover:bg-slate-100 text-left ${index === blocks.length - 1 ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'}">
+          <svg class="w-3.5 h-3.5 text-slate-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v14M19 12l-7 7-7-7"/></svg>
+          <span>Pindahkan ke Bawah</span>
+        </button>
+        <div class="h-px bg-slate-100 my-1"></div>
+        <button type="button" class="btn-act-del w-full px-3 py-1.5 flex items-center gap-2 text-rose-600 hover:bg-rose-50 text-left cursor-pointer font-semibold">
+          <svg class="w-3.5 h-3.5 text-rose-600 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>Hapus</span>
+        </button>
+      `;
+
+      menu.querySelector('.btn-act-up')?.addEventListener('click', () => {
+        if (index > 0) {
+          const temp = blocks[index - 1];
+          blocks[index - 1] = blocks[index];
+          blocks[index] = temp;
+          renderNotionBlocks();
+          focusBlock(index - 1);
+        }
+        menu.remove();
+      });
+
+      menu.querySelector('.btn-act-down')?.addEventListener('click', () => {
+        if (index < blocks.length - 1) {
+          const temp = blocks[index + 1];
+          blocks[index + 1] = blocks[index];
+          blocks[index] = temp;
+          renderNotionBlocks();
+          focusBlock(index + 1);
+        }
+        menu.remove();
+      });
+
+      menu.querySelector('.btn-act-del')?.addEventListener('click', () => {
+        if (blocks.length > 1) {
+          blocks.splice(index, 1);
+        } else {
+          blocks[0].content = '';
+          blocks[0].type = 'paragraph';
+        }
+        renderNotionBlocks();
+        menu.remove();
+      });
+
+      document.body.appendChild(menu);
+
+      const closeMenu = (ev: MouseEvent) => {
+        if (!menu.contains(ev.target as Node) && ev.target !== anchorBtn) {
+          menu.remove();
+          document.removeEventListener('click', closeMenu);
+        }
+      };
+      setTimeout(() => document.addEventListener('click', closeMenu), 10);
+    }
+
+    // Serialize Blocks to Clean Markdown for Storage
+    function serializeBlocksToStorage(): string {
+      const parts: string[] = [];
+
+      for (const b of blocks) {
+        const val = htmlToMarkdown(b.content || '');
+        if (!val && b.type !== 'divider') continue;
+
+        if (b.type === 'h2') {
+          parts.push(`## ${val}`);
+        } else if (b.type === 'h3') {
+          parts.push(`### ${val}`);
+        } else if (b.type === 'paragraph') {
+          parts.push(val);
+        } else if (b.type === 'quote') {
+          parts.push(`> ${val}`);
+        } else if (b.type === 'bullet') {
+          parts.push(`- ${val}`);
+        } else if (b.type === 'number') {
+          parts.push(`1. ${val}`);
+        } else if (b.type === 'image') {
+          parts.push(`![${b.caption || 'Foto panduan'}](${b.content})`);
+        } else if (b.type === 'divider') {
+          parts.push('---');
+        }
+      }
+
+      return parts.join('\n\n');
+    }
+
+    // Stats Calculation
+    function updateStats() {
+      const serialized = serializeBlocksToStorage();
+      const words = serialized.trim().split(/\s+/).filter(Boolean).length;
+      const readMinutes = Math.max(1, Math.ceil(words / 180));
+
+      if (statBlocksCount) statBlocksCount.textContent = String(blocks.length);
+      if (statWords) statWords.textContent = String(words);
+      if (statReadTime) statReadTime.textContent = `${readMinutes} mnt`;
+
+      if (hiddenContentInput) {
+        hiddenContentInput.value = serialized;
+      }
+    }
+
+    // Summary Counter
+    summaryArea?.addEventListener('input', () => {
+      if (summaryCounter) {
+        summaryCounter.textContent = `${summaryArea.value.length} / 250`;
+      }
+    });
+
+    // Cover Image Live Preview
+    imageUrlInput?.addEventListener('input', () => {
+      const url = imageUrlInput.value.trim();
+      if (coverPreviewImg) {
+        coverPreviewImg.src = url || 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=600&q=80';
+      }
+    });
+
+    // Ctrl+S / Cmd+S Shortcut
+    window.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+        e.preventDefault();
+        form.requestSubmit();
+      }
+    });
+
+    // Form Submit
+    async function submitArticle(e: Event) {
+      e.preventDefault();
+      if (!form) return;
+
+      const categorySelect = document.getElementById('article-category') as HTMLSelectElement | null;
+      const idInput = form.querySelector<HTMLInputElement>('input[name="id"]');
+      const actionInput = form.querySelector<HTMLInputElement>('input[name="action"]');
+
+      const title = (titleArea?.value || '').trim();
+      const category = (categorySelect?.value || '').trim();
+      const summary = (summaryArea?.value || '').trim();
+      const imageUrl = (imageUrlInput?.value || '').trim();
+      const content = serializeBlocksToStorage();
+      const action = actionInput?.value || 'create';
+      const id = idInput?.value || '';
+
+      if (!title || !category || !summary) {
+        showFeedback('Judul, kategori, dan ringkasan wajib diisi.', true);
+        return;
+      }
+
+      setLoading(true);
+
+      try {
+        const payload: Record<string, any> = {
+          action,
+          title,
+          category,
+          summary,
+          content,
+          imageUrl: imageUrl || 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=600&q=80',
+        };
+        if (id) {
+          payload.id = id;
+        }
+
+        const res = await fetch('/api/admin/articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          showFeedback(data.message || 'Alhamdulillah, panduan berhasil disimpan!', false);
+          if (saveStatusText) {
+            saveStatusText.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span><span>Tersimpan</span>';
+          }
+          setTimeout(() => {
+            window.location.href = '/admin/articles';
+          }, 600);
+        } else {
+          showFeedback(data.message || 'Gagal menyimpan panduan.', true);
+          setLoading(false);
+        }
+      } catch (err: any) {
+        showFeedback('Kendala koneksi: ' + (err.message || 'Coba lagi beberapa saat.'), true);
+        setLoading(false);
+      }
+    }
+
+    function setLoading(isLoading: boolean) {
+      if (btnSaveTop) btnSaveTop.disabled = isLoading;
+      if (btnSaveSide) btnSaveSide.disabled = isLoading;
+      if (saveStatusText && isLoading) {
+        saveStatusText.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span><span>Menyimpan...</span>';
+      }
+    }
+
+    function showFeedback(msg: string, isError: boolean) {
+      if (!feedbackStatus) return;
+      feedbackStatus.textContent = msg;
+      feedbackStatus.className = `p-3 rounded-lg text-xs font-semibold ${
+        isError ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+      }`;
+    }
+
+    function escapeHtml(str: string): string {
+      return (str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    form.addEventListener('submit', submitArticle);
+    btnSaveTop?.addEventListener('click', () => form.requestSubmit());
+
+    // Initial Render
+    renderNotionBlocks();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNotionEditor);
+  } else {
+    initNotionEditor();
+  }
+</script>

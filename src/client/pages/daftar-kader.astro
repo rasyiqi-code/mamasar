@@ -1,0 +1,219 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
+import KaderRegisterForm from '../components/dashboard/KaderRegisterForm.astro';
+import { resolveUser } from '../../lib/neon-auth';
+import { getAllZones } from '../../lib/db';
+import { SITE_CONFIG } from '../../lib/constants';
+
+const user = await resolveUser(Astro.request);
+const zones = await getAllZones();
+const assignedZone = user ? zones.find((z) => z.id === user.assigned_zone_id) : undefined;
+const notice = Astro.url.searchParams.get('notice');
+---
+
+<Layout
+  title="Pendaftaran Kader | Mamasar"
+  description="Pendaftaran resmi Kader Ranting dan Pengurus MWC NU Kabupaten Sumenep untuk pendataan jemput bola dan pendampingan UMKM warga Nahdliyin."
+>
+  <div class="pb-12 space-y-2.5 sm:space-y-6">
+    {/* Full-Bleed Hairline Page Header (Persis pasang-iklan.astro) */}
+    <header class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-3.5 sm:py-5 space-y-2 sm:space-y-3 bg-white border-b border-slate-200">
+      <div class="hidden md:flex items-center justify-between text-xs text-slate-600">
+        <nav aria-label="Breadcrumb" class="flex items-center gap-1.5">
+          <a href="/" class="hover:text-emerald-700 font-medium">Beranda</a>
+          <AppIcon name="chevron-right" size="xs" class="text-slate-400" />
+          <span class="text-slate-900 font-bold">Pendaftaran Kader</span>
+        </nav>
+      </div>
+
+      <div>
+        <h1 class="text-xl sm:text-3xl font-black text-slate-900 tracking-tight">
+          Pendaftaran Kader
+        </h1>
+        <p class="hidden sm:block text-xs sm:text-sm text-slate-600">
+          Pengajuan peran Kader Ranting dan Pengurus MWC NU Kabupaten Sumenep.
+        </p>
+      </div>
+    </header>
+
+    <div class="px-3 sm:px-0 space-y-4 sm:space-y-5">
+      {/* Alert jika belum login (Understated & Tenang) */}
+      {!user && (
+        <div class="-mx-3 sm:mx-0 px-3.5 py-2 sm:px-4 sm:py-2.5 rounded-none sm:rounded-lg bg-slate-50 border-y sm:border border-slate-200 flex items-center justify-between gap-2 text-xs text-slate-600">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <AppIcon name="info" size="xs" class="text-slate-400 shrink-0" />
+            <span class="truncate">
+              Masuk akun untuk mengisi formulir pendaftaran kader.
+            </span>
+          </div>
+          <a
+            href="/login?redirect=/daftar-kader"
+            class="shrink-0 font-bold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1 transition text-xs whitespace-nowrap"
+          >
+            <span>Masuk</span>
+            <AppIcon name="arrow-right" size="xs" />
+          </a>
+        </div>
+      )}
+
+      {/* Notice alert jika diarahkan dari halaman admin */}
+      {notice === 'unauthorized_admin' && (
+        <div role="alert" class="-mx-3 sm:mx-0 px-3.5 py-2.5 sm:px-4 sm:py-2.5 rounded-none sm:rounded-lg bg-slate-50 border-y sm:border border-slate-200 text-slate-700 text-xs flex items-center gap-2">
+          <AppIcon name="shield" size="xs" class="shrink-0 text-slate-400" />
+          <span>Halaman konsol <code>/admin</code> memerlukan verifikasi akun kader oleh Pengurus PCNU Sumenep.</span>
+        </div>
+      )}
+
+      {/* Grid Utama 2 Kolom (Persis pasang-iklan.astro) */}
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Kolom Kiri: Pure Form Tanpa Box Card (8 Kolom) */}
+        <div class="lg:col-span-8 space-y-6">
+          <KaderRegisterForm user={user} zones={zones} assignedZone={assignedZone} />
+        </div>
+
+        {/* Backdrop for Mobile Drawer */}
+        <div
+          id="sidebar-drawer-backdrop"
+          class="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs hidden transition-opacity lg:hidden"
+          aria-hidden="true"
+        ></div>
+
+        {/* Right Docked Sidebar (Desktop) / Slide-in Drawer (Mobile) */}
+        <aside
+          id="sidebar-drawer"
+          aria-label="Tahapan Pendaftaran Kader"
+          class="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md bg-white p-5 shadow-2xl overflow-y-auto transition-transform duration-300 ease-in-out translate-x-full lg:translate-x-0 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:p-0 lg:shadow-none lg:overflow-visible lg:col-span-4 lg:space-y-4 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20"
+        >
+          {/* Mobile Drawer Header with Close Button (Hidden on Desktop) */}
+          <div class="flex items-center justify-between pb-3.5 mb-3 border-b border-slate-200 lg:hidden">
+            <div class="flex items-center gap-2">
+              <AppIcon name="check" size="xs" class="text-emerald-700" />
+              <h2 class="text-xs font-black uppercase tracking-wider text-slate-900">
+                Tahapan Pendaftaran
+              </h2>
+            </div>
+            <button
+              type="button"
+              id="close-sidebar-drawer"
+              class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center cursor-pointer transition"
+              aria-label="Tutup Tahapan"
+            >
+              <AppIcon name="x" size="xs" />
+            </button>
+          </div>
+
+          {/* Unboxed Tahapan Pendaftaran (No card box) */}
+          <section aria-labelledby="flow-heading" class="space-y-4 text-xs">
+            <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
+              <h2 id="flow-heading" class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+                <AppIcon name="check" size="xs" class="text-emerald-700" />
+                <span>Tahapan Pendaftaran</span>
+              </h2>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                LPNU PCNU
+              </span>
+            </div>
+
+            <ol class="space-y-3.5 relative before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
+              <li class="relative flex items-start gap-3 pl-1">
+                <span class="w-5 h-5 rounded-full bg-emerald-700 text-white font-bold text-[10px] flex items-center justify-center shrink-0 z-10 ring-4 ring-white">
+                  1
+                </span>
+                <div class="space-y-0.5 pt-0.5">
+                  <strong class="text-slate-900 block font-bold text-xs">Kirim Formulir</strong>
+                  <p class="text-slate-500 text-[11px] leading-relaxed">
+                    Pilih peran dan isi nomor WhatsApp serta afiliasi banom/lembaga NU Anda.
+                  </p>
+                </div>
+              </li>
+
+              <li class="relative flex items-start gap-3 pl-1">
+                <span class="w-5 h-5 rounded-full bg-white text-emerald-700 font-bold text-[10px] flex items-center justify-center shrink-0 z-10 border-2 border-emerald-600 ring-4 ring-white">
+                  2
+                </span>
+                <div class="space-y-0.5 pt-0.5">
+                  <strong class="text-slate-900 block font-bold text-xs">Validasi Berkas PCNU</strong>
+                  <p class="text-slate-500 text-[11px] leading-relaxed">
+                    Pengurus LPNU Sumenep mengonfirmasi rekomendasi keaktifan Anda.
+                  </p>
+                </div>
+              </li>
+
+              <li class="relative flex items-start gap-3 pl-1">
+                <span class="w-5 h-5 rounded-full bg-white text-slate-400 font-bold text-[10px] flex items-center justify-center shrink-0 z-10 border-2 border-slate-300 ring-4 ring-white">
+                  3
+                </span>
+                <div class="space-y-0.5 pt-0.5">
+                  <strong class="text-slate-900 block font-bold text-xs">Akses Konsol Petugas</strong>
+                  <p class="text-slate-500 text-[11px] leading-relaxed">
+                    Mulai bertugas mendata dan memverifikasi toko warga Nahdliyin.
+                  </p>
+                </div>
+              </li>
+            </ol>
+
+            <div class="pt-3 border-t border-slate-200 flex items-center justify-between text-[11px]">
+              <span class="text-slate-500">Khidmah sukarela &amp; bebas biaya</span>
+              <a
+                href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent('Assalamu\'alaikum Admin LPNU PCNU Sumenep, saya ingin konfirmasi pendaftaran peran Kader Mamasar.')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="font-semibold text-emerald-700 hover:text-emerald-800 hover:underline inline-flex items-center gap-1"
+              >
+                <span>Bantuan PCNU</span>
+                <AppIcon name="external-link" size="xs" />
+              </a>
+            </div>
+          </section>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  {/* Floating Trigger Button for Mobile Drawer */}
+  <button
+    type="button"
+    class="open-sidebar-drawer-btn lg:hidden fixed bottom-20 right-3.5 z-30 min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-3.5 py-2.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20 active:scale-95 transition cursor-pointer"
+    aria-label="Buka Tahapan Pendaftaran"
+  >
+    <AppIcon name="check" size="xs" class="text-white" />
+    <span>Tahapan Pendaftaran</span>
+  </button>
+</Layout>
+
+<script src="../scripts/dashboard.client.ts"></script>
+
+<script>
+  // Drawer Management for Mobile
+  const sidebarDrawer = document.getElementById('sidebar-drawer');
+  const drawerBackdrop = document.getElementById('sidebar-drawer-backdrop');
+  const closeDrawerBtn = document.getElementById('close-sidebar-drawer');
+  const openDrawerBtns = document.querySelectorAll('.open-sidebar-drawer-btn');
+
+  function openSidebarDrawer() {
+    if (!sidebarDrawer || !drawerBackdrop) return;
+    drawerBackdrop.classList.remove('hidden');
+    sidebarDrawer.classList.remove('translate-x-full');
+    document.body.classList.add('overflow-hidden', 'lg:overflow-auto');
+  }
+
+  function closeSidebarDrawer() {
+    if (!sidebarDrawer || !drawerBackdrop) return;
+    sidebarDrawer.classList.add('translate-x-full');
+    drawerBackdrop.classList.add('hidden');
+    document.body.classList.remove('overflow-hidden', 'lg:overflow-auto');
+  }
+
+  openDrawerBtns.forEach((btn) => btn.addEventListener('click', openSidebarDrawer));
+  closeDrawerBtn?.addEventListener('click', closeSidebarDrawer);
+  drawerBackdrop?.addEventListener('click', closeSidebarDrawer);
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeSidebarDrawer();
+  });
+
+  window.addEventListener('resize', () => {
+    if (window.innerWidth >= 1024) closeSidebarDrawer();
+  });
+</script>

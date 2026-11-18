@@ -177,7 +177,13 @@ export function initDashboardClient() {
       }
 
       if (res.ok && data.success) {
-        window.location.reload();
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirect = urlParams.get('redirect');
+        if (redirect && redirect.startsWith('/') && !redirect.startsWith('//')) {
+          window.location.href = redirect;
+        } else {
+          window.location.reload();
+        }
         return;
       }
       notify(data.message || 'Gagal menyimpan profil toko.', true);
@@ -679,37 +685,10 @@ export function initDashboardClient() {
     });
   });
 
-  // Export Cashbook to CSV
+  // Export Cashbook to CSV (Direct Server-Side Database Export)
   document.querySelectorAll<HTMLButtonElement>('[data-trigger="export-csv"], #btn-export-csv').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const rows = document.querySelectorAll('#cashbook-rows tr');
-      if (!rows || rows.length === 0 || rows[0].querySelector('td[colspan]')) {
-        notify('Belum ada data catatan buku kas untuk diunduh.', true);
-        return;
-      }
-      let csvContent = '\uFEFF';
-      csvContent += 'Tanggal,Keterangan,Jenis,Nominal (Rp)\r\n';
-      rows.forEach((row) => {
-        const cols = row.querySelectorAll('td');
-        if (cols.length >= 4) {
-          const date = cols[0].textContent?.trim() || '';
-          const title = `"${cols[1].textContent?.trim().replace(/"/g, '""')}"`;
-          const type = cols[2].textContent?.trim() || '';
-          const rawAmount = cols[3].textContent?.trim() || '';
-          const cleanAmount = rawAmount.replace(/[^\d]/g, '');
-          const prefix = rawAmount.startsWith('+') ? '' : '-';
-          csvContent += `${date},${title},${type},${prefix}${cleanAmount}\r\n`;
-        }
-      });
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.setAttribute('href', url);
-      link.setAttribute('download', `Rekap-Kas-Mamasar-${new Date().toISOString().slice(0, 10)}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+      window.location.href = '/api/user/cashbook/export';
     });
   });
 
@@ -738,14 +717,14 @@ export function initDashboardClient() {
       neonAuthAction.value = 'signup';
       nameFieldGroup?.classList.remove('hidden');
       if (neonPasswordInput) neonPasswordInput.autocomplete = 'new-password';
-      if (neonSubmitBtn) neonSubmitBtn.textContent = 'Daftar Akun Baru';
-      toggleAuthModeBtn.textContent = 'Sudah punya akun? Masuk di sini';
+      if (neonSubmitBtn) neonSubmitBtn.textContent = 'Daftar';
+      toggleAuthModeBtn.textContent = 'Sudah punya akun? Masuk';
     } else {
       neonAuthAction.value = 'signin';
       nameFieldGroup?.classList.add('hidden');
       if (neonPasswordInput) neonPasswordInput.autocomplete = 'current-password';
-      if (neonSubmitBtn) neonSubmitBtn.textContent = 'Masuk dengan Email';
-      toggleAuthModeBtn.textContent = 'Belum punya akun? Daftar Baru di sini';
+      if (neonSubmitBtn) neonSubmitBtn.textContent = 'Masuk';
+      toggleAuthModeBtn.textContent = 'Belum punya akun? Buat akun';
     }
     if (neonAuthMsg) neonAuthMsg.classList.add('hidden');
   });
@@ -771,8 +750,12 @@ export function initDashboardClient() {
 
       const data = await res.json();
       if (res.ok && data.ok) {
-        if (neonAuthMsg) neonAuthMsg.textContent = 'Berhasil masuk! Membuka dashboard...';
-        window.location.href = data.redirect || '/dashboard';
+        if (neonAuthMsg) neonAuthMsg.textContent = 'Berhasil masuk! Mengalihkan...';
+        const redirectInput = (document.getElementById('authRedirectInput') as HTMLInputElement | null)?.value;
+        const urlRedirect = new URLSearchParams(window.location.search).get('redirect');
+        const candidate = redirectInput || urlRedirect || data.redirect || '/dashboard';
+        const safeTarget = candidate.startsWith('/') && !candidate.startsWith('//') ? candidate : '/dashboard';
+        window.location.href = safeTarget;
       } else {
         if (neonAuthMsg) {
           neonAuthMsg.className = 'p-2.5 rounded-xl text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200';

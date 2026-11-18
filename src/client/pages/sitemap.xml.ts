@@ -1,15 +1,16 @@
 import type { APIRoute } from 'astro';
-import { getProducts, getAllUMKM, getArticles, getEvents } from '../../lib/db';
+import { getProducts, getAllUMKM, getArticles, getEvents, getActiveCaseStudies } from '../../lib/db';
 
 export const GET: APIRoute = async ({ request }) => {
   const url = new URL(request.url);
   const siteUrl = `${url.protocol}//${url.host}`;
 
-  const [products, stores, articles, events] = await Promise.all([
+  const [products, stores, articles, events, caseStudies] = await Promise.all([
     getProducts({ minPrice: 0, maxPrice: 999999999 }),
     getAllUMKM(),
     getArticles(),
     getEvents(),
+    getActiveCaseStudies(),
   ]);
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -72,6 +73,19 @@ export const GET: APIRoute = async ({ request }) => {
     <lastmod>${a.created_at ? new Date(a.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>`
+    )
+    .join('')}
+
+  <!-- Video Studi Kasus Inspirasi Usaha -->
+  ${caseStudies
+    .map(
+      (cs) => `
+  <url>
+    <loc>${siteUrl}/edukasi/video/${cs.id}</loc>
+    <lastmod>${cs.created_at ? new Date(cs.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>`
     )
     .join('')}

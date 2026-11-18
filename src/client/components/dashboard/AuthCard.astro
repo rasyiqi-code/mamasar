@@ -6,15 +6,37 @@ interface Props {
   authError?: string | null;
   isLoggedOut?: boolean;
   intent?: string | null;
+  redirectUrl?: string | null;
 }
 
-const { authError, isLoggedOut = false, intent = null } = Astro.props;
+const { authError, isLoggedOut = false, intent = null, redirectUrl = null } = Astro.props;
 const isKaderIntent = intent === 'daftar-kader';
+const googleAuthHref = redirectUrl
+  ? `/api/auth/login?redirect=${encodeURIComponent(redirectUrl)}`
+  : '/api/auth/login';
 ---
 
-<main id="main" tabindex="-1" class="min-h-screen w-full grid grid-cols-1 lg:grid-cols-12 bg-white">
-  {/* Panel Kiri: Identitas Workspace (Compact Header on Mobile, Split Feature Column on Desktop) */}
-  <div class="lg:col-span-5 bg-[#fbfcfd] border-b lg:border-b-0 lg:border-r border-slate-200 p-4 sm:p-8 lg:p-12 flex flex-col justify-between gap-4 lg:gap-8">
+<main id="main" tabindex="-1" class="min-h-screen w-full flex flex-col lg:grid lg:grid-cols-12 bg-white">
+  {/* Mobile Header: Tampil hanya di layar kecil (< lg) agar ruang vertikal tetap hemat */}
+  <header class="w-full flex items-center justify-between border-b border-slate-200 px-4 py-3 bg-white lg:hidden">
+    <a href="/" class="inline-flex items-center gap-2 group">
+      <MamasarLogo size="sm" class="group-hover:bg-emerald-800 transition" />
+      <div class="leading-tight">
+        <span class="font-bold text-sm text-slate-900 block">Mamasar Console</span>
+        <span class="text-[11px] text-slate-600 block">Portal UMKM &amp; Kader</span>
+      </div>
+    </a>
+    <a
+      href="/"
+      class="min-h-[44px] px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-700 transition inline-flex items-center gap-1.5 shrink-0"
+    >
+      <span>Katalog</span>
+      <AppIcon name="external-link" size="xs" />
+    </a>
+  </header>
+
+  {/* Desktop Panel Kiri: Identitas & Value Proposition (Khusus Desktop lg:, tidak membebani layar mobile) */}
+  <aside aria-label="Informasi Portal Mamasar" class="hidden lg:flex lg:col-span-5 bg-[#fbfcfd] border-r border-slate-200 p-8 lg:p-12 flex-col justify-between gap-8">
     <div class="flex items-center justify-between gap-4">
       <a href="/" class="inline-flex items-center gap-2.5 group">
         <MamasarLogo size="sm" class="group-hover:bg-emerald-800 transition" />
@@ -32,24 +54,24 @@ const isKaderIntent = intent === 'daftar-kader';
       </a>
     </div>
 
-    <div class="space-y-4 lg:space-y-6 my-auto">
-      <div class="space-y-1.5 lg:space-y-2">
-        <span class="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
+    <div class="space-y-6 my-auto">
+      <div class="space-y-2">
+        <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800">
           <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
           <span>{isKaderIntent ? 'Pendaftaran Peran' : 'Akses Pengelola'}</span>
         </span>
-        <h1 class="text-xl sm:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
+        <h2 class="text-2xl lg:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
           {isKaderIntent ? 'Masuk untuk Daftar Kader atau Pengurus' : 'Kelola Toko, Pembukuan & Peran NU'}
-        </h1>
-        <p class="hidden sm:block text-xs sm:text-sm text-slate-600 leading-relaxed max-w-md">
+        </h2>
+        <p class="text-sm text-slate-600 leading-relaxed max-w-md">
           {isKaderIntent
             ? 'Masuk dengan Google atau email, lalu ajukan peran Kader Ranting atau Pengurus MWC NU.'
             : 'Satu workspace terintegrasi untuk etalase produk UMKM, buku kas usaha, hingga pendataan unit binaan.'}
         </p>
       </div>
 
-      <ul class="hidden lg:block divide-y divide-slate-200 border-y border-slate-200">
-        <li class="py-3 flex items-start gap-3">
+      <ul class="divide-y divide-slate-200 border-y border-slate-200">
+        <li class="py-3.5 flex items-start gap-3">
           <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
             <AppIcon name="store" size="xs" />
           </span>
@@ -58,7 +80,7 @@ const isKaderIntent = intent === 'daftar-kader';
             <p class="text-xs text-slate-600 mt-0.5">Terhubung langsung ke WhatsApp penjual tanpa perantara.</p>
           </div>
         </li>
-        <li class="py-3 flex items-start gap-3">
+        <li class="py-3.5 flex items-start gap-3">
           <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
             <AppIcon name="book" size="xs" />
           </span>
@@ -67,29 +89,39 @@ const isKaderIntent = intent === 'daftar-kader';
             <p class="text-xs text-slate-600 mt-0.5">Catat pemasukan dan pengeluaran harian secara rapi.</p>
           </div>
         </li>
-        <li class="py-3 flex items-start gap-3">
+        <li class="py-3.5 flex items-start gap-3">
           <span class="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
             <AppIcon name="users" size="xs" />
           </span>
           <div>
             <p class="text-xs font-bold text-slate-900">Konsol Kader Ranting &amp; MWC</p>
-            <p class="text-xs text-slate-600 mt-0.5">Pendataan jemput bola UMKM dan kurasi wilayah.</p>
+            <p class="text-xs text-slate-600 mt-0.5">Pendataan jemput bola UMKM dan kurasi wilayah binaan.</p>
           </div>
         </li>
       </ul>
     </div>
 
-    <p class="hidden lg:block text-xs text-slate-500">
+    <p class="text-xs text-slate-600">
       LPNU PCNU Sumenep · Workspace Internal Anggota
     </p>
-  </div>
+  </aside>
 
-  {/* Panel Kanan: Form Autentikasi */}
-  <div class="lg:col-span-7 flex items-start lg:items-center justify-center p-4 sm:p-10 lg:p-14 bg-white">
-    <div class="w-full max-w-md space-y-5">
+  {/* Form Autentikasi: Mobile-First (Langsung terlihat di layar pertama mobile, centered di desktop) */}
+  <section aria-labelledby="auth-heading" class="w-full flex-1 lg:col-span-7 flex flex-col justify-center items-center p-4 sm:p-8 lg:p-12 bg-white">
+    <div class="w-full max-w-sm sm:max-w-md my-auto space-y-5">
       <div class="space-y-1">
-        <h2 class="text-lg sm:text-xl font-bold tracking-tight text-slate-900">Masuk ke Akun Anda</h2>
-        <p class="text-xs text-slate-600">Pilih Google untuk akses cepat atau gunakan email.</p>
+        <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-800 lg:hidden mb-1">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span>
+          <span>{isKaderIntent ? 'Pendaftaran Peran' : 'Akses Pengelola'}</span>
+        </div>
+        <h1 id="auth-heading" class="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+          {isKaderIntent ? 'Masuk Pengajuan Peran' : 'Masuk Akun'}
+        </h1>
+        <p class="text-xs text-slate-500">
+          {isKaderIntent
+            ? 'Gunakan Google atau email untuk melanjutkan pengajuan peran.'
+            : 'Pilih Google untuk akses cepat atau gunakan email.'}
+        </p>
       </div>
 
       {isLoggedOut && (
@@ -106,11 +138,12 @@ const isKaderIntent = intent === 'daftar-kader';
       )}
 
       <div class="space-y-4">
+        {/* Google OAuth Button */}
         <a
-          href="/api/auth/login"
+          href={googleAuthHref}
           data-astro-prefetch="false"
           data-astro-reload
-          class="w-full min-h-[44px] py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-xs sm:text-sm rounded-lg flex items-center justify-center gap-3 transition cursor-pointer"
+          class="w-full min-h-[44px] py-2.5 px-4 bg-white hover:bg-slate-50 border border-slate-300 text-slate-800 font-semibold text-xs sm:text-sm rounded-lg flex items-center justify-center gap-3 transition cursor-pointer shadow-xs active:scale-[0.99]"
         >
           <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -118,31 +151,37 @@ const isKaderIntent = intent === 'daftar-kader';
             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
           </svg>
-          <span>Masuk dengan Akun Google</span>
+          <span>Masuk dengan Google</span>
         </a>
 
-        <div class="relative flex items-center justify-center my-3">
-          <div class="border-t border-slate-200 w-full"></div>
-          <span class="bg-white px-3 text-xs font-medium text-slate-600 uppercase tracking-wider relative">atau dengan email</span>
+        {/* Divider: Presisi tengah di mobile maupun desktop */}
+        <div class="flex items-center my-3 sm:my-4" aria-hidden="true">
+          <div class="flex-1 border-t border-slate-200"></div>
+          <span class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider shrink-0">
+            atau dengan email
+          </span>
+          <div class="flex-1 border-t border-slate-200"></div>
         </div>
 
+        {/* Form Email / Password */}
         <form id="neon-auth-form" class="space-y-3.5 text-left" aria-label="Formulir masuk atau daftar dengan email">
           <input type="hidden" id="neonAuthAction" name="action" value="signin" />
+          <input type="hidden" id="authRedirectInput" name="redirect" value={redirectUrl || ''} />
 
           <div id="name-field-group" class="space-y-1 hidden">
-            <label for="neonName" class="block text-xs font-medium text-slate-800">Nama Lengkap</label>
+            <label for="neonName" class="block text-xs font-semibold text-slate-800">Nama Lengkap</label>
             <input
               type="text"
               id="neonName"
               name="name"
               autocomplete="name"
               placeholder="Contoh: H. Ahmad Zaini"
-              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
             />
           </div>
 
           <div class="space-y-1">
-            <label for="neonEmail" class="block text-xs font-medium text-slate-800">Alamat Email</label>
+            <label for="neonEmail" class="block text-xs font-semibold text-slate-800">Alamat Email</label>
             <input
               type="email"
               id="neonEmail"
@@ -153,18 +192,18 @@ const isKaderIntent = intent === 'daftar-kader';
               spellcheck="false"
               required
               placeholder="nama@email.com"
-              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
             />
           </div>
 
           <div class="space-y-1">
             <div class="flex items-center justify-between">
-              <label for="neonPassword" class="block text-xs font-medium text-slate-800">Kata Sandi</label>
+              <label for="neonPassword" class="block text-xs font-semibold text-slate-800">Kata Sandi</label>
               <button
                 type="button"
                 id="toggle-neon-password"
                 aria-pressed="false"
-                class="text-xs font-semibold text-slate-600 hover:text-emerald-800 underline underline-offset-2 cursor-pointer"
+                class="min-h-[44px] px-2 py-1 text-xs font-semibold text-slate-600 hover:text-emerald-800 underline underline-offset-2 cursor-pointer inline-flex items-center"
               >
                 Tampilkan
               </button>
@@ -177,16 +216,16 @@ const isKaderIntent = intent === 'daftar-kader';
               required
               minlength="6"
               placeholder="Minimal 6 karakter"
-              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/20"
             />
           </div>
 
           <button
             type="submit"
             id="neon-submit-btn"
-            class="w-full min-h-[44px] py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition cursor-pointer"
+            class="w-full min-h-[44px] py-2.5 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs sm:text-sm rounded-lg transition cursor-pointer shadow-xs active:scale-[0.99]"
           >
-            Masuk dengan Email
+            Masuk
           </button>
         </form>
 
@@ -196,13 +235,29 @@ const isKaderIntent = intent === 'daftar-kader';
           <button
             type="button"
             id="toggle-auth-mode"
-            class="min-h-[40px] px-2 text-xs text-slate-600 hover:text-emerald-800 font-medium underline inline-flex items-center gap-1 mx-auto cursor-pointer"
+            class="min-h-[44px] px-2 text-xs text-slate-600 hover:text-emerald-800 font-medium underline inline-flex items-center gap-1 mx-auto cursor-pointer"
           >
-            <span>Belum punya akun? Buat akun baru di sini</span>
+            <span>Belum punya akun? Buat akun</span>
             <AppIcon name="arrow-right" size="xs" />
           </button>
         </div>
+
+        {/* Jalur Pendaftaran Khusus Kader & Pengurus MWC */}
+        <div class="pt-3 border-t border-slate-100 text-center">
+          <a
+            href="/daftar-kader"
+            class="inline-flex items-center justify-center gap-1 text-xs text-slate-600 hover:text-emerald-800 font-medium min-h-[44px] px-2"
+          >
+            <span>Daftar sebagai Kader Ranting atau Pengurus MWC</span>
+            <AppIcon name="arrow-right" size="xs" />
+          </a>
+        </div>
       </div>
     </div>
-  </div>
+
+    {/* Footer khusus mobile di dasar layar */}
+    <footer class="w-full lg:hidden text-center pt-6 pb-2 text-[11px] text-slate-600">
+      LPNU PCNU Sumenep · Workspace Internal Anggota
+    </footer>
+  </section>
 </main>

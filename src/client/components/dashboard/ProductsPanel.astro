@@ -54,30 +54,35 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
 ---
 
 <section id="panel-products" class="tab-panel">
-  {/* Hairline Store Summary Metric Strip: 2x2 on Mobile, 4x1 on Desktop */}
-  <div class="grid grid-cols-2 sm:grid-cols-4 border-b border-slate-200">
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b border-r sm:border-b-0 border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Produk Tayang</span>
-      <div class="mt-0.5 flex items-baseline gap-1.5">
+  {/* Hairline Store Summary Metric Strip: Horizontal Scroll on Mobile, 4x1 on Desktop */}
+  <div
+    tabindex="0"
+    role="region"
+    aria-label="Ringkasan statistik produk toko"
+    class="flex sm:grid sm:grid-cols-4 overflow-x-auto no-scrollbar snap-x snap-mandatory divide-x divide-slate-200 border-b border-slate-200 bg-white"
+  >
+    <div class="shrink-0 min-w-[160px] sm:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Produk Tayang</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5 whitespace-nowrap">
         <span class="text-lg font-bold text-slate-900 font-mono tabular-nums">{products.length}</span>
         <span class="text-xs text-slate-600 font-mono tabular-nums">({activeCount} aktif)</span>
       </div>
     </div>
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-b sm:border-b-0 sm:border-r border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Total Dilihat</span>
+    <div class="shrink-0 min-w-[160px] sm:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Total Dilihat</span>
       <span class="mt-0.5 text-lg font-bold text-slate-900 font-mono tabular-nums block">
         {totalViews.toLocaleString('id-ID')}
       </span>
     </div>
-    <div class="px-4 sm:px-6 lg:px-8 py-4 border-r border-slate-200">
-      <span class="text-xs font-medium text-slate-600 block">Token Sundul</span>
-      <div class="mt-0.5 flex items-baseline gap-1.5">
+    <div class="shrink-0 min-w-[160px] sm:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Token Sundul</span>
+      <div class="mt-0.5 flex items-baseline gap-1.5 whitespace-nowrap">
         <span class="text-lg font-bold text-emerald-700 font-mono tabular-nums">{bumpCredits}</span>
         <span class="text-xs text-slate-600">tersedia</span>
       </div>
     </div>
-    <div class="px-4 sm:px-6 lg:px-8 py-4">
-      <span class="text-xs font-medium text-slate-600 block">Iklan Unggulan</span>
+    <div class="shrink-0 min-w-[160px] sm:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+      <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Iklan Unggulan</span>
       <span class="mt-0.5 text-lg font-bold text-slate-900 font-mono tabular-nums block">{featuredCount}</span>
     </div>
   </div>
@@ -206,35 +211,35 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
                   data-action="promote-single"
                   data-id={prod.id}
                   data-name={prod.name}
-                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-amber-50 text-amber-950 font-bold cursor-pointer inline-flex items-center gap-1.5"
+                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-amber-50 text-amber-950 font-bold cursor-pointer inline-flex items-center gap-1.5 transition active:scale-[0.98]"
                 >
                   <AppIcon name="star" size="xs" class="text-amber-600" />
-                  <span>Unggulkan Iklan</span>
+                  <span>Unggulkan</span>
                 </button>
                 <button
                   type="button"
                   data-action="record-sale"
                   data-title={`Penjualan ${prod.name}`}
                   data-amount={prod.price}
-                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-emerald-50 text-emerald-800 font-medium cursor-pointer inline-flex items-center gap-1.5"
+                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-emerald-50 text-emerald-800 font-medium cursor-pointer inline-flex items-center gap-1.5 transition active:scale-[0.98]"
                 >
                   <AppIcon name="plus" size="xs" />
-                  <span>Catat ke Buku Kas</span>
+                  <span>Catat</span>
                 </button>
                 <button
                   type="button"
                   data-action="toggle-stock"
                   data-id={prod.id}
-                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-slate-50 text-slate-700 font-medium cursor-pointer"
+                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-slate-50 text-slate-700 font-medium cursor-pointer transition active:scale-[0.98]"
                 >
-                  {prod.is_sold_out ? 'Tandai Tersedia' : 'Tandai Stok Habis'}
+                  {prod.is_sold_out ? 'Tersedia' : 'Habis'}
                 </button>
                 <a
                   href={`/produk/${prod.slug}`}
                   target="_blank"
-                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-slate-50 text-slate-700 font-medium flex items-center justify-between"
+                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-slate-50 text-slate-700 font-medium flex items-center justify-between transition active:scale-[0.98]"
                 >
-                  <span>Lihat Halaman</span>
+                  <span>Lihat</span>
                   <AppIcon name="external-link" size="xs" />
                 </a>
                 <button
@@ -242,9 +247,9 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
                   data-action="delete"
                   data-id={prod.id}
                   data-name={prod.name}
-                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-rose-50 text-rose-700 font-semibold cursor-pointer border-t border-slate-100 mt-0.5 pt-2"
+                  class="w-full text-left px-2.5 py-2 rounded-md hover:bg-rose-50 text-rose-700 font-semibold cursor-pointer border-t border-slate-100 mt-0.5 pt-2 transition active:scale-[0.98]"
                 >
-                  Hapus Produk
+                  Hapus
                 </button>
               </div>
             </details>
@@ -257,10 +262,10 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
       <p class="text-xs text-slate-600">Belum ada produk yang didaftarkan.</p>
       <a
         href="/pasang-iklan"
-        class="min-h-[44px] py-2 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition inline-flex items-center gap-1.5"
+        class="min-h-[44px] py-2 px-4 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition inline-flex items-center gap-1.5 active:scale-[0.98]"
       >
         <AppIcon name="plus" size="xs" />
-        <span>Tambah Produk Pertama</span>
+        <span>Tambah</span>
       </a>
     </div>
   )}

@@ -90,6 +90,15 @@ const kepulauan = enrichedZones.filter((z) => z.type === 'kepulauan');
 const totalStores = enrichedZones.reduce((acc, z) => acc + z.storeCount, 0);
 const totalProducts = enrichedZones.reduce((acc, z) => acc + z.productCount, 0);
 const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
+
+const zoneFilters = [
+  { id: 'btn-filter-all', filter: 'all', label: 'Semua', count: enrichedZones.length, defaultActive: true },
+  { id: 'btn-filter-daratan', filter: 'daratan', label: 'Daratan', count: daratan.length, defaultActive: false },
+  { id: 'btn-filter-kepulauan', filter: 'kepulauan', label: 'Kepulauan', count: kepulauan.length, defaultActive: false },
+];
+
+const filterBtnClass =
+  'zone-filter-btn flex-auto sm:flex-none inline-flex items-center justify-center min-h-[44px] sm:min-h-[30px] px-2.5 sm:px-3 py-1 rounded-md border border-transparent text-slate-600 hover:text-slate-900 aria-[pressed=true]:bg-white aria-[pressed=true]:text-slate-900 aria-[pressed=true]:border-slate-300 aria-[pressed=true]:shadow-xs active:bg-slate-200/70 motion-safe:transition-colors cursor-pointer whitespace-nowrap tabular-nums';
 ---
 
 <section id="panel-zones" class="admin-tab-panel w-full min-w-0 max-w-full overflow-x-clip hidden">
@@ -128,39 +137,43 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
   </div>
 
   {/* Map Filter & Action Toolbar */}
-  <div class="px-4 sm:px-6 lg:px-8 py-3.5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/40">
-    <div class="w-full sm:w-auto flex items-center gap-1.5 p-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold overflow-x-auto no-scrollbar">
-      <button
-        type="button"
-        id="btn-filter-all"
-        class="zone-filter-btn min-h-[40px] sm:min-h-[34px] py-1 px-3 rounded-md bg-white text-slate-900 border border-slate-200 transition cursor-pointer whitespace-nowrap shrink-0"
-        data-filter="all"
-      >
-        Semua ({enrichedZones.length})
-      </button>
-      <button
-        type="button"
-        id="btn-filter-daratan"
-        class="zone-filter-btn min-h-[40px] sm:min-h-[34px] py-1 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer whitespace-nowrap shrink-0"
-        data-filter="daratan"
-      >
-        Daratan ({daratan.length})
-      </button>
-      <button
-        type="button"
-        id="btn-filter-kepulauan"
-        class="zone-filter-btn min-h-[40px] sm:min-h-[34px] py-1 px-3 rounded-md text-slate-600 hover:text-slate-900 transition cursor-pointer whitespace-nowrap shrink-0"
-        data-filter="kepulauan"
-      >
-        Kepulauan ({kepulauan.length})
-      </button>
+  <div
+    id="zones-map-toolbar"
+    role="toolbar"
+    {...({ focusgroup: 'toolbar wrap' } as Record<string, string>)}
+    aria-label="Filter dan kontrol peta wilayah"
+    aria-controls="zones-leaflet-map"
+    class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 bg-slate-50/40"
+  >
+    <div
+      role="group"
+      aria-label="Filter tipe wilayah"
+      class="w-full sm:w-auto flex items-center gap-1 p-1 bg-slate-100 border border-slate-200 rounded-lg text-xs font-semibold"
+    >
+      {zoneFilters.map((item) => (
+        <button
+          type="button"
+          id={item.id}
+          aria-pressed={item.defaultActive ? 'true' : 'false'}
+          class={filterBtnClass}
+          data-filter={item.filter}
+        >
+          {item.label} ({item.count})
+        </button>
+      ))}
     </div>
 
-    <div class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0">
+    <span role="separator" aria-orientation="vertical" class="sr-only"></span>
+
+    <div
+      role="group"
+      aria-label="Aksi peta"
+      class="grid grid-cols-2 sm:flex items-center gap-2 w-full sm:w-auto shrink-0"
+    >
       <button
         type="button"
         id="btn-recenter-map"
-        class="min-h-[44px] sm:min-h-[38px] py-1.5 px-3 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-semibold rounded-lg transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+        class="min-h-[44px] sm:min-h-[40px] py-1.5 px-3 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-300 text-slate-700 hover:text-slate-900 text-xs font-semibold rounded-lg motion-safe:transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap"
       >
         <AppIcon name="map-pin" size="xs" />
         <span>Pusatkan</span>
@@ -170,7 +183,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
         href="https://www.google.com/maps/search/?api=1&query=Kabupaten+Sumenep+Madura"
         target="_blank"
         rel="noopener noreferrer"
-        class="min-h-[44px] sm:min-h-[38px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold rounded-lg transition inline-flex items-center justify-center gap-1.5"
+        class="min-h-[44px] sm:min-h-[40px] py-1.5 px-3 bg-emerald-700 hover:bg-emerald-800 active:bg-emerald-900 text-white text-xs font-semibold rounded-lg motion-safe:transition-colors inline-flex items-center justify-center gap-1.5 whitespace-nowrap"
       >
         <AppIcon name="globe" size="xs" />
         <span>Google Maps</span>
@@ -390,7 +403,9 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
   import L from 'leaflet';
   import 'leaflet/dist/leaflet.css';
 
+  const sumenepCenter: [number, number] = [-7.0167, 113.8667];
   let mapInstance: L.Map | null = null;
+  let toolbarInitialized = false;
   const markersMap = new Map<string, L.CircleMarker>();
 
   function escapePopupHtml(value: unknown): string {
@@ -428,7 +443,6 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
       zonesData = [];
     }
 
-    const sumenepCenter: [number, number] = [-7.0167, 113.8667];
     mapInstance = L.map('zones-leaflet-map', {
       center: sumenepCenter,
       zoom: 10,
@@ -484,6 +498,31 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
       markersMap.set(z.slug, marker);
     });
 
+    document.querySelectorAll<HTMLButtonElement>('.btn-fly-zone').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const lat = Number(btn.getAttribute('data-lat'));
+        const lng = Number(btn.getAttribute('data-lng'));
+        const slug = btn.getAttribute('data-slug');
+
+        if (mapInstance && !Number.isNaN(lat) && !Number.isNaN(lng)) {
+          mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          mapInstance.flyTo([lat, lng], 13, { duration: 1.2 });
+
+          setTimeout(() => {
+            const marker = markersMap.get(slug || '');
+            if (marker) marker.openPopup();
+          }, 1300);
+        }
+      });
+    });
+  }
+
+  function initZonesToolbar() {
+    if (toolbarInitialized) return;
+    const toolbar = document.getElementById('zones-map-toolbar');
+    if (!toolbar) return;
+    toolbarInitialized = true;
+
     const btnRecenter = document.getElementById('btn-recenter-map');
     btnRecenter?.addEventListener('click', () => {
       if (mapInstance) {
@@ -491,7 +530,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
       }
     });
 
-    const filterBtns = document.querySelectorAll<HTMLButtonElement>('.zone-filter-btn');
+    const filterBtns = Array.from(toolbar.querySelectorAll<HTMLButtonElement>('.zone-filter-btn'));
     const containerDaratan = document.getElementById('container-daratan');
     const containerKepulauan = document.getElementById('container-kepulauan');
 
@@ -500,11 +539,8 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
         const filterType = btn.getAttribute('data-filter');
 
         filterBtns.forEach((b) => {
-          b.classList.remove('bg-white', 'text-slate-900', 'border', 'border-slate-200');
-          b.classList.add('text-slate-600');
+          b.setAttribute('aria-pressed', String(b === btn));
         });
-        btn.classList.add('bg-white', 'text-slate-900', 'border', 'border-slate-200');
-        btn.classList.remove('text-slate-600');
 
         if (filterType === 'all') {
           containerDaratan?.classList.remove('hidden');
@@ -528,27 +564,60 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
       });
     });
 
-    document.querySelectorAll<HTMLButtonElement>('.btn-fly-zone').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const lat = Number(btn.getAttribute('data-lat'));
-        const lng = Number(btn.getAttribute('data-lng'));
-        const slug = btn.getAttribute('data-slug');
+    if (!('focusGroup' in HTMLElement.prototype)) {
+      const items = Array.from(toolbar.querySelectorAll<HTMLElement>('button, a[href]'));
+      if (items.length > 0) {
+        items.forEach((item, index) => {
+          item.tabIndex = index === 0 ? 0 : -1;
+        });
 
-        if (mapInstance && !Number.isNaN(lat) && !Number.isNaN(lng)) {
-          mapContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          mapInstance.flyTo([lat, lng], 13, { duration: 1.2 });
+        toolbar.addEventListener('focusin', (event) => {
+          const target = event.target as HTMLElement | null;
+          if (target && items.includes(target)) {
+            items.forEach((item) => {
+              item.tabIndex = item === target ? 0 : -1;
+            });
+          }
+        });
 
-          setTimeout(() => {
-            const marker = markersMap.get(slug || '');
-            if (marker) marker.openPopup();
-          }, 1300);
-        }
-      });
-    });
+        toolbar.addEventListener('keydown', (event) => {
+          const current = document.activeElement as HTMLElement | null;
+          const idx = current ? items.indexOf(current) : -1;
+          if (idx === -1) return;
+
+          const rtl = getComputedStyle(toolbar).direction === 'rtl';
+          const delta =
+            event.key === 'ArrowRight'
+              ? rtl
+                ? -1
+                : 1
+              : event.key === 'ArrowLeft'
+                ? rtl
+                  ? 1
+                  : -1
+                : 0;
+
+          let nextIdx: number | null = null;
+          if (delta !== 0) {
+            nextIdx = (idx + delta + items.length) % items.length;
+          } else if (event.key === 'Home') {
+            nextIdx = 0;
+          } else if (event.key === 'End') {
+            nextIdx = items.length - 1;
+          }
+
+          if (nextIdx !== null) {
+            event.preventDefault();
+            items[nextIdx]?.focus();
+          }
+        });
+      }
+    }
   }
 
   window.addEventListener('hashchange', () => {
     if (window.location.hash === '#zones') {
+      initZonesToolbar();
       setTimeout(() => {
         if (!mapInstance) {
           initZonesMap();
@@ -561,6 +630,7 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
 
   document.querySelectorAll('[data-admin-tab="zones"]').forEach((btn) => {
     btn.addEventListener('click', () => {
+      initZonesToolbar();
       setTimeout(() => {
         if (!mapInstance) {
           initZonesMap();
@@ -573,9 +643,11 @@ const zonesWithStores = enrichedZones.filter((z) => z.storeCount > 0).length;
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
+      initZonesToolbar();
       setTimeout(initZonesMap, 250);
     });
   } else {
+    initZonesToolbar();
     setTimeout(initZonesMap, 250);
   }
 </script>

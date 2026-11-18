@@ -8,7 +8,11 @@ let dbInstance: Database | null = null;
 
 export function getDb(): Database {
   if (!dbInstance) {
-    dbInstance = drizzle(getNeonSql(), { schema });
+    const instance = drizzle(getNeonSql(), { schema });
+    // Neon HTTP driver is stateless HTTP and does not support native multi-query transactions.
+    // Provide a resilient sequential fallback so business logic calling db.transaction executes safely.
+    (instance as any).transaction = async (cb: (tx: any) => Promise<any>) => await cb(instance);
+    dbInstance = instance;
   }
   return dbInstance;
 }

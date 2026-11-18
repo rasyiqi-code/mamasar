@@ -19,10 +19,19 @@ if (!article) {
 
 const currentUrl = Astro.url.href;
 const allArticles = article ? await getArticles() : [];
-const relatedArticles = article ? allArticles.filter((a) => a.id !== article.id).slice(0, 3) : [];
+const sameCategoryArticles = article
+  ? allArticles.filter((a) => a.id !== article.id && a.category.toLowerCase() === article.category.toLowerCase())
+  : [];
+const otherArticles = article
+  ? allArticles.filter((a) => a.id !== article.id && a.category.toLowerCase() !== article.category.toLowerCase())
+  : [];
+const relatedArticles = [...sameCategoryArticles, ...otherArticles].slice(0, 3);
 
 function inferProductCategoryFromArticle(category: string, title: string): string | undefined {
   const haystack = `${category} ${title}`.toLowerCase();
+  if (/(pekarangan|cabai|lele|kelor|sayur|tani|pertanian|bibit|pupuk|bioflok)/.test(haystack)) {
+    return 'Pertanian & Perkebunan';
+  }
   if (/(kuliner|makanan|minuman|halal|katering|pirt|dapur|jajanan|snack)/.test(haystack)) {
     return 'Makanan & Minuman';
   }
@@ -33,10 +42,7 @@ function inferProductCategoryFromArticle(category: string, title: string): strin
     return 'Fashion & Busana';
   }
   if (/(herbal|jamu|madu|kesehatan)/.test(haystack)) {
-    return 'Herbal & Kesehatan';
-  }
-  if (/(pertanian|tani|nelayan|bibit|sembako|beras)/.test(haystack)) {
-    return 'Pertanian & Sembako';
+    return 'Herbal & Jamu';
   }
   if (/(jasa|cetak|digital|promosi|kemasan)/.test(haystack)) {
     return 'Jasa & Karya';
@@ -88,14 +94,16 @@ function escapeHtml(str: string): string {
     .replace(/'/g, '&#039;');
 }
 
-// Simple Markdown to HTML formatter for headings and lists with anti-XSS sanitization
+// Simple Markdown to HTML formatter for headings, lists, quotes, and images with anti-XSS sanitization
 function formatContent(text: string): string {
   if (!text) return '';
   const safeText = escapeHtml(text);
   return safeText
     .replace(/^### (.*$)/gim, '<h3 class="text-base sm:text-lg font-black text-slate-900 mt-6 mb-2">$1</h3>')
     .replace(/^## (.*$)/gim, '<h2 class="text-lg sm:text-xl font-black text-slate-900 mt-8 mb-3">$1</h2>')
+    .replace(/^\> (.*$)/gim, '<blockquote class="border-l-4 border-emerald-600 bg-emerald-50/60 pl-4 py-2 my-4 text-slate-800 italic rounded-r-lg">$1</blockquote>')
     .replace(/^\- (.*$)/gim, '<li class="ml-4 list-disc text-slate-700 leading-relaxed">$1</li>')
+    .replace(/^\d+\. (.*$)/gim, '<li class="ml-4 list-decimal text-slate-700 leading-relaxed">$1</li>')
     .replace(/\*\*(.*?)\*\*/gim, '<strong class="text-slate-900 font-bold">$1</strong>')
     .replace(/\*(.*?)\*/gim, '<em class="italic">$1</em>')
     .replace(/\n\n/gim, '</p><p class="text-xs sm:text-sm text-slate-700 leading-relaxed mb-4">');
@@ -127,13 +135,15 @@ const renderedContent = article ? formatContent(article.content || article.summa
   schema={articleSchema}
 >
   <div class="pb-12 space-y-5 md:space-y-8">
-    {/* Full-bleed Top Breadcrumb Strip (Desktop Only — App Mode on Mobile) */}
-    <div class="hidden md:block w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
-      <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 h-11 flex items-center justify-between text-xs text-slate-600">
+    {/* Full-bleed Top Breadcrumb Strip (Desktop Only - App Mode on Mobile) */}
+    <div class="hidden md:block -mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
+      <div class="h-11 flex items-center justify-between text-xs text-slate-600">
         <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 min-w-0">
           <a href="/" class="hover:text-emerald-700 shrink-0 font-medium">Beranda</a>
           <AppIcon name="chevron-right" size="xs" class="text-slate-400 shrink-0" />
           <a href="/edukasi" class="hover:text-emerald-700 shrink-0 font-medium">Pusat Edukasi</a>
+          <AppIcon name="chevron-right" size="xs" class="text-slate-400 shrink-0" />
+          <a href={`/edukasi?kategori=${encodeURIComponent(article.category)}`} class="hover:text-emerald-700 shrink-0 font-medium">{article.category}</a>
           <AppIcon name="chevron-right" size="xs" class="text-slate-400 shrink-0" />
           <span class="text-slate-900 font-bold truncate max-w-[200px] sm:max-w-md">{article.title}</span>
         </nav>
@@ -153,9 +163,16 @@ const renderedContent = article ? formatContent(article.content || article.summa
         <div class="lg:col-span-8 space-y-6">
           <header class="space-y-3 pb-5 border-b border-slate-200">
             <div class="flex flex-wrap items-center gap-2">
-              <span class="text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-md">
-                {article.category}
-              </span>
+              {article.category.toLowerCase() === 'ekonomi pekarangan' ? (
+                <span class="inline-flex items-center gap-1 text-xs font-bold bg-emerald-50 text-emerald-900 border border-emerald-300 px-2.5 py-0.5 rounded-md">
+                  <AppIcon name="sprout" size="xs" class="text-emerald-700" />
+                  <span>Rubrik Unggulan &bull; {article.category}</span>
+                </span>
+              ) : (
+                <span class="text-xs font-bold bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-0.5 rounded-md">
+                  {article.category}
+                </span>
+              )}
               <span class="text-xs text-slate-400">&bull;</span>
               <span class="text-xs text-slate-600 font-medium">
                 Diterbitkan: {new Date(article.created_at).toLocaleDateString('id-ID', {
@@ -189,13 +206,13 @@ const renderedContent = article ? formatContent(article.content || article.summa
           </article>
 
           <footer class="pt-5 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <span class="font-bold text-slate-700">Bagikan panduan ini ke sesama warga:</span>
+            <span class="font-semibold text-slate-700">Bagikan:</span>
             <div class="flex items-center gap-2">
               <a
                 href={`https://wa.me/?text=${encodeURIComponent(`${article.title}\nBaca panduan lengkapnya di:\n${currentUrl}`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-4 py-2 rounded-lg inline-flex items-center gap-1.5 transition"
+                class="min-h-[40px] bg-emerald-700 hover:bg-emerald-800 active:scale-[0.98] text-white font-semibold px-3.5 py-2 rounded-lg inline-flex items-center gap-1.5 transition"
               >
                 <AppIcon name="phone" size="xs" />
                 <span>WhatsApp</span>
@@ -204,7 +221,7 @@ const renderedContent = article ? formatContent(article.content || article.summa
                 href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="min-h-[44px] bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-lg inline-flex items-center gap-1.5 transition"
+                class="min-h-[40px] bg-slate-800 hover:bg-slate-900 active:scale-[0.98] text-white font-semibold px-3.5 py-2 rounded-lg inline-flex items-center gap-1.5 transition"
               >
                 <AppIcon name="share" size="xs" />
                 <span>Facebook</span>
@@ -275,9 +292,9 @@ const renderedContent = article ? formatContent(article.content || article.summa
             </a>
           </div>
 
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div class="-mx-3 sm:mx-0 grid grid-cols-2 md:grid-cols-4 gap-px sm:gap-4 bg-slate-200 sm:bg-transparent border-y sm:border-0 border-slate-200 [&>article]:rounded-none sm:[&>article]:rounded-lg [&>article]:border-0 sm:[&>article]:border [&>article]:shadow-none sm:[&>article]:shadow-xs">
             {sampleProducts.map((p) => (
-              <ProductCard product={p} />
+              <ProductCard product={p} variant="compact" />
             ))}
           </div>
         </section>

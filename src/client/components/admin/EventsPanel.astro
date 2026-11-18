@@ -94,7 +94,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
         <a
           href="/kegiatan"
           target="_blank"
-          class="inline-flex items-center gap-1 h-8 px-2.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-md border border-slate-300 transition whitespace-nowrap"
+          class="inline-flex items-center gap-1 min-h-[44px] px-3.5 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs rounded-md border border-slate-300 transition whitespace-nowrap active:scale-[0.98]"
         >
           <span>Direktori</span>
           <AppIcon name="external-link" size="xs" />
@@ -103,7 +103,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
           type="button"
           id="btn-open-add-event"
           data-open-add-event
-          class="h-8 px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer inline-flex items-center gap-1 whitespace-nowrap"
+          class="min-h-[44px] px-3.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer inline-flex items-center gap-1 whitespace-nowrap active:scale-[0.98]"
         >
           <AppIcon name="plus" size="xs" />
           <span>Tambah</span>
@@ -246,7 +246,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
                   data-id={order.id}
                   data-status="accepted"
                   disabled={order.status === 'accepted'}
-                  class="h-8 px-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-semibold text-xs rounded-md transition cursor-pointer"
+                  class="h-9 sm:h-8 px-3 sm:px-2.5 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-40 text-white font-semibold text-xs rounded-md transition cursor-pointer active:scale-[0.98]"
                 >
                   Terima
                 </button>
@@ -256,7 +256,7 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
                   data-id={order.id}
                   data-status="rejected"
                   disabled={order.status === 'rejected'}
-                  class="h-8 px-2.5 bg-white hover:bg-rose-50 disabled:opacity-40 text-rose-700 border border-rose-300 font-semibold text-xs rounded-md transition cursor-pointer"
+                  class="h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-rose-50 disabled:opacity-40 text-rose-700 border border-rose-300 font-semibold text-xs rounded-md transition cursor-pointer active:scale-[0.98]"
                 >
                   Tolak
                 </button>
@@ -456,9 +456,9 @@ const orderStatusBadge: Record<string, { label: string; cls: string }> = {
           <button
             type="submit"
             id="btn-submit-event"
-            class="min-h-[44px] py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center justify-center"
+            class="min-h-[44px] py-2 px-5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-lg transition cursor-pointer inline-flex items-center justify-center active:scale-[0.98]"
           >
-            Simpan Agenda
+            Simpan
           </button>
         </div>
       </form>

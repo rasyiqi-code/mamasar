@@ -1,5 +1,5 @@
 import { neon } from '@neondatabase/serverless';
-import { SEED_ZONES, SEED_UMKM, SEED_PRODUCTS, SEED_ARTICLES, SEED_EVENTS } from '../src/lib/seeds.ts';
+import { SEED_ZONES, SEED_UMKM, SEED_PRODUCTS, SEED_ARTICLES, SEED_EVENTS, SEED_CASE_STUDIES } from '../src/lib/seeds.ts';
 
 const databaseUrl = process.env.DATABASE_URL;
 
@@ -147,6 +147,23 @@ async function runMigration() {
       image_url TEXT NOT NULL,
       summary TEXT NOT NULL,
       content TEXT,
+      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+    );
+  `;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS case_studies (
+      id SERIAL PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
+      channel_name VARCHAR(100) NOT NULL,
+      tag VARCHAR(100) NOT NULL,
+      duration VARCHAR(50) NOT NULL DEFAULT '15 Menit',
+      video_url TEXT NOT NULL,
+      thumbnail_url TEXT NOT NULL,
+      practice_summary TEXT,
+      opportunity_summary TEXT,
+      sort_order INTEGER DEFAULT 0,
+      is_active INTEGER DEFAULT 1,
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
   `;
@@ -365,8 +382,8 @@ async function runMigration() {
     for (const u of SEED_UMKM) {
       const zoneId = zoneMap.get(u.zone_slug) || 1;
       const res = await sql`
-        INSERT INTO umkm (name, phone, zone_id, is_verified, address)
-        VALUES (${u.name}, ${u.phone}, ${zoneId}, 1, ${u.address})
+        INSERT INTO umkm (name, phone, zone_id, is_verified, address, ranting, nib, halal_cert, pirt, maps_url, qris_image_url)
+        VALUES (${u.name}, ${u.phone}, ${zoneId}, 1, ${u.address}, ${u.ranting || null}, ${u.nib || null}, ${u.halal_cert || null}, ${u.pirt || null}, ${u.maps_url || null}, ${u.qris_image_url || null})
         RETURNING id, name;
       `;
       umkmMap.set(u.name, res[0].id);
@@ -376,8 +393,8 @@ async function runMigration() {
     for (const p of SEED_PRODUCTS) {
       const umkmId = umkmMap.get(p.umkm_name) || 1;
       await sql`
-        INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, views, is_sold_out, shopee_url, bumped_at)
-        VALUES (${umkmId}, ${p.name}, ${p.slug}, ${p.price}, ${p.category}, ${p.image_url}, ${p.description}, ${p.views || 0}, ${p.is_sold_out || 0}, ${p.shopee_url || null}, CURRENT_TIMESTAMP)
+        INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, views, is_sold_out, production_capacity, shopee_url, bumped_at)
+        VALUES (${umkmId}, ${p.name}, ${p.slug}, ${p.price}, ${p.category}, ${p.image_url}, ${p.description}, ${p.views || 0}, ${p.is_sold_out || 0}, ${p.production_capacity || null}, ${p.shopee_url || null}, CURRENT_TIMESTAMP)
         ON CONFLICT (slug) DO NOTHING;
       `;
     }
@@ -404,6 +421,20 @@ async function runMigration() {
     console.log('✅ Seeding data awal ke Neon PostgreSQL berhasil!');
   } else {
     console.log(`ℹ️ Database Neon sudah memiliki ${count} zona MWC.`);
+  }
+
+  // Seeding case_studies jika masih kosong
+  const caseStudiesCountRes = await sql`SELECT count(*) FROM case_studies;`;
+  const caseStudiesCount = Number(caseStudiesCountRes[0].count || 0);
+  if (caseStudiesCount === 0) {
+    console.log('🌱 Melakukan seeding data awal studi kasus video...');
+    for (const cs of SEED_CASE_STUDIES) {
+      await sql`
+        INSERT INTO case_studies (title, channel_name, tag, duration, video_url, thumbnail_url, practice_summary, opportunity_summary, sort_order)
+        VALUES (${cs.title}, ${cs.channel_name}, ${cs.tag}, ${cs.duration}, ${cs.video_url}, ${cs.thumbnail_url}, ${cs.practice_summary}, ${cs.opportunity_summary}, ${cs.sort_order});
+      `;
+    }
+    console.log('✅ Seeding studi kasus video berhasil!');
   }
 
   // Hapus zona non-aktif jika tidak terpakai oleh UMKM, kegiatan, maupun pengguna

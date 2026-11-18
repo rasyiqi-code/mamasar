@@ -74,6 +74,8 @@ export interface UMKM {
   pirt?: string;
   bpom?: string;
   other_legalities?: string;
+  maps_url?: string;
+  qris_image_url?: string;
   bump_credits?: number;
   claimed_at?: string;
   created_at?: string;
@@ -92,6 +94,8 @@ export interface Product {
   umkm_halal_cert?: string;
   umkm_pirt?: string;
   umkm_bpom?: string;
+  umkm_maps_url?: string;
+  umkm_qris_image_url?: string;
   is_verified: number;
   zone_id: number;
   zone_name: string;

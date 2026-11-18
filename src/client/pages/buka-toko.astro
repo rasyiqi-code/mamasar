@@ -1,0 +1,43 @@
+---
+import Layout from '../layouts/Layout.astro';
+import StoreSetupCard from '../components/dashboard/StoreSetupCard.astro';
+import { resolveUser } from '../../lib/neon-auth';
+import { getUMKMByUserId, getAllZones, isSuperadmin, isPetugas } from '../../lib/db';
+
+const user = await resolveUser(Astro.request);
+if (!user) {
+  const currentPath = Astro.url.pathname + Astro.url.search;
+  return Astro.redirect(`/login?redirect=${encodeURIComponent(currentPath)}`);
+}
+
+const redirectParam = Astro.url.searchParams.get('redirect');
+const notice = Astro.url.searchParams.get('notice');
+
+const store = await getUMKMByUserId(user.id);
+// Jika sudah memiliki profil toko, arahkan langsung ke dashboard atau redirect target
+if (store) {
+  const target = redirectParam && redirectParam.startsWith('/') ? redirectParam : '/dashboard';
+  return Astro.redirect(target);
+}
+
+const zones = await getAllZones();
+const assignedZone = zones.find((z) => z.id === user.assigned_zone_id);
+const isSuper = isSuperadmin(user);
+const isCadre = isPetugas(user);
+---
+
+<Layout
+  title="Buka Profil Toko Anda | Mamasar"
+  description="Lengkapi profil toko usaha Anda untuk mulai memajang produk di pasar direktori UMKM Nahdliyin Sumenep."
+>
+  <StoreSetupCard
+    user={user}
+    zones={zones}
+    assignedZone={assignedZone}
+    isSuper={isSuper}
+    isCadre={isCadre}
+    notice={notice}
+  />
+</Layout>
+
+<script src="../scripts/dashboard.client.ts"></script>

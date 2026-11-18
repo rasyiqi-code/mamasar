@@ -1,16 +1,4 @@
 ---
-import { isPetugas, isSuperadmin } from '../../lib/db';
-import { resolveUser } from '../../lib/neon-auth';
-
-const user = await resolveUser(Astro.request);
-
-if (!user) {
-  return Astro.redirect('/dashboard?intent=daftar-kader');
-}
-
-if (isPetugas(user) || isSuperadmin(user)) {
-  return Astro.redirect('/admin#entry');
-}
-
-return Astro.redirect('/dashboard/kemitraan?intent=daftar-kader');
+// Pengalihan resmi ke slug pendaftaran kader & pengurus MWC
+return Astro.redirect('/daftar-kader', 301);
 ---

@@ -1,0 +1,524 @@
+---
+import AppLayout from '../../../layouts/AppLayout.astro';
+import { resolveUser } from '../../../../lib/neon-auth';
+import {
+  isSuperadmin,
+  getPendingPetugas,
+  getUMKMForVerification,
+  getAllZones,
+  getAllPendingAdOrders,
+  getArticles,
+  getAllCaseStudies,
+} from '../../../../lib/db';
+
+import AdminSidebar from '../../../components/admin/AdminSidebar.astro';
+import AppIcon from '../../../components/common/AppIcon.astro';
+
+const user = await resolveUser(Astro.request);
+const isSuper = !!user && isSuperadmin(user);
+
+if (!user || !isSuper) {
+  return Astro.redirect('/login?error=unauthorized_admin&redirect=/admin/articles');
+}
+
+const zones = await getAllZones();
+const assignedZone = zones.find((z) => z.id === user.assigned_zone_id);
+const pendingPetugas = await getPendingPetugas();
+const allStores = await getUMKMForVerification();
+const pendingStores = allStores.filter((s) => !s.is_verified);
+const pendingPromotions = await getAllPendingAdOrders();
+const articles = await getArticles();
+const caseStudies = await getAllCaseStudies();
+
+const categories = Array.from(new Set(articles.map((a) => a.category).filter(Boolean)));
+const totalArticles = articles.length;
+
+function formatDate(iso: string | Date): string {
+  try {
+    return new Date(iso).toLocaleDateString('id-ID', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  } catch {
+    return String(iso);
+  }
+}
+---
+
+<AppLayout
+  title="Panduan Edukasi | Pusat Kendali Admin PCNU"
+  description="Manajemen penerbitan panduan dan edukasi usaha nahdliyin Sumenep."
+>
+  <div class="min-h-screen w-full max-w-full overflow-x-clip bg-white flex flex-col md:flex-row">
+    <!-- Sidebar Navigasi Admin -->
+    <AdminSidebar
+      user={user}
+      isSuper={isSuper}
+      userRole={user.role}
+      assignedZoneName={assignedZone?.name}
+      pendingPetugasCount={pendingPetugas.length}
+      pendingStoresCount={pendingStores.length}
+      zonesCount={zones.length}
+      pendingPromotionsCount={pendingPromotions.length}
+      articlesCount={articles.length}
+      activeTab="articles"
+    />
+
+    <!-- Kolom Kanan: Sticky Header & Workspace -->
+    <div class="flex-1 min-w-0 w-full max-w-full flex flex-col">
+      {/* Sticky Header Desktop */}
+      <header class="hidden md:flex sticky top-0 z-30 h-14 bg-white/95 backdrop-blur-xs border-b border-slate-200 px-6 lg:px-8 items-center justify-between gap-4 shrink-0">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <h1 class="text-sm sm:text-base font-bold tracking-tight text-slate-900 truncate">
+            Pusat Edukasi & Literasi
+          </h1>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-xs font-medium shrink-0">
+            <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
+            <span>PCNU Sumenep</span>
+          </span>
+        </div>
+
+        <div class="flex items-center gap-2 shrink-0">
+          <a
+            href="/edukasi"
+            target="_blank"
+            class="h-8 px-2.5 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1 whitespace-nowrap active:scale-[0.98]"
+          >
+            <span>Publik</span>
+            <AppIcon name="external-link" size="xs" />
+          </a>
+          <a
+            href="/admin/articles/tulis"
+            class="h-8 px-3 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1 whitespace-nowrap active:scale-[0.98] shadow-2xs"
+          >
+            <AppIcon name="plus" size="xs" />
+            <span>Tulis</span>
+          </a>
+        </div>
+      </header>
+
+      {/* Main Workspace */}
+      <main class="flex-1 w-full max-w-full pb-16">
+        {/* Metric Strip */}
+        <div
+          tabindex="0"
+          role="region"
+          aria-label="Ringkasan statistik artikel edukasi"
+          class="flex lg:grid lg:grid-cols-3 w-full max-w-full overflow-x-auto no-scrollbar snap-x snap-mandatory divide-x divide-slate-200 border-b border-slate-200 bg-white"
+        >
+          <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+            <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Panduan Terbit</span>
+            <span class="mt-0.5 text-xl font-bold text-slate-900 font-mono tabular-nums block">{totalArticles}</span>
+          </div>
+
+          <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+            <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Video Studi Kasus</span>
+            <span class="mt-0.5 text-xl font-bold text-emerald-700 font-mono tabular-nums block">{caseStudies.length}</span>
+          </div>
+
+          <div class="shrink-0 min-w-[160px] sm:min-w-[190px] lg:min-w-0 snap-start px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
+            <span class="text-xs font-medium text-slate-600 block whitespace-nowrap">Kategori Aktif</span>
+            <span class="mt-0.5 text-xs font-bold text-slate-700 block truncate">
+              {categories.length} Kategori
+            </span>
+          </div>
+        </div>
+
+        {/* Tab Navigation: Panduan & Artikel vs Video Studi Kasus */}
+        <div class="px-4 sm:px-6 lg:px-8 border-b border-slate-200 bg-white flex items-center justify-between gap-4">
+          <div class="flex items-center gap-2 -mb-px">
+            <button
+              type="button"
+              id="tab-btn-articles"
+              class="h-11 px-3 text-xs font-bold border-b-2 border-emerald-700 text-emerald-800 flex items-center gap-1.5 transition cursor-pointer"
+            >
+              <AppIcon name="book" size="xs" />
+              <span>Daftar Panduan</span>
+              <span class="px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-2xs font-mono">{articles.length}</span>
+            </button>
+
+            <button
+              type="button"
+              id="tab-btn-videos"
+              class="h-11 px-3 text-xs font-semibold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-1.5 transition cursor-pointer"
+            >
+              <AppIcon name="eye" size="xs" />
+              <span>Video Studi Kasus</span>
+              <span class="px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-600 text-2xs font-mono">{caseStudies.length}</span>
+            </button>
+          </div>
+
+          <div id="tab-action-videos" class="hidden">
+            <a
+              href="/admin/articles/video/baru"
+              class="h-8 px-3 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold transition inline-flex items-center gap-1 whitespace-nowrap active:scale-[0.98]"
+            >
+              <AppIcon name="plus" size="xs" />
+              <span>Tambah</span>
+            </a>
+          </div>
+        </div>
+
+        {/* Status Toast / Alert */}
+        <div id="articles-status-alert" class="hidden mx-4 sm:mx-6 lg:mx-8 my-3 p-3 rounded-lg text-xs font-semibold"></div>
+
+        {/* ================= SECTION 1: ARTIKEL & PANDUAN ================= */}
+        <section id="panel-articles" class="space-y-0">
+          {/* Toolbar Pencarian Panduan */}
+          <div class="px-4 sm:px-6 lg:px-8 py-3 border-b border-slate-200 flex items-center justify-between gap-3 bg-white">
+            <div class="relative flex-1 max-w-md">
+              <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <AppIcon name="search" size="xs" />
+              </span>
+              <input
+                type="search"
+                id="articles-table-search"
+                placeholder="Cari judul atau kategori..."
+                aria-label="Cari panduan di tabel"
+                class="w-full h-9 sm:h-8 pl-8 pr-3 text-xs bg-slate-50 hover:bg-white focus:bg-white border border-slate-200 focus:border-emerald-700 rounded-md transition focus:outline-none"
+              />
+            </div>
+
+            <div class="flex md:hidden items-center gap-1.5 shrink-0">
+              <a
+                href="/admin/articles/tulis"
+                class="min-h-[44px] px-3.5 rounded-md bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs inline-flex items-center gap-1 transition shadow-2xs active:scale-[0.98]"
+              >
+                <AppIcon name="plus" size="xs" />
+                <span>Tulis</span>
+              </a>
+            </div>
+          </div>
+
+          {/* Table List of Articles */}
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-50/70 text-slate-600 font-bold uppercase tracking-wider">
+                  <th scope="col" class="py-3 px-4 sm:px-6 w-16 align-middle">Sampul</th>
+                  <th scope="col" class="py-3 px-4 sm:px-6 align-middle">Judul & Ringkasan</th>
+                  <th scope="col" class="py-3 px-4 sm:px-6 w-40 align-middle">Kategori</th>
+                  <th scope="col" class="py-3 px-4 sm:px-6 w-32 align-middle">Tanggal</th>
+                  <th scope="col" class="py-3 px-4 sm:px-6 text-right w-44 align-middle">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="articles-table-body" class="divide-y divide-slate-100 bg-white">
+                {articles.length === 0 ? (
+                  <tr>
+                    <td colspan="5" class="py-12 text-center text-slate-500">
+                      <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
+                        <AppIcon name="book" size="md" />
+                      </div>
+                      <p class="font-bold text-slate-700">Belum ada panduan.</p>
+                      <p class="text-xs text-slate-500 mt-0.5">Gunakan tombol "Tulis" untuk menerbitkan materi baru.</p>
+                    </td>
+                  </tr>
+                ) : (
+                  articles.map((art) => (
+                    <tr
+                      id={`article-row-${art.id}`}
+                      class="hover:bg-slate-50/80 transition group"
+                      data-article-row
+                      data-article-search={`${art.title.toLowerCase()} ${art.category.toLowerCase()} ${art.summary.toLowerCase()}`}
+                    >
+                      <td class="py-2.5 px-4 sm:px-6 align-middle">
+                        <div class="w-10 h-10 rounded-md bg-slate-100 overflow-hidden border border-slate-200 shrink-0">
+                          <img
+                            src={art.image_url || 'https://images.unsplash.com/photo-1542744094-3a31f272c490?w=200&q=80'}
+                            alt={art.title}
+                            class="w-full h-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                      </td>
+                      <td class="py-2.5 px-4 sm:px-6 max-w-md align-middle">
+                        <a
+                          href={`/edukasi/${art.slug}`}
+                          target="_blank"
+                          class="font-bold text-slate-900 hover:text-emerald-700 transition line-clamp-1 block leading-snug"
+                        >
+                          {art.title}
+                        </a>
+                        <p class="text-slate-500 line-clamp-1 text-xs mt-0.5 leading-normal">{art.summary}</p>
+                      </td>
+                      <td class="py-2.5 px-4 sm:px-6 align-middle">
+                        <span class="inline-block px-2 py-0.5 rounded-md text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 whitespace-nowrap">
+                          {art.category}
+                        </span>
+                      </td>
+                      <td class="py-2.5 px-4 sm:px-6 text-slate-600 font-mono text-xs whitespace-nowrap align-middle">
+                        {formatDate(art.created_at)}
+                      </td>
+                      <td class="py-2.5 px-4 sm:px-6 text-right whitespace-nowrap align-middle">
+                        <div class="inline-flex items-center gap-1.5 justify-end">
+                          <a
+                            href={`/edukasi/${art.slug}`}
+                            target="_blank"
+                            class="h-7 px-2 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs inline-flex items-center gap-1 transition active:scale-[0.96]"
+                            title="Buka Pratinjau Publik"
+                          >
+                            <AppIcon name="external-link" size="xs" />
+                            <span>Lihat</span>
+                          </a>
+
+                          <a
+                            href={`/admin/articles/edit/${art.id}`}
+                            class="h-7 px-2 rounded-md border border-slate-200 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-semibold text-xs inline-flex items-center gap-1 transition active:scale-[0.96]"
+                            title="Sunting di Editor Blok"
+                          >
+                            <AppIcon name="edit" size="xs" />
+                            <span>Edit</span>
+                          </a>
+
+                          <button
+                            type="button"
+                            data-delete-article
+                            data-id={art.id}
+                            data-title={art.title}
+                            class="h-7 px-2 rounded-md border border-slate-200 bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 font-semibold text-xs inline-flex items-center gap-1 transition cursor-pointer active:scale-[0.96]"
+                            title="Hapus Panduan"
+                          >
+                            <AppIcon name="trash" size="xs" />
+                            <span>Hapus</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* ================= SECTION 2: VIDEO STUDI KASUS ================= */}
+        <section id="panel-videos" class="hidden">
+          <div class="w-full overflow-x-auto">
+            <table class="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr class="border-b border-slate-200 bg-slate-50/70 text-slate-600 font-bold uppercase tracking-wider">
+                  <th scope="col" class="py-3 px-4 sm:px-6 w-32 align-middle">Video</th>
+                  <th scope="col" class="py-3 px-4 sm:px-6 align-middle">Judul</th>
+                  <th scope="col" class="py-3 px-4 sm:px-6 w-40 align-middle">Topik</th>
+                  <th scope="col" class="py-3 px-4 sm:px-6 w-24 align-middle">Status</th>
+                  <th scope="col" class="py-3 px-4 sm:px-6 text-right w-36 align-middle">Aksi</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 bg-white">
+                {caseStudies.length === 0 ? (
+                  <tr>
+                    <td colspan="5" class="py-12 text-center text-slate-500">
+                      <p class="font-bold text-slate-700">Belum ada video.</p>
+                      <p class="text-xs mt-0.5">Gunakan tombol "Tambah" untuk menambah video studi kasus.</p>
+                    </td>
+                  </tr>
+                ) : (
+                  caseStudies.map((cs) => (
+                    <tr id={`video-row-${cs.id}`} class="hover:bg-slate-50/80 transition">
+                      <td class="py-2.5 px-4 sm:px-6 align-middle">
+                        <div class="relative w-24 aspect-16/9 rounded-md overflow-hidden bg-slate-900">
+                          <img src={cs.thumbnail_url} alt={cs.title} width="96" height="54" class="w-full h-full object-cover" loading="lazy" />
+                          <span class="absolute bottom-0.5 right-0.5 bg-black/85 text-white text-[10px] font-medium leading-none px-1 py-0.5 rounded-[3px]">
+                            {(cs.duration.match(/^\d+/)?.[0] ?? '') + (cs.duration.match(/^\d+/) ? ':00' : cs.duration)}
+                          </span>
+                        </div>
+                      </td>
+                      <td class="py-2.5 px-4 sm:px-6 max-w-md align-middle">
+                        <a href={`/edukasi/video/${cs.id}`} target="_blank" class="font-bold text-slate-900 hover:text-emerald-700 transition line-clamp-1 leading-snug">
+                          {cs.title}
+                        </a>
+                        <p class="text-slate-500 line-clamp-1 mt-0.5">{cs.channel_name}</p>
+                      </td>
+                      <td class="py-2.5 px-4 sm:px-6 align-middle text-slate-700 whitespace-nowrap">{cs.tag}</td>
+                      <td class="py-2.5 px-4 sm:px-6 align-middle whitespace-nowrap">
+                        <span class={`inline-flex items-center gap-1.5 font-semibold ${cs.is_active ? 'text-emerald-700' : 'text-slate-500'}`}>
+                          <span class={`w-1.5 h-1.5 rounded-full ${cs.is_active ? 'bg-emerald-600' : 'bg-slate-400'}`}></span>
+                          {cs.is_active ? 'Aktif' : 'Draf'}
+                        </span>
+                      </td>
+                      <td class="py-2.5 px-4 sm:px-6 text-right whitespace-nowrap align-middle">
+                        <div class="inline-flex items-center gap-1.5 justify-end">
+                          <a
+                            href={`/admin/articles/video/${cs.id}`}
+                            class="h-7 px-2 rounded-md border border-slate-200 bg-white hover:bg-emerald-50 text-slate-700 hover:text-emerald-700 font-semibold inline-flex items-center gap-1 transition active:scale-[0.96]"
+                          >
+                            <AppIcon name="edit" size="xs" />
+                            <span>Edit</span>
+                          </a>
+                          <button
+                            type="button"
+                            data-delete-video={cs.id}
+                            data-video-title={cs.title}
+                            aria-label={`Hapus ${cs.title}`}
+                            class="h-7 w-7 rounded-md border border-slate-200 bg-white hover:bg-rose-50 text-slate-700 hover:text-rose-700 inline-flex items-center justify-center transition cursor-pointer active:scale-[0.96]"
+                          >
+                            <AppIcon name="trash" size="xs" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+</AppLayout>
+
+<script>
+  import { openConfirmDialog } from '../../../../lib/dialog';
+
+  function initArticlesPage() {
+    // Tabs Switcher
+    const tabArticles = document.getElementById('tab-btn-articles');
+    const tabVideos = document.getElementById('tab-btn-videos');
+    const panelArticles = document.getElementById('panel-articles');
+    const panelVideos = document.getElementById('panel-videos');
+    const tabActionVideos = document.getElementById('tab-action-videos');
+
+    function switchTab(target: 'articles' | 'videos') {
+      if (target === 'articles') {
+        tabArticles?.classList.add('border-emerald-700', 'text-emerald-800', 'font-bold');
+        tabArticles?.classList.remove('border-transparent', 'text-slate-500');
+        tabVideos?.classList.remove('border-emerald-700', 'text-emerald-800', 'font-bold');
+        tabVideos?.classList.add('border-transparent', 'text-slate-500');
+
+        panelArticles?.classList.remove('hidden');
+        panelVideos?.classList.add('hidden');
+        tabActionVideos?.classList.add('hidden');
+      } else {
+        tabVideos?.classList.add('border-emerald-700', 'text-emerald-800', 'font-bold');
+        tabVideos?.classList.remove('border-transparent', 'text-slate-500');
+        tabArticles?.classList.remove('border-emerald-700', 'text-emerald-800', 'font-bold');
+        tabArticles?.classList.add('border-transparent', 'text-slate-500');
+
+        panelVideos?.classList.remove('hidden');
+        panelArticles?.classList.add('hidden');
+        tabActionVideos?.classList.remove('hidden');
+      }
+    }
+
+    tabArticles?.addEventListener('click', () => switchTab('articles'));
+    tabVideos?.addEventListener('click', () => switchTab('videos'));
+
+    // Check hash in URL e.g. #videos
+    if (window.location.hash === '#videos') {
+      switchTab('videos');
+    }
+
+    // Article Search filter
+    const searchInput = document.getElementById('articles-table-search') as HTMLInputElement | null;
+    const rows = Array.from(document.querySelectorAll<HTMLTableRowElement>('[data-article-row]'));
+    const statusAlert = document.getElementById('articles-status-alert');
+
+    searchInput?.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      rows.forEach((row) => {
+        const text = row.getAttribute('data-article-search') || '';
+        row.classList.toggle('hidden', Boolean(q && !text.includes(q)));
+      });
+    });
+
+    // Delete Article Handler
+    const deleteArticleBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-delete-article]'));
+    deleteArticleBtns.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const title = btn.getAttribute('data-title') || 'panduan ini';
+        if (!id) return;
+
+        const confirmRes = await openConfirmDialog({
+          title: 'Hapus Panduan Edukasi',
+          message: `Apakah Anda yakin ingin menghapus panduan "${title}"? Tindakan ini tidak dapat dibatalkan.`,
+          confirmLabel: 'Hapus',
+          cancelLabel: 'Batal',
+          tone: 'danger',
+        });
+        if (!confirmRes.confirmed) return;
+
+        btn.disabled = true;
+
+        try {
+          const res = await fetch('/api/admin/articles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', id: Number(id) }),
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            showAlert(data.message || 'Panduan berhasil dihapus.', false);
+            const row = document.getElementById(`article-row-${id}`);
+            row?.remove();
+          } else {
+            showAlert(data.message || 'Gagal menghapus panduan.', true);
+            btn.disabled = false;
+          }
+        } catch (err: any) {
+          showAlert('Kendala koneksi: ' + err.message, true);
+          btn.disabled = false;
+        }
+      });
+    });
+
+    // Delete Video
+    document.querySelectorAll<HTMLButtonElement>('[data-delete-video]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-delete-video');
+        const title = btn.getAttribute('data-video-title') || 'video ini';
+        if (!id) return;
+
+        const confirmRes = await openConfirmDialog({
+          title: 'Hapus Video Studi Kasus',
+          message: `Apakah Anda yakin ingin menghapus video "${title}" dari studi kasus?`,
+          confirmLabel: 'Hapus',
+          cancelLabel: 'Batal',
+          tone: 'danger',
+        });
+        if (!confirmRes.confirmed) return;
+
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(`/api/admin/case-studies/${id}`, {
+            method: 'DELETE',
+          });
+
+          const data = await res.json();
+
+          if (res.ok && data.success) {
+            showAlert(data.message || 'Video berhasil dihapus.', false);
+            const card = document.getElementById(`video-row-${id}`);
+            card?.remove();
+          } else {
+            showAlert(data.message || 'Gagal menghapus video.', true);
+            btn.disabled = false;
+          }
+        } catch (err: any) {
+          showAlert('Kendala koneksi: ' + err.message, true);
+          btn.disabled = false;
+        }
+      });
+    });
+
+    function showAlert(msg: string, isError: boolean) {
+      if (!statusAlert) return;
+      statusAlert.textContent = msg;
+      statusAlert.className = `mx-4 sm:mx-6 lg:mx-8 my-3 p-3 rounded-lg text-xs font-semibold ${
+        isError ? 'bg-rose-50 text-rose-800 border border-rose-200' : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+      }`;
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initArticlesPage);
+  } else {
+    initArticlesPage();
+  }
+</script>

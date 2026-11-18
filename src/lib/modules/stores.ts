@@ -44,6 +44,8 @@ export function toUMKM(row: UMKMJoinRow): UMKM & { zone_name: string; zone_slug:
     pirt: row.pirt ?? undefined,
     bpom: row.bpom ?? undefined,
     other_legalities: row.other_legalities ?? undefined,
+    maps_url: row.maps_url ?? undefined,
+    qris_image_url: row.qris_image_url ?? undefined,
     bump_credits: row.bump_credits ?? 3,
   };
 }
@@ -359,29 +361,37 @@ export async function setUMKMVerified(
     if (rows.length === 0) return false;
     const store = rows[0];
 
-    await recordAuditLog(
-      {
-        actorUserId: options?.actorUserId,
-        action: verified ? 'umkm.verify' : 'umkm.unverify',
-        targetType: 'umkm',
-        targetId: store.id,
-        metadata: { zone_id: store.zone_id, note: options?.note },
-      },
-      tx
-    );
-
-    if (store.user_id) {
-      await createNotification(
+    try {
+      await recordAuditLog(
         {
-          userId: store.user_id,
-          title: verified ? 'Toko Anda Telah Diverifikasi' : 'Status Verifikasi Toko Diperbarui',
-          body: verified
-            ? `Toko "${store.name}" telah diverifikasi oleh pengurus dan lencana terverifikasi kini aktif di katalog.`
-            : `Status verifikasi toko "${store.name}" dicabut${options?.note ? `: ${options.note}` : '.'}`,
-          link: '/dashboard',
+          actorUserId: options?.actorUserId,
+          action: verified ? 'umkm.verify' : 'umkm.unverify',
+          targetType: 'umkm',
+          targetId: store.id,
+          metadata: { zone_id: store.zone_id, note: options?.note },
         },
         tx
       );
+    } catch (auditErr) {
+      console.error('Audit log failed during verify (non-fatal):', auditErr);
+    }
+
+    if (store.user_id) {
+      try {
+        await createNotification(
+          {
+            userId: store.user_id,
+            title: verified ? 'Toko Anda Telah Diverifikasi' : 'Status Verifikasi Toko Diperbarui',
+            body: verified
+              ? `Toko "${store.name}" telah diverifikasi oleh pengurus dan lencana terverifikasi kini aktif di katalog.`
+              : `Status verifikasi toko "${store.name}" dicabut${options?.note ? `: ${options.note}` : '.'}`,
+            link: '/dashboard',
+          },
+          tx
+        );
+      } catch (notifErr) {
+        console.error('Notification failed during verify (non-fatal):', notifErr);
+      }
     }
 
     return true;
@@ -400,16 +410,20 @@ export async function deleteUMKM(umkmId: number, options?: { actorUserId?: numbe
 
     if (rows.length === 0) return false;
 
-    await recordAuditLog(
-      {
-        actorUserId: options?.actorUserId,
-        action: 'umkm.delete',
-        targetType: 'umkm',
-        targetId: rows[0].id,
-        metadata: { name: rows[0].name, zone_id: rows[0].zone_id },
-      },
-      tx
-    );
+    try {
+      await recordAuditLog(
+        {
+          actorUserId: options?.actorUserId,
+          action: 'umkm.delete',
+          targetType: 'umkm',
+          targetId: rows[0].id,
+          metadata: { name: rows[0].name, zone_id: rows[0].zone_id },
+        },
+        tx
+      );
+    } catch (auditErr) {
+      console.error('Audit log failed during delete (non-fatal):', auditErr);
+    }
 
     return true;
   }).then((ok) => {

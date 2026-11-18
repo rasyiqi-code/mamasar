@@ -13,6 +13,7 @@ export * from './modules/types';
 
 // Domain Modules
 export * from './modules/articles';
+export * from './modules/case-studies';
 export * from './modules/events';
 export * from './modules/auth';
 export * from './modules/users';

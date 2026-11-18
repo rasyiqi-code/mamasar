@@ -1,0 +1,21 @@
+---
+import AppLayout from '../../../../layouts/AppLayout.astro';
+import { resolveUser } from '../../../../../lib/neon-auth';
+import { isSuperadmin, getCaseStudyById } from '../../../../../lib/db';
+import VideoForm from '../../../../components/admin/VideoForm.astro';
+
+const { id } = Astro.params;
+const user = await resolveUser(Astro.request);
+if (!user || !isSuperadmin(user)) {
+  return Astro.redirect(`/login?error=unauthorized_admin&redirect=/admin/articles/video/${id}`);
+}
+
+const video = Number.isInteger(Number(id)) ? await getCaseStudyById(Number(id)) : undefined;
+if (!video) {
+  return Astro.redirect('/admin/articles#videos');
+}
+---
+
+<AppLayout title="Edit Video | Admin PCNU Sumenep" description="Sunting video studi kasus.">
+  <VideoForm video={video} />
+</AppLayout>

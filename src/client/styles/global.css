@@ -2,6 +2,10 @@
 
 @theme {
   --container-site: 1080px;
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 0.875rem;
+  --text-3xs: 0.625rem;
+  --text-3xs--line-height: 0.75rem;
   --color-brand-primary: #047857;
   --color-brand-primary-hover: #065f46;
   --color-action-primary: #047857;

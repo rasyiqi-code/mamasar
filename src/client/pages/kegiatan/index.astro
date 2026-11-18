@@ -20,9 +20,8 @@ const isPengurus = !!user && (isSuperadmin(user) || user.role === 'mwcnu');
 >
   <div class="pb-12 space-y-6">
     {/* Compact Directory Header & Zone Filter */}
-    <header class="w-screen relative left-1/2 -translate-x-1/2 bg-white border-b border-slate-200">
-      <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 py-3.5 sm:py-6 space-y-3 sm:space-y-4">
-        <div class="hidden md:flex items-center justify-between text-xs text-slate-600">
+    <header class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 py-3.5 sm:py-6 space-y-3 sm:space-y-4 bg-white border-b border-slate-200">
+      <div class="hidden md:flex items-center justify-between text-xs text-slate-600">
           <nav aria-label="Breadcrumb" class="flex items-center gap-1.5 flex-wrap">
             <a href="/" class="hover:text-emerald-700 font-medium">Beranda</a>
             <AppIcon name="chevron-right" size="xs" class="text-slate-400" />
@@ -97,7 +96,6 @@ const isPengurus = !!user && (isSuperadmin(user) || user.role === 'mwcnu');
             </a>
           ))}
         </div>
-      </div>
     </header>
 
     <div class="px-0">

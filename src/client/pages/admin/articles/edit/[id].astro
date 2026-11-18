@@ -1,0 +1,35 @@
+---
+import AppLayout from '../../../../layouts/AppLayout.astro';
+import { resolveUser } from '../../../../../lib/neon-auth';
+import { isSuperadmin, getArticleById } from '../../../../../lib/db';
+import ArticleEditor from '../../../../components/admin/ArticleEditor.astro';
+
+const user = await resolveUser(Astro.request);
+const isSuper = !!user && isSuperadmin(user);
+
+if (!user || !isSuper) {
+  return Astro.redirect('/login?error=unauthorized_admin&redirect=/admin/articles');
+}
+
+const { id } = Astro.params;
+const articleId = Number(id);
+
+if (!articleId || isNaN(articleId)) {
+  return Astro.redirect('/admin/articles');
+}
+
+const article = await getArticleById(articleId);
+
+if (!article) {
+  return Astro.redirect('/admin/articles');
+}
+---
+
+<AppLayout
+  title={`Edit: ${article.title} | Admin PCNU`}
+  description="Sunting materi panduan edukasi dengan editor visual WYSIWYG."
+>
+  <div class="min-h-screen w-full bg-white">
+    <ArticleEditor mode="edit" article={article} />
+  </div>
+</AppLayout>

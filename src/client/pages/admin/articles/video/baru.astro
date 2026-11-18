@@ -1,0 +1,15 @@
+---
+import AppLayout from '../../../../layouts/AppLayout.astro';
+import { resolveUser } from '../../../../../lib/neon-auth';
+import { isSuperadmin } from '../../../../../lib/db';
+import VideoForm from '../../../../components/admin/VideoForm.astro';
+
+const user = await resolveUser(Astro.request);
+if (!user || !isSuperadmin(user)) {
+  return Astro.redirect('/login?error=unauthorized_admin&redirect=/admin/articles/video/baru');
+}
+---
+
+<AppLayout title="Video Baru | Admin PCNU Sumenep" description="Tambah video studi kasus.">
+  <VideoForm />
+</AppLayout>

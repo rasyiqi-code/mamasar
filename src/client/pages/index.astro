@@ -10,13 +10,12 @@ import {
   getMostFavoritedProducts,
   getAllUMKM,
   getArticles,
-  getUserFromSession,
   getUserFavoriteIds,
 } from '../../lib/db';
+import { resolveUser } from '../../lib/neon-auth';
 import {
   PRODUCT_CATEGORIES,
   CATEGORY_ICONS,
-  CATEGORY_BADGES,
   POPULAR_TAGS,
   DEFAULT_PRODUCT_IMAGE,
 } from '../../lib/constants';
@@ -78,8 +77,7 @@ const spotlightProducts = showDiscoverySections
 
 const popularProducts = showDiscoverySections ? await getMostFavoritedProducts(4) : [];
 
-const sessionCookie = Astro.cookies.get('mamasar_session')?.value;
-const sessionUser = sessionCookie && showDiscoverySections ? await getUserFromSession(sessionCookie) : null;
+const sessionUser = showDiscoverySections ? await resolveUser(Astro.request) : null;
 const ssrFavCount = sessionUser ? (await getUserFavoriteIds(sessionUser.id)).length : null;
 
 function buildFilterUrl(updates: Record<string, string | null>) {
@@ -151,7 +149,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             value={searchQuery}
             aria-label="Kata kunci produk"
             placeholder="Cari rengginang, batik, petis..."
-            class="w-full min-h-[44px] py-2 sm:py-2.5 px-2.5 sm:px-3 text-xs sm:text-sm text-slate-900 placeholder-slate-500 bg-transparent focus:outline-none"
+            class="w-full min-h-[44px] py-2 sm:py-2.5 px-2.5 sm:px-3 text-xs sm:text-sm text-slate-900 placeholder-slate-500 bg-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700/20 rounded-lg"
           />
           {searchQuery && (
             <a
@@ -166,7 +164,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
         <button
           type="submit"
-          class="order-1 sm:order-3 w-auto min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs sm:text-sm px-4 sm:px-7 py-2.5 rounded-xl transition flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer shadow-xs active:scale-98"
+          class="order-1 sm:order-3 w-auto min-h-[44px] bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs sm:text-sm px-4 sm:px-7 py-2.5 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 shrink-0 cursor-pointer shadow-2xs hover:shadow-xs transition-all duration-150 ease-out hover:scale-[1.02] active:scale-[0.98]"
         >
           <AppIcon name="search" size="xs" />
           <span>Cari</span>
@@ -188,25 +186,22 @@ function buildFilterUrl(updates: Record<string, string | null>) {
         ))}
       </div>
 
-      <div class="pt-1 sm:pt-2 max-w-5xl mx-auto">
-        <div class="text-left text-xs font-bold uppercase tracking-wider text-slate-600 mb-2 sm:mb-3 px-1 sm:px-0">
-          Kategori Iklan
-        </div>
-        <div class="flex items-start sm:items-center justify-start sm:justify-center gap-2.5 sm:gap-6 overflow-x-auto pb-1.5 sm:pb-2 no-scrollbar px-1 sm:px-0">
+      <div class="pt-2 sm:pt-4 max-w-5xl mx-auto">
+        <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex items-start sm:items-center justify-start sm:justify-center gap-3 sm:gap-6 overflow-x-auto pb-2 no-scrollbar scroll-pl-3 scroll-pr-6 snap-x snap-mandatory [mask-image:linear-gradient(to_right,black_88%,transparent_100%)] sm:[mask-image:none]">
           <a
             href={`/?kategori=semua${currentZone !== 'semua' ? `&zona=${currentZone}` : ''}`}
-            class="group flex flex-col items-center gap-1.5 sm:gap-2 shrink-0 text-center"
+            class="group flex flex-col items-center gap-1.5 shrink-0 text-center w-[72px] sm:w-[90px] snap-start"
           >
             <div
-              class={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition border-2 ${
+              class={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-150 ease-out hover:scale-[1.04] active:scale-[0.95] border ${
                 currentCategory === 'semua'
-                  ? 'bg-emerald-50 border-emerald-700 text-emerald-800 shadow-sm'
-                  : 'bg-white border-slate-200 text-slate-700 group-hover:border-emerald-400 group-hover:scale-105 shadow-2xs'
+                  ? 'bg-emerald-50 border-emerald-700 text-emerald-800 shadow-xs ring-2 ring-emerald-700/20'
+                  : 'bg-white border-slate-200 text-slate-600 group-hover:border-emerald-400 group-hover:text-emerald-700 group-hover:bg-emerald-50/40 shadow-2xs'
               }`}
             >
-              <AppIcon name="shopping-bag" size="md" class={`sm:scale-125 ${currentCategory === 'semua' ? 'text-emerald-700' : 'text-slate-600'}`} />
+              <AppIcon name="shopping-bag" size="md" class={currentCategory === 'semua' ? 'text-emerald-700' : 'text-slate-600 group-hover:text-emerald-700 transition-colors'} />
             </div>
-            <span class={`text-[11px] sm:text-xs font-bold ${currentCategory === 'semua' ? 'text-emerald-800' : 'text-slate-700 group-hover:text-slate-900'}`}>
+            <span class={`text-[11px] sm:text-xs leading-tight line-clamp-2 transition-colors ${currentCategory === 'semua' ? 'text-emerald-800 font-bold' : 'text-slate-600 group-hover:text-slate-900 font-medium'}`}>
               Semua
             </span>
           </a>
@@ -214,52 +209,46 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           {PRODUCT_CATEGORIES.map((cat) => {
             const isActive = currentCategory === cat;
             const icon = CATEGORY_ICONS[cat] || 'package';
-            const badge = CATEGORY_BADGES[cat];
             return (
               <a
                 href={`/?kategori=${encodeURIComponent(cat)}${currentZone !== 'semua' ? `&zona=${currentZone}` : ''}`}
-                class="group flex flex-col items-center gap-1.5 sm:gap-2 shrink-0 text-center"
+                class="group flex flex-col items-center gap-1.5 shrink-0 text-center w-[72px] sm:w-[90px] snap-start"
               >
                 <div
-                  class={`relative w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center transition border-2 ${
+                  class={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-150 ease-out hover:scale-[1.04] active:scale-[0.95] border ${
                     isActive
-                      ? 'bg-emerald-50 border-emerald-700 text-emerald-800 shadow-sm'
-                      : 'bg-white border-slate-200 text-slate-700 group-hover:border-emerald-400 group-hover:scale-105 shadow-2xs'
+                      ? 'bg-emerald-50 border-emerald-700 text-emerald-800 shadow-xs ring-2 ring-emerald-700/20'
+                      : 'bg-white border-slate-200 text-slate-600 group-hover:border-emerald-400 group-hover:text-emerald-700 group-hover:bg-emerald-50/40 shadow-2xs'
                   }`}
                 >
-                  <AppIcon name={icon} size="md" class={`sm:scale-125 ${isActive ? 'text-emerald-700' : 'text-slate-600'}`} />
-                  {badge && (
-                    <span
-                      class={`hidden sm:inline-block absolute -top-1 -right-1 text-xs font-black uppercase px-1.5 py-0.5 rounded-full ${badge.color}`}
-                    >
-                      {badge.label}
-                    </span>
-                  )}
+                  <AppIcon name={icon} size="md" class={`transition-colors ${isActive ? 'text-emerald-700' : 'text-slate-600 group-hover:text-emerald-700'}`} />
                 </div>
-                <span class={`text-[11px] sm:text-xs font-bold max-w-[74px] sm:max-w-[92px] leading-tight line-clamp-2 sm:truncate ${isActive ? 'text-emerald-800' : 'text-slate-700 group-hover:text-slate-900'}`}>
+                <span class={`text-[11px] sm:text-xs leading-tight line-clamp-2 transition-colors ${isActive ? 'text-emerald-800 font-bold' : 'text-slate-600 group-hover:text-slate-900 font-medium'}`}>
                   {cat}
                 </span>
               </a>
             );
           })}
+          <div class="w-3 shrink-0 sm:hidden" aria-hidden="true" />
         </div>
       </div>
     </section>
 
     {/* 1. TODAY'S FEATURED SELECTION (Mobile Swipe Carousel + Desktop 4-Col Grid) */}
     {showDiscoverySections && spotlightProducts.length > 0 && (
-      <section class="w-screen relative left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-100/75 border-y border-emerald-200/70 py-5 sm:py-9">
-        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
+      <section class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-100/75 border-y border-emerald-200/70 py-5 sm:py-9">
+        <div class="space-y-3 sm:space-y-4">
           <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
             Pilihan Unggulan Hari Ini
           </h2>
 
-          <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 sm:overflow-visible no-scrollbar">
+          <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 sm:overflow-visible no-scrollbar scroll-pl-3 scroll-pr-8">
             {spotlightProducts.map((p, idx) => (
               <div class="w-[74vw] max-w-[270px] shrink-0 snap-start sm:w-auto sm:max-w-none">
                 <ProductCard product={p} variant="spotlight" highlight={idx === 0} />
               </div>
             ))}
+            <div class="w-4 shrink-0 sm:hidden" aria-hidden="true" />
           </div>
         </div>
       </section>
@@ -357,20 +346,21 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           </a>
         </div>
 
-        <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 sm:overflow-visible no-scrollbar">
+        <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 sm:overflow-visible no-scrollbar scroll-pl-3 scroll-pr-8">
           {popularProducts.map((p) => (
             <div class="w-[68vw] max-w-[250px] shrink-0 snap-start sm:w-auto sm:max-w-none">
               <ProductCard product={p} variant="compact" hidePhotoCount={true} />
             </div>
           ))}
+          <div class="w-4 shrink-0 sm:hidden" aria-hidden="true" />
         </div>
       </section>
     )}
 
-    {/* 4. BEST SELLERS / TOP UMKM PORTRAIT SHOWCASE (Full-Bleed Band) */}
+    {/* 4. BEST SELLERS / TOP UMKM PORTRAIT SHOWCASE (Contained Hairline Band) */}
     {showDiscoverySections && verifiedSellers.length > 0 && (
-      <section id="toko-warga" class="w-screen relative left-1/2 -translate-x-1/2 bg-slate-100/90 border-y border-slate-200/80 py-5 sm:py-9">
-        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
+      <section id="toko-warga" class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 bg-slate-100/90 border-y border-slate-200/80 py-5 sm:py-9">
+        <div class="space-y-3 sm:space-y-4">
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
               Toko &amp; Pengrajin Unggulan
@@ -409,9 +399,12 @@ function buildFilterUrl(updates: Record<string, string | null>) {
                   )}
 
                   {Boolean(seller.is_verified) && (
-                    <span class="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-emerald-700 text-white text-[11px] sm:text-xs font-bold px-2 py-0.5 rounded-md shadow-xs inline-flex items-center gap-1">
-                      <AppIcon name="check" size="xs" />
-                      <span>Terverifikasi</span>
+                    <span
+                      class="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-emerald-700 text-white w-6 h-6 rounded-full shadow-xs flex items-center justify-center ring-2 ring-white"
+                      title="Toko Terverifikasi MWC NU"
+                      aria-label="Terverifikasi"
+                    >
+                      <AppIcon name="check" size="xs" class="w-3.5 h-3.5" />
                     </span>
                   )}
 
@@ -432,54 +425,64 @@ function buildFilterUrl(updates: Record<string, string | null>) {
     )}
 
     <!-- 5. MAIN CATALOG GRID (5-Column Desktop Dense Marketplace Grid + Pagination) -->
-    <section id="katalog-terbaru" class="space-y-3.5 sm:space-y-4 px-3 sm:px-0 pt-1">
-      <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 pb-2.5 sm:pb-3 border-b border-slate-200">
-        <div>
-          <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-            <AppIcon name="clipboard" size="sm" class="text-emerald-700" />
-            <span>{isFiltered ? 'Hasil Pencarian Produk' : 'Katalog Produk Warga NU'}</span>
-          </h2>
-          <p class={`${isFiltered ? 'block' : 'hidden sm:block'} text-xs text-slate-600 mt-0.5`}>
+    <section id="katalog-terbaru" class="space-y-3 sm:space-y-4 px-3 sm:px-0 pt-1">
+      <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex items-center justify-between gap-3 pb-2.5 sm:pb-3 border-b border-slate-200">
+        <div class="min-w-0">
+          <div class="flex items-center gap-2">
+            <AppIcon name="clipboard" size="sm" class="text-emerald-700 shrink-0" />
+            <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight truncate">
+              {isFiltered ? 'Hasil Pencarian' : 'Katalog Produk Warga NU'}
+            </h2>
+            <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 tabular-nums shrink-0">
+              {totalProducts}
+            </span>
+          </div>
+          <p class="hidden sm:block text-xs text-slate-600 mt-0.5">
             Menampilkan <strong>{products.length}</strong> dari <strong>{totalProducts}</strong> produk aktif (Halaman {safePage} / {totalPages})
           </p>
         </div>
 
-        <div class="flex items-center gap-2.5 overflow-x-auto no-scrollbar">
-          <form method="GET" action="/" class="flex items-center gap-1.5 shrink-0 text-xs">
-            <input type="hidden" name="zona" value={currentZone} />
-            <input type="hidden" name="kategori" value={currentCategory} />
-            <input type="hidden" name="stok" value={currentStock} />
-            <input type="hidden" name="terverifikasi" value={currentVerified} />
-            <input type="hidden" name="q" value={searchQuery} />
-            <label for="sort-select" class="text-slate-600 font-bold">Urut:</label>
+        {isFiltered && (
+          <a
+            href="/"
+            class="shrink-0 min-h-[36px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 border border-rose-200 hover:bg-rose-100 transition shadow-2xs"
+            title="Reset semua filter"
+          >
+            <AppIcon name="x" size="xs" />
+            <span>Reset Filter</span>
+          </a>
+        )}
+      </div>
+
+      <!-- Quick Filter & Sort Pills Strip -->
+      <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs scroll-pl-3 scroll-pr-6">
+        {/* Sort Pill Dropdown */}
+        <form method="GET" action="/#katalog-terbaru" class="shrink-0">
+          <input type="hidden" name="zona" value={currentZone} />
+          <input type="hidden" name="kategori" value={currentCategory} />
+          <input type="hidden" name="stok" value={currentStock} />
+          <input type="hidden" name="terverifikasi" value={currentVerified} />
+          <input type="hidden" name="q" value={searchQuery} />
+          <div class="relative inline-flex items-center">
             <select
               id="sort-select"
               name="sort"
+              aria-label="Urutkan produk"
               onchange="this.form.submit()"
-              class="min-h-[40px] bg-white border border-slate-300 text-slate-800 rounded-lg py-1.5 px-2.5 text-xs font-semibold cursor-pointer"
+              class="appearance-none min-h-[38px] pl-3.5 pr-8 py-1.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-800 rounded-full text-xs font-semibold cursor-pointer shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="newest" selected={currentSort === 'newest'}>Terbaru</option>
               <option value="price_asc" selected={currentSort === 'price_asc'}>Harga Termurah</option>
               <option value="price_desc" selected={currentSort === 'price_desc'}>Harga Termahal</option>
             </select>
-          </form>
+            <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500">
+              <AppIcon name="chevron-down" size="xs" />
+            </div>
+          </div>
+        </form>
 
-          {isFiltered && (
-            <a
-              href="/"
-              class="shrink-0 min-h-[40px] inline-flex items-center px-2.5 text-xs font-bold text-rose-700 hover:text-rose-800 underline"
-            >
-              Reset Filter
-            </a>
-          )}
-        </div>
-      </div>
+        <span class="h-4 w-px bg-slate-200 shrink-0 mx-0.5" aria-hidden="true"></span>
 
-      <!-- Quick Filter Pills -->
-      <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs">
-        <span class="text-slate-600 text-xs font-bold uppercase tracking-wider shrink-0 mr-1">
-          Filter:
-        </span>
         <a
           href={buildFilterUrl({ stok: 'semua' })}
           class={`min-h-[38px] inline-flex items-center px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
@@ -521,32 +524,63 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           }`}
         >
           <AppIcon name="verified" size="xs" />
-          <span>Hanya Toko Terverifikasi</span>
+          <span>Toko Terverifikasi</span>
         </a>
+        <span class="w-3 shrink-0 sm:hidden" aria-hidden="true"></span>
       </div>
 
       {isFiltered && (
-        <div class="flex flex-wrap items-center gap-2 text-xs">
-          <span class="text-slate-600 font-bold">Filter Aktif:</span>
+        <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs pt-0.5">
+          <span class="text-slate-500 font-semibold text-2xs uppercase tracking-wider shrink-0">Filter:</span>
           {currentZone !== 'semua' && (
-            <span class="bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-full font-medium shadow-2xs">
-              Wilayah: {zones.find((z) => z.slug === currentZone)?.name || currentZone}
-            </span>
+            <a
+              href={buildFilterUrl({ zona: 'semua' })}
+              class="inline-flex items-center gap-1 bg-white border border-slate-300 text-slate-700 hover:border-rose-300 hover:text-rose-700 px-2.5 py-1 rounded-full font-medium shadow-2xs group transition"
+              title="Hapus filter wilayah"
+            >
+              <span>Wilayah: {zones.find((z) => z.slug === currentZone)?.name || currentZone}</span>
+              <AppIcon name="x" size="xs" class="text-slate-400 group-hover:text-rose-600" />
+            </a>
           )}
           {currentCategory !== 'semua' && (
-            <span class="bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-full font-medium shadow-2xs">
-              Kategori: {currentCategory}
-            </span>
+            <a
+              href={buildFilterUrl({ kategori: 'semua' })}
+              class="inline-flex items-center gap-1 bg-white border border-slate-300 text-slate-700 hover:border-rose-300 hover:text-rose-700 px-2.5 py-1 rounded-full font-medium shadow-2xs group transition"
+              title="Hapus filter kategori"
+            >
+              <span>Kategori: {currentCategory}</span>
+              <AppIcon name="x" size="xs" class="text-slate-400 group-hover:text-rose-600" />
+            </a>
           )}
           {searchQuery && (
-            <span class="bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-full font-medium shadow-2xs">
-              Kata Kunci: "{searchQuery}"
-            </span>
+            <a
+              href={buildFilterUrl({ q: '' })}
+              class="inline-flex items-center gap-1 bg-white border border-slate-300 text-slate-700 hover:border-rose-300 hover:text-rose-700 px-2.5 py-1 rounded-full font-medium shadow-2xs group transition"
+              title="Hapus kata kunci pencarian"
+            >
+              <span>Cari: "{searchQuery}"</span>
+              <AppIcon name="x" size="xs" class="text-slate-400 group-hover:text-rose-600" />
+            </a>
           )}
           {currentStock !== 'semua' && (
-            <span class="bg-white border border-slate-300 text-slate-700 px-2.5 py-1 rounded-full font-medium shadow-2xs">
-              Stok: <strong class="text-slate-900">{currentStock === 'ready' ? 'Ready Stock' : currentStock === 'po' ? 'Pre-Order' : 'Habis'}</strong>
-            </span>
+            <a
+              href={buildFilterUrl({ stok: 'semua' })}
+              class="inline-flex items-center gap-1 bg-white border border-slate-300 text-slate-700 hover:border-rose-300 hover:text-rose-700 px-2.5 py-1 rounded-full font-medium shadow-2xs group transition"
+              title="Hapus filter stok"
+            >
+              <span>Stok: {currentStock === 'ready' ? 'Ready Stock' : currentStock === 'po' ? 'Pre-Order' : 'Habis'}</span>
+              <AppIcon name="x" size="xs" class="text-slate-400 group-hover:text-rose-600" />
+            </a>
+          )}
+          {currentVerified === '1' && (
+            <a
+              href={buildFilterUrl({ terverifikasi: '0' })}
+              class="inline-flex items-center gap-1 bg-white border border-slate-300 text-slate-700 hover:border-rose-300 hover:text-rose-700 px-2.5 py-1 rounded-full font-medium shadow-2xs group transition"
+              title="Hapus filter toko terverifikasi"
+            >
+              <span>Hanya Terverifikasi</span>
+              <AppIcon name="x" size="xs" class="text-slate-400 group-hover:text-rose-600" />
+            </a>
           )}
         </div>
       )}
@@ -770,6 +804,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           img.alt = p.name || 'Produk';
           img.loading = 'lazy';
           img.decoding = 'async';
+          img.onerror = () => { img.src = fallbackImg; };
           img.className = 'w-full h-full object-cover group-hover:scale-105 transition duration-300';
           media.appendChild(img);
 
@@ -781,6 +816,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             avatarImg.alt = p.umkm_name || 'Toko';
             avatarImg.loading = 'lazy';
             avatarImg.decoding = 'async';
+            avatarImg.onerror = () => { avatarImg.style.display = 'none'; };
             avatarImg.className =
               'w-9 h-9 rounded-full object-cover bg-white border-2 border-white ring-2 ring-emerald-600 shadow-sm';
             avatarWrap.appendChild(avatarImg);
@@ -794,8 +830,12 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           if (p.is_verified || p.is_featured) {
             const verifTag = document.createElement('span');
             verifTag.className =
-              'absolute -bottom-1 -right-1.5 bg-emerald-700 text-white text-xs font-black uppercase px-1 py-0.5 rounded leading-none ring-1 ring-white';
-            verifTag.textContent = p.is_verified ? 'VERIF' : 'PRO';
+              'absolute -bottom-0.5 -right-0.5 bg-emerald-700 text-white w-4 h-4 rounded-full ring-2 ring-white shadow-xs flex items-center justify-center';
+            verifTag.title = p.is_verified ? 'Toko Terverifikasi MWC NU' : 'Unggulan';
+            verifTag.setAttribute('aria-label', p.is_verified ? 'Terverifikasi' : 'Unggulan');
+            verifTag.innerHTML = p.is_verified
+              ? '<svg class="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>'
+              : '<svg class="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
             avatarWrap.appendChild(verifTag);
           }
           media.appendChild(avatarWrap);

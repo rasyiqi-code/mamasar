@@ -1,7 +1,18 @@
 import { defineMiddleware } from 'astro:middleware';
 import { isHttpsRequest } from '../lib/security';
+import { resolveUser } from '../lib/neon-auth';
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  // Lindungi seluruh rute /dashboard agar pengguna belum login langsung diarahkan ke /login
+  if (context.url.pathname.startsWith('/dashboard')) {
+    const user = await resolveUser(context.request);
+    if (!user) {
+      const currentPath = context.url.pathname + context.url.search;
+      const query = currentPath && currentPath !== '/dashboard' ? `?redirect=${encodeURIComponent(currentPath)}` : '';
+      return context.redirect(`/login${query}`);
+    }
+  }
+
   const response = await next();
   const headers = new Headers(response.headers);
 
@@ -20,7 +31,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (!headers.has('Permissions-Policy')) {
     headers.set(
       'Permissions-Policy',
-      'camera=(self), geolocation=(), microphone=(), focus-without-user-activation=()'
+      'camera=(self), geolocation=(), microphone=()'
     );
   }
   if (!headers.has('Content-Security-Policy')) {

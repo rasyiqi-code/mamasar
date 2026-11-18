@@ -25,10 +25,14 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/leaflet": "^1.9.22",
     "astro": "^7.4.12",
+    "cookie": "1.1.1",
     "drizzle-orm": "^0.45.4",
     "elysia": "^1.4.32",
+    "exact-mirror": "^1.2.7",
+    "fast-decode-uri-component": "^1.0.1",
     "imagekit": "^6.0.0",
     "leaflet": "^1.9.4",
+    "memoirist": "^1.2.4",
     "tailwindcss": "^4.3.3"
   },
   "devDependencies": {

@@ -9,6 +9,12 @@ export interface SeedUMKM {
   zone_slug: string;
   is_verified: number;
   address: string;
+  ranting?: string;
+  nib?: string;
+  halal_cert?: string;
+  pirt?: string;
+  maps_url?: string;
+  qris_image_url?: string;
 }
 
 export interface SeedProduct {
@@ -21,6 +27,7 @@ export interface SeedProduct {
   description: string;
   views: number;
   is_sold_out: number;
+  production_capacity?: string;
   shopee_url?: string;
 }
 
@@ -31,6 +38,18 @@ export interface SeedArticle {
   image_url: string;
   summary: string;
   content: string;
+}
+
+export interface SeedCaseStudy {
+  title: string;
+  channel_name: string;
+  tag: string;
+  duration: string;
+  video_url: string;
+  thumbnail_url: string;
+  practice_summary: string;
+  opportunity_summary: string;
+  sort_order: number;
 }
 
 export interface SeedEvent {
@@ -81,227 +100,176 @@ export const SEED_ZONES: SeedZone[] = [
 
 export const SEED_UMKM: SeedUMKM[] = [
   {
-    name: 'UD Barokah Jaya',
-    phone: '6281234567890',
-    zone_slug: 'mwc-gapura',
-    is_verified: 1,
-    address: 'Dusun Karang Anyar, Gapura',
-  },
-  {
-    name: 'Batik Madura Canteng',
-    phone: '6287812345678',
+    name: 'Batik Tulis Khas Sumenep',
+    phone: '6285234158787',
     zone_slug: 'mwc-kota-sumenep',
     is_verified: 1,
-    address: 'Jl. Trunojoyo, Kota Sumenep',
+    ranting: 'Pajagalan',
+    address: 'Jln. dr Soetomo no 4 pajagalan kota Sumenep',
+    nib: 'NIB',
   },
   {
-    name: 'Dapur Bu Fatimah',
-    phone: '6285298765432',
-    zone_slug: 'mwc-kalianget',
-    is_verified: 1,
-    address: 'Desa Marengan, Kalianget',
-  },
-  {
-    name: 'Camilan Kang Hasan',
-    phone: '6282334455667',
-    zone_slug: 'mwc-ambunten',
-    is_verified: 1,
-    address: 'Dusun Pandan, Ambunten',
-  },
-  {
-    name: 'Sentra Nira Dungkek',
-    phone: '6281987654321',
-    zone_slug: 'mwc-dungkek',
-    is_verified: 1,
-    address: 'Desa Lapa Laok, Dungkek',
-  },
-  {
-    name: 'Barokah Rebon Saronggi',
-    phone: '6282123459876',
-    zone_slug: 'mwc-saronggi',
-    is_verified: 1,
-    address: 'Desa Tanjung, Saronggi',
-  },
-  {
-    name: 'Krupuk Sari Laut',
-    phone: '6285333444555',
+    name: 'Depot Air Minum Tangere',
+    phone: '6281703492507',
     zone_slug: 'mwc-batang-batang',
     is_verified: 1,
-    address: 'Desa Lombang, Batang-Batang',
+    ranting: 'Batang-Batang Daya',
+    address: 'Dusun Tangere 03/04 Desa Batang Batang Daya Kec. Batang Batang Kab. Sumenep',
+    nib: 'NIB',
   },
   {
-    name: 'Madu Rimba Manding',
-    phone: '6287711223344',
-    zone_slug: 'mwc-manding',
+    name: 'Cemilan Barokah Longos',
+    phone: '6281913741969',
+    zone_slug: 'mwc-gapura',
     is_verified: 1,
-    address: 'Desa Manding Laok, Manding',
+    ranting: 'Longos',
+    address: 'Longos gapura sumenep',
+    nib: 'NIB',
   },
   {
-    name: 'Jamu Warisan Lenteng',
-    phone: '6282333777888',
-    zone_slug: 'mwc-lenteng',
+    name: 'Dapur Jajanan Gapura Tengah',
+    phone: '6283116262031',
+    zone_slug: 'mwc-gapura',
     is_verified: 1,
-    address: 'Desa Lenteng Barat, Lenteng',
+    ranting: 'Gapura Tengah',
+    address: 'Gapura tengah',
+    nib: 'NIB',
   },
   {
-    name: 'Pengrajin Lontar Pragaan',
-    phone: '6281333999111',
-    zone_slug: 'mwc-pragaan',
+    name: 'Madu Naturiqu Somber Tombet',
+    phone: '6281839363544',
+    zone_slug: 'mwc-batuputih',
     is_verified: 1,
-    address: 'Desa Prenduan, Pragaan',
-  },
-  {
-    name: 'Toko Santri Mandiri',
-    phone: '6287888999000',
-    zone_slug: 'mwc-kota-sumenep',
-    is_verified: 1,
-    address: 'Jl. KH. Agus Salim, Kota Sumenep',
-  },
-  {
-    name: 'Camilan Barokah Bluto',
-    phone: '6285222333444',
-    zone_slug: 'mwc-bluto',
-    is_verified: 1,
-    address: 'Desa Aengbaja Raja, Bluto',
+    ranting: 'Batuputih Kenek',
+    address: 'Dusun pondok laok desa batuputih kenek kec batuputih sumenep',
+    nib: 'NIB',
+    halal_cert: 'HALAL',
+    pirt: 'PIRT',
+    maps_url:
+      'https://maps.google.com/maps?q=Madu%2Bnaturiqu%2Bsomber%2Btombet%2Bpp%2Balmunawarah%2C%2BJl%2Bkh%2Bmunawar%2C%2BSumenep%2BRegency%2C%2B69453%2C%2BJawa%2BTimur%2C%2BID&sll=-6.91285771,113.92687091',
+    qris_image_url: 'https://lh3.googleusercontent.com/d/1XBEstG5K71RcWPaG1HHchYMxGV0z30qq',
   },
 ];
 
 export const SEED_PRODUCTS: SeedProduct[] = [
   {
-    umkm_name: 'UD Barokah Jaya',
-    name: 'Rengginang Lorjuk Super Asli Gapura',
-    slug: 'rengginang-lorjuk-super-asli-gapura',
-    price: 25000,
-    category: 'Makanan & Minuman',
-    image_url: 'https://images.unsplash.com/photo-1626082927389-6cd097cdc6ec?auto=format&fit=crop&w=600&q=80',
-    description: 'Rengginang lorjuk khas Gapura Sumenep dengan taburan lorjuk melimpah dan rempah gurih asli. Renyah, tanpa pengawet buatan, cocok untuk camilan keluarga dan oleh-oleh khas Madura.',
-    views: 0,
-    is_sold_out: 0,
-  },
-  {
-    umkm_name: 'Batik Madura Canteng',
-    name: 'Kain Batik Tulis Madura Corak Sekar Jagad',
-    slug: 'kain-batik-tulis-madura-corak-sekar-jagad',
-    price: 185000,
+    umkm_name: 'Batik Tulis Khas Sumenep',
+    name: 'Batik Tulis Khas Sumenep',
+    slug: 'batik-tulis-khas-sumenep',
+    price: 500000,
     category: 'Batik & Kerajinan',
-    image_url: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=600&q=80',
-    description: 'Batik tulis asli pengrajin nahdliyin Sumenep. Menggunakan pewarna berkualitas dengan motif klasik Sumenep yang elegan, kain katun primissima dingin dan nyaman dipakai.',
+    image_url: 'https://lh3.googleusercontent.com/d/1vuBzBceEF30B1NIMjSXYSR7CpDaGqiyq',
+    description: 'Batik Tulis karya anak2 muda Sumenep dengan kualitas dan bahan terbaik.',
+    production_capacity: 'Produksi 10 pcs seminggu',
     views: 0,
     is_sold_out: 0,
   },
   {
-    umkm_name: 'Dapur Bu Fatimah',
-    name: 'Petis Ikan Cakalang Khas Kalianget',
-    slug: 'petis-ikan-cakalang-khas-kalianget',
-    price: 18000,
-    category: 'Hasil Laut & Olahan',
-    image_url: 'https://images.unsplash.com/photo-1596797038530-2c107229654b?auto=format&fit=crop&w=600&q=80',
-    description: 'Petis ikan cakalang murni tanpa campuran tepung berlebih. Rasa gurih alami sangat cocok untuk rujak Madura, cocolan tahu, krupuk, dan bumbu dapur khas.',
+    umkm_name: 'Depot Air Minum Tangere',
+    name: 'Air Isi Ulang',
+    slug: 'air-isi-ulang-tangere',
+    price: 6000,
+    category: 'Makanan & Minuman',
+    image_url: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=600&q=80',
+    description: 'Air minum higenis dan menyegarkan.',
+    production_capacity: '10-30/hari',
     views: 0,
     is_sold_out: 0,
   },
   {
-    umkm_name: 'Camilan Kang Hasan',
-    name: 'Kripik Singkong Balado Bawang Renyah 250g',
-    slug: 'kripik-singkong-balado-bawang-renyah',
-    price: 15000,
+    umkm_name: 'Cemilan Barokah Longos',
+    name: 'Cemilan',
+    slug: 'cemilan-kering-longos',
+    price: 10000,
     category: 'Makanan & Minuman',
     image_url: 'https://images.unsplash.com/photo-1599490659213-e2b9527bd087?auto=format&fit=crop&w=600&q=80',
-    description: 'Camilan kripik singkong gurih khas pesisir Ambunten Sumenep, potongan tipis renyah dibumbui bawang dan cabai asli tanpa pewarna buatan.',
+    description: 'Produk berupa cemilan kering, seperti kacang kacangan, dan pangsit serta krupuk, produk ini bisa di jual eceran atau bahkan kiloan.',
+    production_capacity: 'Untuk saat ini penjualan perbulan sekitar tujuh ribu pcs.',
     views: 0,
     is_sold_out: 0,
   },
   {
-    umkm_name: 'Sentra Nira Dungkek',
-    name: 'Gula Merah Siwalan Murni Dungkek',
-    slug: 'gula-merah-siwalan-murni-dungkek',
-    price: 22000,
-    category: 'Pertanian & Perkebunan',
-    image_url: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=600&q=80',
-    description: 'Gula merah cetak alami asli dari nira pohon siwalan segar Dungkek Sumenep. Manis legit alami tanpa bahan pengawet.',
-    views: 0,
-    is_sold_out: 0,
-  },
-  {
-    umkm_name: 'Barokah Rebon Saronggi',
-    name: 'Terasi Udang Rebon Asli Pesisir Saronggi',
-    slug: 'terasi-udang-rebon-asli-pesisir-saronggi',
-    price: 14000,
-    category: 'Hasil Laut & Olahan',
-    image_url: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=600&q=80',
-    description: 'Terasi rebon asli nelayan Saronggi kualitas pilihan, wangi gurih sedap untuk sambal terasi mentah khas Madura.',
-    views: 0,
-    is_sold_out: 0,
-  },
-  {
-    umkm_name: 'Krupuk Sari Laut',
-    name: 'Kerupuk Ikan Tongkol Gurih Renyah 500g',
-    slug: 'kerupuk-ikan-tongkol-gurih-renyah-500g',
-    price: 20000,
-    category: 'Hasil Laut & Olahan',
-    image_url: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80',
-    description: 'Kerupuk ikan tongkol segar racikan warga nahdliyin Batang-Batang. Ikan terasa pekat, mekar renyah gurih.',
-    views: 0,
-    is_sold_out: 0,
-  },
-  {
-    umkm_name: 'Madu Rimba Manding',
-    name: 'Madu Hutan Liar Asli Madura 350ml',
-    slug: 'madu-hutan-liar-asli-madura-350ml',
-    price: 75000,
-    category: 'Herbal & Jamu',
-    image_url: 'https://images.unsplash.com/photo-1587049352846-4a222e784d38?auto=format&fit=crop&w=600&q=80',
-    description: 'Madu murni hasil panen lebah liar perbukitan Manding. Murni tanpa campuran gula, bagus untuk daya tahan tubuh.',
-    views: 0,
-    is_sold_out: 0,
-  },
-  {
-    umkm_name: 'Jamu Warisan Lenteng',
-    name: 'Jamu Ramuan Tradisional Madura Sehat Alami',
-    slug: 'jamu-ramuan-tradisional-madura-sehat-alami',
-    price: 35000,
-    category: 'Herbal & Jamu',
-    image_url: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=600&q=80',
-    description: 'Ramuan herbal tradisional Madura olahan Fatayat NU Lenteng. Rempah alami temulawak, jahe merah, dan kunyit.',
-    views: 0,
-    is_sold_out: 0,
-  },
-  {
-    umkm_name: 'Pengrajin Lontar Pragaan',
-    name: 'Tas Anyaman Daun Lontar Etnik Madura',
-    slug: 'tas-anyaman-daun-lontar-etnik-madura',
-    price: 45000,
-    category: 'Batik & Kerajinan',
-    image_url: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=600&q=80',
-    description: 'Tas etnik ramah lingkungan dari anyaman daun lontar siwalan pilihan pengrajin Pragaan Sumenep. Kuat dan artistik.',
-    views: 0,
-    is_sold_out: 0,
-  },
-  {
-    umkm_name: 'Toko Santri Mandiri',
-    name: 'Kopyah Santri Songkok Nasional Bordir NU',
-    slug: 'kopyah-santri-songkok-nasional-bordir-nu',
-    price: 65000,
-    category: 'Fashion Muslim',
-    image_url: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=600&q=80',
-    description: 'Songkok bludru premium berkualitas dengan bordir logo lambang NU halus dan presisi. Nyaman dipakai santri.',
-    views: 0,
-    is_sold_out: 0,
-  },
-  {
-    umkm_name: 'Camilan Barokah Bluto',
-    name: 'Keripik Pisang Madu Gurih Manis Bluto',
-    slug: 'keripik-pisang-madu-gurih-manis-bluto',
-    price: 16000,
+    umkm_name: 'Dapur Jajanan Gapura Tengah',
+    name: 'Jajanan Tradisional',
+    slug: 'jajanan-tradisional-gapura-tengah',
+    price: 5000,
     category: 'Makanan & Minuman',
-    image_url: 'https://images.unsplash.com/photo-1528751014936-863e6e7a319c?auto=format&fit=crop&w=600&q=80',
-    description: 'Keripik pisang pilihan diiris tipis dengan balutan karamel madu asli khas Bluto Sumenep. Renyah gurih manis.',
+    image_url: 'https://lh3.googleusercontent.com/d/1PVoRqPsT5K3T8JMut1wil42fTmwgCHb2',
+    description: 'Jajanan tradisional khas Sumenep yang gurih manis, dibuat segar setiap hari dengan cita rasa khas.',
+    production_capacity: '30 pcs/hari',
     views: 0,
-    is_sold_out: 1,
+    is_sold_out: 0,
+  },
+  {
+    umkm_name: 'Madu Naturiqu Somber Tombet',
+    name: 'Madu Naturiqu',
+    slug: 'madu-naturiqu-batuputih',
+    price: 85000,
+    category: 'Herbal & Jamu',
+    image_url: 'https://lh3.googleusercontent.com/d/1sivpUEqxEtp-xJ7xoWz125UU2XmEm5uN',
+    description: 'Madu naturiqu adalah madu murni yang di hasilkan dari lebah melefera dengan cara di ternak dengan dengan menghasilkan madu dengan berbagai nekstar bunga.',
+    production_capacity: '50.dan tergantung permintaan',
+    views: 0,
+    is_sold_out: 0,
   },
 ];
 
 export const SEED_ARTICLES: SeedArticle[] = [
+  {
+    title: 'Panduan Dasar Sebelum Menanam: Pengolahan Media Tanam dan Pupuk Dasar Organik',
+    slug: 'panduan-dasar-sebelum-menanam-pekarangan',
+    category: 'Ekonomi Pekarangan',
+    image_url: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?auto=format&fit=crop&w=800&q=80',
+    summary: 'Prinsip mendasar sebelum menanam di pekarangan: menyiapkan media tanam gembur formula 2:1:1 serta daur ulang sisa organik dengan dekomposisi anaerobik.',
+    content: `> "Keseluruhan Sains tidak lebih dari perbaikan pemikiran sehari-hari."
+> *(Albert Einstein)*
+
+Sebelum mulai menanam komoditas apa pun di pekarangan rumah, baik itu cabai jamu, aneka sayuran, maupun tanaman toga, ada satu pertanyaan paling mendasar yang harus dijawab oleh setiap pegiat ekonomi pekarangan:
+
+**Apa saja hal yang paling dasar yang harus dilakukan sebelum menanam?**
+
+Kunci keberhasilan panen pekarangan bukan terletak pada benih mahal atau pupuk kimia sintetis, melainkan pada **kualitas media tanam** dan **kesiapan nutrisi dasar alami** yang siap diserap perakaran tanaman sejak hari pertama.
+
+---
+
+### 1. Menjamin Media Tanam (Pengolahan Lahan)
+
+Langkah awal yang mutlak dipenuhi adalah memastikan media tanam dalam kondisi **gembur**. Tanah pekarangan yang padat atau tandus akan menghentikan sirkulasi udara dan menghambat pernapasan akar.
+
+Media tanam yang gembur dan subur memiliki 3 ciri utama:
+- **Ada unsur tanah atau humus:** Berfungsi sebagai fondasi penahan air dan penopang kokohnya sistem perakaran.
+- **Ada unsur kompos (bahan organik yang sudah jadi):** Menyediakan unsur hara makro dan mikro alami yang stabil dan aman bagi bibit muda.
+- **Ada sekam bakar atau sekam lapuk:** Berfungsi menjaga kegemburan, memperlancar aerasi oksigen, serta menjaga kelembapan media tanam agar tidak mengeras saat terpapar terik matahari.
+
+#### Formula Takaran Baku Media Tanam:
+Campurkan seluruh bahan secara merata dengan perbandingan:
+- **2 bagian tanah**
+- **1 bagian kompos** (bahan organik matang)
+- **1 bagian sekam bakar / sekam lapuk**
+
+*(Perbandingan 2 : 1 : 1)*
+
+Aduk hingga homogen sebelum dimasukkan ke dalam kantong polybag, pot teras, atau bedengan pekarangan rumah Anda.
+
+---
+
+### 2. Pupuk Dasar (Input) Pertanian & Tanaman Organik
+
+Ekonomi pekarangan nahdliyin menganut prinsip kemandirian pangan sirkular yang lestari. Prinsip dasarnya:
+
+> **Apa yang "tersisa" dari konsumsi sehari-hari, dikembalikan lagi ke lahan atau media tanam.**
+
+Sisa-sisa dapur rumah tangga (kulit buah, sisa sayuran, sisa nasi, air leri cucian beras) dan sisa tanaman di pekarangan tidak boleh terbuang percuma, melainkan dimanfaatkan kembali:
+
+- **Metode Anaerobik (Kedap Udara):**
+  Bahan-bahan sisa organik dimasukkan ke dalam wadah atau jeriken tertutup rapat (kedap udara). Kondisi tanpa oksigen bebas ini mempercepat proses pelapukan atau dekomposisi bahan organik oleh bakteri pengurai alami di dalam media tanam.
+- **Hasil Nutrisi Alami:**
+  Penguraian anaerobik ini menghasilkan nutrisi penting yang langsung menyuburkan mikroba tanah dan siap diserap akar tanaman sebagai energi pertumbuhan yang sehat dan bebas racun kimia.
+
+---
+
+Dengan memadukan media tanam gembur berformula 2:1:1 dan pengembalian sisa organik melalui dekomposisi anaerobik, lahan pekarangan rumah tangga santri siap menjadi lumbung pangan mandiri yang produktif dan berkah.`,
+  },
   {
     title: 'Ekonomi Pekarangan: Maksimalkan Lahan Rumah Menjadi Lumbung Rezeki Santri',
     slug: 'ekonomi-pekarangan-santri-sumenep',
@@ -317,6 +285,92 @@ export const SEED_ARTICLES: SeedArticle[] = [
 
 ### 2. Sinergi dengan Mamasar
 Hasil panen pekarangan yang berlebih tidak perlu bingung mencari tengkulak. Daftarkan panen Anda ke direktori Mamasar melalui kader MWC setempat. Tetangga satu desa atau kecamatan yang membutuhkan bahan pangan segar dapat langsung mengontak Anda via WhatsApp tanpa potongan tengkulak.`,
+  },
+  {
+    title: 'Budidaya Cabai Jamu Madura di Pekarangan: Emas Hijau Bernilai Tinggi',
+    slug: 'budidaya-cabai-jamu-madura-pekarangan',
+    category: 'Ekonomi Pekarangan',
+    image_url: 'https://images.unsplash.com/photo-1590682680695-43b964a3ae17?auto=format&fit=crop&w=800&q=80',
+    summary: 'Panduan praktis menanam cabai jamu (cabe jawa) rambat di pekarangan rumah dengan kebutuhan air minim dan harga jual stabil.',
+    content: `Cabai jamu (cabe jawa) merupakan salah satu komoditas rempah obat unggulan khas Kabupaten Sumenep yang telah dibudidayakan turun-temurun. Tanaman merambat ini toleran cuaca panas pesisir Madura dan membutuhkan lahan sangat minim, menjadikannya pilihan ideal untuk pekarangan rumah santri dan warga NU.
+
+### 1. Karakteristik & Keunggulan Cabai Jamu
+- **Tahan Kekeringan:** Kebutuhan penyiraman minim setelah akar rambat menempel kokoh pada tiang panjat atau dinding pagar.
+- **Serapan Pasar Pasti:** Permintaan dari industri jamu tradisional Madura dan pabrik herbal nasional selalu tinggi. Harga cabai jamu kering di tingkat pengepul lokal berkisar Rp 60.000 hingga Rp 110.000 per kg.
+- **Masa Produktif Belasan Tahun:** Satu pohon cabai jamu yang terawat dapat terus berbuah selama lebih dari 10 tahun.
+
+### 2. Langkah Tanam di Pekarangan
+1. **Tiang Panjatan:** Manfaatkan tembok batas, pagar pekarangan, atau tanam tiang pohon kelor dan randu sebagai media rambat.
+2. **Media Tanam:** Campurkan tanah gembur, pasir, dan pupuk kandang matang (perbandingan 2:1:1).
+3. **Bibit Sulur:** Gunakan sulur panjat yang berakar kuat dan tanam dengan kemiringan mengarah ke tiang rambat.
+4. **Perawatan:** Berikan pupuk kompos atau pupuk organik cair (POC) setiap dua minggu sekali pada masa pertumbuhan.
+
+### 3. Pemanenan & Pengeringan
+Petik buah yang mulai matang (semburat merah), lalu jemur di bawah sinar matahari Sumenep selama 3-5 hari hingga kadar air kering sempurna. Hasil panen dapat langsung dipasarkan ke sesama warga atau pedagang jamu melalui Mamasar.`,
+  },
+  {
+    title: 'Budidaya Lele Kolam Terpal Bioflok Pekarangan: Modal Ringan Panen Berkala',
+    slug: 'budidaya-lele-bioflok-pekarangan-sumenep',
+    category: 'Ekonomi Pekarangan',
+    image_url: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+    summary: 'Langkah merakit kolam terpal bulat diameter 2 meter di pekarangan rumah untuk panen lele segar konsumsi warga.',
+    content: `Dengan memanfaatkan sudut pekarangan ukuran 2,5 x 2,5 meter, keluarga nahdliyin dapat merintis budidaya lele sistem bioflok kolam terpal bulat untuk menjamin ketahanan protein keluarga sekaligus sumber pemasukan kas berkala.
+
+### 1. Keunggulan Bioflok Kolam Terpal
+- **Hemat Air & Lahan:** Tidak perlu kuras air berkala karena mikroorganisme pengurai memanfaatkan sisa pakan dan kotoran menjadi flok protein alami.
+- **Tidak Berbau:** Pengelolaan air dengan aerasi yang cukup memastikan kolam tetap bersih dan ramah untuk lingkungan perumahan.
+- **Siklus Cepat:** Dari benih ukuran 7-9 cm, ikan lele dapat dipanen dalam waktu 65 hingga 75 hari.
+
+### 2. Estimasi Kebutuhan Awal
+- Terpal bulat D2 (diameter 2 meter) lengkap dengan rangka wiremesh: sekitar Rp 600.000.
+- Mesin aerator mini (30-45 watt) dan selang aerasi: sekitar Rp 250.000.
+- Benih lele unggul (Mutiara/Sangkuriang) 1.000 ekor: sekitar Rp 200.000.
+- Garam krosok, molase, dan probiotik lactobacillus: sekitar Rp 75.000.
+
+### 3. Panen & Distribusi Lokal
+Tawarkan hasil panen hidup kepada warung makan, penjual lalapan, dan tetangga pengajian melalui katalog digital Mamasar. Kualitas lele bioflok terbukti lebih padat, gurih, dan tidak berbau lumpur.`,
+  },
+  {
+    title: 'Sayur Polybag & Kelor Organik Pekarangan: Pangan Sehat dan Hemat Belanja',
+    slug: 'sayur-polybag-kelor-mandiri-pangan',
+    category: 'Ekonomi Pekarangan',
+    image_url: 'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?auto=format&fit=crop&w=800&q=80',
+    summary: 'Menyulap teras dan pekarangan sempit menjadi kebun sayur mandiri keluarga nahdliyin Sumenep.',
+    content: `Kebutuhan sayur harian keluarga dapat dihemat dengan memanfaatkan 15 hingga 20 kantong polybag di pekarangan rumah. Ibu-ibu Muslimat dan Fatayat NU dapat memetik sayur segar setiap hari tanpa harus mengeluarkan biaya belanja harian.
+
+### 1. Tanaman Sayur Ideal untuk Cuaca Sumenep
+- **Pohon Kelor (Maronggai):** Tumbuhan khas Madura yang kaya kalsium dan zat besi. Sangat tahan panas dan daunnya dapat dipetik rutin setiap minggu.
+- **Cabai Rawit & Tomat:** Cukup tanam 5 polybag cabai rawit untuk memenuhi kebutuhan bumbu dapur keluarga sepanjang musim.
+- **Kangkung & Bayam Cabut:** Panen kilat dalam 21-25 hari setelah semai.
+- **Terong:** Berbuah lebat dalam polybag ukuran 35 cm atau kaleng bekas cat.
+
+### 2. Media Tanam Sederhana
+Gunakan komposisi seimbang 1:1:1 antara tanah gembur pekarangan, sekam padi matang, dan pupuk kandang matang. Siram di sore hari agar kelembapan terjaga. Bila panen berlebih, bungkus rapi dan pasang iklan di Mamasar untuk dibeli tetangga satu desa.`,
+  },
+  {
+    title: 'Pupuk Organik Cair (POC) dari Limbah Dapur: Hemat Biaya Rawat Pekarangan',
+    slug: 'panduan-poc-pupuk-organik-pekarangan',
+    category: 'Ekonomi Pekarangan',
+    image_url: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=800&q=80',
+    summary: 'Cara mudah meracik POC mandiri menggunakan sisa sayur, air cucian beras, dan molase tanpa bau menyengat.',
+    content: `Kemandirian ekonomi pekarangan semakin optimal jika tidak bergantung pada pupuk kimia buatan pabrik. Bahan baku pupuk organik cair (POC) berkualitas tinggi sudah tersedia gratis di dapur rumah tangga setiap hari.
+
+### 1. Bahan yang Dibutuhkan
+- 5 liter air cucian beras pertama (air leri).
+- 1 kg sisa sayuran dapur atau kulit buah (kulit pisang, pepaya, sisa sawi).
+- 100 ml tetes tebu (molase) atau gula kelapa cair.
+- 1 tutup botol cairan probiotik EM4 pertanian atau ragi tape.
+- 1 jeriken plastik berpenutup rapat.
+
+### 2. Langkah Pembuatan
+1. Cacah halus sisa sayuran dan masukkan ke dalam jeriken.
+2. Tuangkan air cucian beras, larutan gula, dan cairan probiotik.
+3. Aduk rata, lalu tutup jeriken secara rapat.
+4. Buka tutup selama 5 detik setiap pagi untuk mengeluarkan gas fermentasi alami.
+5. Setelah 10-14 hari, cairan POC berwarna kecokelatan dengan aroma fermentasi tape yang segar siap digunakan.
+
+### 3. Aturan Pakai
+Encerkan 1 gelas POC (200 ml) ke dalam 1 ember air bersih (8-10 liter). Siramkan ke tanah pekarangan seminggu sekali untuk merangsang kesuburan daun dan ketahanan tanaman terhadap hama.`,
   },
   {
     title: 'Panduan Memulai Usaha Santri Nahdliyin Tanpa Modal Besar',
@@ -458,5 +512,41 @@ export const SEED_EVENTS: SeedEvent[] = [
     allow_stalls: 1,
     coordinator_name: 'Ibu Nyai Hj. Aminah',
     coordinator_phone: '6282334455667',
+  },
+];
+
+export const SEED_CASE_STUDIES: SeedCaseStudy[] = [
+  {
+    title: 'Yoso Farm: Kebun Sayur & Ternak Mandiri',
+    channel_name: 'Channel OASIS',
+    tag: 'Integrasi Pangan',
+    duration: '22 Menit',
+    video_url: 'https://www.youtube.com/watch?v=5Fv2tGv9_Vo',
+    thumbnail_url: 'https://images.unsplash.com/photo-1595974482597-4b8da8879bc5?auto=format&fit=crop&w=600&q=80',
+    practice_summary: 'Integrasi tanaman sayur pekarangan & ternak tanpa perlu belanja kebutuhan harian.',
+    opportunity_summary: 'Surplus panen segar & bibit diserap langsung oleh tetangga sekitar.',
+    sort_order: 1,
+  },
+  {
+    title: 'Kebun Galon: Sistem Kapiler Hemat Siram',
+    channel_name: 'Channel OASIS',
+    tag: 'Sistem Kapiler',
+    duration: '20 Menit',
+    video_url: 'https://www.youtube.com/watch?v=X__6wGg4tgc',
+    thumbnail_url: 'https://images.unsplash.com/photo-1530836369250-ef72a3f5cda8?auto=format&fit=crop&w=600&q=80',
+    practice_summary: 'Daur ulang galon bekas air mineral dengan sumbu kapiler tanpa siram setiap hari.',
+    opportunity_summary: 'Solusi lahan sempit di perumahan warga dengan panen sayur bernilai jual tinggi.',
+    sort_order: 2,
+  },
+  {
+    title: 'Sayur Teras: Panen Rutin Cuan Bulanan',
+    channel_name: 'Channel Cerita Alam',
+    tag: 'Bisnis Sayur',
+    duration: '12 Menit',
+    video_url: 'https://www.youtube.com/watch?v=6ufb1CXnABs',
+    thumbnail_url: 'https://images.unsplash.com/photo-1591857177580-dc82b9ac4e1e?auto=format&fit=crop&w=600&q=80',
+    practice_summary: 'Budidaya aneka sayuran segar di teras rumah warga sebagai usaha sampingan produktif.',
+    opportunity_summary: 'Menghasilkan arus kas rutin mingguan dari pembeli tetangga komplek & warung terdekat.',
+    sort_order: 3,
   },
 ];

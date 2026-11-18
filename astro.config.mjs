@@ -13,5 +13,9 @@ export default defineConfig({
   adapter: isVercel ? vercel() : node({ mode: 'standalone' }),
   vite: {
     plugins: [tailwindcss()],
+    ssr: {
+      noExternal: isVercel ? ['elysia', 'memoirist', 'exact-mirror', 'cookie'] : [],
+      external: ['fast-decode-uri-component'],
+    },
   },
 });

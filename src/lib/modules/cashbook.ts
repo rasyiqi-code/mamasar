@@ -32,13 +32,21 @@ export async function getCashbookEntries(
   limit: number = 30,
   umkmId?: number
 ): Promise<CashbookEntry[]> {
-  const rows = await getDb()
+  const query = getDb()
     .select()
     .from(schema.cashbook)
     .where(cashbookScopeCondition(userId, umkmId))
-    .orderBy(desc(schema.cashbook.transaction_date), desc(schema.cashbook.id))
-    .limit(limit);
+    .orderBy(desc(schema.cashbook.transaction_date), desc(schema.cashbook.id));
+
+  const rows = limit > 0 ? await query.limit(limit) : await query;
   return rows.map(toCashbookEntry);
+}
+
+export async function getAllCashbookEntries(
+  userId: number,
+  umkmId?: number
+): Promise<CashbookEntry[]> {
+  return getCashbookEntries(userId, 0, umkmId);
 }
 
 export async function getCashbookSummary(

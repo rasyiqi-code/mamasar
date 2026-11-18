@@ -16,6 +16,8 @@ interface Props {
   pendingStoresCount: number;
   zonesCount: number;
   pendingPromotionsCount?: number;
+  articlesCount?: number;
+  activeTab?: string;
 }
 
 const {
@@ -27,6 +29,8 @@ const {
   pendingStoresCount,
   zonesCount,
   pendingPromotionsCount = 0,
+  articlesCount = 0,
+  activeTab = '',
 } = Astro.props;
 
 const isMwcAdmin = !isSuper && userRole === 'mwcnu';
@@ -43,6 +47,16 @@ const roleSub = isSuper
     ? 'Pengurus MWC'
     : `MWC ${assignedZoneName}`;
 const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
+const isRootAdmin = Astro.url.pathname === '/admin';
+const NavTag = isRootAdmin ? 'button' : 'a';
+
+const isAgentsActive = isRootAdmin ? isSuper && (!activeTab || activeTab === 'agents') : activeTab === 'agents';
+const isStoresActive = activeTab === 'stores';
+const isEntryActive = isRootAdmin ? !isSuper && (!activeTab || activeTab === 'entry') : activeTab === 'entry';
+const isEventsActive = activeTab === 'events';
+const isPromosActive = activeTab === 'promotions';
+const isZonesActive = activeTab === 'zones';
+const isArticlesActive = activeTab === 'articles';
 ---
 
 <!-- MOBILE TOP HEADER (Unified App Bar matching DashboardSidebar) -->
@@ -114,15 +128,16 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
     <nav aria-label="Menu Portal Admin & Kader" class="p-3 space-y-1 flex-1 text-xs">
       <div role="tablist" aria-orientation="vertical" class="space-y-1">
         {isSuper && (
-          <button
-            type="button"
+          <NavTag
+            type={isRootAdmin ? 'button' : undefined}
+            href={isRootAdmin ? undefined : '/admin#agents'}
             role="tab"
-            aria-selected="true"
+            aria-selected={isAgentsActive ? 'true' : 'false'}
             aria-controls="panel-agents"
             data-admin-tab="agents"
             data-admin-label="Pengguna & Peran"
-            tabindex="0"
-            class="admin-nav-tab active w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+            tabindex={isAgentsActive ? 0 : -1}
+            class={`admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left ${isAgentsActive ? 'active' : ''}`}
           >
             <div class="flex items-center gap-2.5 min-w-0">
               <AppIcon name="shield" size="sm" class="shrink-0" />
@@ -133,19 +148,20 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
             }`}>
               {pendingPetugasCount}
             </span>
-          </button>
+          </NavTag>
         )}
 
         {isSuper ? (
-          <button
-            type="button"
+          <NavTag
+            type={isRootAdmin ? 'button' : undefined}
+            href={isRootAdmin ? undefined : '/admin#stores'}
             role="tab"
-            aria-selected="false"
+            aria-selected={isStoresActive ? 'true' : 'false'}
             aria-controls="panel-stores"
             data-admin-tab="stores"
             data-admin-label="Moderasi Toko"
-            tabindex="-1"
-            class="admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+            tabindex={isStoresActive ? 0 : -1}
+            class={`admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left ${isStoresActive ? 'active' : ''}`}
           >
             <div class="flex items-center gap-2.5 min-w-0">
               <AppIcon name="store" size="sm" class="shrink-0" />
@@ -156,47 +172,50 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
             }`}>
               {pendingStoresCount}
             </span>
-          </button>
+          </NavTag>
         ) : (
-          <button
-            type="button"
+          <NavTag
+            type={isRootAdmin ? 'button' : undefined}
+            href={isRootAdmin ? undefined : '/admin#entry'}
             role="tab"
-            aria-selected="true"
+            aria-selected={isEntryActive ? 'true' : 'false'}
             aria-controls="panel-entry"
             data-admin-tab="entry"
             data-admin-label="Entri Jemput Bola"
-            tabindex="0"
-            class="admin-nav-tab active w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+            tabindex={isEntryActive ? 0 : -1}
+            class={`admin-nav-tab w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left ${isEntryActive ? 'active' : ''}`}
           >
             <AppIcon name="clipboard" size="sm" class="shrink-0" />
             <span class="truncate">Entri Jemput Bola</span>
-          </button>
+          </NavTag>
         )}
 
         {isSuper ? (
-          <button
-            type="button"
+          <NavTag
+            type={isRootAdmin ? 'button' : undefined}
+            href={isRootAdmin ? undefined : '/admin#entry'}
             role="tab"
-            aria-selected="false"
+            aria-selected={isEntryActive ? 'true' : 'false'}
             aria-controls="panel-entry"
             data-admin-tab="entry"
             data-admin-label="Entri Jemput Bola"
-            tabindex="-1"
-            class="admin-nav-tab w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+            tabindex={isEntryActive ? 0 : -1}
+            class={`admin-nav-tab w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left ${isEntryActive ? 'active' : ''}`}
           >
             <AppIcon name="clipboard" size="sm" class="shrink-0" />
             <span class="truncate">Entri Jemput Bola</span>
-          </button>
+          </NavTag>
         ) : (
-          <button
-            type="button"
+          <NavTag
+            type={isRootAdmin ? 'button' : undefined}
+            href={isRootAdmin ? undefined : '/admin#stores'}
             role="tab"
-            aria-selected="false"
+            aria-selected={isStoresActive ? 'true' : 'false'}
             aria-controls="panel-stores"
             data-admin-tab="stores"
             data-admin-label="Toko Binaan MWC"
-            tabindex="-1"
-            class="admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+            tabindex={isStoresActive ? 0 : -1}
+            class={`admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left ${isStoresActive ? 'active' : ''}`}
           >
             <div class="flex items-center gap-2.5 min-w-0">
               <AppIcon name="store" size="sm" class="shrink-0" />
@@ -205,33 +224,54 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
             <span class="admin-nav-badge text-xs font-mono tabular-nums font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
               {pendingStoresCount}
             </span>
-          </button>
+          </NavTag>
         )}
 
-        <button
-          type="button"
+        <NavTag
+          type={isRootAdmin ? 'button' : undefined}
+          href={isRootAdmin ? undefined : '/admin#events'}
           role="tab"
-          aria-selected="false"
+          aria-selected={isEventsActive ? 'true' : 'false'}
           aria-controls="panel-events"
           data-admin-tab="events"
           data-admin-label="Agenda Kegiatan"
-          tabindex="-1"
-          class="admin-nav-tab w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left"
+          tabindex={isEventsActive ? 0 : -1}
+          class={`admin-nav-tab w-full min-h-[42px] flex items-center gap-2.5 px-3 py-2 rounded-lg cursor-pointer text-left ${isEventsActive ? 'active' : ''}`}
         >
           <AppIcon name="tent" size="sm" class="shrink-0" />
           <span class="truncate">Agenda Kegiatan</span>
-        </button>
+        </NavTag>
+
+        {isSuper && (
+          <a
+            href="/admin/articles"
+            role="tab"
+            aria-selected={isArticlesActive ? 'true' : 'false'}
+            data-admin-tab="articles"
+            data-admin-label="Panduan Edukasi"
+            class={`admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left ${isArticlesActive ? 'active' : ''}`}
+          >
+            <div class="flex items-center gap-2.5 min-w-0">
+              <AppIcon name="book" size="sm" class="shrink-0 text-emerald-700" />
+              <span class="truncate">Panduan Edukasi</span>
+            </div>
+            <span class="admin-nav-badge text-xs font-mono tabular-nums font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+              {articlesCount}
+            </span>
+          </a>
+        )}
 
         {(isSuper || isMwcAdmin) && (
-          <button
-            type="button"
+          <NavTag
+            type={isRootAdmin ? 'button' : undefined}
+            href={isRootAdmin ? undefined : '/admin#promotions'}
             role="tab"
-            aria-selected="false"
+            aria-selected={isPromosActive ? 'true' : 'false'}
             aria-controls="panel-promotions"
             data-admin-tab="promotions"
             data-admin-label="Iklan & Promosi"
-            tabindex="-1"
-            class="admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+            tabindex={isPromosActive ? 0 : -1}
+            class={`admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left ${isPromosActive ? 'active' : ''}`}
           >
             <div class="flex items-center gap-2.5 min-w-0">
               <AppIcon name="star" size="sm" class="shrink-0 text-amber-600" />
@@ -242,18 +282,19 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
             }`}>
               {pendingPromotionsCount}
             </span>
-          </button>
+          </NavTag>
         )}
 
-        <button
-          type="button"
+        <NavTag
+          type={isRootAdmin ? 'button' : undefined}
+          href={isRootAdmin ? undefined : '/admin#zones'}
           role="tab"
-          aria-selected="false"
+          aria-selected={isZonesActive ? 'true' : 'false'}
           aria-controls="panel-zones"
           data-admin-tab="zones"
           data-admin-label="Peta Sebaran Wilayah"
-          tabindex="-1"
-          class="admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left"
+          tabindex={isZonesActive ? 0 : -1}
+          class={`admin-nav-tab w-full min-h-[42px] flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer text-left ${isZonesActive ? 'active' : ''}`}
         >
           <div class="flex items-center gap-2.5 min-w-0">
             <AppIcon name="map-pin" size="sm" class="shrink-0" />
@@ -262,7 +303,7 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
           <span class="admin-nav-badge text-xs font-mono tabular-nums font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
             {zonesCount}
           </span>
-        </button>
+        </NavTag>
       </div>
 
       <div class="pt-3 mt-2 border-t border-slate-200/70 space-y-1">
@@ -319,11 +360,12 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
   }`}
 >
   {isSuper ? (
-    <button
-      type="button"
-      role="tab"
-      aria-selected="true"
-      aria-controls="panel-agents"
+    <NavTag
+      type={isRootAdmin ? 'button' : undefined}
+      href={isRootAdmin ? undefined : '/admin#agents'}
+      role={isRootAdmin ? 'tab' : undefined}
+      aria-selected={isRootAdmin ? (isAgentsActive ? 'true' : 'false') : undefined}
+      aria-controls={isRootAdmin ? 'panel-agents' : undefined}
       data-admin-tab="agents"
       data-admin-label="Pengguna & Peran"
       class="relative min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
@@ -335,27 +377,29 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
           {pendingPetugasCount > 99 ? '99+' : pendingPetugasCount}
         </span>
       )}
-    </button>
+    </NavTag>
   ) : (
-    <button
-      type="button"
-      role="tab"
-      aria-selected="true"
-      aria-controls="panel-entry"
+    <NavTag
+      type={isRootAdmin ? 'button' : undefined}
+      href={isRootAdmin ? undefined : '/admin#entry'}
+      role={isRootAdmin ? 'tab' : undefined}
+      aria-selected={isRootAdmin ? (isEntryActive ? 'true' : 'false') : undefined}
+      aria-controls={isRootAdmin ? 'panel-entry' : undefined}
       data-admin-tab="entry"
       data-admin-label="Entri Jemput Bola"
       class="min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
     >
       <AppIcon name="clipboard" size="sm" />
       <span class="truncate max-w-full">Entri</span>
-    </button>
+    </NavTag>
   )}
 
-  <button
-    type="button"
-    role="tab"
-    aria-selected="false"
-    aria-controls="panel-stores"
+  <NavTag
+    type={isRootAdmin ? 'button' : undefined}
+    href={isRootAdmin ? undefined : '/admin#stores'}
+    role={isRootAdmin ? 'tab' : undefined}
+    aria-selected={isRootAdmin ? (isStoresActive ? 'true' : 'false') : undefined}
+    aria-controls={isRootAdmin ? 'panel-stores' : undefined}
     data-admin-tab="stores"
     data-admin-label={isSuper ? 'Moderasi Toko' : 'Toko Binaan MWC'}
     class="relative min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
@@ -367,42 +411,45 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
         {pendingStoresCount > 99 ? '99+' : pendingStoresCount}
       </span>
     )}
-  </button>
+  </NavTag>
 
   {isSuper && (
-    <button
-      type="button"
-      role="tab"
-      aria-selected="false"
-      aria-controls="panel-entry"
+    <NavTag
+      type={isRootAdmin ? 'button' : undefined}
+      href={isRootAdmin ? undefined : '/admin#entry'}
+      role={isRootAdmin ? 'tab' : undefined}
+      aria-selected={isRootAdmin ? (isEntryActive ? 'true' : 'false') : undefined}
+      aria-controls={isRootAdmin ? 'panel-entry' : undefined}
       data-admin-tab="entry"
       data-admin-label="Entri Jemput Bola"
       class="min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
     >
       <AppIcon name="clipboard" size="sm" />
       <span class="truncate max-w-full">Entri</span>
-    </button>
+    </NavTag>
   )}
 
-  <button
-    type="button"
-    role="tab"
-    aria-selected="false"
-    aria-controls="panel-events"
+  <NavTag
+    type={isRootAdmin ? 'button' : undefined}
+    href={isRootAdmin ? undefined : '/admin#events'}
+    role={isRootAdmin ? 'tab' : undefined}
+    aria-selected={isRootAdmin ? (isEventsActive ? 'true' : 'false') : undefined}
+    aria-controls={isRootAdmin ? 'panel-events' : undefined}
     data-admin-tab="events"
     data-admin-label="Agenda Kegiatan"
     class="min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
   >
     <AppIcon name="tent" size="sm" />
     <span class="truncate max-w-full">Agenda</span>
-  </button>
+  </NavTag>
 
   {(isSuper || isMwcAdmin) && (
-    <button
-      type="button"
-      role="tab"
-      aria-selected="false"
-      aria-controls="panel-promotions"
+    <NavTag
+      type={isRootAdmin ? 'button' : undefined}
+      href={isRootAdmin ? undefined : '/admin#promotions'}
+      role={isRootAdmin ? 'tab' : undefined}
+      aria-selected={isRootAdmin ? (isPromosActive ? 'true' : 'false') : undefined}
+      aria-controls={isRootAdmin ? 'panel-promotions' : undefined}
       data-admin-tab="promotions"
       data-admin-label="Iklan & Promosi"
       class="relative min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
@@ -414,21 +461,56 @@ const initialTabLabel = isSuper ? 'Pengguna & Peran' : 'Entri Jemput Bola';
           {pendingPromotionsCount > 99 ? '99+' : pendingPromotionsCount}
         </span>
       )}
-    </button>
+    </NavTag>
   )}
 
   {!isSuper && (
-    <button
-      type="button"
-      role="tab"
-      aria-selected="false"
-      aria-controls="panel-zones"
+    <NavTag
+      type={isRootAdmin ? 'button' : undefined}
+      href={isRootAdmin ? undefined : '/admin#zones'}
+      role={isRootAdmin ? 'tab' : undefined}
+      aria-selected={isRootAdmin ? (isZonesActive ? 'true' : 'false') : undefined}
+      aria-controls={isRootAdmin ? 'panel-zones' : undefined}
       data-admin-tab="zones"
       data-admin-label="Sebaran Wilayah"
       class="min-h-[44px] px-1 flex flex-col items-center justify-center gap-0.5 rounded-lg font-semibold text-slate-600 aria-selected:text-emerald-700 aria-selected:bg-emerald-50/70 transition cursor-pointer"
     >
       <AppIcon name="map-pin" size="sm" />
       <span class="truncate max-w-full">Peta</span>
-    </button>
+    </NavTag>
   )}
 </nav>
+
+<script>
+  function setupAdminSidebar() {
+    const sidebar = document.getElementById('admin-sidebar');
+    const backdrop = document.getElementById('admin-sidebar-backdrop');
+    const btnToggleSidebar = document.getElementById('btn-toggle-admin-sidebar');
+    const btnCloseSidebar = document.getElementById('btn-close-admin-sidebar');
+
+    function openSidebar() {
+      sidebar?.classList.remove('-translate-x-full');
+      backdrop?.classList.remove('hidden');
+      btnToggleSidebar?.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeSidebar() {
+      sidebar?.classList.add('-translate-x-full');
+      backdrop?.classList.add('hidden');
+      btnToggleSidebar?.setAttribute('aria-expanded', 'false');
+    }
+
+    btnToggleSidebar?.addEventListener('click', openSidebar);
+    btnCloseSidebar?.addEventListener('click', closeSidebar);
+    backdrop?.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && sidebar && !sidebar.classList.contains('-translate-x-full')) {
+        closeSidebar();
+        btnToggleSidebar?.focus();
+      }
+    });
+  }
+
+  setupAdminSidebar();
+  document.addEventListener('astro:page-load', setupAdminSidebar);
+</script>

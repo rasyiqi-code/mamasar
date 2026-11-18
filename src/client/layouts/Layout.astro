@@ -1,7 +1,8 @@
 ---
 import '../styles/global.css';
 import { SITE_CONFIG } from '../../lib/constants';
-import { getAllZones, getUserFromSession, isPCNU, isRanting } from '../../lib/db';
+import { getAllZones, isPCNU, isRanting } from '../../lib/db';
+import { resolveUser } from '../../lib/neon-auth';
 import { safeJsonLd } from '../../lib/security';
 import AppIcon from '../components/common/AppIcon.astro';
 import ConfirmDialog from '../components/common/ConfirmDialog.astro';
@@ -39,15 +40,14 @@ const absoluteOgImage = image.startsWith('http') ? image : new URL(image, Astro.
 const zones = await getAllZones();
 const currentYear = new Date().getFullYear();
 
-const sessionCookie = Astro.cookies.get('mamasar_session')?.value;
-const user = sessionCookie ? await getUserFromSession(sessionCookie) : null;
+const user = await resolveUser(Astro.request);
 const isSuperadmin = isPCNU(user);
 const isPetugas = isRanting(user);
 const currentPath = Astro.url.pathname;
 const navLinkClass = (active: boolean) =>
   active
-    ? 'text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition'
-    : 'hover:text-emerald-700 px-2 py-1.5 rounded-lg transition flex items-center gap-1.5';
+    ? 'text-emerald-800 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition whitespace-nowrap'
+    : 'hover:text-emerald-700 px-2 py-1.5 rounded-lg transition flex items-center gap-1.5 whitespace-nowrap';
 ---
 
 <!doctype html>
@@ -66,6 +66,7 @@ const navLinkClass = (active: boolean) =>
     <!-- PWA & Mobile Meta Tags -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#059669" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="Mamasar" />
@@ -111,11 +112,8 @@ const navLinkClass = (active: boolean) =>
           <a href="/" class="flex items-center gap-2 sm:gap-2.5 group min-h-[44px]">
             <MamasarLogo size="lg" class="shadow-sm group-hover:bg-emerald-800 transition" />
             <div>
-              <div class="font-black text-sm sm:text-base tracking-tight leading-none text-slate-900 flex items-center gap-1.5 sm:gap-2">
+              <div class="font-black text-sm sm:text-base tracking-tight leading-none text-slate-900">
                 <span>Mamasar</span>
-                <span class="text-xs bg-emerald-50 text-emerald-800 border border-emerald-200 px-1.5 py-0.5 rounded-md font-bold tracking-wide">
-                  Sumenep
-                </span>
               </div>
               <p class="hidden sm:block text-xs text-slate-600 mt-0.5">Direktori UMKM Nahdliyin</p>
             </div>
@@ -130,11 +128,11 @@ const navLinkClass = (active: boolean) =>
           </a>
           <a href="/toko" aria-current={currentPath.startsWith('/toko') ? 'page' : undefined} class={navLinkClass(currentPath.startsWith('/toko'))}>
             <AppIcon name="store" size="xs" class={currentPath.startsWith('/toko') ? 'text-emerald-700' : 'text-slate-400'} />
-            <span>Toko Warga</span>
+            <span>Toko</span>
           </a>
           <a href="/kegiatan" aria-current={currentPath.startsWith('/kegiatan') ? 'page' : undefined} class={navLinkClass(currentPath.startsWith('/kegiatan'))}>
             <AppIcon name="tent" size="xs" class={currentPath.startsWith('/kegiatan') ? 'text-emerald-700' : 'text-slate-400'} />
-            <span>Kegiatan NU</span>
+            <span>Kegiatan</span>
           </a>
           <a href="/edukasi" aria-current={currentPath.startsWith('/edukasi') ? 'page' : undefined} class={navLinkClass(currentPath.startsWith('/edukasi'))}>
             <AppIcon name="book" size="xs" class={currentPath.startsWith('/edukasi') ? 'text-emerald-700' : 'text-slate-400'} />
@@ -145,7 +143,7 @@ const navLinkClass = (active: boolean) =>
             <span>Favorit</span>
           </a>
           <details id="desktop-zone-menu" class="relative">
-            <summary class="list-none px-2 py-1.5 rounded-lg hover:text-emerald-700 hover:bg-slate-50 transition flex items-center gap-1 cursor-pointer select-none">
+            <summary class="list-none px-2 py-1.5 rounded-lg hover:text-emerald-700 hover:bg-slate-50 transition flex items-center gap-1 cursor-pointer select-none whitespace-nowrap">
               <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
               <span>Wilayah</span>
               <AppIcon name="chevron-down" size="xs" class="text-slate-400" />
@@ -190,11 +188,11 @@ const navLinkClass = (active: boolean) =>
             </a>
           )}
           <a
-            href="/dashboard"
+            href={user ? "/dashboard" : "/login"}
             class="hidden sm:inline-flex items-center gap-1.5 text-xs text-slate-700 hover:text-emerald-700 font-bold transition px-2.5 py-1.5 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100"
           >
             <AppIcon name="store" size="xs" class="text-slate-600" />
-            <span>{user ? (user.umkm ? 'Toko Saya' : 'Akun & Peran') : 'Masuk / Daftar'}</span>
+            <span>{user ? (user.umkm ? 'Toko Saya' : 'Dashboard Toko') : 'Masuk / Daftar'}</span>
           </a>
           <a
             href="/#hero-q"
@@ -220,19 +218,17 @@ const navLinkClass = (active: boolean) =>
       id="mobile-drawer"
       class="fixed top-0 left-0 bottom-0 w-72 max-w-[85vw] bg-white border-r border-slate-200 z-50 transform -translate-x-full transition-transform duration-300 ease-in-out flex flex-col justify-between hidden shadow-2xl"
     >
-      <!-- User / Brand Drawer Header -->
+      <!-- Brand Drawer Header -->
       <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
+        <a href="/" class="flex items-center gap-2.5">
           <MamasarLogo size="md" class="shadow-sm" />
           <div>
-            <h3 class="text-xs font-black text-slate-900">
-              {user ? (user.name || user.email) : 'Ahlan wa Sahlan!'}
-            </h3>
-            <p class="text-xs text-slate-600">
-              {isSuperadmin ? 'Superadmin Mamasar' : isPetugas ? 'Petugas Pendata MWC' : 'Mamasar Sumenep'}
-            </p>
+            <div class="font-black text-sm text-slate-900 tracking-tight leading-none">
+              <span>Mamasar</span>
+            </div>
+            <p class="text-[11px] text-slate-500 mt-0.5">Pasar UMKM Nahdliyin</p>
           </div>
-        </div>
+        </a>
         <button id="close-mobile-drawer" aria-label="Tutup Menu" class="min-w-[44px] min-h-[44px] text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg cursor-pointer flex items-center justify-center">
           <AppIcon name="close" size="sm" />
         </button>
@@ -240,17 +236,33 @@ const navLinkClass = (active: boolean) =>
 
       <!-- Drawer Nav Links -->
       <div class="p-3.5 space-y-1.5 flex-1 overflow-y-auto text-xs font-semibold text-slate-700">
+        {user && (
+          <div class="p-2.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2.5 mb-2">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-full bg-emerald-700 text-white font-bold text-xs flex items-center justify-center shrink-0">
+                {(user.name || user.email || 'U').slice(0, 2).toUpperCase()}
+              </div>
+              <div class="min-w-0">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block leading-tight">Akun Masuk</span>
+                <p class="text-xs font-bold text-slate-900 truncate">{user.name || user.email}</p>
+              </div>
+            </div>
+            <span class="text-[10px] font-semibold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full shrink-0">
+              {isSuperadmin ? 'Admin' : isPetugas ? 'Petugas' : 'Warga'}
+            </span>
+          </div>
+        )}
         {isSuperadmin && (
           <a href="/admin" class="flex items-center gap-2.5 p-2.5 rounded-xl bg-rose-50 text-rose-900 border border-rose-300 font-bold hover:bg-rose-100 transition shadow-2xs">
             <AppIcon name="shield" size="sm" class="text-rose-600" />
             <span>Konsol Superadmin</span>
           </a>
         )}
-        <a href="/dashboard" class="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold hover:bg-emerald-100 transition shadow-2xs">
+        <a href={user ? "/dashboard" : "/login"} class="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold hover:bg-emerald-100 transition shadow-2xs">
           <AppIcon name="store" size="sm" class="text-emerald-700" />
-          <span>{user ? 'Dashboard Toko Saya' : 'Masuk / Buka Toko Saya'}</span>
+          <span>{user ? 'Dashboard Toko Saya' : 'Masuk / Daftar Akun'}</span>
         </a>
-        <a href={isPetugas ? '/admin#entry' : '/petugas'} class="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-sm transition">
+        <a href={isPetugas ? '/admin#entry' : '/daftar-kader'} class="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold shadow-sm transition">
           <AppIcon name="plus" size="sm" />
           <span>{isPetugas ? 'Portal Pengurus / Petugas' : 'Daftar Kader / Pengurus NU'}</span>
         </a>
@@ -270,9 +282,12 @@ const navLinkClass = (active: boolean) =>
           <AppIcon name="star" size="sm" class="text-slate-400" />
           <span>Iklan Favorit Tersimpan</span>
         </a>
-        <a href="/edukasi" class="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
-          <AppIcon name="book" size="sm" class="text-slate-400" />
-          <span>Panduan &amp; Edukasi UMKM</span>
+        <a href="/edukasi" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
+          <div class="flex items-center gap-2.5">
+            <AppIcon name="book" size="sm" class="text-slate-400" />
+            <span>Panduan &amp; Edukasi</span>
+          </div>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Pekarangan</span>
         </a>
 
         <div class="pt-3 pb-1 text-xs uppercase font-bold text-slate-600 tracking-wider">
@@ -288,7 +303,7 @@ const navLinkClass = (active: boolean) =>
 
       <!-- Drawer Footer -->
       <div class="p-3.5 border-t border-slate-200 bg-slate-50 text-xs">
-        <a href={isPetugas ? '/admin#entry' : '/petugas'} class="flex items-center justify-between text-emerald-700 font-bold hover:text-emerald-800">
+        <a href={isPetugas ? '/admin#entry' : '/daftar-kader'} class="flex items-center justify-between text-emerald-700 font-bold hover:text-emerald-800">
           <span>{isPetugas ? 'Masuk Portal Pengurus / Petugas' : 'Daftar Kader / Pengurus MWC'}</span>
           <AppIcon name="arrow-right" size="xs" />
         </a>
@@ -318,120 +333,160 @@ const navLinkClass = (active: boolean) =>
       </div>
     </section>
 
-    <!-- OsClass Light Classified Footer -->
-    <footer class="bg-white border-t border-slate-200 py-7 md:py-10 text-xs text-slate-600 mt-8 sm:mt-0">
-      <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-4 gap-5 md:gap-8">
-        
-        <!-- Col 1: About -->
-        <div class="space-y-3">
-          <div class="flex items-center gap-2">
-            <MamasarLogo size="xs" />
-            <span class="font-extrabold text-sm text-slate-900">Mamasar</span>
-          </div>
-          <p class="text-xs text-slate-600 leading-relaxed">
-            Portal direktori iklan baris digital untuk memajukan produk UMKM nahdliyin Kabupaten Sumenep. Transaksi langsung ke penjual tanpa perantara.
-          </p>
-          <div class="text-xs text-slate-600 space-y-1.5 pt-1">
-            <p class="flex items-center gap-1.5"><AppIcon name="map-pin" size="xs" class="text-slate-500" /> <span>{SITE_CONFIG.address}</span></p>
-            <a
-              href={`https://wa.me/${SITE_CONFIG.whatsappHelp}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="min-h-[36px] hover:text-emerald-700 transition inline-flex items-center gap-1.5"
-            >
-              <AppIcon name="phone" size="xs" class="text-emerald-600" />
-              <span>WhatsApp: {SITE_CONFIG.whatsappHelp.replace(/^62/, '+62 ')}</span>
-            </a>
-          </div>
+    <!-- Footer Global Mamasar -->
+    <footer class="bg-white border-t border-slate-200 mt-8 sm:mt-0 text-xs text-slate-600">
+      {/* 1. Tampilan Mobile Sederhana & Bersih (Sesuai Referensi: Link Tengah, Ikon Sosial Bundar, Copyright) */}
+      <div class="md:hidden py-6 pb-20 px-4 text-center space-y-4">
+        <nav aria-label="Tautan Bawah" class="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-xs text-slate-700 font-medium max-w-sm mx-auto leading-relaxed">
+          <a href="/privasi" class="hover:text-emerald-700 transition">Tentang Kami</a>
+          <span class="text-slate-300" aria-hidden="true">|</span>
+          <a href="/privasi" class="hover:text-emerald-700 transition">Syarat &amp; Ketentuan</a>
+          <span class="text-slate-300" aria-hidden="true">|</span>
+          <a href="/privasi" class="hover:text-emerald-700 transition">Kebijakan Privasi</a>
+          <span class="text-slate-300" aria-hidden="true">|</span>
+          <a href="/daftar-kader" class="hover:text-emerald-700 transition">Panduan Kader</a>
+          <span class="text-slate-300" aria-hidden="true">|</span>
+          <a href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=Halo%20Admin%20Mamasar,%20saya%20butuh%20bantuan`} target="_blank" rel="noopener noreferrer" class="hover:text-emerald-700 transition">Bantuan</a>
+          <span class="text-slate-300" aria-hidden="true">|</span>
+          <a href={`https://wa.me/${SITE_CONFIG.whatsappHelp}`} target="_blank" rel="noopener noreferrer" class="hover:text-emerald-700 transition">Kontak</a>
+        </nav>
+
+        {/* Baris Ikon Sosial Media Melingkar */}
+        <div class="flex items-center justify-center gap-2 pt-1">
+          <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition">
+            <AppIcon name="facebook" size="xs" />
+          </a>
+          <a href="https://x.com" target="_blank" rel="noopener noreferrer" aria-label="X" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition">
+            <AppIcon name="x" size="xs" />
+          </a>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition">
+            <AppIcon name="instagram" size="xs" />
+          </a>
+          <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" aria-label="YouTube" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition">
+            <AppIcon name="youtube" size="xs" />
+          </a>
+          <a href="https://tiktok.com" target="_blank" rel="noopener noreferrer" aria-label="TikTok" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition">
+            <AppIcon name="tiktok" size="xs" />
+          </a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition">
+            <AppIcon name="linkedin" size="xs" />
+          </a>
+          <a href="https://t.me" target="_blank" rel="noopener noreferrer" aria-label="Telegram" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-emerald-50 text-slate-600 hover:text-emerald-700 flex items-center justify-center transition">
+            <AppIcon name="telegram" size="xs" />
+          </a>
         </div>
 
-        <!-- Col 2: Kategori Iklan (Accordion on Mobile, Column on Desktop) -->
-        <div class="space-y-2 border-t md:border-t-0 border-slate-200 pt-2 md:pt-0">
-          <button
-            type="button"
-            data-footer-toggle="footer-cat-list"
-            aria-expanded="false"
-            aria-controls="footer-cat-list"
-            class="md:hidden w-full min-h-[44px] flex items-center justify-between py-1 font-bold text-xs uppercase tracking-wider text-slate-900 cursor-pointer"
-          >
-            <span>Kategori Iklan</span>
-            <AppIcon name="chevron-down" size="xs" class="text-slate-500 transition-transform" />
-          </button>
-          <h3 class="hidden md:block font-bold text-xs uppercase tracking-wider text-slate-900">Kategori Iklan</h3>
-          <ul id="footer-cat-list" class="hidden md:block space-y-1.5 text-xs text-slate-600 pb-2 md:pb-0">
-            <li><a href="/?kategori=Makanan%20%26%20Minuman" class="inline-block py-1 md:py-0 hover:text-emerald-700 transition">Makanan & Minuman Khas</a></li>
-            <li><a href="/?kategori=Batik%20%26%20Kerajinan" class="inline-block py-1 md:py-0 hover:text-emerald-700 transition">Batik & Kerajinan Madura</a></li>
-            <li><a href="/?kategori=Hasil%20Laut%20%26%20Olahan" class="inline-block py-1 md:py-0 hover:text-emerald-700 transition">Hasil Laut, Ikan & Petis</a></li>
-            <li><a href="/?kategori=Pertanian%20%26%20Perkebunan" class="inline-block py-1 md:py-0 hover:text-emerald-700 transition">Pertanian & Siwalan Nira</a></li>
-            <li><a href="/?kategori=Fashion%20Muslim" class="inline-block py-1 md:py-0 hover:text-emerald-700 transition">Fashion & Busana Muslim</a></li>
-            <li><a href="/?kategori=Herbal%20%26%20Jamu" class="inline-block py-1 md:py-0 hover:text-emerald-700 transition">Herbal & Ramuan Jamu</a></li>
-          </ul>
-        </div>
+        {/* Garis Pembatas Tipis */}
+        <div class="w-3/4 max-w-xs border-t border-slate-200 mx-auto pt-1"></div>
 
-        <!-- Col 3: Wilayah MWC NU (Accordion on Mobile, Column on Desktop) -->
-        <div class="space-y-2 border-t md:border-t-0 border-slate-200 pt-2 md:pt-0">
-          <button
-            type="button"
-            data-footer-toggle="footer-zone-list"
-            aria-expanded="false"
-            aria-controls="footer-zone-list"
-            class="md:hidden w-full min-h-[44px] flex items-center justify-between py-1 font-bold text-xs uppercase tracking-wider text-slate-900 cursor-pointer"
-          >
-            <span>Wilayah MWC NU</span>
-            <AppIcon name="chevron-down" size="xs" class="text-slate-500 transition-transform" />
-          </button>
-          <h3 class="hidden md:block font-bold text-xs uppercase tracking-wider text-slate-900">Wilayah MWC NU</h3>
-          <ul id="footer-zone-list" class="hidden md:block space-y-1.5 text-xs text-slate-600 pb-2 md:pb-0">
-            {zones.slice(0, 8).map((z) => (
-              <li>
-                <a href={`/?zona=${z.slug}`} class="inline-block py-1 md:py-0 hover:text-emerald-700 transition">
-                  {z.name}
-                </a>
-              </li>
-            ))}
-            {zones.length > 8 && (
-              <li>
-                <a href="/?zona=semua" class="text-emerald-700 font-bold hover:underline inline-flex items-center gap-1 py-1 md:py-0">
-                  <span>Lihat Semua {zones.length} MWC</span>
-                  <AppIcon name="arrow-right" size="xs" />
-                </a>
-              </li>
-            )}
-          </ul>
-        </div>
-
-        <!-- Col 4: Informasi & Bantuan -->
-        <div class="space-y-2.5 border-t md:border-t-0 border-slate-200 pt-4 md:pt-0">
-          <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Informasi & Bantuan</h3>
-          <p class="hidden md:block text-xs text-slate-600 leading-relaxed">
-            Pendataan dilakukan secara jemput bola oleh kader MWC NU untuk menjamin keaslian pelaku usaha nahdliyin.
-          </p>
-          <div class="pt-1 md:pt-2">
-            <a
-              href={isPetugas ? '/admin#entry' : '/petugas'}
-              class="min-h-[40px] md:min-h-0 inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 underline"
-            >
-              <span>{isPetugas ? 'Masuk Portal Pengurus / Petugas MWC' : 'Daftar Kader / Pengurus MWC'}</span>
-              <AppIcon name="arrow-right" size="xs" />
-            </a>
-          </div>
-          <div class="hidden md:block pt-2">
-            <span class="inline-block bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs border border-slate-200">
-              Kabupaten Sumenep, Madura
-            </span>
-          </div>
-        </div>
-
+        {/* Copyright */}
+        <p class="text-[11px] text-slate-500">
+          Copyright &copy; {currentYear} Mamasar. All Rights Reserved.
+        </p>
       </div>
 
-      <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-8 mt-6 md:mt-8 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-slate-600 text-xs">
-        <p>© {currentYear} Mamasar. Seluruh hak cipta dilindungi.</p>
-        <div class="flex items-center gap-4">
-          <a href="/privasi" class="hover:text-slate-900 font-medium">Kebijakan Privasi</a>
-          <span class="hidden sm:inline" aria-hidden="true">•</span>
-          <a href="/sitemap.xml" target="_blank" class="hidden sm:inline hover:text-slate-800">Sitemap XML</a>
-          <span class="hidden sm:inline" aria-hidden="true">•</span>
-          <a href="/robots.txt" target="_blank" class="hidden sm:inline hover:text-slate-800">Robots.txt</a>
+      {/* 2. Tampilan Desktop 4 Kolom */}
+      <div class="hidden md:block py-10">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-4 gap-8">
+          <!-- Col 1: About -->
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <MamasarLogo size="xs" />
+              <span class="font-extrabold text-sm text-slate-900">Mamasar</span>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Portal direktori iklan baris digital untuk memajukan produk UMKM nahdliyin Kabupaten Sumenep. Transaksi langsung ke penjual tanpa perantara.
+            </p>
+            <div class="text-xs text-slate-600 space-y-1.5 pt-1">
+              <p class="flex items-center gap-1.5"><AppIcon name="map-pin" size="xs" class="text-slate-500" /> <span>{SITE_CONFIG.address}</span></p>
+              <a
+                href={`https://wa.me/${SITE_CONFIG.whatsappHelp}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="min-h-[36px] hover:text-emerald-700 transition inline-flex items-center gap-1.5"
+              >
+                <AppIcon name="phone" size="xs" class="text-emerald-600" />
+                <span>WhatsApp: {SITE_CONFIG.whatsappHelp.replace(/^62/, '+62 ')}</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Col 2: Kategori Iklan -->
+          <div class="space-y-2">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Kategori Iklan</h3>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li><a href="/?kategori=Makanan%20%26%20Minuman" class="hover:text-emerald-700 transition">Makanan & Minuman Khas</a></li>
+              <li><a href="/?kategori=Batik%20%26%20Kerajinan" class="hover:text-emerald-700 transition">Batik & Kerajinan Madura</a></li>
+              <li><a href="/?kategori=Hasil%20Laut%20%26%20Olahan" class="hover:text-emerald-700 transition">Hasil Laut, Ikan & Petis</a></li>
+              <li><a href="/?kategori=Pertanian%20%26%20Perkebunan" class="hover:text-emerald-700 transition">Pertanian & Siwalan Nira</a></li>
+              <li><a href="/?kategori=Fashion%20Muslim" class="hover:text-emerald-700 transition">Fashion & Busana Muslim</a></li>
+              <li><a href="/?kategori=Herbal%20%26%20Jamu" class="hover:text-emerald-700 transition">Herbal & Ramuan Jamu</a></li>
+            </ul>
+          </div>
+
+          <!-- Col 3: Wilayah MWC NU -->
+          <div class="space-y-2">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Wilayah MWC NU</h3>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              {zones.slice(0, 8).map((z) => (
+                <li>
+                  <a href={`/?zona=${z.slug}`} class="hover:text-emerald-700 transition">
+                    {z.name}
+                  </a>
+                </li>
+              ))}
+              {zones.length > 8 && (
+                <li>
+                  <a href="/?zona=semua" class="text-emerald-700 font-bold hover:underline inline-flex items-center gap-1">
+                    <span>Lihat Semua {zones.length} MWC</span>
+                    <AppIcon name="arrow-right" size="xs" />
+                  </a>
+                </li>
+              )}
+            </ul>
+          </div>
+
+          <!-- Col 4: Informasi & Bantuan -->
+          <div class="space-y-2.5">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Informasi & Bantuan</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Pendataan dilakukan secara jemput bola oleh kader MWC NU untuk menjamin keaslian pelaku usaha nahdliyin.
+            </p>
+            <div class="pt-2 space-y-2">
+              <a
+                href="/edukasi?kategori=Ekonomi+Pekarangan"
+                class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition"
+              >
+                <AppIcon name="sprout" size="xs" class="text-emerald-700" />
+                <span>Rubrik Unggulan Pekarangan</span>
+              </a>
+              <div>
+                <a
+                  href={isPetugas ? '/admin#entry' : '/daftar-kader'}
+                  class="inline-flex items-center gap-1 text-xs font-bold text-emerald-700 hover:text-emerald-800 underline"
+                >
+                  <span>{isPetugas ? 'Masuk Portal Pengurus / Petugas MWC' : 'Daftar Kader / Pengurus MWC'}</span>
+                  <AppIcon name="arrow-right" size="xs" />
+                </a>
+              </div>
+            </div>
+            <div class="pt-2">
+              <span class="inline-block bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs border border-slate-200">
+                Kabupaten Sumenep, Madura
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-slate-200 flex items-center justify-between gap-3 text-slate-600 text-xs">
+          <p>© {currentYear} Mamasar. Seluruh hak cipta dilindungi.</p>
+          <div class="flex items-center gap-4">
+            <a href="/privasi" class="hover:text-slate-900 font-medium">Kebijakan Privasi</a>
+            <span aria-hidden="true">•</span>
+            <a href="/sitemap.xml" target="_blank" class="hover:text-slate-800">Sitemap XML</a>
+            <span aria-hidden="true">•</span>
+            <a href="/robots.txt" target="_blank" class="hover:text-slate-800">Robots.txt</a>
+          </div>
         </div>
       </div>
     </footer>

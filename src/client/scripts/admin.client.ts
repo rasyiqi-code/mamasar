@@ -2,33 +2,15 @@
 import { confirmAction, openConfirmDialog, openNativeDialog, closeNativeDialog } from '../../lib/dialog';
 
 export function initAdminClient() {
-  // Mobile Sidebar Toggle
-  const sidebar = document.getElementById('admin-sidebar');
-  const backdrop = document.getElementById('admin-sidebar-backdrop');
-  const btnToggleSidebar = document.getElementById('btn-toggle-admin-sidebar');
-  const btnCloseSidebar = document.getElementById('btn-close-admin-sidebar');
-
-  function openSidebar() {
-    sidebar?.classList.remove('-translate-x-full');
-    backdrop?.classList.remove('hidden');
-    btnToggleSidebar?.setAttribute('aria-expanded', 'true');
-  }
-
+  // Mobile sidebar helper for programmatic close on tab switch
   function closeSidebar() {
+    const sidebar = document.getElementById('admin-sidebar');
+    const backdrop = document.getElementById('admin-sidebar-backdrop');
+    const btnToggleSidebar = document.getElementById('btn-toggle-admin-sidebar');
     sidebar?.classList.add('-translate-x-full');
     backdrop?.classList.add('hidden');
     btnToggleSidebar?.setAttribute('aria-expanded', 'false');
   }
-
-  btnToggleSidebar?.addEventListener('click', openSidebar);
-  btnCloseSidebar?.addEventListener('click', closeSidebar);
-  backdrop?.addEventListener('click', closeSidebar);
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && sidebar && !sidebar.classList.contains('-translate-x-full')) {
-      closeSidebar();
-      btnToggleSidebar?.focus();
-    }
-  });
 
   // Tab switching logic via Sidebar, keyboard arrows & URL hash (history.replaceState)
   function initTabs() {
@@ -67,7 +49,7 @@ export function initAdminClient() {
         if (mobileTitleEl) mobileTitleEl.textContent = activeLabel;
       }
 
-      const activeGroupKey = ['agents', 'events', 'entry'].includes(targetName) ? targetName : 'default';
+      const activeGroupKey = ['agents', 'events', 'entry', 'articles'].includes(targetName) ? targetName : 'default';
       headerGroups.forEach((group) => {
         group.classList.toggle('hidden', group.getAttribute('data-admin-header-group') !== activeGroupKey);
       });
@@ -88,6 +70,14 @@ export function initAdminClient() {
     tabBtns.forEach((btn, idx) => {
       btn.addEventListener('click', () => {
         const tabName = btn.getAttribute('data-admin-tab');
+        if (tabName === 'articles') {
+          window.location.href = '/admin/articles';
+          return;
+        }
+        if (!document.getElementById(`panel-${tabName}`)) {
+          window.location.href = `/admin#${tabName}`;
+          return;
+        }
         if (tabName) {
           switchTab(tabName, true);
         }
@@ -119,6 +109,10 @@ export function initAdminClient() {
     });
 
     const currentHash = window.location.hash.replace('#', '');
+    if (currentHash === 'articles') {
+      window.location.replace('/admin/articles');
+      return;
+    }
     if (['agents', 'stores', 'entry', 'events', 'promotions', 'zones'].includes(currentHash)) {
       const targetPanelExists = document.getElementById(`panel-${currentHash}`) !== null;
       if (targetPanelExists) {
@@ -283,14 +277,14 @@ export function initAdminClient() {
           notify(data.message || 'Gagal menetapkan peran akun.', true);
           if (addUserBtn) {
             addUserBtn.disabled = false;
-            addUserBtn.textContent = 'Simpan & Tetapkan Akun';
+            addUserBtn.textContent = 'Simpan';
           }
         }
       } catch (err: any) {
         notify(err.message || 'Terjadi kesalahan jaringan.', true);
         if (addUserBtn) {
           addUserBtn.disabled = false;
-          addUserBtn.textContent = 'Simpan & Tetapkan Akun';
+          addUserBtn.textContent = 'Simpan';
         }
       }
     });
@@ -1294,6 +1288,190 @@ export function initAdminClient() {
     });
   });
 
+  // Manajemen Panduan Edukasi (Artikel PCNU)
+  function initAdminArticleManagement() {
+    const articleModal = document.getElementById('modal-article') as HTMLDialogElement | null;
+    const openAddArticleBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-open-add-article]'));
+    const btnCloseArticle = document.getElementById('btn-close-article-modal');
+    const btnCancelArticle = document.getElementById('btn-cancel-article-modal');
+    const articleForm = document.getElementById('form-admin-article') as HTMLFormElement | null;
+    const modalTitleEl = document.getElementById('modal-article-title');
+    const actionInput = document.getElementById('articleAction') as HTMLInputElement | null;
+    const idInput = document.getElementById('articleId') as HTMLInputElement | null;
+    const titleInput = document.getElementById('articleTitle') as HTMLInputElement | null;
+    const categoryInput = document.getElementById('articleCategory') as HTMLSelectElement | null;
+    const imageUrlInput = document.getElementById('articleImageUrl') as HTMLInputElement | null;
+    const summaryInput = document.getElementById('articleSummary') as HTMLTextAreaElement | null;
+    const contentInput = document.getElementById('articleContent') as HTMLTextAreaElement | null;
+    const submitBtn = document.getElementById('btn-submit-article') as HTMLButtonElement | null;
+    const submitLabel = document.getElementById('btn-submit-article-label');
+    const statusBox = document.getElementById('admin-article-status');
+    const searchInput = document.getElementById('articles-table-search') as HTMLInputElement | null;
+
+    function resetForm() {
+      articleForm?.reset();
+      if (actionInput) actionInput.value = 'create';
+      if (idInput) idInput.value = '';
+      if (modalTitleEl) modalTitleEl.textContent = 'Tulis Panduan';
+      if (submitLabel) submitLabel.textContent = 'Simpan';
+      if (statusBox) {
+        statusBox.textContent = '';
+        statusBox.className = 'hidden p-3 rounded-lg text-xs font-semibold';
+      }
+      if (submitBtn) {
+        submitBtn.disabled = false;
+      }
+    }
+
+    openAddArticleBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        resetForm();
+        openNativeDialog(articleModal);
+      });
+    });
+
+    btnCloseArticle?.addEventListener('click', () => closeNativeDialog(articleModal));
+    btnCancelArticle?.addEventListener('click', () => closeNativeDialog(articleModal));
+    attachDialogLightDismiss(articleModal);
+
+    // Edit Article
+    const editBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-edit-article]'));
+    editBtns.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        resetForm();
+        const id = btn.getAttribute('data-id') || '';
+        const title = btn.getAttribute('data-title') || '';
+        const category = btn.getAttribute('data-category') || 'Ekonomi Pekarangan';
+        const summary = btn.getAttribute('data-summary') || '';
+        const imageUrl = btn.getAttribute('data-image-url') || '';
+        const content = btn.getAttribute('data-content') || '';
+
+        if (actionInput) actionInput.value = 'update';
+        if (idInput) idInput.value = id;
+        if (titleInput) titleInput.value = title;
+        if (categoryInput) categoryInput.value = category;
+        if (imageUrlInput) imageUrlInput.value = imageUrl;
+        if (summaryInput) summaryInput.value = summary;
+        if (contentInput) contentInput.value = content;
+        if (modalTitleEl) modalTitleEl.textContent = 'Edit Panduan';
+        if (submitLabel) submitLabel.textContent = 'Simpan';
+
+        openNativeDialog(articleModal);
+      });
+    });
+
+    // Delete Article
+    const deleteBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-delete-article]'));
+    deleteBtns.forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        const id = btn.getAttribute('data-id');
+        const title = btn.getAttribute('data-title') || 'panduan ini';
+        if (!id) return;
+
+        const confirmed = await confirmAction({
+          title: 'Hapus Panduan',
+          message: `Hapus panduan "${title}"?`,
+          confirmLabel: 'Hapus',
+          cancelLabel: 'Batal',
+          tone: 'danger',
+        });
+
+        if (!confirmed) return;
+
+        btn.disabled = true;
+        try {
+          const res = await fetch('/api/admin/articles', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'delete', id: Number(id) }),
+          });
+          const result = await res.json();
+          if (res.ok && result.success) {
+            notify(result.message || 'Panduan berhasil dihapus.');
+            const row = btn.closest('[data-article-row]');
+            row?.remove();
+          } else {
+            notify(result.message || 'Gagal menghapus panduan.', true);
+            btn.disabled = false;
+          }
+        } catch (err: any) {
+          notify('Kendala jaringan: ' + err.message, true);
+          btn.disabled = false;
+        }
+      });
+    });
+
+    // Form Submit
+    articleForm?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!titleInput || !summaryInput || !submitBtn) return;
+
+      const title = titleInput.value.trim();
+      const summary = summaryInput.value.trim();
+      if (!title || !summary) {
+        if (statusBox) {
+          statusBox.textContent = 'Judul dan ringkasan wajib diisi.';
+          statusBox.className = 'p-3 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 block';
+        }
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalText = submitLabel ? submitLabel.textContent : 'Simpan';
+      if (submitLabel) submitLabel.textContent = 'Menyimpan...';
+
+      const payload = {
+        action: actionInput?.value || 'create',
+        id: idInput?.value ? Number(idInput.value) : undefined,
+        title,
+        category: categoryInput?.value || 'Ekonomi Pekarangan',
+        imageUrl: imageUrlInput?.value.trim() || undefined,
+        summary,
+        content: contentInput?.value || '',
+      };
+
+      try {
+        const res = await fetch('/api/admin/articles', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const result = await res.json();
+
+        if (res.ok && result.success) {
+          notify(result.message || 'Panduan edukasi berhasil disimpan!');
+          closeNativeDialog(articleModal);
+          setTimeout(() => window.location.reload(), 600);
+        } else {
+          if (statusBox) {
+            statusBox.textContent = result.message || 'Gagal menyimpan panduan edukasi.';
+            statusBox.className = 'p-3 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 block';
+          }
+          submitBtn.disabled = false;
+          if (submitLabel) submitLabel.textContent = originalText;
+        }
+      } catch (err: any) {
+        if (statusBox) {
+          statusBox.textContent = 'Kendala jaringan: ' + err.message;
+          statusBox.className = 'p-3 rounded-lg text-xs font-semibold bg-rose-50 text-rose-800 border border-rose-200 block';
+        }
+        submitBtn.disabled = false;
+        if (submitLabel) submitLabel.textContent = originalText;
+      }
+    });
+
+    // Client-side quick filter
+    searchInput?.addEventListener('input', () => {
+      const q = searchInput.value.toLowerCase().trim();
+      const rows = Array.from(document.querySelectorAll<HTMLTableRowElement>('[data-article-row]'));
+      rows.forEach((row) => {
+        const text = row.getAttribute('data-article-search') || '';
+        row.classList.toggle('hidden', Boolean(q && !text.includes(q)));
+      });
+    });
+  }
+
+  initAdminArticleManagement();
   initTabs();
 }
 

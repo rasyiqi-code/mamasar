@@ -59,10 +59,13 @@ function parseEventForm(
     };
   }
 
-  const isoCandidate =
-    eventDateRaw.length === 10
-      ? `${eventDateRaw}T08:00:00Z`
-      : `${eventDateRaw}${eventDateRaw.length === 16 ? ':00' : ''}Z`;
+  // Parse tanggal & waktu dengan fallback timezone WIB (UTC+7, Sumenep)
+  let isoCandidate = eventDateRaw.trim();
+  if (!/[Z+-]\d*(:\d*)?$/.test(isoCandidate) && !isoCandidate.endsWith('Z')) {
+    if (isoCandidate.length === 10) isoCandidate = `${isoCandidate}T08:00:00+07:00`;
+    else if (isoCandidate.length === 16) isoCandidate = `${isoCandidate}:00+07:00`;
+    else if (isoCandidate.length === 19) isoCandidate = `${isoCandidate}+07:00`;
+  }
   const eventDate = new Date(isoCandidate);
   if (isNaN(eventDate.getTime())) {
     return { ok: false, message: 'Tanggal & waktu acara tidak valid.' };
@@ -127,6 +130,16 @@ export const eventsRoutes = new Elysia({ name: 'routes:events', prefix: '/events
           return jsonResponse({ success: false, message: parsed.message }, 400);
         }
 
+        if (!can(user, 'events:manage', { zoneId: parsed.data.zoneId })) {
+          return jsonResponse(
+            {
+              success: false,
+              message: 'Anda hanya dapat mempublikasikan agenda pada wilayah MWCNU Anda.',
+            },
+            403
+          );
+        }
+
         const result = await createEvent(parsed.data);
         return jsonResponse(
           {
@@ -145,9 +158,37 @@ export const eventsRoutes = new Elysia({ name: 'routes:events', prefix: '/events
           return jsonResponse({ success: false, message: 'ID agenda diperlukan.' }, 400);
         }
 
+        const existingEvent = await getEventById(eventId);
+        if (!existingEvent) {
+          return jsonResponse(
+            { success: false, message: 'Agenda tidak ditemukan — mungkin sudah dihapus.' },
+            404
+          );
+        }
+
+        if (!can(user, 'events:manage', { zoneId: existingEvent.zone_id })) {
+          return jsonResponse(
+            {
+              success: false,
+              message: 'Anda hanya dapat mengelola agenda kegiatan pada wilayah MWCNU Anda.',
+            },
+            403
+          );
+        }
+
         const parsed = parseEventForm(data, zoneIds);
         if (!parsed.ok) {
           return jsonResponse({ success: false, message: parsed.message }, 400);
+        }
+
+        if (!can(user, 'events:manage', { zoneId: parsed.data.zoneId })) {
+          return jsonResponse(
+            {
+              success: false,
+              message: 'Anda tidak dapat memindahkan agenda ke wilayah di luar MWCNU Anda.',
+            },
+            403
+          );
         }
 
         const success = await updateEvent(eventId, parsed.data);
@@ -168,6 +209,24 @@ export const eventsRoutes = new Elysia({ name: 'routes:events', prefix: '/events
         const eventId = Number(strField(data, 'eventId'));
         if (!eventId) {
           return jsonResponse({ success: false, message: 'ID agenda diperlukan.' }, 400);
+        }
+
+        const existingEvent = await getEventById(eventId);
+        if (!existingEvent) {
+          return jsonResponse(
+            { success: false, message: 'Agenda tidak ditemukan — mungkin sudah dihapus.' },
+            404
+          );
+        }
+
+        if (!can(user, 'events:manage', { zoneId: existingEvent.zone_id })) {
+          return jsonResponse(
+            {
+              success: false,
+              message: 'Anda hanya dapat menghapus agenda kegiatan pada wilayah MWCNU Anda.',
+            },
+            403
+          );
         }
 
         const success = await deleteEvent(eventId);
