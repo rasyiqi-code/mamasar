@@ -48,9 +48,16 @@ gantt
     Overhaul Portal Petugas (/petugas) :done, f7_2, 2026-11-10, 1d
     CRUD Toko/Produk & Ekspor CSV Kas :done, f7_3, 2026-11-10, 1d
     Favorit Terintegrasi DB & SSR :done, f7_4, 2026-11-10, 1d
-    section Fase 8: Masa Depan
-    Dasbor Kinerja Kader & Multi-Foto :active, f8_1, 2026-11-11, 7d
-    Pencarian Instan & Katalog Cetak : f8_2, after f8_1, 7d
+    section Fase 8: Penguatan & PWA
+    PWA Penuh & Service Worker :done, f8_1, 2026-11-12, 2d
+    Upload Logo Toko & Media :done, f8_2, 2026-11-14, 2d
+    Edukasi Pekarangan & Video :done, f8_3, 2026-11-16, 2d
+    Domain Kustom & Whitelist Neon :done, f8_4, 2026-11-18, 1d
+    Mobile-First Admin Overhaul :done, f8_5, 2026-11-18, 2d
+    section Fase 9: Skala Organisasi
+    Dasbor Kinerja Kader :active, f9_1, 2026-11-20, 5d
+    Filter Bulanan Buku Kas : f9_2, after f9_1, 3d
+    Katalog PDF Siap Cetak MWC : f9_3, after f9_2, 7d
 ```
 
 ---
@@ -178,18 +185,32 @@ gantt
 
 ---
 
-### Fase 8: Rencana Pengembangan Masa Depan & Penguatan Operasional - [AKTIF 🚀]
+### Fase 8: Penguatan Operasional, PWA, Media & Mobile-First Overhaul - [SELESAI ✅]
 - [x] **8.1. Galeri Multi-Foto Produk (2–4 Foto Detail)**
   - Dukungan multi-unggah foto detail produk hingga 4 foto dan validasi magic-byte + ukuran di sisi server.
 - [x] **8.2. Penguatan Keamanan, Privasi, Kanonik SEO, & Audit UI/UX**
   - Policy RBAC 4-level terpadu (`can()`), pembatasan zona MWCNU pada verifikasi, promosi, & agenda (`/api/events/order`), single-store constraint per akun, `bump_ledger`, `audit_log`, `notifications`, endpoint cron (`/api/cron/expire-promotions`), halaman privasi & ekspor/hapus akun (`/privasi`), rute kanonik `/produk/[slug]` & `/toko/[slug]` (`301`), paginasi katalog beranda, dialog konfirmasi & modal native `<dialog>`, Leaflet peta lokal di `/admin`, serta unit test + GitHub Actions CI.
-- [ ] **8.3. Dasbor Statistik Kontribusi Kader Lapangan**
+- [x] **8.3. Aktivasi Progressive Web App (PWA) Penuh**
+  - Pemasangan service worker (`/sw.js`), Web App Manifest shortcuts, offline fallback banner, dan komponen instalasi interaktif (`pwa-install-banner`) dengan panduan khusus perangkat Apple iOS Safari.
+- [x] **8.4. Unggah Logo Toko UMKM & Media Branding**
+  - Form upload logo toko pada profil usaha (`/dashboard/profil`), integrasi penyimpanan CDN ImageKit, serta etalase visual toko pada `/toko/[slug]`.
+- [x] **8.5. Integrasi Rubrik Edukasi & Ekonomi Pekarangan**
+  - Standarisasi penamaan menu navigasi menjadi **Edukasi** (`/edukasi`), integrasi rubrik Ekonomi Pekarangan Santri (media tanam organik, cabai jamu, lele bioflok, pupuk POC), panduan halal SEHATI, dan katalog video studi kasus (`/edukasi/video/[id]`).
+- [x] **8.6. Domain Produksi Kustom & Sinkronisasi Whitelist Neon Auth**
+  - Integrasi domain kustom `https://mamasar.com` & `https://www.mamasar.com` ke dalam daftar *Trusted Origins* Neon Auth (Google OAuth & Better Auth) serta penanganan pesan galat ramah pengguna.
+- [x] **8.7. Overhaul Workspace Admin & Dashboard Mobile-First**
+  - Restrukturisasi sub-rute dashboard terdedikasi (`/dashboard/produk`, `/dashboard/kas`, `/dashboard/kemitraan`, `/dashboard/profil`), sticky app header bar, horizontal KPI scroll pada viewport mobile, 3-action backdrop overlay pada baris toko mobile, dan penguncian overflow dokumen (*zero horizontal overflow*).
+
+---
+
+### Fase 9: Rencana Pengembangan Lanjutan & Skala Organisasi - [RENCANA 🚀]
+- [ ] **9.1. Dasbor Statistik Kontribusi Kader Lapangan**
   - Menampilkan pencapaian kuantitatif di `/petugas`: *"Sahabat telah membantu mendaftarkan X toko dan Y produk di MWC Anda"*.
-- [ ] **8.4. Filter Periode Bulan pada Buku Kas**
-  - Dropdown filter per bulan (misal: Rekap Kas November 2026) di `/dashboard` untuk memudahkan pembukuan bulanan.
-- [ ] **8.5. Pencarian Cerdas & Autocomplete Dropdown**
+- [ ] **9.2. Filter Periode Bulan pada Buku Kas**
+  - Dropdown filter per bulan (misal: Rekap Kas November 2026) di `/dashboard/kas` untuk memudahkan pembukuan bulanan UMKM.
+- [ ] **9.3. Pencarian Cerdas & Autocomplete Dropdown**
   - Dropdown saran pencarian instan di hero search bar saat pengguna mengetik minimal 2 karakter.
-- [ ] **8.6. Brosur Digital UMKM Siap Cetak (Katalog PDF per MWC)**
+- [ ] **9.4. Brosur Digital UMKM Siap Cetak (Katalog PDF per MWC)**
   - Ekspor 1-klik brosur katalog UMKM per kecamatan dalam format PDF siap cetak untuk dibagikan pada pengajian akbar atau Lailatul Ijtima'.
-- [ ] **8.7. Integrasi Notifikasi WhatsApp Admin**
+- [ ] **9.5. Integrasi Notifikasi WhatsApp Admin**
   - Webhook notifikasi WhatsApp ke nomor admin ketika ada pengajuan kader petugas baru.

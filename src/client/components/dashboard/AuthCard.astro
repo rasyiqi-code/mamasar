@@ -14,6 +14,16 @@ const isKaderIntent = intent === 'daftar-kader';
 const googleAuthHref = redirectUrl
   ? `/api/auth/login?redirect=${encodeURIComponent(redirectUrl)}`
   : '/api/auth/login';
+
+const friendlyErrorMessage = authError
+  ? ({
+      neon_auth_init_failed: 'Gagal menghubungkan ke layanan autentikasi Google. Silakan coba kembali beberapa saat lagi.',
+      neon_auth_unconfigured: 'Layanan autentikasi belum dikonfigurasi di server. Hubungi pengurus.',
+      neon_auth_error: 'Terjadi kendala sistem pada server autentikasi. Silakan coba kembali.',
+      rate_limited: 'Terlalu banyak percobaan masuk. Harap tunggu beberapa menit sebelum mencoba lagi.',
+      access_denied: 'Akses autentikasi dibatalkan atau ditolak.',
+    }[authError] || `Kendala autentikasi: ${authError}. Silakan coba kembali beberapa saat lagi.`)
+  : null;
 ---
 
 <main id="main" tabindex="-1" class="min-h-screen w-full flex flex-col lg:grid lg:grid-cols-12 bg-white">
@@ -131,9 +141,9 @@ const googleAuthHref = redirectUrl
         </div>
       )}
 
-      {authError && (
+      {friendlyErrorMessage && (
         <div class="p-3 bg-rose-50 border border-rose-200 text-rose-700 rounded-lg text-xs font-medium">
-          Kendala autentikasi: {authError}. Silakan coba kembali beberapa saat lagi.
+          {friendlyErrorMessage}
         </div>
       )}
 

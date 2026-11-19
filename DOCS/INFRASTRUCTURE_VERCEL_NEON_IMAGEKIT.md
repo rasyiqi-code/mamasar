@@ -9,14 +9,14 @@ Dokumen ini menjelaskan arsitektur produksi **Pasar Warga NU Sumenep**, layanan 
 | Komponen | Status | Bukti di repositori |
 | :--- | :--- | :--- |
 | Vercel adapter | Aktif otomatis saat `VERCEL` terisi | `astro.config.mjs` memilih `@astrojs/vercel`; fallback ke `@astrojs/node` |
-| Neon Postgres | Skema, seed, dan health check tersedia. CRUD aplikasi masih SQLite | `scripts/migrate-neon.js`, `src/lib/neon.ts`, `/api/neon/services` |
-| Neon Auth | Aktif untuk Google dan email/password | `src/lib/neon-auth.ts`, `/api/auth/login`, `/api/auth/email`, `/api/auth/callback/neon` |
-| ImageKit | Aktif untuk foto produk, fallback ke disk lokal | `src/lib/storage.ts` (`saveProductImage`) |
+| Neon Postgres | Skema, seed, health check, dan seluruh operasi CRUD aplikasi 100% Neon Postgres via Drizzle ORM | `scripts/migrate-neon.js`, `src/lib/db.ts`, `src/lib/schema.ts`, `/api/neon/services` |
+| Neon Auth | Aktif untuk Google dan email/password (Better Auth) | `src/lib/neon-auth.ts`, `/api/auth/login`, `/api/auth/email`, `/api/auth/callback/neon` |
+| ImageKit | Aktif untuk foto produk & logo toko, fallback ke disk lokal | `src/lib/storage.ts` (`saveProductImage`, `saveStoreLogo`) |
 | Neon Object Storage (S3) | Aktif untuk foto profil, fallback ke disk lokal | `src/lib/storage.ts` (`saveAccountAvatar`), bucket `assets` |
 | Neon Functions | Hanya dipanggil endpoint health check | `invokeNeonFunction()` di `src/lib/neon.ts` |
 | Neon Realtime | Hanya diuji endpoint health check | `sealRealtimeQuery()` di `src/lib/neon.ts` |
 | Google OAuth langsung | Endpoint legacy, tidak dipakai alur login utama | `/api/auth/callback/google` |
-| PWA dan Capacitor | Aktif | `public/manifest.webmanifest`, `capacitor.config.json` |
+| PWA dan Capacitor | Aktif (Service Worker, Web Manifest, Shortcuts, Prompt Banner) | `public/sw.js`, `public/manifest.webmanifest`, `src/client/layouts/Layout.astro`, `capacitor.config.json` |
 
 ---
 
@@ -24,12 +24,12 @@ Dokumen ini menjelaskan arsitektur produksi **Pasar Warga NU Sumenep**, layanan 
 
 ```mermaid
 flowchart TD
-    User["Pengunjung, pembeli, agen, pemilik UMKM"] --> Vercel["Vercel Edge Network & Serverless\nAstro SSR\nDomain: umkm.nusumenep.or.id"]
+    User["Pengunjung, pembeli, agen, pemilik UMKM"] --> Vercel["Vercel Edge Network & Serverless\nAstro SSR\nDomain: mamasar.com"]
 
     subgraph Cloud["Layanan cloud"]
-    NeonDB["Neon Postgres\nSkema, seed, health check, CRUD aplikasi"]
-    NeonAuth["Neon Auth\nGoogle dan email/password"]
-    ImageKit["ImageKit.io\nFoto produk dan CDN"]
+    NeonDB["Neon Postgres\nSkema, seed, health check, CRUD aplikasi (Drizzle ORM)"]
+    NeonAuth["Neon Auth (Better Auth)\nGoogle OAuth & email/password\nWhitelist: mamasar.com"]
+    ImageKit["ImageKit.io\nFoto produk, logo toko, dan CDN WebP"]
     NeonS3["Neon Object Storage\nBucket assets untuk avatar"]
     NeonFn["Neon Functions dan Realtime\nProbe opsional"]
     end
@@ -37,7 +37,7 @@ flowchart TD
     Vercel -->|CRUD aplikasi (Drizzle ORM)| NeonDB
     Vercel -->|Migrasi dan health check| NeonDB
     Vercel -->|Login dan sesi| NeonAuth
-    Vercel -->|Upload foto produk| ImageKit
+    Vercel -->|Upload foto produk & logo toko| ImageKit
     Vercel -->|Upload avatar| NeonS3
     Vercel -->|Probe| NeonFn
 ```
@@ -68,31 +68,50 @@ flowchart TD
 
 ---
 
-## 3. Neon Auth
+## 3. Neon Auth (Better Auth)
 
-Alur yang dipakai dashboard:
+Alur autentikasi yang dipakai konsol dan dashboard:
 
-1. **Google**: pengguna membuka `/api/auth/login`. Endpoint memanggil Neon Auth `/sign-in/social` dengan provider `google` dan `callbackURL` ke `/api/auth/callback/neon`.
-2. **Email/password**: form dashboard mengirim `POST /api/auth/email` dengan `action` bernilai `signin` atau `signup`. Endpoint meneruskan ke Neon Auth `/sign-in/email` atau `/sign-up/email`.
-3. **Callback**: `/api/auth/callback/neon` memverifikasi sesi lewat `/get-session`, menyinkronkan pengguna ke tabel `users` dengan `google_id = neon_<id>`, lalu membuat baris `sessions` lokal dan cookie `mamasar_session`.
-4. **Resolusi sesi**: `resolveUser()` di `src/lib/neon-auth.ts` memeriksa cookie `mamasar_session` lebih dulu, lalu cookie Neon Auth (`__Secure-neon-auth.session_token`, `neon_auth.session_token`, atau `better-auth.session_token`).
+1. **Google Social Login**: pengguna menekan tombol "Masuk dengan Google" di `/login` yang mengarah ke `/api/auth/login`. Endpoint memanggil Neon Auth `/sign-in/social` dengan provider `google` dan `callbackURL` ke `<origin>/api/auth/callback/neon`.
+2. **Email/Password**: form login mengirim `POST /api/auth/email` dengan `action` bernilai `signin` atau `signup`. Endpoint meneruskan ke Neon Auth `/sign-in/email` atau `/sign-up/email`.
+3. **Callback & Sinkronisasi Pengguna**: `/api/auth/callback/neon` memverifikasi sesi lewat `/get-session`, menyinkronkan data pengguna ke tabel `users` (dengan `google_id = neon_<id>`), lalu membuat sesi lokal dan menyematkan cookie `mamasar_session`.
+4. **Resolusi Sesi**: `resolveUser()` di `src/lib/neon-auth.ts` memeriksa cookie `mamasar_session` terlebih dahulu, lalu cookie Neon Auth (`__Secure-neon-auth.session_token`, `neon_auth.session_token`, atau `better-auth.session_token`).
 5. **Logout**: `/api/auth/logout` menghapus sesi lokal, memanggil `/sign-out` Neon Auth, dan menghapus cookie terkait.
 
-Endpoint Google OAuth langsung di `/api/auth/callback/google` masih ada untuk kompatibilitas. Endpoint ini memerlukan `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, dan `GOOGLE_REDIRECT_URI`, tetapi alur login utama sekarang lewat Neon Auth.
+### ⚠️ Konfigurasi Domain Terpercaya (*Trusted Origins*)
+Neon Auth menggunakan **Better Auth** yang memvalidasi header `Origin` dan `callbackURL` secara ketat. Bila domain aplikasi belum didaftarkan ke whitelist, pemanggilan inisiasi OAuth akan ditolak dengan error `neon_auth_init_failed`.
+
+Daftar domain terdaftar di Neon Auth branch produksi (`br-icy-frog-a1e5k2ld`):
+- `https://mamasar.com` (Domain produksi utama)
+- `https://www.mamasar.com`
+- `https://mamasar.vercel.app` (Deployment Vercel default)
+- `https://mamasar.nusumenep.or.id` (Subdomain alternatif organisasi)
+- `http://localhost:4321` dan `http://127.0.0.1:4321` (Pengembangan lokal)
+
+Bila menambahkan domain kustom baru, tambahkan domain tersebut ke Neon Auth menggunakan MCP tool atau API Neon:
+```bash
+add_auth_trusted_domain(domain="https://domain-baru.com", auth_provider="better_auth")
+```
+
+Endpoint Google OAuth langsung di `/api/auth/callback/google` tetap tersedia untuk kompatibilitas ke belakang (memerlukan `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, dan `GOOGLE_REDIRECT_URI`).
 
 ---
 
-## 4. ImageKit.io untuk foto produk
+## 4. ImageKit.io untuk Foto Produk & Logo Toko
 
 Alur unggah:
 
-1. Pengguna memilih atau memotret foto. Form agen dan dashboard mengompresi gambar di browser dengan Canvas.
-2. Form mengirim `image` atau `imageBase64` ke `/api/products` atau `/api/umkm/add-product`.
-3. `saveProductImage()` mengunggah buffer ke ImageKit folder `/products` bila kredensial tersedia.
-4. Bila ImageKit gagal atau belum dikonfigurasi, file ditulis ke `data/uploads/` dan disajikan lewat `/uploads/[...path]`.
-5. URL hasil disimpan di `products.image_url`.
+1. Pengguna memilih atau memotret foto. Form agen dan dashboard mengompresi gambar di browser dengan Canvas HTML5.
+2. Form mengirim payload gambar ke API:
+   - Foto produk: `/api/products` atau `/api/umkm/add-product` (didukung hingga 4 foto untuk galeri multi-foto).
+   - Logo toko: `/api/umkm/setup` (disimpan pada kolom `umkm.logo_url`).
+3. Handler penyimpanan:
+   - `saveProductImage()` mengunggah buffer ke ImageKit folder `/products`.
+   - `saveStoreLogo()` mengunggah buffer logo ke ImageKit folder `/stores`.
+4. Bila ImageKit gagal atau belum dikonfigurasi, file disimpan ke direktori lokal `data/uploads/` dan disajikan lewat endpoint `/uploads/[...path]`.
+5. URL hasil disimpan masing-masing pada `products.image_url` dan `umkm.logo_url`.
 
-Transformasi gambar dapat ditambahkan pada URL ImageKit, misalnya `?tr=w-400,h-300,fo-auto,q-80,f-webp`.
+Transformasi gambar otomatis dioptimalkan lewat helper `getOptimizedImageUrl()`, misalnya menambahkan query `?tr=w-400,h-300,fo-auto,q-80,f-webp`.
 
 ---
 

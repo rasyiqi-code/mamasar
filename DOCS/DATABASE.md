@@ -49,13 +49,23 @@ erDiagram
     UMKM {
         INTEGER id PK
         INTEGER user_id FK
+        INTEGER created_by_user_id FK
         VARCHAR name
         VARCHAR slug UK
+        TEXT logo_url
         VARCHAR phone
         INTEGER zone_id FK
+        VARCHAR ranting
         INTEGER is_verified
         INTEGER bump_credits
         TEXT address
+        VARCHAR nib
+        VARCHAR halal_cert
+        VARCHAR pirt
+        VARCHAR bpom
+        TEXT other_legalities
+        TEXT maps_url
+        TEXT qris_image_url
         TIMESTAMP created_at
     }
 
@@ -65,11 +75,15 @@ erDiagram
         VARCHAR name
         VARCHAR slug UK
         INTEGER price
+        INTEGER original_price
         VARCHAR category
         TEXT image_url
+        TEXT gallery_images
         TEXT description
         INTEGER views
         INTEGER is_sold_out
+        VARCHAR stock_status
+        VARCHAR production_capacity
         TIMESTAMP bumped_at
         TEXT shopee_url
         TIMESTAMP created_at
@@ -83,6 +97,21 @@ erDiagram
         TEXT image_url
         TEXT summary
         TEXT content
+        TIMESTAMP created_at
+    }
+
+    CASE_STUDIES {
+        INTEGER id PK
+        VARCHAR title
+        VARCHAR channel_name
+        VARCHAR tag
+        VARCHAR duration
+        TEXT video_url
+        TEXT thumbnail_url
+        TEXT practice_summary
+        TEXT opportunity_summary
+        INTEGER sort_order
+        INTEGER is_active
         TIMESTAMP created_at
     }
 
@@ -138,13 +167,28 @@ Menyimpan 24 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC 
 | Kolom | Tipe Data | Modifiers | Deskripsi |
 | :--- | :--- | :--- | :--- |
 | `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID toko / usaha |
-| `user_id` | `INTEGER` | NULLABLE REFERENCES users(id) | Akun pemilik toko. `NULL` untuk data hasil pendataan agen — penjual yang kemudian mendaftar dengan nomor WhatsApp sama dapat mengambil alih toko via `/api/umkm/setup` (lihat `DOCS/API.md`) |
+| `user_id` | `INTEGER` | NULLABLE REFERENCES users(id) | Akun pemilik toko. `NULL` untuk data hasil pendataan agen/kader lapangan |
+| `created_by_user_id` | `INTEGER` | NULLABLE REFERENCES users(id) | Akun petugas kader yang pertama kali mendaftarkan toko |
 | `name` | `TEXT` | NOT NULL | Nama usaha / toko |
+| `slug` | `TEXT` | NOT NULL UNIQUE | Slug unik halaman toko (`/toko/[slug]`) |
+| `logo_url` | `TEXT` | NULLABLE | URL logo toko (ImageKit CDN atau lokal `/uploads/...`) |
 | `phone` | `TEXT` | NOT NULL | Nomor WhatsApp terstandardisasi (`628xx`) |
-| `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Relasi ke MWC tempat domisili usaha |
-| `is_verified` | `INTEGER` | DEFAULT 1 | 1 = terverifikasi (seed LPNU, atau diaktifkan pengurus MWC), 0 = menunggu verifikasi pengurus. Semua pendaftaran oleh pengguna — dashboard maupun `/agen` — selalu membuat 0 |
-| `address` | `TEXT` | NULLABLE | Dusun/desa atau alamat fisik toko |
-| `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu pendaftaran |
+| `zone_id` | `INTEGER` | NOT NULL REFERENCES zones(id) | Relasi ke zona MWC domisili usaha |
+| `ranting` | `TEXT` | NULLABLE | Nama desa / ranting kepengurusan NU |
+| `is_verified` | `INTEGER` | DEFAULT 0 | 1 = terverifikasi centang hijau resmi MWC NU, 0 = pending/menunggu moderasi |
+| `verified_by_user_id` | `INTEGER` | NULLABLE REFERENCES users(id) | Akun pengurus yang memverifikasi toko |
+| `verified_at` | `TIMESTAMP` | NULLABLE | Waktu verifikasi resmi |
+| `verification_note` | `TEXT` | NULLABLE | Catatan kurasi / rekomendasi pengurus |
+| `address` | `TEXT` | NULLABLE | Dusun/desa atau alamat fisik operasional toko |
+| `nib` | `TEXT` | NULLABLE | Nomor Induk Berusaha (NIB) |
+| `halal_cert` | `TEXT` | NULLABLE | Nomor sertifikat halal BPJPH / SEHATI |
+| `pirt` | `TEXT` | NULLABLE | Nomor izin edar P-IRT Dinkes |
+| `bpom` | `TEXT` | NULLABLE | Nomor registrasi izin BPOM |
+| `other_legalities` | `TEXT` | NULLABLE | Legalitas atau izin usaha lainnya |
+| `maps_url` | `TEXT` | NULLABLE | Tautan Google Maps lokasi toko |
+| `qris_image_url` | `TEXT` | NULLABLE | Gambar barcode pembayaran QRIS toko |
+| `bump_credits` | `INTEGER` | DEFAULT 0 | Saldo kuota sundul iklan toko |
+| `created_at` | `TIMESTAMP` | DEFAULT CURRENT_TIMESTAMP | Waktu pendaftaran toko |
 
 ---
 
@@ -157,16 +201,20 @@ Menyimpan 24 wilayah Majelis Wakil Cabang (MWC) NU se-Kabupaten Sumenep: 18 MWC 
 | `name` | `TEXT` | NOT NULL | Nama produk |
 | `slug` | `TEXT` | NOT NULL UNIQUE | Slug SEO unik (contoh: `rengginang-lorjuk-spesial-k7x8`) |
 | `price` | `INTEGER` | NOT NULL | Harga jual satuan dalam Rupiah |
+| `original_price` | `INTEGER` | NULLABLE | Harga coret sebelum diskon (opsional) |
 | `category` | `TEXT` | NOT NULL | Salah satu nilai `PRODUCT_CATEGORIES` di `src/lib/constants.ts` |
-| `image_url` | `TEXT` | NOT NULL | URL foto utama (ImageKit, `/uploads/...`, atau URL web) |
+| `image_url` | `TEXT` | NOT NULL | URL foto utama produk (ImageKit CDN atau lokal `/uploads/...`) |
+| `gallery_images` | `TEXT` | NULLABLE | JSON array string berisi hingga 4 foto tambahan produk |
 | `description` | `TEXT` | NULLABLE | Deskripsi detail produk |
-| `views` | `INTEGER` | DEFAULT 0 | Jumlah tampilan halaman produk (increment saat kunjungan unik) |
+| `views` | `INTEGER` | DEFAULT 0 | Jumlah tampilan unik halaman produk (debounce 1 jam) |
 | `is_sold_out` | `INTEGER` | DEFAULT 0 | 1 = habis/terjual, 0 = tersedia |
-| `bumped_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu sundulan terakhir. Menentukan urutan katalog |
-| `shopee_url` | `TEXT` | NULLABLE | Tautan produk di Shopee, opsional |
-| `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Waktu pertama terbit |
-
-Kolom `gallery_images` dan `is_featured` pernah dibuat di DDL awal tetapi tidak pernah dipakai aplikasi; keduanya dihapus dari skema (migrasi menjalankan `ALTER TABLE ... DROP COLUMN IF EXISTS`).
+| `stock_status` | `TEXT` | DEFAULT 'ready' | Status ketersediaan stok (`ready`, `preorder`, `limited`, `empty`) |
+| `production_capacity`| `TEXT` | NULLABLE | Estimasi kapasitas produksi (contoh: `50 bungkus / hari`) |
+| `shopee_url` | `TEXT` | NULLABLE | Tautan produk di marketplace Shopee (opsional) |
+| `is_featured` | `INTEGER` | DEFAULT 0 | Status produk promosi pilihan/unggulan |
+| `featured_until` | `TIMESTAMP` | NULLABLE | Batas kedaluwarsa status promosi unggulan |
+| `bumped_at` | `TIMESTAMP` | DEFAULT CURRENT_TIMESTAMP | Waktu sundulan terakhir (menentukan urutan katalog) |
+| `created_at` | `TIMESTAMP` | DEFAULT CURRENT_TIMESTAMP | Waktu pertama kali terbit |
 
 ---
 
@@ -176,12 +224,31 @@ Kolom `gallery_images` dan `is_featured` pernah dibuat di DDL awal tetapi tidak 
 | :--- | :--- | :--- | :--- |
 | `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID artikel |
 | `title` | `TEXT` | NOT NULL | Judul artikel |
-| `slug` | `TEXT` | NOT NULL UNIQUE | Slug URL artikel |
-| `category` | `TEXT` | NOT NULL | Kategori artikel |
+| `slug` | `TEXT` | NOT NULL UNIQUE | Slug URL artikel (`/edukasi/[slug]`) |
+| `category` | `TEXT` | NOT NULL | Kategori artikel (misal: `Ekonomi Pekarangan`, `Panduan Usaha`, `Legalitas & Halal`, `Tips Transaksi`) |
 | `image_url` | `TEXT` | NOT NULL | Gambar banner artikel |
-| `summary` | `TEXT` | NOT NULL | Ringkasan untuk card di beranda |
-| `content` | `TEXT` | NULLABLE | Isi lengkap artikel |
-| `created_at` | `DATETIME` | DEFAULT CURRENT_TIMESTAMP | Tanggal terbit |
+| `summary` | `TEXT` | NOT NULL | Ringkasan untuk card di beranda & katalog edukasi |
+| `content` | `TEXT` | NULLABLE | Isi lengkap artikel dalam format Markdown / HTML |
+| `created_at` | `TIMESTAMP` | DEFAULT CURRENT_TIMESTAMP | Tanggal terbit artikel |
+
+---
+
+### 4.1. Tabel `case_studies` (Video Studi Kasus Usaha & Inspirasi Santri)
+
+| Kolom | Tipe Data | Modifiers | Deskripsi |
+| :--- | :--- | :--- | :--- |
+| `id` | `INTEGER` | PRIMARY KEY AUTOINCREMENT | ID video studi kasus |
+| `title` | `TEXT` | NOT NULL | Judul video / materi inspirasi usaha |
+| `channel_name` | `TEXT` | NOT NULL | Nama channel YouTube / narasumber |
+| `tag` | `TEXT` | NOT NULL | Tag rubrik (contoh: `Praktik Nyata`, `Inspirasi Santri`) |
+| `duration` | `TEXT` | DEFAULT '15 Menit' | Estimasi durasi tonton video |
+| `video_url` | `TEXT` | NOT NULL | URL embed/tautan video YouTube |
+| `thumbnail_url` | `TEXT` | NOT NULL | URL poster/thumbnail video |
+| `practice_summary` | `TEXT` | NULLABLE | Poin ringkasan praktik lapangan |
+| `opportunity_summary`| `TEXT` | NULLABLE | Analisis peluang dan kalkulasi potensi cuan |
+| `sort_order` | `INTEGER` | DEFAULT 0 | Urutan penayangan pada galeri video |
+| `is_active` | `INTEGER` | DEFAULT 1 | 1 = tayang, 0 = diarsipkan |
+| `created_at` | `TIMESTAMP` | DEFAULT CURRENT_TIMESTAMP | Waktu ditambahkan |
 
 ---
 

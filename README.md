@@ -11,7 +11,7 @@ Aplikasi direktori dan marketplace mandiri UMKM Nahdliyin se-Kabupaten Sumenep. 
 - **Detail Produk [`/produk/[slug]`](http://localhost:4321/produk/rengginang-lorjuk-super-asli-gapura)**: Metadata Schema.org `Product`, galeri multi-foto, kartu Open Graph, penghitung penayangan riil (*view counter*) dengan proteksi cookie debounce, status ketersediaan stok, tautan opsional Shopee, dan tombol WhatsApp otomatis. Tautan lama `/p/[slug]` dialihkan permanen (`301`).
 - **Direktori Toko [`/toko`](http://localhost:4321/toko) & Profil Toko [`/toko/[slug]`](http://localhost:4321/toko/kerajinan-mwc-gapura)**: Direktori unit usaha UMKM per MWC dengan lencana resmi `✓ Verified MWC NU`, etalase katalog milik toko, informasi legalitas usaha, dan tombol chat langsung ke pemilik toko. Akses berbasis ID numerik (`/toko/1`) dialihkan `301` ke slug kanonik.
 - **Kegiatan NU & Pasar Konsumsi [`/kegiatan`](http://localhost:4321/kegiatan) & [`/kegiatan/[slug]`](http://localhost:4321/kegiatan/lailatul-ijtima-mwc-gapura)**: Jadwal pengajian akbar, Lailatul Ijtima', dan Harlah se-Sumenep. Dilengkapi formulir pengajuan pesanan konsumsi/lapak bazar warga (`/api/events/order`) dengan moderasi status oleh pengurus.
-- **Panduan Usaha & Edukasi [`/edukasi`](http://localhost:4321/edukasi) & [`/edukasi/[slug]`](http://localhost:4321/edukasi/sertifikasi-halal-gratis-sehati-umkm-sumenep)**: Artikel literasi ekonomi santri, panduan sertifikasi halal gratis (SEHATI BPJPH), dan akses permodalan syariah BMTNU / Lazisnu lengkap dengan produk terkait kontekstual.
+- **Pusat Edukasi & Panduan Usaha [`/edukasi`](http://localhost:4321/edukasi) & [`/edukasi/[slug]`](http://localhost:4321/edukasi/sertifikasi-halal-gratis-sehati-umkm-sumenep)**: Pusat edukasi terpadu mencakup rubrik unggulan **Ekonomi Pekarangan Santri** (budidaya cabai jamu, lele bioflok, pupuk organik POC), panduan sertifikasi halal gratis (SEHATI BPJPH), tips transaksi COD aman, serta katalog video studi kasus (`/edukasi/video/[id]`). Tampil di navigasi dengan label menu **Edukasi**.
 - **Produk Favorit [`/favorit`](http://localhost:4321/favorit)**: Penyimpanan produk favorit berbasis database Neon Postgres untuk pengguna terdaftar (SSR instan) serta sinkronisasi otomatis (*auto-sync*) dari `localStorage` browser pengguna tamu saat masuk/login.
 - **Privasi & Hak Data [`/privasi`](http://localhost:4321/privasi)**, **Halaman Error [`/404`](http://localhost:4321/404)**, **`/500`**, `sitemap.xml`, dan `robots.txt`.
 
@@ -34,9 +34,10 @@ Sistem menggunakan arsitektur *Role-Based Access Control* (RBAC) 4 peran berjenj
   - Pencegahan duplikasi toko: otomatis mendeteksi nomor WhatsApp toko yang sudah ada sebelum membuat toko baru.
   - Kompresi foto kamera HP otomatis di browser menggunakan HTML5 Canvas untuk menghemat kuota internet kader.
 - **Dashboard Toko Mandiri [`/dashboard`](http://localhost:4321/dashboard)**:
-  - Autentikasi ganda via Neon Auth (Google Social Login & Email/Kata Sandi).
-  - Pengaturan profil usaha: perbarui nama toko, WhatsApp aktif, zona MWC, dan alamat toko.
-  - Manajemen etalase produk: tambah produk baru, edit nama/harga/kategori/deskripsi/foto, ubah status ketersediaan (*Tersedia / Habis*), sundul iklan (*bump to top*), dan hapus iklan.
+  - Autentikasi ganda via Neon Auth (Google Social Login & Email/Kata Sandi) dengan pesan galat ramah pengguna dan dukungan domain kustom produksi `mamasar.com`.
+  - Sub-halaman modul terdedikasi: [`/dashboard/produk`](http://localhost:4321/dashboard/produk) (katalog toko), [`/dashboard/kas`](http://localhost:4321/dashboard/kas) (pembukuan), [`/dashboard/kemitraan`](http://localhost:4321/dashboard/kemitraan) (kemitraan & acara), dan [`/dashboard/profil`](http://localhost:4321/dashboard/profil) (identitas usaha).
+  - Pengaturan profil usaha: perbarui nama toko, unggah logo toko (`logo_url` via CDN ImageKit), WhatsApp aktif, zona MWC, ranting, legalitas usaha (NIB, Halal, P-IRT, BPOM), dan alamat toko.
+  - Manajemen etalase produk: tambah produk baru (dukungan galeri multi-foto hingga 4 foto), edit nama/harga/kategori/deskripsi/foto, ubah status ketersediaan (*Tersedia / Habis*), sundul iklan (*bump to top*), dan hapus iklan.
   - **Buku Kas Usaha**:
     - Dropdown *Isi Cepat Produk* yang otomatis mengisi nama transaksi dan nominal harga barang.
     - Input tanggal transaksi mundur/kemarin (`transactionDate`).
@@ -44,10 +45,11 @@ Sistem menggunakan arsitektur *Role-Based Access Control* (RBAC) 4 peran berjenj
     - Klaim toko otomatis bagi pemilik toko hasil pendataan jemput bola lapangan.
 
 ### 3. Ekosistem & PWA
-- Progressive Web App (PWA) via `public/manifest.webmanifest` untuk kemudahan instalasi di smartphone (*Add to Home Screen*).
+- Progressive Web App (PWA) aktif penuh: Service Worker (`/sw.js`), Web App Manifest (`public/manifest.webmanifest`), manifest shortcuts, dan komponen banner instalasi responsif (`pwa-install-banner`) lengkap dengan panduan khusus iOS Safari (*Add to Home Screen*).
 - Konfigurasi aplikasi native Android via Capacitor (`capacitor.config.json`).
-- Mobile bottom navigation 5 tombol ergonomis: Beranda, Favorit, Pasang Cepat, Toko Warga, dan Toko Saya/Admin.
-- Penyimpanan media hybrid: Gambar produk ke CDN ImageKit (dengan fallback disk lokal), avatar ke Neon Object Storage S3 (dengan fallback disk lokal).
+- Mobile bottom navigation 5 tombol ergonomis: Beranda, Favorit, Pasang Cepat (+), Toko, dan Toko Saya/Admin.
+- Penyimpanan media hybrid: Gambar produk dan logo toko ke CDN ImageKit (dengan fallback disk lokal), avatar ke Neon Object Storage S3 (dengan fallback disk lokal).
+- Domain produksi kustom `https://mamasar.com` tersinkronisasi pada *Trusted Origins* Neon Auth (Google OAuth & Better Auth).
 
 ---
 
@@ -101,17 +103,19 @@ node --env-file=.env scripts/migrate-neon.js
 
 ---
 
-## 🛠️ Perintah npm
+## 🛠️ Perintah Eksekusi (Bun / npm)
 
-| Perintah | Fungsi |
-| :--- | :--- |
-| `npm run dev` | Menjalankan Astro dev server interaktif |
-| `npm run check` | Menjalankan validasi tipe Astro & TypeScript (`astro check`) |
-| `npm test` | Menjalankan unit test keamanan, RBAC, upload, dan utilitas (`node --test`) |
-| `npm run build` | Melakukan build produksi server & aset klien ke folder `dist/` |
-| `npm run preview` | Melakukan pratinjau hasil build produksi |
-| `npm start` | Menjalankan server Node.js dari hasil build produksi |
-| `node --env-file=.env scripts/migrate-neon.js` | Menjalankan DDL migrasi dan seed database Neon Postgres |
+Proyek ini menggunakan runtime **Bun** (dengan fallback kompatibel penuh ke Node.js & npm):
+
+| Perintah Bun | Perintah npm | Fungsi |
+| :--- | :--- | :--- |
+| `bun run dev` | `npm run dev` | Menjalankan Astro dev server interaktif (`localhost:4321`) |
+| `bun run check` | `npm run check` | Menjalankan validasi tipe Astro & TypeScript (`astro check`) |
+| `bun test` | `npm test` | Menjalankan test suite unit (keamanan, anti-SSRF, RBAC, ImageKit, API Elysia) |
+| `bun run build` | `npm run build` | Melakukan build produksi server & aset klien ke folder `dist/` |
+| `bun run preview` | `npm run preview` | Melakukan pratinjau lokal hasil build produksi |
+| `bun run start` | `npm start` | Menjalankan server dari hasil build produksi (`dist/server/entry.mjs`) |
+| `node --env-file=.env scripts/migrate-neon.js` | `node --env-file=.env scripts/migrate-neon.js` | Menjalankan DDL migrasi dan seed database Neon Postgres |
 
 ---
 
@@ -119,30 +123,30 @@ node --env-file=.env scripts/migrate-neon.js
 
 Seluruh konfigurasi lingkungan tersedia di [`.env.example`](./.env.example):
 
-- **Server**: `HOST`, `PORT`, `SITE_URL`
-- **Database**: `DATABASE_URL` (Koneksi pooling Neon Postgres)
+- **Server**: `HOST`, `PORT`, `SITE_URL` (contoh lokal: `http://localhost:4321`, produksi: `https://mamasar.com`)
+- **Database**: `DATABASE_URL` (Koneksi pooling Neon Postgres) & `DATABASE_URL_UNPOOLED`
 - **Superadmin**: `SUPERADMIN_EMAIL` (Email pemilik akses penuh konsol `/admin`, contoh: `info.rasyiqi@gmail.com`)
-- **Media CDN**: `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT`
-- **Autentikasi Neon**: `NEON_AUTH_BASE_URL`, `NEON_AUTH_JWKS_URL`
-- **Google OAuth Langsung (Legacy)**: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI`
-- **Object Storage**: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
+- **Media CDN**: `IMAGEKIT_PUBLIC_KEY`, `IMAGEKIT_PRIVATE_KEY`, `IMAGEKIT_URL_ENDPOINT` (CDN foto produk & logo toko)
+- **Autentikasi Neon**: `NEON_AUTH_BASE_URL`, `NEON_AUTH_JWKS_URL` (Better Auth & Google Social Login)
+- **Object Storage S3**: `AWS_ENDPOINT_URL_S3`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_REGION`
 - **Operasional**: `WHATSAPP_HELP` (Nomor pusat bantuan pengurus MWC/PCNU, format: `628xxxxxxxxxx`)
 
 ---
 
 ## 🚢 Panduan Deployment
 
-### 1. VPS / Server Node.js Mandiri
+### 1. VPS / Server Node.js / Bun Mandiri
 ```bash
-npm run build
-# Arahkan proses ke entry server
-node --env-file=.env dist/server/entry.mjs
+bun run build
+# Jalankan entry point server
+bun run dist/server/entry.mjs
 ```
 
 ### 2. Vercel
 1. Hubungkan repositori GitHub ke proyek baru di Vercel.
 2. Tambahkan variabel lingkungan dari `.env.example` ke dashboard Vercel.
 3. Vercel akan otomatis mendeteksi konfigurasi Astro (`@astrojs/vercel`) dan mendeploy fungsi serverless secara instan.
+4. Pastikan domain kustom (`https://mamasar.com`) telah didaftarkan pada *Trusted Domains* di konsol Neon Auth.
 
 ---
 
@@ -151,13 +155,26 @@ node --env-file=.env dist/server/entry.mjs
 ```
 mamasar/
 ├── src/
-│   ├── components/      # Komponen UI (ProductCard, PromoSlider)
-│   ├── layouts/         # Layout utama, navigasi desktop/mobile, meta tags SEO
-│   ├── lib/             # Schema Drizzle, database query helper (db.ts), auth, constants
-│   ├── pages/           # Rute halaman publik & API endpoint (/admin, /petugas, /dashboard, dll.)
-│   └── styles/          # Konfigurasi Tailwind CSS 4 & styling global
+│   ├── client/          # Antarmuka Klien (Astro SSR srcDir)
+│   │   ├── components/  # Komponen UI (ProductCard, PromoSlider, admin, dashboard, common)
+│   │   ├── layouts/     # Layout utama (Layout.astro, AppLayout.astro), meta SEO, PWA & nav
+│   │   ├── pages/       # Rute halaman (/admin, /dashboard, /edukasi, /produk, /toko, dll.)
+│   │   ├── scripts/     # Client-side TypeScript (admin.client.ts, dashboard.client.ts)
+│   │   └── styles/      # Styling global Tailwind CSS 4 (global.css)
+│   ├── server/          # Backend Server & API Routes (Elysia.js)
+│   │   ├── routes/      # Endpoint modular (auth, products, umkm, admin, user, events, favorites)
+│   │   ├── context.ts   # Resolver sesi, IP rate-limiter, dan RBAC context
+│   │   └── serve.ts     # Standalone runtime server
+│   └── lib/             # Fondasi Logika & Database
+│       ├── modules/     # Domain modules (products, stores, articles, events, cashbook, rbac)
+│       ├── schema.ts    # Definisi skema tabel Drizzle ORM (PostgreSQL)
+│       ├── db.ts        # Database client & transaksi data Neon
+│       ├── neon-auth.ts # Helper integrasi Neon Auth / Better Auth
+│       ├── storage.ts   # Handler CDN ImageKit & Neon S3 Object Storage
+│       └── utils.ts     # Sanitasi, slugifier, validator nomor telepon HP Indonesia
+├── tests/               # Test suite otomatis (security, rbac, utils, api-elysia)
 ├── scripts/             # Skrip migrasi DDL & seed data Neon Postgres
-├── public/              # Manifest PWA, favicon, ikon SVG resolusi tinggi
+├── public/              # Manifest PWA (/manifest.webmanifest), service worker (/sw.js), favicon, ikon SVG
 ├── DOCS/                # Dokumentasi teknis arsitektur, API, database, dan Android
 ├── capacitor.config.json# Konfigurasi pembungkus aplikasi native Android
 └── ROADMAP.md           # Peta jalan pengembangan fitur per fase

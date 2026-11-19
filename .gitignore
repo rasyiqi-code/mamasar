@@ -28,6 +28,9 @@ data/uploads/*
 data/backups/*
 !data/backups/.gitkeep
 
+# screenshots & temporary media
+screenshots/
+
 # macOS / Windows
 .DS_Store
 Thumbs.db

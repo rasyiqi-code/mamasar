@@ -1,6 +1,6 @@
 # Referensi API
 
-Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. Format respons utama adalah JSON. Autentikasi memakai cookie `mamasar_session` (HttpOnly, SameSite=Lax, berlaku 30 hari) yang dibuat setelah login Neon Auth atau login Google legacy.
+Seluruh backend API dibangun di atas arsitektur performa tinggi **Elysia.js** yang dimuat melalui rute catch-all Astro SSR (`src/client/pages/api/[...slugs].ts` mendelegasikan ke `src/server/index.ts`). Format respons standar adalah JSON. Autentikasi menggunakan cookie `mamasar_session` (HttpOnly, SameSite=Lax, Secure di HTTPS, berlaku 30 hari) yang disinkronkan setelah login Neon Auth (Better Auth) atau login Google legacy.
 
 ---
 
@@ -8,32 +8,46 @@ Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. For
 
 | Metode | Path | Autentikasi | Fungsi |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/auth/login` | Publik | Login Google lewat Neon Auth |
-| `POST` | `/api/auth/email` | Publik | Sign in atau sign up email/password lewat Neon Auth |
-| `GET` | `/api/auth/callback/neon` | Publik | Callback Neon Auth, sinkronisasi user dan sesi |
+| `GET` | `/api/health` | Publik | Health check metadata runtime & framework Elysia |
+| `GET` | `/api/auth/login` | Publik | Inisiasi login Google OAuth via Neon Auth |
+| `POST` | `/api/auth/email` | Publik | Sign in atau sign up email & password via Neon Auth |
+| `GET` | `/api/auth/callback/neon` | Publik | Callback Neon Auth, sinkronisasi pengguna & sesi |
 | `GET` | `/api/auth/callback/google` | Publik | Callback Google OAuth langsung (legacy) |
 | `ALL` | `/api/auth/logout` | Cookie | Hapus sesi lokal dan sesi Neon Auth |
-| `POST` | `/api/products` | Sesi login | Buat UMKM baru beserta satu produk (petugas pendata) |
-| `POST` | `/api/products/bump` | Pemilik toko | Naikkan produk ke urutan teratas |
+| `POST` | `/api/petugas/register` | Sesi | Pendaftaran mandiri kader pendata lapangan MWC |
+| `POST` | `/api/admin/petugas/action` | PCNU / Superadmin | Persetujuan / penolakan pendaftaran kader lapangan |
+| `POST` | `/api/admin/users/role` | PCNU / Superadmin | Penugasan peran pengguna (PCNU, MWCNU, Ranting, Warga) & zona tugas |
+| `GET` | `/api/admin/articles` | PCNU / Superadmin | Ambil daftar artikel panduan edukasi untuk panel admin |
+| `POST` | `/api/admin/articles` | PCNU / Superadmin | Publikasi atau pembaruan artikel edukasi |
+| `DELETE`| `/api/admin/articles/:id` | PCNU / Superadmin | Hapus artikel edukasi |
+| `POST` | `/api/admin/case-studies` | PCNU / Superadmin | Tambah atau perbarui video studi kasus UMKM |
+| `DELETE`| `/api/admin/case-studies/:id`| PCNU / Superadmin | Hapus video studi kasus |
+| `POST` | `/api/products` | Sesi login | Buat UMKM baru beserta produk pertama (kader lapangan) |
+| `POST` | `/api/products/bump` | Pemilik toko | Naikkan produk ke urutan teratas (*sundul iklan*) |
 | `POST` | `/api/products/delete` | Pemilik toko | Hapus produk |
-| `POST` | `/api/products/toggle-stock` | Pemilik toko | Ubah status habis/tersedia |
-| `POST` | `/api/umkm/setup` | Sesi toko | Simpan atau perbarui profil toko; tawarkan pengambilalihan toko hasil pendataan bila nomor WhatsApp cocok |
-| `POST` | `/api/umkm/add-product` | Sesi toko | Tambah produk ke toko sendiri |
-| `POST` | `/api/umkm/verify` | Pengurus MWC | Set/cabut status terverifikasi toko |
-| `POST` | `/api/umkm/delete` | Pengurus MWC | Hapus toko beserta produknya |
-| `POST` | `/api/events` | PCNU / MWCNU | Buat, ubah, atau hapus agenda kegiatan (terscoped wilayah untuk MWCNU) |
-| `POST` | `/api/events/order` | Publik | Ajukan pesanan konsumsi atau pendaftaran lapak bazar pada agenda NU |
-| `PATCH` | `/api/events/order` | PCNU / MWCNU | Perbarui status pengajuan konsumsi/lapak (`pending`/`contacted`/`approved`/`rejected`) |
-| `POST` | `/api/user/avatar` | Sesi opsional | Unggah foto profil |
-| `POST` | `/api/user/cashbook` | Sesi | Tambah catatan buku kas |
-| `DELETE` | `/api/user/cashbook` | Sesi | Hapus catatan buku kas |
-| `GET` | `/api/user/export` | Sesi | Unduh ekspor data pribadi akun, toko, produk, & kas dalam JSON |
-| `POST` | `/api/user/delete-account` | Sesi | Hapus akun & etalase UMKM milik sendiri (hak hapus UU PDP) |
-| `POST` | `/api/cron/expire-promotions` | Cron Secret | Nonaktifkan status `is_featured` iklan promosi yang masa tayangnya habis |
-| `GET` | `/api/neon/services` | Sesi | Health check layanan Neon |
-| `GET` | `/uploads/[...path]` | Publik | Sajikan file lokal dari `data/uploads` |
-| `GET` | `/sitemap.xml` | Publik | Sitemap dinamis |
-| `GET` | `/robots.txt` | Publik | Aturan crawler |
+| `POST` | `/api/products/toggle-stock` | Pemilik toko | Ubah status stok (*Tersedia / Habis*) |
+| `POST` | `/api/umkm/setup` | Sesi toko | Simpan atau perbarui profil toko, logo, ranting, dan legalitas |
+| `POST` | `/api/umkm/add-product` | Sesi toko | Tambah produk baru (didukung galeri multi-foto hingga 4 foto) |
+| `POST` | `/api/umkm/verify` | Pengurus MWC | Berikan atau cabut status centang hijau terverifikasi toko |
+| `POST` | `/api/umkm/delete` | Pengurus MWC | Hapus toko beserta katalog produknya |
+| `GET` | `/api/favorites/list` | Publik | Ambil daftar produk favorit berdasarkan array ID (mode tamu) |
+| `POST` | `/api/favorites/toggle` | Sesi / Tamu | Simpan atau hapus produk dari daftar favorit |
+| `POST` | `/api/favorites/sync` | Sesi | Sinkronisasi daftar favorit lokal tamu ke database pengguna login |
+| `POST` | `/api/promotions/order` | Sesi toko | Pemesanan slot iklan unggulan / promosi |
+| `POST` | `/api/promotions/review` | PCNU / MWCNU | Persetujuan atau penolakan pengajuan promosi produk |
+| `POST` | `/api/events` | PCNU / MWCNU | Buat, ubah, atau hapus agenda kegiatan (terisolasi zona MWC) |
+| `POST` | `/api/events/order` | Publik | Ajukan pesanan konsumsi atau pendaftaran lapak bazar acara NU |
+| `PATCH` | `/api/events/order` | PCNU / MWCNU | Perbarui status pesanan konsumsi / lapak (`pending`/`contacted`/`approved`/`rejected`) |
+| `POST` | `/api/user/avatar` | Sesi opsional | Unggah foto profil pengguna ke Neon S3 / disk lokal |
+| `POST` | `/api/user/cashbook` | Sesi | Tambah catatan transaksi pemasukan/pengeluaran buku kas |
+| `DELETE`| `/api/user/cashbook` | Sesi | Hapus catatan transaksi buku kas |
+| `GET` | `/api/user/export` | Sesi | Unduh ekspor data pribadi (akun, toko, produk, & kas) format JSON (UU PDP) |
+| `POST` | `/api/user/delete-account` | Sesi | Hapus permanen akun & etalase UMKM milik sendiri |
+| `GET/POST`| `/api/cron/expire-promotions`| Cron Secret | Cron job untuk mengakhiri masa aktif promosi produk yang telah kedaluwarsa |
+| `GET` | `/api/neon/services` | Sesi | Health check diagnostik ekosistem Neon Cloud |
+| `GET` | `/uploads/[...path]` | Publik | Sajikan file lokal dari `data/uploads` bila ImageKit offline |
+| `GET` | `/sitemap.xml` | Publik | Generator sitemap dinamis |
+| `GET` | `/robots.txt` | Publik | Pengaturan crawler mesin pencari |
 
 ---
 
@@ -41,14 +55,15 @@ Semua endpoint berada di bawah `src/pages/api/` dan dirender oleh Astro SSR. For
 
 ### `GET /api/auth/login`
 
-Mengarahkan pengguna ke Google melalui Neon Auth.
+Mengarahkan pengguna ke Google OAuth melalui Neon Auth (Better Auth).
 
 Alur Neon Auth:
 
 1. Endpoint memanggil `${NEON_AUTH_BASE_URL}/sign-in/social`.
-2. Body: `{"provider":"google","callbackURL":"<origin>/api/auth/callback/neon"}`.
-3. Respons berupa redirect ke URL Google.
-4. Bila gagal, redirect ke `/dashboard?error=neon_auth_init_failed` atau `?error=neon_auth_error`.
+2. Header: `Origin: <origin>` (Domain origin harus terdaftar di *Trusted Origins* Neon Auth, contoh: `https://mamasar.com`).
+3. Body: `{"provider":"google","callbackURL":"<origin>/api/auth/callback/neon"}`.
+4. Respons: URL otorisasi Google OAuth (`data.url`). Pengguna dialihkan dengan status HTTP 302.
+5. Bila gagal inisiasi, pengguna dialihkan kembali ke `/login?error=neon_auth_init_failed` dan antarmuka menampilkan pesan ramah pengguna.
 
 ### `POST /api/auth/email`
 
