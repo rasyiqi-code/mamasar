@@ -396,24 +396,26 @@ const pageDescription = product
               </div>
 
               <div class="flex items-center gap-2">
-                <span class="text-slate-600">Bagikan:</span>
+                <span class="text-slate-600 font-medium">Bagikan:</span>
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(`${product.name} - ${currentUrl}`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bagikan ke WhatsApp"
-                  class="min-w-[44px] min-h-[44px] rounded-lg bg-white hover:bg-emerald-700 border border-slate-300 text-slate-700 hover:text-white flex items-center justify-center text-xs font-bold transition"
+                  title="Bagikan ke WhatsApp"
+                  class="min-w-[40px] min-h-[40px] w-10 h-10 rounded-lg bg-emerald-50 hover:bg-emerald-600 border border-emerald-200 text-emerald-700 hover:text-white flex items-center justify-center transition shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
                 >
-                  WA
+                  <AppIcon name="whatsapp" size="sm" />
                 </a>
                 <a
                   href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label="Bagikan ke Facebook"
-                  class="min-w-[44px] min-h-[44px] rounded-lg bg-white hover:bg-slate-900 border border-slate-300 text-slate-700 hover:text-white flex items-center justify-center text-xs font-bold transition"
+                  title="Bagikan ke Facebook"
+                  class="min-w-[40px] min-h-[40px] w-10 h-10 rounded-lg bg-blue-50 hover:bg-blue-600 border border-blue-200 text-blue-700 hover:text-white flex items-center justify-center transition shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
                 >
-                  FB
+                  <AppIcon name="facebook" size="sm" />
                 </a>
               </div>
             </div>
