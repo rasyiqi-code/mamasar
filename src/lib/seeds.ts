@@ -268,23 +268,40 @@ Sisa-sisa dapur rumah tangga (kulit buah, sisa sayuran, sisa nasi, air leri cuci
 
 ---
 
-Dengan memadukan media tanam gembur berformula 2:1:1 dan pengembalian sisa organik melalui dekomposisi anaerobik, lahan pekarangan rumah tangga santri siap menjadi lumbung pangan mandiri yang produktif dan berkah.`,
+Dengan memadukan media tanam gembur berformula 2:1:1 dan pengembalian sisa organik melalui dekomposisi anaerobik, lahan pekarangan rumah tangga keluarga warga NU siap menjadi lumbung pangan mandiri yang produktif dan berkah.`,
   },
   {
-    title: 'Ekonomi Pekarangan: Maksimalkan Lahan Rumah Menjadi Lumbung Rezeki Santri',
-    slug: 'ekonomi-pekarangan-santri-sumenep',
+    title: 'Ekonomi Pekarangan Warga NU: 4 Pilar Kedaulatan Pangan Keluarga Nahdliyin',
+    slug: 'ekonomi-pekarangan-warga-nu-sumenep',
     category: 'Ekonomi Pekarangan',
     image_url: 'https://images.unsplash.com/photo-1592417817098-8f3d6910985c?auto=format&fit=crop&w=800&q=80',
-    summary: 'Bagaimana warga Nahdliyin Sumenep memanfaatkan pekarangan sempit untuk menanam cabai jamu, budidaya kelor, dan lele kolam terpal.',
-    content: `Gerakan Ekonomi Pekarangan merupakan salah satu pilar ketahanan ekonomi nahdliyin yang sangat relevan untuk karakteristik geografis Kabupaten Sumenep. Dengan memanfaatkan pekarangan rumah berukuran 3x4 meter sekalipun, keluarga warga NU dapat menghasilkan komoditas bernilai jual tinggi.
+    summary: 'Konsep 4 pilar terpadu mengubah pekarangan rumah warga NU menjadi lumbung pangan mandiri, menekan belanja dapur, dan hilirisasi surplus panen.',
+    content: `Gerakan Ekonomi Pekarangan merupakan ekosistem terpadu yang mengubah pekarangan rumah keluarga warga NU dari sekadar ruang konsumsi menjadi pusat produksi yang mandiri, sehat, dan berkelanjutan.
 
-### 1. Komoditas Unggulan Pekarangan Madura
-- **Cabai Jamu (Cabe Jawa):** Tanaman rambat khas Sumenep yang tumbuh subur di iklim tropis pesisir. Harganya stabil di tingkat pengepul jamu dan permintaannya tidak pernah surut.
-- **Kelor Organik:** Daun kelor Sumenep terkenal memiliki kualitas ekspor. Selain untuk sayur gizi harian keluarga, daun kering kelor dicari pabrik herbal dan industri teh santri.
-- **Budidaya Ikan Lele Kolam Terpal Bioflok:** Dengan modal kurang dari Rp 500.000 untuk terpal bulat diameter 2 meter, panen lele dapat mensuplai warung makan tetangga secara konsisten setiap 2,5 bulan.
+Prinsip dasarnya tegas: **amankan kebutuhan konsumsi gizi dan dapur keluarga sendiri terlebih dahulu, baru kemudian menjual surplus panen yang tidak habis dikonsumsi.**
 
-### 2. Sinergi dengan Mamasar
-Hasil panen pekarangan yang berlebih tidak perlu bingung mencari tengkulak. Daftarkan panen Anda ke direktori Mamasar melalui kader MWC setempat. Tetangga satu desa atau kecamatan yang membutuhkan bahan pangan segar dapat langsung mengontak Anda via WhatsApp tanpa potongan tengkulak.`,
+---
+
+### Empat Pilar Utama Ekonomi Pekarangan Warga NU
+
+1. **Rumah Pangan Mandiri (RPM)**
+   Menempatkan rumah tangga sebagai pusat produksi pangan aktif: menanam sayuran, buah, cabai, rempah, dan umbi-umbian di pekarangan sekitar rumah. Berfungsi sebagai jangkar ketahanan pangan harian yang memotong biaya belanja dapur keluarga serta menjamin pangan segar bebas pestisida.
+
+2. **Kandang Keluarga Produktif**
+   Sistem pemeliharaan ternak dan ikan skala rumah tangga (ayam kampung petelur/pedaging, itik, kambing, kelinci, dan kolam lele terpal). Menjadi pemasok rutin protein hewani keluarga, pupuk organik alami dari kotoran ternak, sekaligus berfungsi sebagai tabungan hidup riil (*Living Bank*) yang dapat dicairkan saat kebutuhan darurat tanpa tergerus inflasi.
+
+3. **Apotek Hidup (Farmasi Mini)**
+   Membudidayakan Tanaman Obat Keluarga (TOGA) seperti jahe merah, kunyit, temulawak, serai wangi, kencur, kumis kucing, lidah buaya, dan daun sirih. Menghadirkan kedaulatan kesehatan mandiri sebagai pertolongan pertama alami keluarga sekaligus bahan racikan jamu tradisional.
+
+4. **Rumah Produksi Pekarangan (RPP)**
+   Memfungsikan ruang dapur atau sekitar rumah sebagai pabrik mini untuk mengolah bahan mentah kebun dan kandang menjadi produk bernilai tambah (*value-adding*) dan tahan simpan. Mengolah kelebihan panen agar tidak busuk: cabai surplus menjadi sambal kemasan, pisang/singkong menjadi keripik, telur itik menjadi telur asin, dan rimpang TOGA menjadi jamu bubuk instan.
+
+---
+
+### Siklus Sirkular Zero-Waste & Sinergi dengan Mamasar
+Keempat pilar ini bekerja dalam satu siklus tanpa limbah terbuang percuma (*zero-waste*). Sisa sayuran dari RPM menjadi pakan ternak di Kandang, kotoran ternak diolah menjadi pupuk untuk RPM dan Apotek Hidup, sementara surplus hasilnya diolah di Rumah Produksi Pekarangan (RPP).
+
+Produk olahan dari RPP serta surplus panen segar yang tidak habis dikonsumsi dipasarkan langsung ke direktori digital **Mamasar** tanpa potongan komisi, serta diserap sebagai pasokan konsumsi kegiatan jam'iyah NU di tingkat Ranting dan MWC se-Kabupaten Sumenep.`,
   },
   {
     title: 'Budidaya Cabai Jamu Madura di Pekarangan: Emas Hijau Bernilai Tinggi',
@@ -292,7 +309,7 @@ Hasil panen pekarangan yang berlebih tidak perlu bingung mencari tengkulak. Daft
     category: 'Ekonomi Pekarangan',
     image_url: 'https://images.unsplash.com/photo-1590682680695-43b964a3ae17?auto=format&fit=crop&w=800&q=80',
     summary: 'Panduan praktis menanam cabai jamu (cabe jawa) rambat di pekarangan rumah dengan kebutuhan air minim dan harga jual stabil.',
-    content: `Cabai jamu (cabe jawa) merupakan salah satu komoditas rempah obat unggulan khas Kabupaten Sumenep yang telah dibudidayakan turun-temurun. Tanaman merambat ini toleran cuaca panas pesisir Madura dan membutuhkan lahan sangat minim, menjadikannya pilihan ideal untuk pekarangan rumah santri dan warga NU.
+    content: `Cabai jamu (cabe jawa) merupakan salah satu komoditas rempah obat unggulan khas Kabupaten Sumenep yang telah dibudidayakan turun-temurun. Tanaman merambat ini toleran cuaca panas pesisir Madura dan membutuhkan lahan sangat minim, menjadikannya pilihan ideal untuk pekarangan rumah tangga keluarga warga NU.
 
 ### 1. Karakteristik & Keunggulan Cabai Jamu
 - **Tahan Kekeringan:** Kebutuhan penyiraman minim setelah akar rambat menempel kokoh pada tiang panjat atau dinding pagar.

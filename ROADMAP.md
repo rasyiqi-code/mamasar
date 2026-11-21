@@ -194,8 +194,8 @@ gantt
   - Pemasangan service worker (`/sw.js`), Web App Manifest shortcuts, offline fallback banner, dan komponen instalasi interaktif (`pwa-install-banner`) dengan panduan khusus perangkat Apple iOS Safari.
 - [x] **8.4. Unggah Logo Toko UMKM & Media Branding**
   - Form upload logo toko pada profil usaha (`/dashboard/profil`), integrasi penyimpanan CDN ImageKit, serta etalase visual toko pada `/toko/[slug]`.
-- [x] **8.5. Integrasi Rubrik Edukasi & Ekonomi Pekarangan**
-  - Standarisasi penamaan menu navigasi menjadi **Edukasi** (`/edukasi`), integrasi rubrik Ekonomi Pekarangan Santri (media tanam organik, cabai jamu, lele bioflok, pupuk POC), panduan halal SEHATI, dan katalog video studi kasus (`/edukasi/video/[id]`).
+- [x] **8.5. Integrasi Rubrik Edukasi & Ekonomi Pekarangan Warga NU**
+  - Standarisasi penamaan menu navigasi menjadi **Edukasi** (`/edukasi`), integrasi rubrik Ekonomi Pekarangan Warga NU (fondasi 4 pilar RPM, Kandang, Apotek Hidup, RPP, media tanam organik, cabai jamu, lele bioflok, pupuk POC), panduan halal SEHATI, dan katalog video studi kasus (`/edukasi/video/[id]`).
 - [x] **8.6. Domain Produksi Kustom & Sinkronisasi Whitelist Neon Auth**
   - Integrasi domain kustom `https://mamasar.com` & `https://www.mamasar.com` ke dalam daftar *Trusted Origins* Neon Auth (Google OAuth & Better Auth) serta penanganan pesan galat ramah pengguna.
 - [x] **8.7. Overhaul Workspace Admin & Dashboard Mobile-First**
