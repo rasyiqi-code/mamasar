@@ -9,6 +9,7 @@ import { promotionsRoutes } from './routes/promotions';
 import { systemRoutes } from './routes/system';
 import { umkmRoutes } from './routes/umkm';
 import { userRoutes } from './routes/user';
+import { pekaranganRoutes } from './routes/pekarangan';
 
 /**
  * Unified Elysia API backend mounted under `/api`.
@@ -38,6 +39,7 @@ export const app = new Elysia({
   .use(favoritesRoutes)
   .use(promotionsRoutes)
   .use(userRoutes)
-  .use(adminRoutes);
+  .use(adminRoutes)
+  .use(pekaranganRoutes);
 
 export type App = typeof app;
