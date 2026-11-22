@@ -31,7 +31,7 @@ export function formatPhoneForWhatsApp(phone: string): string {
 export function isValidIndonesianPhone(phone: string): boolean {
   if (!phone || typeof phone !== 'string') return false;
   const digitsOnly = phone.replace(/\D/g, '');
-  
+
   // Indonesian mobile numbers are between 10 and 14 digits
   if (digitsOnly.length < 10 || digitsOnly.length > 14) {
     return false;
@@ -40,7 +40,7 @@ export function isValidIndonesianPhone(phone: string): boolean {
   // Check prefix: 08xxx (9-13 digits after 08 = total 10-14), 628xxx (9-13 digits after 628 = total 11-14), 8xxx (9-12 digits = total 10-13)
   // Normalize: strip leading + if present, ensure starts with 62 or 0 for consistency
   const normalized = digitsOnly.replace(/^\+/, '');
-  
+
   // Valid prefixes after normalization:
   // - 08 followed by 8-13 more digits (total 10-14)  
   // - 628 followed by 8-13 more digits (total 11-14)
@@ -87,7 +87,7 @@ export function createProductWhatsAppUrl(params: {
     message += `\n🔗 *Link:* ${params.productUrl}`;
   }
 
-  message += `\n\nApakah barang ini masih tersedia dan bisa dikirim ke alamat saya? Terima kasih.`;
+  message += `\n\nApakah barang ini masih tersedia? Terima kasih.`;
 
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }

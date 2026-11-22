@@ -1,0 +1,88 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
+---
+
+<Layout
+  title="Syarat & Ketentuan Layanan | Mamasar Sumenep"
+  description="Ketentuan umum penggunaan portal direktori iklan baris digital UMKM Nahdliyin Kabupaten Sumenep."
+  canonicalUrl={`${Astro.url.origin}/syarat-ketentuan`}
+>
+  <article class="max-w-3xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-8">
+    <header class="pb-5 border-b border-slate-200 space-y-2">
+      <div class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-700">
+        <AppIcon name="shield" size="xs" />
+        <span>Panduan Hukum &amp; Kesepakatan Bersama</span>
+      </div>
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        Syarat &amp; Ketentuan Penggunaan Mamasar
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600">
+        Terakhir diperbarui: 22 November 2026 • Direktori UMKM Nahdliyin Kabupaten Sumenep
+      </p>
+    </header>
+
+    <div class="space-y-6 text-sm text-slate-700 leading-relaxed">
+      <section class="space-y-3">
+        <h2 class="text-base font-bold text-slate-900">1. Definisi &amp; Kedudukan Platform</h2>
+        <p>
+          Mamasar adalah portal direktori iklan baris daring (<em>classifieds directory</em>) yang dikelola secara nirlaba dan sukarela untuk mempromosikan produk usaha mikro, kecil, dan menengah (UMKM) milik warga nahdliyin di wilayah Kabupaten Sumenep.
+        </p>
+        <p>
+          Mamasar <strong>bukan pihak dalam transaksi jual beli</strong>, tidak menampung rekening bersama (<em>escrow</em>), dan tidak memungut komisi pembayaran. Seluruh kesepakatan harga, pembayaran, pengiriman, dan serah terima barang dilakukan secara langsung (<em>peer-to-peer</em>) antara pembeli dan penjual melalui WhatsApp atau pertemuan fisik.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-base font-bold text-slate-900">2. Ketentuan Pendaftaran &amp; Penayangan Produk</h2>
+        <ul class="list-disc pl-5 space-y-2">
+          <li>
+            <strong>Pendaftaran Gratis:</strong> Setiap warga dan pelaku UMKM di Kabupaten Sumenep berhak mendaftarkan profil usaha dan katalog produk secara gratis tanpa dipungut biaya registrasi.
+          </li>
+          <li>
+            <strong>Keaslian Data:</strong> Penjual wajib mencantumkan identitas asli, nomor WhatsApp aktif, alamat usaha nyata di wilayah Sumenep, serta foto asli produk yang diperjualbelikan.
+          </li>
+          <li>
+            <strong>Tanggung Jawab Konten:</strong> Penjual bertanggung jawab penuh atas kebenaran deskripsi, ketersediaan stok, penetapan harga, mutu bahan makanan, dan perizinan legalitas (NIB, P-IRT, Sertifikat Halal) yang dicantumkan.
+          </li>
+        </ul>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-base font-bold text-slate-900">3. Barang &amp; Jasa yang Dilarang</h2>
+        <p>
+          Untuk menjaga nilai-nilai syariat Islam dan hukum positif Republik Indonesia, pengguna dilarang keras menayangkan atau mempromosikan:
+        </p>
+        <ul class="list-disc pl-5 space-y-1.5 text-slate-700">
+          <li>Minuman keras / beralkohol dan zat memabukkan (khamr).</li>
+          <li>Narkotika, psikotropika, dan obat-obatan keras tanpa resep/izin edar resmi BPOM.</li>
+          <li>Produk yang mengandung bahan tidak halal tanpa keterangan jujur yang jelas.</li>
+          <li>Perjudian, judi online, undian tidak berizin, dan skema piramida/penipuan uang.</li>
+          <li>Barang tiruan/palsu ilegal yang melanggar hak cipta atau merek dagang orang lain.</li>
+          <li>Senjata tajam ilegal, bahan peledak, dan barang berbahaya.</li>
+        </ul>
+        <p class="text-xs text-rose-700 font-semibold bg-rose-50 border border-rose-200 p-3 rounded-lg">
+          Pengelola berhak menghapus tayangan iklan dan memblokir nomor kontak toko yang terbukti melanggar ketentuan larangan di atas tanpa pemberitahuan sebelumnya.
+        </p>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-base font-bold text-slate-900">4. Transaksi &amp; Batasan Tanggung Jawab</h2>
+        <p>
+          Mengingat transaksi dilakukan langsung via WhatsApp:
+        </p>
+        <ul class="list-disc pl-5 space-y-1.5">
+          <li>Pembeli dianjurkan memeriksa kondisi barang dan reputasi penjual secara teliti sebelum melakukan pembayaran transfer uang.</li>
+          <li>Pengelola Mamasar dibebaskan dari segala tuntutan ganti rugi perdata maupun pidana atas kelalaian, wanprestasi, sengketa mutu barang, atau keterlambatan ekspedisi kurir yang terjadi antar-pihak.</li>
+        </ul>
+      </section>
+
+      <section class="space-y-3">
+        <h2 class="text-base font-bold text-slate-900">5. Penyelesaian Sengketa</h2>
+        <p>
+          Apabila timbul kesalahpahaman atau perselisihan antara penjual dan pembeli, para pihak sepakat untuk menyelesaikan permasalahan secara kekeluargaan berdasarkan musyawarah mufakat dan akhlakul karimah.
+        </p>
+      </section>
+    </div>
+  </article>
+</Layout>

@@ -23,6 +23,62 @@ export const CATEGORY_ICONS: Record<string, string> = {
   'Jasa & Layanan': 'service',
 };
 
+export const CATEGORY_THEMES: Record<string, {
+  color: string;
+  activeColor: string;
+  activeIndicator: string;
+  labelActive: string;
+}> = {
+  'Semua': {
+    color: 'text-emerald-600',
+    activeColor: 'text-emerald-700',
+    activeIndicator: 'bg-emerald-600',
+    labelActive: 'text-emerald-900',
+  },
+  'Makanan & Minuman': {
+    color: 'text-orange-500',
+    activeColor: 'text-orange-600',
+    activeIndicator: 'bg-orange-500',
+    labelActive: 'text-orange-950',
+  },
+  'Batik & Kerajinan': {
+    color: 'text-amber-600',
+    activeColor: 'text-amber-700',
+    activeIndicator: 'bg-amber-600',
+    labelActive: 'text-amber-950',
+  },
+  'Hasil Laut & Olahan': {
+    color: 'text-sky-500',
+    activeColor: 'text-sky-600',
+    activeIndicator: 'bg-sky-500',
+    labelActive: 'text-sky-950',
+  },
+  'Pertanian & Perkebunan': {
+    color: 'text-green-600',
+    activeColor: 'text-green-700',
+    activeIndicator: 'bg-green-600',
+    labelActive: 'text-green-950',
+  },
+  'Fashion Muslim': {
+    color: 'text-indigo-600',
+    activeColor: 'text-indigo-700',
+    activeIndicator: 'bg-indigo-600',
+    labelActive: 'text-indigo-950',
+  },
+  'Herbal & Jamu': {
+    color: 'text-rose-600',
+    activeColor: 'text-rose-700',
+    activeIndicator: 'bg-rose-600',
+    labelActive: 'text-rose-950',
+  },
+  'Jasa & Layanan': {
+    color: 'text-blue-600',
+    activeColor: 'text-blue-700',
+    activeIndicator: 'bg-blue-600',
+    labelActive: 'text-blue-950',
+  },
+};
+
 export const CATEGORY_BADGES: Record<string, { label: string; color: string }> = {
   'Semua': { label: 'Semua', color: 'bg-slate-100 text-slate-700 border border-slate-300' },
   'Makanan & Minuman': { label: 'Populer', color: 'bg-emerald-100 text-emerald-800 border border-emerald-300' },
@@ -40,11 +96,6 @@ export const POPULAR_TAGS = [
   'Petis Cakalang',
   'Gula Siwalan',
   'Terasi Rebon',
-  'Kerupuk Ikan',
-  'Madu Hutan',
-  'Jamu Ramuan',
-  'Kopyah Santri',
-  'Kripik Singkong',
 ];
 
 export const TARGET_MVP_PRODUCTS = 50;

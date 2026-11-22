@@ -1,0 +1,112 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
+---
+
+<Layout
+  title="Tentang Mamasar | Direktori UMKM Nahdliyin Sumenep"
+  description="Mengenal Mamasar, platform direktori digital iklan baris untuk memberdayakan produk dan warung UMKM Nahdliyin di Kabupaten Sumenep."
+  canonicalUrl={`${Astro.url.origin}/tentang`}
+>
+  <div class="max-w-4xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-10">
+    <!-- Header -->
+    <header class="pb-6 border-b border-slate-200 space-y-3">
+      <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">
+        <AppIcon name="award" size="xs" class="text-emerald-700" />
+        <span>Inisiatif Gerakan Ekonomi Warga</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+        Tentang Mamasar Sumenep
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
+        Menghubungkan langsung pembeli dengan warung tetangga, nelayan, petani, dan perajin lokal di 27 MWC NU Kabupaten Sumenep tanpa komisi perantara.
+      </p>
+    </header>
+
+    <!-- Narasi Visi & Misi -->
+    <section class="space-y-6 text-sm text-slate-700 leading-relaxed">
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-4">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-900">
+          Dari Santri dan Warga, untuk Ketahanan Pangan &amp; Ekonomi Sumenep
+        </h2>
+        <p>
+          Nama <strong>Mamasar</strong> berakar dari dialek bahasa Madura yang bermakna <em>"berbelanja ke pasar"</em>. Platform ini dirancang sebagai katalog iklan baris digital terbuka yang memprioritaskan perjumpaan langsung antara produsen lokal nahdliyin dengan konsumen sekitar.
+        </p>
+        <p>
+          Banyak pelaku usaha kecil, warung kelontong pedesaan, serta produsen rumahan di Pulau Madura dan kepulauan Sumenep yang menghasilkan produk berkualitas tinggi—seperti batik tulis, rengginang lorjuk, gula siwalan murni, dan jamu ramuan tradisional—namun terkendala biaya komisi marketplace dan sulitnya bersaing dengan korporasi ritel modern. Mamasar hadir memangkas seluruh hambatan tersebut.
+        </p>
+      </div>
+
+      <!-- 4 Pilar Gerakan -->
+      <div class="space-y-4 pt-4">
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          Prinsip Kerja Mamasar
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm">
+              <AppIcon name="verified" size="sm" />
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">0% Komisi Transaksi (Gratis Selamanya)</h3>
+            <p class="text-xs text-slate-600">
+              Tidak ada potongan persentase penjualan. Pembeli bertransaksi langsung dengan penjual melalui WhatsApp atau tunai di tempat.
+            </p>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm">
+              <AppIcon name="map-pin" size="sm" />
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">Berbasis Zonasi 27 MWC NU</h3>
+            <p class="text-xs text-slate-600">
+              Menjangkau seluruh wilayah daratan dan kepulauan Sumenep, mulai dari Kota Sumenep, Pragaan, Saronggi, hingga kepulauan Kangean, Masalembu, dan Sapeken.
+            </p>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm">
+              <AppIcon name="users" size="sm" />
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">Verifikasi Lapangan Petugas &amp; Kader</h3>
+            <p class="text-xs text-slate-600">
+              Petugas MWC dan Ranting secara proaktif mendatangi warung dan produsen untuk memastikan toko tersebut nyata beroperasi di lingkungan warga.
+            </p>
+          </div>
+
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-2">
+            <div class="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-sm">
+              <AppIcon name="sprout" size="sm" />
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">Edukasi &amp; Gerakan Pekarangan</h3>
+            <p class="text-xs text-slate-600">
+              Mendukung ketahanan pangan rumah tangga melalui rubrik edukasi budidaya tanaman pekarangan dan pupuk organik mandiri.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ajakan Bergabung -->
+      <section class="bg-emerald-900 text-white rounded-2xl p-6 sm:p-8 space-y-4 text-center">
+        <h3 class="text-lg sm:text-xl font-bold">Wujudkan Kemandirian Ekonomi Umat</h3>
+        <p class="text-xs sm:text-sm text-emerald-100 max-w-xl mx-auto leading-relaxed">
+          Punya usaha keluarga, warung kelontong, atau kerajinan khas Sumenep? Daftarkan produk Anda sekarang tanpa biaya apa pun.
+        </p>
+        <div class="pt-2 flex flex-wrap justify-center gap-3">
+          <a
+            href="/pasang-iklan"
+            class="min-h-[44px] px-6 py-2.5 bg-white text-emerald-900 hover:bg-emerald-50 font-bold text-xs sm:text-sm rounded-xl transition shadow-xs active:scale-95"
+          >
+            + Pasang Iklan Produk Gratis
+          </a>
+          <a
+            href="/dasar-syariah"
+            class="min-h-[44px] px-6 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white border border-emerald-600 font-bold text-xs sm:text-sm rounded-xl transition shadow-2xs active:scale-95 inline-flex items-center gap-1.5"
+          >
+            <AppIcon name="book-open" size="xs" />
+            <span>Pelajari Dasar Syariah</span>
+          </a>
+        </div>
+      </section>
+    </section>
+  </div>
+</Layout>

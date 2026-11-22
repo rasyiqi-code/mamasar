@@ -1,7 +1,7 @@
 ---
 interface Props {
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
-  variant?: 'badge' | 'mark';
+  variant?: 'badge' | 'mark' | 'full';
   class?: string;
 }
 
@@ -15,29 +15,53 @@ const sizeClasses: Record<NonNullable<Props['size']>, string> = {
   xl: 'w-12 h-12 rounded-2xl',
 };
 
+const fullHeightClasses: Record<NonNullable<Props['size']>, string> = {
+  xs: 'h-5',
+  sm: 'h-6',
+  md: 'h-7',
+  lg: 'h-8 sm:h-9',
+  xl: 'h-10 sm:h-11',
+};
+
 const isBadge = variant === 'badge';
-const mainFill = isBadge ? '#ffffff' : '#047857';
-const accentLeftFill = isBadge ? '#fbbf24' : '#f59e0b';
+const isFull = variant === 'full';
+const mainFill = isBadge ? '#ffffff' : '#018150';
+const accentLeftFill = isBadge ? '#feb60a' : '#f59e0b';
 const accentRightFill = isBadge ? '#f59e0b' : '#d97706';
 ---
 
-<span
-  class={`inline-flex items-center justify-center shrink-0 select-none ${
-    isBadge ? 'bg-emerald-700' : 'bg-transparent'
-  } ${sizeClasses[size]} ${className}`}
-  aria-hidden="true"
->
-  <svg viewBox="0 0 32 32" fill="none" class="w-full h-full">
-    <path
-      d="M6.00 23.20V16.85A5.32 5.32 0 0 1 15.45 13.49L13.95 16.38A2.67 2.67 0 0 0 8.65 16.85V23.20Z"
-      fill={mainFill}
+{isFull ? (
+  <picture class={`inline-flex items-center shrink-0 select-none ${fullHeightClasses[size]} ${className}`}>
+    <source srcset="/logo-mamasar.webp" type="image/webp" />
+    <img
+      src="/logo-mamasar.png"
+      alt="Mamasar"
+      class="h-full w-auto object-contain max-h-full"
+      width="168"
+      height="35"
+      loading="eager"
+      decoding="async"
     />
-    <path
-      d="M26.00 23.20V16.85A5.32 5.32 0 0 0 15.96 14.40L11.38 23.20H14.37L18.31 15.62A2.67 2.67 0 0 1 23.35 16.85V23.20Z"
-      fill={mainFill}
-    />
-    <path d="M15.33 23.20H18.01V18.04Z" fill={mainFill} />
-    <path d="M16.00 8.65V12.60Q14.40 11.15 12.15 10.65Z" fill={accentLeftFill} />
-    <path d="M16.00 8.65L19.85 10.65Q17.60 11.15 16.00 12.60Z" fill={accentRightFill} />
-  </svg>
-</span>
+  </picture>
+) : (
+  <span
+    class={`inline-flex items-center justify-center shrink-0 select-none ${
+      isBadge ? 'bg-emerald-700' : 'bg-transparent'
+    } ${sizeClasses[size]} ${className}`}
+    aria-hidden="true"
+  >
+    <svg viewBox="0 0 32 32" fill="none" class="w-full h-full">
+      <path
+        d="M6.00 23.20V16.85A5.32 5.32 0 0 1 15.45 13.49L13.95 16.38A2.67 2.67 0 0 0 8.65 16.85V23.20Z"
+        fill={mainFill}
+      />
+      <path
+        d="M26.00 23.20V16.85A5.32 5.32 0 0 0 15.96 14.40L11.38 23.20H14.37L18.31 15.62A2.67 2.67 0 0 1 23.35 16.85V23.20Z"
+        fill={mainFill}
+      />
+      <path d="M15.33 23.20H18.01V18.04Z" fill={mainFill} />
+      <path d="M16.00 8.65V12.60Q14.40 11.15 12.15 10.65Z" fill={accentLeftFill} />
+      <path d="M16.00 8.65L19.85 10.65Q17.60 11.15 16.00 12.60Z" fill={accentRightFill} />
+    </svg>
+  </span>
+)}

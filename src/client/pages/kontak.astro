@@ -1,0 +1,111 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
+import { SITE_CONFIG } from '../../lib/constants';
+---
+
+<Layout
+  title="Hubungi Kami & Sekretariat | Mamasar Sumenep"
+  description="Kontak resmi layanan pengurus Mamasar, sekretariat PCNU Kabupaten Sumenep, dan saluran bantuan cepat melalui WhatsApp."
+  canonicalUrl={`${Astro.url.origin}/kontak`}
+>
+  <div class="max-w-4xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-10">
+    <!-- Header -->
+    <header class="pb-6 border-b border-slate-200 space-y-3">
+      <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">
+        <AppIcon name="phone" size="xs" class="text-emerald-700" />
+        <span>Saluran Komunikasi Resmi</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+        Hubungi Kami
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
+        Punya pertanyaan seputar direktori, ingin mengonfirmasi data toko UMKM, atau membutuhkan bantuan teknis? Tim pengelola Mamasar siap melayani Anda.
+      </p>
+    </header>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Kolom Kiri: Info Kontak & Alamat -->
+      <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-2xs space-y-6">
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          Sekretariat Layanan
+        </h2>
+
+        <div class="space-y-4 text-xs sm:text-sm text-slate-600">
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+              <AppIcon name="map-pin" size="xs" />
+            </div>
+            <div>
+              <p class="font-bold text-slate-900">Alamat Fisik</p>
+              <p class="leading-relaxed">{SITE_CONFIG.address}</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+              <AppIcon name="whatsapp" size="xs" />
+            </div>
+            <div>
+              <p class="font-bold text-slate-900">WhatsApp Resmi</p>
+              <p class="leading-relaxed">{SITE_CONFIG.whatsappHelp.replace(/^62/, '+62 ')}</p>
+            </div>
+          </div>
+
+          <div class="flex items-start gap-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 mt-0.5">
+              <AppIcon name="clock" size="xs" />
+            </div>
+            <div>
+              <p class="font-bold text-slate-900">Waktu Pelayanan</p>
+              <p class="leading-relaxed">Senin – Sabtu: 08.00 – 16.00 WIB</p>
+              <p class="text-[11px] text-slate-400">Ahad &amp; Hari Libur Nasional: Tanggap darurat via chat</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="pt-2">
+          <a
+            href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent("Assalamu'alaikum Pengurus Mamasar Sumenep, saya ingin bertanya mengenai...")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="w-full min-h-[44px] px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs active:scale-95 flex items-center justify-center gap-2"
+          >
+            <AppIcon name="whatsapp" size="xs" />
+            <span>Chat WhatsApp Sekarang</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Kolom Kanan: Panduan Cepat Topik Layanan -->
+      <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4 text-xs sm:text-sm">
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          Topik Layanan Bantuan
+        </h2>
+
+        <div class="space-y-3">
+          <div class="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-1">
+            <p class="font-bold text-slate-900">1. Pelaporan &amp; Koreksi Toko</p>
+            <p class="text-xs text-slate-600">
+              Menemukan toko dengan nomor WhatsApp yang tidak aktif atau data keliru? Hubungi kami untuk pembaruan cepat.
+            </p>
+          </div>
+
+          <div class="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-1">
+            <p class="font-bold text-slate-900">2. Pendampingan Kader MWC &amp; Ranting</p>
+            <p class="text-xs text-slate-600">
+              Pengurus MWC NU yang membutuhkan akun petugas entri wilayah dapat berkoordinasi langsung dengan tim admin.
+            </p>
+          </div>
+
+          <div class="p-3.5 bg-white rounded-xl border border-slate-200 shadow-2xs space-y-1">
+            <p class="font-bold text-slate-900">3. Kemitraan &amp; Kerjasama Santri</p>
+            <p class="text-xs text-slate-600">
+              Terbuka untuk program pemberdayaan produk santri pesantren, pupuk organik pekarangan, dan pameran UMKM.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

@@ -619,6 +619,43 @@ export async function getMostFavoritedProducts(limit = 4): Promise<Product[]> {
   });
 }
 
+export async function getPopularTags(limit = 8): Promise<string[]> {
+  return getOrSetCache(`products:popular_tags:${limit}`, 300_000, async () => {
+    try {
+      const rows = await getDb()
+        .select({ name: schema.products.name })
+        .from(schema.products)
+        .where(sql`${schema.products.is_sold_out} = 0`)
+        .orderBy(
+          desc(schema.products.views),
+          desc(sql`COALESCE(${schema.products.bumped_at}, ${schema.products.created_at})`),
+          desc(schema.products.id)
+        )
+        .limit(limit * 3);
+
+      if (!rows || rows.length === 0) {
+        return ['Rengginang Lorjuk', 'Batik Tulis Madura', 'Petis Cakalang', 'Gula Siwalan', 'Terasi Rebon'];
+      }
+
+      const uniqueTags: string[] = [];
+      for (const r of rows) {
+        const cleanName = r.name.trim();
+        if (cleanName && !uniqueTags.includes(cleanName)) {
+          uniqueTags.push(cleanName);
+        }
+        if (uniqueTags.length >= limit) break;
+      }
+
+      return uniqueTags.length > 0
+        ? uniqueTags
+        : ['Rengginang Lorjuk', 'Batik Tulis Madura', 'Petis Cakalang', 'Gula Siwalan', 'Terasi Rebon'];
+    } catch (err) {
+      console.error('[getPopularTags] Error fetching dynamic tags:', err);
+      return ['Rengginang Lorjuk', 'Batik Tulis Madura', 'Petis Cakalang', 'Gula Siwalan', 'Terasi Rebon'];
+    }
+  });
+}
+
 export async function isProductOwnedByUMKM(productId: number, umkmId: number): Promise<boolean> {
   const [row] = await getDb()
     .select({ id: schema.products.id })

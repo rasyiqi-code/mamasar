@@ -1,0 +1,122 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
+import { SITE_CONFIG } from '../../lib/constants';
+---
+
+<Layout
+  title="Pusat Bantuan & Tanya Jawab (FAQ) | Mamasar Sumenep"
+  description="Pertanyaan yang sering diajukan mengenai cara berbelanja di warung tetangga, pasang iklan produk UMKM, dan panduan transaksi aman di Mamasar."
+  canonicalUrl={`${Astro.url.origin}/bantuan`}
+>
+  <div class="max-w-4xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-10">
+    <!-- Header -->
+    <header class="pb-6 border-b border-slate-200 space-y-3">
+      <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">
+        <AppIcon name="info" size="xs" class="text-emerald-700" />
+        <span>Layanan Bantuan &amp; Panduan Pengguna</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+        Pusat Bantuan Mamasar
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
+        Jawaban lengkap untuk pertanyaan umum seputar pencarian barang, transaksi langsung via WhatsApp, hingga cara memasang iklan produk usaha Anda.
+      </p>
+    </header>
+
+    <!-- Kategori FAQ -->
+    <div class="space-y-8 text-sm text-slate-700">
+      <!-- Grup 1: Seputar Pembelian -->
+      <section class="space-y-4">
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          Panduan Belanja di Warung Tetangga
+        </h2>
+
+        <div class="space-y-3">
+          <details class="group bg-white border border-slate-200 rounded-xl p-4 transition open:shadow-xs">
+            <summary class="font-bold text-slate-900 cursor-pointer list-none flex items-center justify-between gap-2">
+              <span>Bagaimana cara memesan produk di Mamasar?</span>
+              <AppIcon name="chevron-down" size="xs" class="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <p class="pt-3 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 mt-3">
+              Cukup cari produk yang Anda inginkan pada katalog, klik kartu produk untuk melihat detail, lalu tekan tombol <strong>"Beli via WhatsApp"</strong>. Sistem akan langsung membuka aplikasi WhatsApp dan menyusun pesan otomatis yang terhubung ke nomor penjual resmi.
+            </p>
+          </details>
+
+          <details class="group bg-white border border-slate-200 rounded-xl p-4 transition open:shadow-xs">
+            <summary class="font-bold text-slate-900 cursor-pointer list-none flex items-center justify-between gap-2">
+              <span>Apakah ada biaya komisi atau biaya admin untuk pembeli?</span>
+              <AppIcon name="chevron-down" size="xs" class="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <p class="pt-3 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 mt-3">
+              <strong>Tidak ada sama sekali (0%).</strong> Harga yang tertera adalah harga murni dari pemilik warung. Anda membayar langsung kepada penjual secara tunai saat bertemu (COD) atau melalui transfer bank/QRIS milik pedagang.
+            </p>
+          </details>
+
+          <details class="group bg-white border border-slate-200 rounded-xl p-4 transition open:shadow-xs">
+            <summary class="font-bold text-slate-900 cursor-pointer list-none flex items-center justify-between gap-2">
+              <span>Bagaimana sistem pengiriman barangnya?</span>
+              <AppIcon name="chevron-down" size="xs" class="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <p class="pt-3 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 mt-3">
+              Pengiriman disepakati bersama dengan penjual. Untuk pesanan dalam satu kecamatan/desa, biasanya bisa langsung diambil ke toko penjual atau diantar langsung. Untuk pesanan jarak jauh atau luar pulau, penjual dapat mengirimkan via ekspedisi lokal atau titipan angkutan penumpang.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <!-- Grup 2: Seputar Penjual & Pemasangan Iklan -->
+      <section class="space-y-4">
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          Panduan Pemilik Usaha &amp; Penjual
+        </h2>
+
+        <div class="space-y-3">
+          <details class="group bg-white border border-slate-200 rounded-xl p-4 transition open:shadow-xs">
+            <summary class="font-bold text-slate-900 cursor-pointer list-none flex items-center justify-between gap-2">
+              <span>Bagaimana cara mendaftarkan produk saya secara gratis?</span>
+              <AppIcon name="chevron-down" size="xs" class="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <p class="pt-3 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 mt-3">
+              Klik menu <strong>"+ Pasang Iklan"</strong> di bagian atas situs atau kunjungi tautan <a href="/pasang-iklan" class="text-emerald-700 underline font-semibold">pasang-iklan</a>. Isi formulir nama toko, nomor WhatsApp, foto produk, harga, dan pilih zonasi MWC NU Anda. Iklan Anda akan langsung tayang.
+            </p>
+          </details>
+
+          <details class="group bg-white border border-slate-200 rounded-xl p-4 transition open:shadow-xs">
+            <summary class="font-bold text-slate-900 cursor-pointer list-none flex items-center justify-between gap-2">
+              <span>Apakah saya bisa memperbarui foto atau harga jika sewaktu-waktu berubah?</span>
+              <AppIcon name="chevron-down" size="xs" class="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <p class="pt-3 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 mt-3">
+              Ya, Anda dapat masuk ke <strong>Dashboard Toko</strong> kapan saja untuk menyunting data produk, mengganti harga, menandai stok habis, atau menyundul iklan agar naik kembali ke urutan teratas.
+            </p>
+          </details>
+        </div>
+      </section>
+
+      <!-- Kotak Hubungi Admin Langsung -->
+      <section class="bg-slate-50 border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-4 text-center">
+        <div class="w-12 h-12 rounded-full bg-emerald-100 text-emerald-800 mx-auto flex items-center justify-center">
+          <AppIcon name="phone" size="md" />
+        </div>
+        <div class="space-y-1">
+          <h3 class="text-base sm:text-lg font-bold text-slate-900">Masih Ada Pertanyaan yang Belum Terjawab?</h3>
+          <p class="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+            Tim layanan pengurus Mamasar siap membantu Anda melalui chat WhatsApp pada jam kerja.
+          </p>
+        </div>
+        <div class="pt-2">
+          <a
+            href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=${encodeURIComponent("Assalamu'alaikum Admin Mamasar, saya butuh panduan / bantuan mengenai...")}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="min-h-[44px] px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs active:scale-95 inline-flex items-center gap-2"
+          >
+            <AppIcon name="whatsapp" size="xs" />
+            <span>Chat WhatsApp Layanan Admin</span>
+          </a>
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>

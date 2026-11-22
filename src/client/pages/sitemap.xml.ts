@@ -46,9 +46,45 @@ export const GET: APIRoute = async ({ request }) => {
   </url>
 
   <url>
-    <loc>${siteUrl}/privasi</loc>
+    <loc>${siteUrl}/dasar-syariah</loc>
     <changefreq>monthly</changefreq>
-    <priority>0.4</priority>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>${siteUrl}/tentang</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>${siteUrl}/syarat-ketentuan</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>${siteUrl}/kebijakan-privasi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+  <url>
+    <loc>${siteUrl}/panduan-petugas</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>${siteUrl}/bantuan</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <url>
+    <loc>${siteUrl}/kontak</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
 
   <!-- Jadwal Kegiatan & Konsumsi Mamasar -->

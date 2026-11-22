@@ -1,0 +1,112 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
+---
+
+<Layout
+  title="Panduan Petugas & Kader Pendata UMKM | Mamasar Sumenep"
+  description="Petunjuk operasional lapangan bagi Kader Ranting dan Petugas MWC NU untuk pendataan jemput bola, verifikasi toko, dan kurasi produk UMKM warga."
+  canonicalUrl={`${Astro.url.origin}/panduan-petugas`}
+>
+  <div class="max-w-4xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-10">
+    <!-- Header -->
+    <header class="pb-6 border-b border-slate-200 space-y-3">
+      <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">
+        <AppIcon name="clipboard-list" size="xs" class="text-emerald-700" />
+        <span>SOP Lapangan Kader &amp; Pengurus MWC NU</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+        Panduan Petugas Lapangan Mamasar
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
+        Standar operasional pendataan jemput bola, fotografi produk etalase, dan verifikasi profil toko warga nahdliyin di 27 MWC NU Kabupaten Sumenep.
+      </p>
+    </header>
+
+    <!-- 4 Langkah Utama Pendataan -->
+    <section class="space-y-6 text-sm text-slate-700 leading-relaxed">
+      <div class="space-y-4">
+        <h2 class="text-base sm:text-lg font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          4 Tahapan Pendataan Jemput Bola
+        </h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Langkah 1 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-2">
+            <span class="inline-block bg-emerald-100 text-emerald-800 font-extrabold text-xs px-2.5 py-1 rounded-md">
+              Langkah 1
+            </span>
+            <h3 class="font-bold text-slate-900 text-base">Sowan &amp; Silaturahmi yang Santun</h3>
+            <p class="text-xs text-slate-600">
+              Datangi warung atau tempat produksi warga dengan mengedepankan etika santri. Jelaskan bahwa Mamasar adalah direktori resmi nirlaba PCNU Sumenep, 100% gratis tanpa biaya pendaftaran dan tanpa potongan penjualan.
+            </p>
+          </div>
+
+          <!-- Langkah 2 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-2">
+            <span class="inline-block bg-emerald-100 text-emerald-800 font-extrabold text-xs px-2.5 py-1 rounded-md">
+              Langkah 2
+            </span>
+            <h3 class="font-bold text-slate-900 text-base">Pencatatan Data Toko &amp; Kontak</h3>
+            <p class="text-xs text-slate-600">
+              Catat nama toko, nama pemilik, nomor WhatsApp aktif (pastikan terhubung internet), alamat lengkap dusun/desa, serta zonasi MWC NU yang sesuai. Jika ada izin NIB/PIRT/Halal, cantumkan nomornya.
+            </p>
+          </div>
+
+          <!-- Langkah 3 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-2">
+            <span class="inline-block bg-emerald-100 text-emerald-800 font-extrabold text-xs px-2.5 py-1 rounded-md">
+              Langkah 3
+            </span>
+            <h3 class="font-bold text-slate-900 text-base">Pemotretan Produk Berkualitas</h3>
+            <p class="text-xs text-slate-600">
+              Ambil foto produk dengan pencahayaan alami (siang hari), latar belakang bersih dan rapi, sudut tegak lurus (eye-level), serta fokus tajam agar menarik minat calon pembeli.
+            </p>
+          </div>
+
+          <!-- Langkah 4 -->
+          <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-2xs space-y-2">
+            <span class="inline-block bg-emerald-100 text-emerald-800 font-extrabold text-xs px-2.5 py-1 rounded-md">
+              Langkah 4
+            </span>
+            <h3 class="font-bold text-slate-900 text-base">Input Cepat di Portal Admin MWC</h3>
+            <p class="text-xs text-slate-600">
+              Buka menu <strong>Entri Cepat</strong> di portal petugas. Masukkan formulir toko dan produk secara instan. Iklan langsung tayang dan dapat diakses publik Sumenep dalam hitungan detik.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tips Fotografi Produk Handphone -->
+      <section class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-3">
+        <h3 class="font-bold text-slate-900 text-base flex items-center gap-2">
+          <AppIcon name="camera" size="sm" class="text-emerald-700" />
+          <span>Panduan Pengambilan Foto Produk Memakai HP</span>
+        </h3>
+        <ul class="list-disc pl-5 space-y-1.5 text-xs text-slate-600">
+          <li><strong>Pencahayaan:</strong> Gunakan cahaya matahari pagi atau dekat jendela/pintu terbuka. Hindari lampu ruangan kuning redup atau flash kamera langsung.</li>
+          <li><strong>Latar Belakang:</strong> Letakkan produk di atas meja kayu bersih, kain polos, atau tampah bambu tradisional untuk produk kuliner/kerajinan.</li>
+          <li><strong>Orientasi:</strong> Ambil foto dalam format lanskap atau persegi (1:1) dengan jarak yang tidak terlalu jauh agar rincian tekstur makanan/kain terlihat jelas.</li>
+        </ul>
+      </section>
+
+      <!-- Tombol Aksi Petugas -->
+      <div class="flex flex-wrap items-center gap-3 pt-4 border-t border-slate-200">
+        <a
+          href="/admin#entry"
+          class="min-h-[44px] px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs active:scale-95 inline-flex items-center gap-2"
+        >
+          <AppIcon name="clipboard-list" size="xs" />
+          <span>Buka Portal Entri Cepat Petugas</span>
+        </a>
+        <a
+          href="/daftar-kader"
+          class="min-h-[44px] px-6 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition shadow-2xs active:scale-95 inline-flex items-center gap-2"
+        >
+          <AppIcon name="users" size="xs" />
+          <span>Formulir Pengajuan Kader Baru</span>
+        </a>
+      </div>
+    </section>
+  </div>
+</Layout>

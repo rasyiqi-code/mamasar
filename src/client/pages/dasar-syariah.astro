@@ -1,0 +1,207 @@
+---
+import Layout from '../layouts/Layout.astro';
+import AppIcon from '../components/common/AppIcon.astro';
+---
+
+<Layout
+  title="Dasar Syariah Belanja di Warung Tetangga & UMKM Warga | Mamasar Sumenep"
+  description="Kajian Fiqih dan Fatwa Bahtsul Masail NU Online mengenai keutamaan berbelanja di warung tetangga dan UMKM warga nahdliyin demi menjaga ekonomi umat."
+  canonicalUrl={`${Astro.url.origin}/dasar-syariah`}
+>
+  <div class="max-w-4xl mx-auto py-8 sm:py-12 px-4 sm:px-6 space-y-8 sm:space-y-10">
+    <!-- Header Banner -->
+    <header class="pb-6 border-b border-slate-200 space-y-3">
+      <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-full">
+        <AppIcon name="book-open" size="xs" class="text-emerald-700" />
+        <span>Kajian Bahtsul Masail Nahdlatul Ulama</span>
+      </div>
+      <h1 class="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+        Dasar Syariah: Mengapa Kita Harus Mengutamakan Belanja di Warung Tetangga?
+      </h1>
+      <p class="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-2xl">
+        Rujukan Fikih Muamalah dan Keputusan Musyawarah Nasional (Munas) Alim Ulama NU tentang etika belanja, perlindungan ekonomi dhuafa, dan penguatan warung rakyat.
+      </p>
+      <div class="flex flex-wrap items-center gap-3 pt-2 text-xs text-slate-500">
+        <span class="inline-flex items-center gap-1 font-medium text-slate-700">
+          <AppIcon name="verified" size="xs" class="text-emerald-600" />
+          Sumber: Munas Alim Ulama NU &amp; Redaksi Bahtsul Masail NU Online
+        </span>
+        <span aria-hidden="true">•</span>
+        <a
+          href="https://islam.nu.or.id/bahtsul-masail/hukum-belanja-di-minimarket-hingga-warung-kecil-gulung-tikar-DjgFS"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="text-emerald-700 hover:text-emerald-800 font-semibold underline inline-flex items-center gap-1"
+        >
+          <span>Baca Dokumen Asli di NU Online</span>
+          <AppIcon name="external-link" size="xs" />
+        </a>
+      </div>
+    </header>
+
+    <!-- Ringkasan Fatwa & Keputusan Ulama -->
+    <section class="bg-emerald-800 text-white rounded-2xl p-5 sm:p-7 shadow-sm space-y-3">
+      <div class="flex items-center gap-2 text-emerald-200 text-xs font-bold uppercase tracking-wider">
+        <AppIcon name="award" size="sm" class="text-amber-400" />
+        <span>Intisari Keputusan Bahtsul Masail Waqi'iyyah</span>
+      </div>
+      <blockquote class="text-base sm:text-lg font-medium leading-relaxed italic text-emerald-50">
+        "Secara hukum asal muamalah, berbelanja di pasar swalayan atau minimarket modern hukumnya <strong>boleh (mubah)</strong>. Namun, para alim ulama <strong>sangat menganjurkan (aula / sunnah mu'akkadah)</strong> masyarakat untuk mengutamakan berbelanja di warung milik tetangga, kerabat, dan saudara sendiri karena mengandung nilai silaturahmi, tolong-menolong (ta'awun), serta menjaga kelangsungan hidup kaum dhuafa agar tidak gulung tikar."
+      </blockquote>
+      <p class="text-xs text-emerald-200">
+        — Keputusan Komisi Bahtsul Masail Waqi’iyyah pada Musyawarah Nasional (Munas) Alim Ulama NU di Mataram (23-25 November 2017).
+      </p>
+    </section>
+
+    <!-- Pokok Bahasan 1: Latar Belakang Masalah -->
+    <article class="prose prose-slate max-w-none space-y-6 text-sm text-slate-700 leading-relaxed">
+      <section class="space-y-3">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          1. Problematika Minimarket Berjejaring &amp; Nasib Warung Kampung
+        </h2>
+        <p>
+          Kehadiran jaringan minimarket dan toko waralaba bermodal raksasa yang merambah hingga ke pelosok desa di Kabupaten Sumenep telah mengubah lanskap ekonomi warga. Pasar swalayan modern dengan fasilitas pendingin ruangan dan promosi gencar sering kali memikat konsumen, namun di saat yang sama secara drastis menurunkan omzet warung-warung kecil milik tetangga setempat hingga banyak di antaranya gulung tikar.
+        </p>
+        <p>
+          Melihat fenomena tersebut, para kiai dan alim ulama Nahdlatul Ulama memandang persoalan ini tidak semata-mata sebagai transaksi jual-beli biasa, melainkan menyangkut dimensi moralitas, etika sosial Islam (<em>fiqh al-ijtima'i</em>), dan perlindungan terhadap keberlangsungan hidup ekonomi warga (<em>hifzhul ma'asy</em>).
+        </p>
+      </section>
+
+      <!-- Pokok Bahasan 2: Dalil Kitab Mu'tamad An-Nawawi -->
+      <section class="space-y-4 bg-slate-50 border border-slate-200 rounded-2xl p-5 sm:p-6">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <AppIcon name="book" size="sm" class="text-emerald-700" />
+          <span>2. Tuntutan Fikih Memilih Pasar Alternatif (Kitab Al-Majmu')</span>
+        </h2>
+        <p>
+          Dalam merespons problem ini, forum Bahtsul Masail Munas NU mengutip pandangan Hujjatul Islam Imam Al-Ghazali yang diabadikan oleh Imam An-Nawawi dalam kitab induk mazhab Syafi'i, <em>Al-Majmu' Syarah Al-Muhadzdzab</em> (Juz IX, halaman 321):
+        </p>
+
+        <!-- Kutipan Teks Arab -->
+        <div class="bg-white border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3 text-right" dir="rtl">
+          <p class="font-serif text-lg sm:text-xl text-slate-900 leading-loose">
+            (فَرْعٌ) قَالَ الْغَزَالِيُّ الْأَسْوَاقُ الَّتِي بَنَاهَا السَّلَاطِينُ بِالْأَمْوَالِ الْحَرَامِ تَحْرُمُ التِّجَارَةُ فِيهَا وَسُكْنَاهَا فَإِنْ سَكَنَهَا بِأُجْرَةٍ وَكَسَبَ شَيْئًا بِطَرِيقٍ شَرْعِيٍّ كَانَ عاصِيًا بِسُكْنَاهُ وَلَايَحْرُمُ كَسْبُهُ وَلِلنَّاسِ أَنْ يَشْتَرُوا مِنْهُ وَلَكِنْ إنْ وَجَدُوا سُوقًا أُخْرَى فَالشِّرَاءُ مِنْهَا أَوْلَى لِأَنَّ الشِّرَاءَ مِنْ الْأُولَى إعَانَةٌ لِسُكَّانِهَا وَتَرْغِيبٌ فِي سُكْنَاهَا وَكَثْرَةُ أُجْرَتِهَا وَاَللَّهُ سُبْحَانَهُ وَتَعَالَى أَعْلَمُ
+          </p>
+        </div>
+
+        <div class="space-y-2 text-slate-700">
+          <p class="font-semibold text-slate-900 text-xs uppercase tracking-wide">Terjemahan:</p>
+          <blockquote class="border-l-2 border-emerald-500 pl-3 italic text-slate-600">
+            "(Ini satu cabang masalah) Imam Al-Ghazali berkata: ‘Aktivitas perdagangan dan penempatan lapak di bangunan pasar yang difasilitasi penguasa... orang boleh secara syar‘i berbelanja kepadanya. <strong>Namun jika masyarakat menemukan pasar alternatif lain, maka berbelanja di pasar alternatif itu jauh lebih utama (aula)</strong>, sebab berbelanja di pasar pertama adalah bentuk bantuan dan memperkuat dominasi modal mereka.’"
+          </blockquote>
+          <p class="text-xs text-slate-500">
+            (Rujukan: Imam An-Nawawi, <em>Al-Majmu‘ Syarhul Muhadzdzab</em>, Kairo, Maktabah At-Taufiqiyyah, Juz IX, hal. 321).
+          </p>
+        </div>
+
+        <p>
+          Berdasarkan kaidah ini, selama kebutuhan sehari-hari warga dapat dipenuhi oleh warung-warung tetangga atau pedagang lokal di sekitarnya, maka mengalihkan belanja ke warung rakyat jauh lebih utama dan diridhai Allah SWT.
+        </p>
+      </section>
+
+      <!-- Pokok Bahasan 3: Hadis Silaturahmi & Kalam Sayyidina Ali RA -->
+      <section class="space-y-4">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          3. Berbelanja di Warung Tetangga Bernilai Sedekah &amp; Silaturahmi
+        </h2>
+        <p>
+          Kadar pahala berbelanja di toko atau warung saudara/tetangga jauh melampaui sekadar transaksi untung-rugi. Dalam kitab <em>Ihya ‘Ulumiddin</em> (Juz I, hal. 227), Imam Al-Ghazali meriwayatkan kalam sahabat terkemuka Sayyidina Ali bin Abi Thalib <em>karramallahu wajhah</em>:
+        </p>
+
+        <div class="bg-emerald-50/60 border border-emerald-200/80 rounded-xl p-4 sm:p-5 space-y-3 text-right" dir="rtl">
+          <p class="font-serif text-lg text-slate-900 leading-loose">
+            الصِّفَةُ السَّادِسَةُ أَنْ يَكُونَ مِنَ الْأَقَارِبِ وَذَوِي الْأَرْحَامِ فَتَكُونَ صَدَقَةً وَصِلَةَ رَحِمٍ وَفِي صِلَةِ الرَّحِمِ مِنَ الثَّوَابِ مَا لَا يُحْصَى. قَالَ عَلِيٌّ رَضِيَ اللَّهُ عَنْهُ: لَأَنْ أَصِلَ أَخًا مِنْ إِخْوَانِي بِدِرْهَمٍ أَحَبُّ إِلَيَّ مِنْ أَنْ أَتَصَدَّقَ بِعِشْرِينَ دِرْهَمًا، وَلَأَنْ أَصِلَهُ بِعِشْرِينَ دِرْهَمًا أَحَبُّ إِلَيَّ مِنْ أَنْ أَتَصَدَّقَ بِمِائَةِ دِرْهَمٍ، وَلَأَنْ أَصِلَهُ بِمِائَةِ دِرْهَمٍ أَحَبُّ إِلَيَّ مِنْ أَنْ أُعْتِقَ رَقَبَةً
+          </p>
+        </div>
+
+        <div class="space-y-2">
+          <p class="font-semibold text-slate-900 text-xs uppercase tracking-wide">Terjemahan:</p>
+          <blockquote class="border-l-2 border-emerald-600 pl-3 italic text-slate-600">
+            "Sifat keenam adalah adanya pertalian kerabat dan tetangga sehingga bernilai sedekah dan silaturahmi sekaligus. Silaturahmi sendiri memiliki pahala yang tak terhingga. Sayyidina Ali RA berkata: <strong>‘Menyambung silaturahmi dengan memberi satu dirham kepada salah seorang saudaraku lebih aku sukai daripada bersedekah dua puluh dirham (kepada orang lain)</strong>. Dan menyambung tali persaudaraan dengan dua puluh dirham lebih aku sukai daripada sedekah seratus dirham. Serta menyambung persaudaraan dengan seratus dirham lebih aku sukai daripada sedekah dengan memerdekakan budak.’"
+          </blockquote>
+          <p class="text-xs text-slate-500">
+            (Rujukan: Imam Al-Ghazali, <em>Ihya ‘Ulumiddin</em>, Kairo: Maktabah Musthafa Al-Babi Al-Halabi, Juz I, hal. 227).
+          </p>
+        </div>
+      </section>
+
+      <!-- Pokok Bahasan 4: Relevansi Gerakan Mamasar Sumenep -->
+      <section class="space-y-4 pt-2">
+        <h2 class="text-lg sm:text-xl font-bold text-slate-900 border-l-4 border-emerald-600 pl-3">
+          4. Mamasar: Penerjemahan Fikih ke Gerakan Nyata di Sumenep
+        </h2>
+        <p>
+          Platform digital <strong>Mamasar</strong> (bahasa Madura: <em>berbelanja / ke pasar</em>) hadir sebagai sarana konkret warga Nahdlatul Ulama di Kabupaten Sumenep untuk mengamalkan fatwa para masyayikh tersebut.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+              01
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">0% Komisi Transaksi (Bebas Potongan)</h3>
+            <p class="text-xs text-slate-600">
+              Mamasar tidak mengambil komisi sepeser pun dari penjualan produk. Uang pembeli 100% diterima langsung oleh penjual via WhatsApp atau pembayaran tunai lokal.
+            </p>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+              02
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">Verifikasi Langsung Kader Lapangan</h3>
+            <p class="text-xs text-slate-600">
+              Kader dan pengurus MWC NU di 27 kecamatan turun langsung memverifikasi toko, memotret etalase, dan mendampingi digitalisasi usaha warga nahdliyin.
+            </p>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+              03
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">Memprioritaskan Tetangga Terdekat</h3>
+            <p class="text-xs text-slate-600">
+              Fitur penyaringan per MWC memudahkan Anda menemukan bahan pokok, olahan ikan, dan kerajinan tangan dari tetangga satu desa sebelum mencari ke tempat lain.
+            </p>
+          </div>
+
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs space-y-2">
+            <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold text-xs">
+              04
+            </div>
+            <h3 class="font-bold text-slate-900 text-sm">Gerakan Tolong-Menolong (Ta'awun)</h3>
+            <p class="text-xs text-slate-600">
+              Setiap rupiah yang dibelanjakan di warung tetangga mengalir langsung untuk menafkahi keluarga santri, biaya sekolah anak-anak kampung, dan memutar ekonomi lokal.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Kesimpulan & Ajakan Beramal -->
+      <section class="bg-slate-100 border border-slate-200 rounded-2xl p-6 text-center space-y-4 mt-8">
+        <h3 class="text-base sm:text-lg font-extrabold text-slate-900">
+          Mari Bersama Menghidupkan Ekonomi Warung Tetangga Kita
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
+          Belanja di warung tetangga adalah ibadah sosial nyata. Dukung produk lokal Sumenep: mulai dari rengginang lorjuk, batik tulis, gula siwalan, hingga hasil kebun pekarangan santri.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-3 pt-2">
+          <a
+            href="/"
+            class="min-h-[44px] px-6 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs sm:text-sm rounded-xl transition shadow-xs active:scale-95 inline-flex items-center gap-2"
+          >
+            <AppIcon name="shopping-bag" size="xs" />
+            <span>Jelajahi Produk Warung Tetangga</span>
+          </a>
+          <a
+            href="/pasang-iklan"
+            class="min-h-[44px] px-6 py-2.5 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs sm:text-sm rounded-xl transition shadow-2xs active:scale-95 inline-flex items-center gap-2"
+          >
+            <AppIcon name="store" size="xs" />
+            <span>Daftarkan Toko Warga Gratis</span>
+          </a>
+        </div>
+      </section>
+    </article>
+  </div>
+</Layout>

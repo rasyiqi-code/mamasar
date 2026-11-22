@@ -110,14 +110,8 @@ const navLinkClass = (active: boolean) =>
             </svg>
           </button>
 
-          <a href="/" class="flex items-center gap-2 sm:gap-2.5 group min-h-[44px]">
-            <MamasarLogo size="lg" class="shadow-sm group-hover:bg-emerald-800 transition" />
-            <div>
-              <div class="font-black text-sm sm:text-base tracking-tight leading-none text-slate-900">
-                <span>Mamasar</span>
-              </div>
-              <p class="hidden sm:block text-xs text-slate-600 mt-0.5">Direktori UMKM Nahdliyin</p>
-            </div>
+          <a href="/" class="flex items-center group min-h-[44px] py-1" aria-label="Mamasar - Direktori UMKM Nahdliyin">
+            <MamasarLogo variant="full" size="lg" class="transition-transform duration-200 group-hover:scale-[1.02]" />
           </a>
         </div>
 
@@ -202,14 +196,8 @@ const navLinkClass = (active: boolean) =>
     >
       <!-- Brand Drawer Header -->
       <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <a href="/" class="flex items-center gap-2.5">
-          <MamasarLogo size="md" class="shadow-sm" />
-          <div>
-            <div class="font-black text-sm text-slate-900 tracking-tight leading-none">
-              <span>Mamasar</span>
-            </div>
-            <p class="text-[11px] text-slate-500 mt-0.5">Pasar UMKM Nahdliyin</p>
-          </div>
+        <a href="/" class="flex items-center gap-2.5" aria-label="Mamasar - Beranda">
+          <MamasarLogo variant="full" size="md" />
         </a>
         <button id="close-mobile-drawer" aria-label="Tutup Menu" class="min-w-[44px] min-h-[44px] text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg cursor-pointer flex items-center justify-center">
           <AppIcon name="close" size="sm" />
@@ -291,6 +279,13 @@ const navLinkClass = (active: boolean) =>
           </div>
           <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Pekarangan</span>
         </a>
+        <a href="/dasar-syariah" class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-100 hover:text-slate-900 transition">
+          <div class="flex items-center gap-2.5">
+            <AppIcon name="award" size="sm" class="text-emerald-700" />
+            <span>Dasar Syariah</span>
+          </div>
+          <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800">Bahtsul Masail</span>
+        </a>
 
         <div class="pt-3 pb-1 text-xs uppercase font-bold text-slate-600 tracking-wider">
           Wilayah MWC NU Sumenep ({zones.length} Zona)
@@ -339,18 +334,20 @@ const navLinkClass = (active: boolean) =>
     <footer class="bg-white border-t border-slate-200 mt-8 sm:mt-0 text-xs text-slate-600">
       {/* 1. Tampilan Mobile Sederhana & Bersih (Sesuai Referensi: Link Tengah, Ikon Sosial Bundar, Copyright) */}
       <div class="md:hidden py-6 pb-20 px-4 text-center space-y-4">
-        <nav aria-label="Tautan Bawah" class="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-xs text-slate-700 font-medium max-w-sm mx-auto leading-relaxed">
-          <a href="/privasi" class="hover:text-emerald-700 transition">Tentang Kami</a>
+        <nav aria-label="Tautan Bawah" class="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-2 text-xs text-slate-700 font-medium max-w-md mx-auto leading-relaxed">
+          <a href="/tentang" class="hover:text-emerald-700 transition">Tentang Kami</a>
           <span class="text-slate-300" aria-hidden="true">|</span>
-          <a href="/privasi" class="hover:text-emerald-700 transition">Syarat &amp; Ketentuan</a>
+          <a href="/dasar-syariah" class="font-bold text-emerald-800 hover:text-emerald-950 transition">Dasar Syariah</a>
           <span class="text-slate-300" aria-hidden="true">|</span>
-          <a href="/privasi" class="hover:text-emerald-700 transition">Kebijakan Privasi</a>
+          <a href="/syarat-ketentuan" class="hover:text-emerald-700 transition">Syarat &amp; Ketentuan</a>
           <span class="text-slate-300" aria-hidden="true">|</span>
-          <a href="/daftar-kader" class="hover:text-emerald-700 transition">Panduan Petugas</a>
+          <a href="/kebijakan-privasi" class="hover:text-emerald-700 transition">Kebijakan Privasi</a>
           <span class="text-slate-300" aria-hidden="true">|</span>
-          <a href={`https://wa.me/${SITE_CONFIG.whatsappHelp}?text=Halo%20Admin%20Mamasar,%20saya%20butuh%20bantuan`} target="_blank" rel="noopener noreferrer" class="hover:text-emerald-700 transition">Bantuan</a>
+          <a href="/panduan-petugas" class="hover:text-emerald-700 transition">Panduan Petugas</a>
           <span class="text-slate-300" aria-hidden="true">|</span>
-          <a href={`https://wa.me/${SITE_CONFIG.whatsappHelp}`} target="_blank" rel="noopener noreferrer" class="hover:text-emerald-700 transition">Kontak</a>
+          <a href="/bantuan" class="hover:text-emerald-700 transition">Bantuan</a>
+          <span class="text-slate-300" aria-hidden="true">|</span>
+          <a href="/kontak" class="hover:text-emerald-700 transition">Kontak</a>
         </nav>
 
         {/* Baris Ikon Sosial Media Melingkar */}
@@ -393,8 +390,7 @@ const navLinkClass = (active: boolean) =>
           <!-- Col 1: About -->
           <div class="space-y-3">
             <div class="flex items-center gap-2">
-              <MamasarLogo size="xs" />
-              <span class="font-extrabold text-sm text-slate-900">Mamasar</span>
+              <MamasarLogo variant="full" size="sm" />
             </div>
             <p class="text-xs text-slate-600 leading-relaxed">
               Portal direktori iklan baris digital untuk memajukan produk UMKM nahdliyin Kabupaten Sumenep. Transaksi langsung ke penjual tanpa perantara.
@@ -450,11 +446,22 @@ const navLinkClass = (active: boolean) =>
 
           <!-- Col 4: Informasi & Bantuan -->
           <div class="space-y-2.5">
-            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Informasi & Bantuan</h3>
-            <p class="text-xs text-slate-600 leading-relaxed">
-              Pendataan toko UMKM dilakukan secara langsung oleh petugas lapangan untuk menjamin keaslian pelaku usaha nahdliyin.
-            </p>
-            <div class="pt-2 space-y-2">
+            <h3 class="font-bold text-xs uppercase tracking-wider text-slate-900">Informasi &amp; Bantuan</h3>
+            <ul class="space-y-1.5 text-xs text-slate-600">
+              <li>
+                <a href="/dasar-syariah" class="text-emerald-800 font-bold hover:text-emerald-950 inline-flex items-center gap-1.5 transition">
+                  <AppIcon name="award" size="xs" class="text-emerald-700" />
+                  <span>Dasar Syariah (Bahtsul Masail)</span>
+                </a>
+              </li>
+              <li><a href="/tentang" class="hover:text-emerald-700 transition">Tentang Mamasar</a></li>
+              <li><a href="/syarat-ketentuan" class="hover:text-emerald-700 transition">Syarat &amp; Ketentuan</a></li>
+              <li><a href="/kebijakan-privasi" class="hover:text-emerald-700 transition">Kebijakan Privasi</a></li>
+              <li><a href="/panduan-petugas" class="hover:text-emerald-700 transition">Panduan Petugas Lapangan</a></li>
+              <li><a href="/bantuan" class="hover:text-emerald-700 transition">Pusat Bantuan &amp; FAQ</a></li>
+              <li><a href="/kontak" class="hover:text-emerald-700 transition">Kontak Layanan PCNU</a></li>
+            </ul>
+            <div class="pt-1.5 space-y-2">
               <a
                 href="/edukasi?kategori=Ekonomi+Pekarangan"
                 class="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-800 hover:text-emerald-900 bg-emerald-50 border border-emerald-200 px-2.5 py-1.5 rounded-lg transition"
@@ -472,7 +479,7 @@ const navLinkClass = (active: boolean) =>
                 </a>
               </div>
             </div>
-            <div class="pt-2">
+            <div class="pt-1">
               <span class="inline-block bg-slate-100 text-slate-700 px-2.5 py-1 rounded-md text-xs border border-slate-200">
                 Kabupaten Sumenep, Madura
               </span>
@@ -480,10 +487,22 @@ const navLinkClass = (active: boolean) =>
           </div>
         </div>
 
-        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-slate-200 flex items-center justify-between gap-3 text-slate-600 text-xs">
+        <div class="max-w-site mx-auto px-4 sm:px-6 lg:px-8 pt-8 mt-8 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 text-slate-600 text-xs">
           <p>© {currentYear} Mamasar. Seluruh hak cipta dilindungi.</p>
-          <div class="flex items-center gap-4">
-            <a href="/privasi" class="hover:text-slate-900 font-medium">Kebijakan Privasi</a>
+          <div class="flex flex-wrap items-center gap-3">
+            <a href="/tentang" class="hover:text-slate-900 font-medium">Tentang Kami</a>
+            <span aria-hidden="true">•</span>
+            <a href="/dasar-syariah" class="text-emerald-800 font-bold hover:text-emerald-950">Dasar Syariah</a>
+            <span aria-hidden="true">•</span>
+            <a href="/syarat-ketentuan" class="hover:text-slate-900">Syarat &amp; Ketentuan</a>
+            <span aria-hidden="true">•</span>
+            <a href="/kebijakan-privasi" class="hover:text-slate-900">Kebijakan Privasi</a>
+            <span aria-hidden="true">•</span>
+            <a href="/panduan-petugas" class="hover:text-slate-900">Panduan Petugas</a>
+            <span aria-hidden="true">•</span>
+            <a href="/bantuan" class="hover:text-slate-900">Bantuan</a>
+            <span aria-hidden="true">•</span>
+            <a href="/kontak" class="hover:text-slate-900">Kontak</a>
             <span aria-hidden="true">•</span>
             <a href="/sitemap.xml" target="_blank" class="hover:text-slate-800">Sitemap XML</a>
             <span aria-hidden="true">•</span>
