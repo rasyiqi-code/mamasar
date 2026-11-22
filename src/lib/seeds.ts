@@ -149,6 +149,7 @@ export const SEED_UMKM: SeedUMKM[] = [
     maps_url:
       'https://maps.google.com/maps?q=Madu%2Bnaturiqu%2Bsomber%2Btombet%2Bpp%2Balmunawarah%2C%2BJl%2Bkh%2Bmunawar%2C%2BSumenep%2BRegency%2C%2B69453%2C%2BJawa%2BTimur%2C%2BID&sll=-6.91285771,113.92687091',
     qris_image_url: 'https://lh3.googleusercontent.com/d/1XBEstG5K71RcWPaG1HHchYMxGV0z30qq',
+    logo_url: 'https://ik.imagekit.io/mamasar/products/madu-naturiqu-super-250ml.jpg',
   },
   {
     name: 'Toko Kayla',

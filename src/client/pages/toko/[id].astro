@@ -161,24 +161,13 @@ const storeSchema = store
                   )}
                 </div>
 
-                <p class="text-xs sm:text-sm text-slate-600 flex items-center gap-1.5 min-w-0 flex-wrap">
+                <p class="text-xs sm:text-sm text-slate-600 flex items-center gap-1.5 min-w-0">
                   <AppIcon name="map-pin" size="xs" class="text-emerald-700 shrink-0" />
                   <span class="truncate">
                     {store.ranting ? `Ranting ${store.ranting}, ` : ''}
                     {store.zone_name}
                     {store.address ? ` • ${store.address}` : ''}
                   </span>
-                  {store.maps_url && (
-                    <a
-                      href={store.maps_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      class="text-xs font-bold text-emerald-700 hover:text-emerald-900 underline inline-flex items-center gap-0.5 ml-1 shrink-0"
-                    >
-                      <span>Buka Google Maps</span>
-                      <AppIcon name="arrow-right" size="xs" />
-                    </a>
-                  )}
                 </p>
 
                 {legalityItems.length > 0 && (
@@ -200,17 +189,15 @@ const storeSchema = store
               </div>
             </div>
 
-            <!-- Primary Actions -->
-            <div class="flex items-center gap-2 shrink-0 flex-wrap">
+            <!-- Primary Actions: WhatsApp CTA + 3 Icon-Only Utility Buttons -->
+            <div class="flex items-center gap-2 shrink-0">
               <a
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="flex-1 sm:flex-initial min-h-[44px] py-2.5 px-5 bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white font-bold text-xs sm:text-sm rounded-lg transition inline-flex items-center justify-center gap-2"
+                class="min-h-[44px] py-2.5 px-5 bg-emerald-700 hover:bg-emerald-800 active:scale-98 text-white font-bold text-xs sm:text-sm rounded-xl transition inline-flex items-center justify-center gap-2 shadow-xs"
               >
-                <svg class="w-4 h-4 fill-current shrink-0" viewBox="0 0 24 24" aria-hidden="true">
-                  <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z" />
-                </svg>
+                <AppIcon name="whatsapp" size="sm" class="shrink-0" />
                 <span>Chat WhatsApp</span>
               </a>
 
@@ -221,10 +208,9 @@ const storeSchema = store
                   rel="noopener noreferrer"
                   aria-label="Petunjuk Arah Google Maps"
                   title="Buka Lokasi Toko di Google Maps"
-                  class="min-w-[44px] min-h-[44px] px-3.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs font-bold inline-flex items-center gap-1.5 transition"
+                  class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 inline-flex items-center justify-center transition shadow-2xs hover:shadow-xs active:scale-95"
                 >
-                  <AppIcon name="map-pin" size="xs" class="text-emerald-700" />
-                  <span class="hidden sm:inline">Peta Lokasi</span>
+                  <AppIcon name="map-pin" size="sm" />
                 </a>
               )}
 
@@ -233,11 +219,10 @@ const storeSchema = store
                   type="button"
                   id="btn-show-store-qris"
                   aria-label="Tampilkan QRIS Toko"
-                  title="Bayar Non-Tunai lewat QRIS"
-                  class="min-w-[44px] min-h-[44px] px-3.5 rounded-lg bg-slate-100 hover:bg-slate-200 border border-slate-300 text-slate-900 text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer"
+                  title="Bayar Non-Tunai lewat QRIS Toko"
+                  class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 inline-flex items-center justify-center transition shadow-2xs hover:shadow-xs active:scale-95 cursor-pointer"
                 >
-                  <AppIcon name="qrcode" size="xs" class="text-emerald-700" />
-                  <span>QRIS Toko</span>
+                  <AppIcon name="qrcode" size="sm" />
                 </button>
               )}
 
@@ -247,7 +232,7 @@ const storeSchema = store
                 rel="noopener noreferrer"
                 aria-label="Bagikan Toko"
                 title="Bagikan Profil Toko"
-                class="min-w-[44px] min-h-[44px] rounded-lg bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 inline-flex items-center justify-center transition"
+                class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-white hover:bg-emerald-50 border border-slate-200 hover:border-emerald-300 text-slate-700 hover:text-emerald-700 inline-flex items-center justify-center transition shadow-2xs hover:shadow-xs active:scale-95"
               >
                 <AppIcon name="share" size="sm" />
               </a>
