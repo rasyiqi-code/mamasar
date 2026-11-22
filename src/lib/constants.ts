@@ -7,6 +7,7 @@ export const PRODUCT_CATEGORIES = [
   'Pertanian & Perkebunan',
   'Fashion Muslim',
   'Herbal & Jamu',
+  'Karya',
   'Jasa & Layanan',
 ] as const;
 
@@ -20,6 +21,7 @@ export const CATEGORY_ICONS: Record<string, string> = {
   'Pertanian & Perkebunan': 'sprout',
   'Fashion Muslim': 'fashion',
   'Herbal & Jamu': 'herbal',
+  'Karya': 'karya',
   'Jasa & Layanan': 'service',
 };
 
@@ -71,6 +73,12 @@ export const CATEGORY_THEMES: Record<string, {
     activeIndicator: 'bg-rose-600',
     labelActive: 'text-rose-950',
   },
+  'Karya': {
+    color: 'text-purple-600',
+    activeColor: 'text-purple-700',
+    activeIndicator: 'bg-purple-600',
+    labelActive: 'text-purple-950',
+  },
   'Jasa & Layanan': {
     color: 'text-blue-600',
     activeColor: 'text-blue-700',
@@ -87,6 +95,7 @@ export const CATEGORY_BADGES: Record<string, { label: string; color: string }> =
   'Pertanian & Perkebunan': { label: 'Ternak', color: 'bg-lime-100 text-lime-900 border border-lime-300' },
   'Fashion Muslim': { label: 'Hot', color: 'bg-rose-100 text-rose-800 border border-rose-300' },
   'Herbal & Jamu': { label: 'Tradisional', color: 'bg-violet-100 text-violet-800 border border-violet-300' },
+  'Karya': { label: 'Literasi', color: 'bg-purple-100 text-purple-800 border border-purple-300' },
   'Jasa & Layanan': { label: 'Layanan', color: 'bg-sky-100 text-sky-800 border border-sky-300' },
 };
 
