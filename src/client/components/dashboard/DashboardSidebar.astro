@@ -164,9 +164,13 @@ const activeMobileTitle = activeMobileTitleMap[activeSection];
         <div class="min-w-0">
           <div class="text-xs font-bold text-slate-900 truncate" title={store.name}>{store.name}</div>
           <div class="flex items-center gap-1.5 pt-0.5">
-            {store.is_verified ? (
+            {Number(store.is_verified) === 2 ? (
+              <span class="inline-flex items-center gap-1 text-xs font-bold text-amber-800">
+                <span class="text-amber-600 text-[10px]">⭐</span> Mitra Resmi
+              </span>
+            ) : store.is_verified ? (
               <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700">
-                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Terverifikasi
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-600"></span> Terverifikasi MWC
               </span>
             ) : (
               <span class="inline-flex items-center gap-1 text-xs text-slate-600">

@@ -52,6 +52,9 @@ const legalityItems = store
     ].filter((item): item is { label: string; value: string } => Boolean(item))
   : [];
 
+const isTier2 = store ? Number(store.is_verified) === 2 : false;
+const isTier1 = store ? Number(store.is_verified) === 1 : false;
+
 // Structured Schema.org Organization/LocalBusiness for SEO
 const storeSchema = store
   ? {
@@ -134,14 +137,21 @@ const storeSchema = store
                     {initials}
                   </div>
                 )}
-                {Boolean(store.is_verified) && (
+                {isTier2 ? (
+                  <span
+                    class="absolute -bottom-1 -right-1 bg-amber-500 text-white w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-xs text-xs"
+                    title="Mitra Resmi Konsumsi Acara NU & Berizin"
+                  >
+                    ⭐
+                  </span>
+                ) : isTier1 ? (
                   <span
                     class="absolute -bottom-1 -right-1 bg-emerald-700 text-white w-6 h-6 rounded-full border-2 border-white flex items-center justify-center shadow-xs"
                     title="Terverifikasi MWC NU"
                   >
                     <AppIcon name="check" size="xs" />
                   </span>
-                )}
+                ) : null}
               </div>
 
               <div class="space-y-1.5 min-w-0">
@@ -149,7 +159,12 @@ const storeSchema = store
                   <h1 class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 tracking-tight leading-tight">
                     {store.name}
                   </h1>
-                  {Boolean(store.is_verified) ? (
+                  {isTier2 ? (
+                    <span class="inline-flex items-center gap-1.5 text-xs font-bold text-amber-900 bg-amber-50 border border-amber-300 px-2.5 py-0.5 rounded-md">
+                      <span class="text-amber-600">⭐</span>
+                      <span>Mitra Resmi Konsumsi NU</span>
+                    </span>
+                  ) : isTier1 ? (
                     <span class="inline-flex items-center gap-1 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-md">
                       <AppIcon name="check" size="xs" />
                       <span>Terverifikasi MWC</span>
@@ -253,8 +268,8 @@ const storeSchema = store
             </div>
             <div class="pr-3 sm:px-5 border-r border-slate-200 sm:border-r-0">
               <dt class="text-xs text-slate-500">Verifikasi</dt>
-              <dd class={`text-sm font-extrabold mt-0.5 ${Boolean(store.is_verified) ? 'text-emerald-700' : 'text-slate-700'}`}>
-                {Boolean(store.is_verified) ? 'Terverifikasi' : 'Menunggu'}
+              <dd class={`text-sm font-extrabold mt-0.5 ${isTier2 ? 'text-amber-800' : isTier1 ? 'text-emerald-700' : 'text-slate-700'}`}>
+                {isTier2 ? 'Mitra Resmi' : isTier1 ? 'Terverifikasi MWC' : 'Menunggu'}
               </dd>
             </div>
             <div class="pl-3 sm:pl-5">
@@ -314,11 +329,11 @@ const storeSchema = store
                 </span>
                 <span class="inline-flex items-center gap-1.5">
                   <AppIcon
-                    name={Boolean(store.is_verified) ? 'check' : 'clock'}
+                    name={isTier2 || isTier1 ? 'check' : 'clock'}
                     size="xs"
-                    class={Boolean(store.is_verified) ? 'text-emerald-700' : 'text-slate-600'}
+                    class={isTier2 ? 'text-amber-700' : isTier1 ? 'text-emerald-700' : 'text-slate-600'}
                   />
-                  <span>{Boolean(store.is_verified) ? 'Terverifikasi MWC NU' : 'Menunggu Verifikasi MWC'}</span>
+                  <span>{isTier2 ? 'Mitra Resmi Konsumsi' : isTier1 ? 'Terverifikasi MWC NU' : 'Menunggu Verifikasi MWC'}</span>
                 </span>
                 <span class="inline-flex items-center gap-1.5">
                   <AppIcon name="check" size="xs" class="text-emerald-700" />
@@ -326,6 +341,33 @@ const storeSchema = store
                 </span>
               </div>
             </section>
+
+            <!-- Kesiapan Konsumsi Acara NU & Pesanan Partai Besar -->
+            {(isTier2 || store.max_bulk_order || (store.order_modes && store.order_modes.includes('bulk_catering'))) && (
+              <section class="pt-6 border-t border-slate-200 space-y-3">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-base font-black text-slate-900 tracking-tight flex items-center gap-1.5">
+                    <AppIcon name="calendar" size="xs" class="text-emerald-700" />
+                    <span>Layanan Konsumsi &amp; Katering Acara NU</span>
+                  </h2>
+                  <span class="text-xs font-bold text-amber-900 bg-amber-50 px-2.5 py-0.5 rounded border border-amber-300">
+                    ⭐ Siap Suplai Acara NU
+                  </span>
+                </div>
+
+                <div class="p-4 bg-emerald-50/50 rounded-xl border border-emerald-200 text-xs text-emerald-950 space-y-2 leading-relaxed">
+                  <p>
+                    Toko ini melayani pesanan konsumsi, snack box, nasi kotak, dan katering partai besar untuk kegiatan jam'iyyah NU (Lailatul Ijtima', Konferensi MWC/Ranting, Pengajian Akbar) serta hajatan warga.
+                  </p>
+                  {store.max_bulk_order && (
+                    <div class="pt-2 border-t border-emerald-200/80 flex items-center gap-2">
+                      <span class="text-emerald-900/80">Kapasitas Maksimal Partai Besar:</span>
+                      <span class="font-bold text-emerald-950 text-sm">Hingga {store.max_bulk_order} porsi / kotak</span>
+                    </div>
+                  )}
+                </div>
+              </section>
+            )}
 
             <!-- Legalitas Usaha (Hairline Definition List) -->
             {legalityItems.length > 0 && (

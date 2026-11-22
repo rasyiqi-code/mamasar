@@ -4,7 +4,7 @@ import ProductCard from '../../components/ProductCard.astro';
 import NotFoundView from '../../components/common/NotFoundView.astro';
 import AppIcon from '../../components/common/AppIcon.astro';
 import { getProductBySlug, getProducts, incrementProductViews, type Product } from '../../../lib/db';
-import { formatRupiah, createProductWhatsAppUrl, getOptimizedImageUrl, getImageSrcSet } from '../../../lib/utils';
+import { formatRupiah, createProductWhatsAppUrl, getOptimizedImageUrl, getImageSrcSet, getMarketplaceInfo } from '../../../lib/utils';
 import { DEFAULT_PRODUCT_IMAGE, SITE_CONFIG } from '../../../lib/constants';
 import { isHttpsRequest } from '../../../lib/security';
 
@@ -72,6 +72,14 @@ const qrCodeUrl = product
 const storeHref = product ? `/toko/${product.umkm_slug || product.umkm_id}` : '/toko';
 const sellerUrl = new URL(storeHref, Astro.url.origin).href;
 
+const deliveryLabels: Record<string, string> = {
+  all_sumenep: 'Seluruh Wilayah Sumenep (COD / Ekspedisi Lokal)',
+  pickup_only: 'Ambil di Tempat / Toko Penjual (Pickup Saja)',
+  local_village: 'Sekitar Desa / Kelurahan Terdekat',
+  mwc_wide: 'Satu Wilayah Kecamatan / MWC NU Terkait',
+  island_delivery: 'Aman Kirim ke Wilayah Kepulauan (Tahan Jalur Laut)',
+};
+
 const waLink = product
   ? createProductWhatsAppUrl({
       phone: product.umkm_phone,
@@ -80,8 +88,13 @@ const waLink = product
       price: product.price,
       zoneName: product.zone_name,
       productUrl: currentUrl,
+      orderLeadTimeDays: product.order_lead_time_days ?? 0,
+      minOrder: product.min_order ?? 1,
+      stockStatus: product.stock_status,
     })
   : '#';
+
+const marketplace = getMarketplaceInfo(product?.shopee_url);
 
 let relatedProducts: Product[] = [];
 if (product) {
@@ -212,7 +225,15 @@ const pageDescription = product
                       <span>Unggulan</span>
                     </span>
                   )}
-                  {Boolean(product.is_verified) && (
+                  {Number(product.is_verified) === 2 ? (
+                    <span
+                      class="bg-amber-500 text-white w-6 h-6 rounded-full shadow-xs flex items-center justify-center ring-2 ring-white text-xs"
+                      title="Mitra Resmi Konsumsi Acara NU & Berizin"
+                      aria-label="Mitra Resmi"
+                    >
+                      ⭐
+                    </span>
+                  ) : Number(product.is_verified) === 1 ? (
                     <span
                       class="bg-emerald-700 text-white w-6 h-6 rounded-full shadow-xs flex items-center justify-center ring-2 ring-white"
                       title="Produk Terverifikasi MWC NU"
@@ -220,7 +241,7 @@ const pageDescription = product
                     >
                       <AppIcon name="check" size="xs" class="w-3.5 h-3.5" />
                     </span>
-                  )}
+                  ) : null}
                   {hasDiscount && (
                     <span class="bg-rose-700 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow-xs tabular-nums">
                       Diskon {discountPercent}%
@@ -327,24 +348,30 @@ const pageDescription = product
                   <dd class="font-bold text-slate-900 mt-0.5 truncate">{product.category}</dd>
                 </div>
                 <div class="sm:px-3">
-                  <dt class="text-slate-500">Stok</dt>
+                  <dt class="text-slate-500">Kesiapan</dt>
                   <dd class={`font-bold mt-0.5 ${
                     product.is_sold_out ? 'text-rose-700' :
                     product.stock_status === 'po' ? 'text-amber-800' : 'text-emerald-700'
                   }`}>
-                    {product.is_sold_out ? 'Habis' :
-                     product.stock_status === 'po' ? 'Pre-Order' : 'Ready'}
+                    {product.is_sold_out
+                      ? 'Habis'
+                      : product.stock_status === 'po'
+                        ? (product.order_lead_time_days ? `PO H-${product.order_lead_time_days}` : 'Pre-Order')
+                        : 'Ready'}
                   </dd>
                 </div>
                 <div class="sm:px-3">
-                  <dt class="text-slate-500">Kapasitas</dt>
+                  <dt class="text-slate-500">Batas Pesanan</dt>
                   <dd class="font-bold text-slate-900 mt-0.5 truncate">
-                    {product.production_capacity || (product.stock_status === 'po' ? 'Antrean PO' : 'Siap Kirim')}
+                    {product.min_order && product.min_order > 1 ? `Min. ${product.min_order}` : 'Eceran (1)'}
+                    {product.max_order ? ` - Maks. ${product.max_order}` : ''}
                   </dd>
                 </div>
                 <div class="hidden sm:block sm:pl-3">
                   <dt class="text-slate-500">Toko</dt>
-                  <dd class="font-bold text-emerald-700 mt-0.5">{product.is_verified ? 'Terverifikasi' : 'Terdaftar'}</dd>
+                  <dd class={`font-bold mt-0.5 ${Number(product.is_verified) === 2 ? 'text-amber-800' : product.is_verified ? 'text-emerald-700' : 'text-slate-700'}`}>
+                    {Number(product.is_verified) === 2 ? 'Mitra Resmi' : product.is_verified ? 'Terverifikasi' : 'Terdaftar'}
+                  </dd>
                 </div>
               </dl>
             </div>
@@ -357,6 +384,55 @@ const pageDescription = product
 
               <div class="text-sm text-slate-700 leading-relaxed whitespace-pre-line space-y-3">
                 <p>{product.description}</p>
+              </div>
+
+              <!-- Detail Kesiapan Pemenuhan & Logistik Produk -->
+              <div class="pt-4 border-t border-slate-200 space-y-3">
+                <div class="flex items-center gap-2">
+                  <AppIcon name="package" size="xs" class="text-emerald-700" />
+                  <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Kesiapan Pemenuhan & Pengiriman Produk
+                  </h3>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+                  <div class="space-y-1">
+                    <span class="text-slate-500 block">Waktu Persiapan / Pengerjaan:</span>
+                    <span class="font-bold text-slate-900 inline-flex items-center gap-1.5">
+                      <span class={`w-2 h-2 rounded-full ${product.is_sold_out ? 'bg-rose-500' : product.stock_status === 'po' ? 'bg-amber-500' : 'bg-emerald-500'}`}></span>
+                      {product.is_sold_out
+                        ? 'Stok sedang habis'
+                        : product.stock_status === 'po'
+                          ? `Pre-Order H-${product.order_lead_time_days || 1} (Siap dalam ${product.order_lead_time_days || 1} hari kerja)`
+                          : 'Ready Stock (Bisa dikirim di hari yang sama / Same-day)'}
+                    </span>
+                  </div>
+
+                  <div class="space-y-1">
+                    <span class="text-slate-500 block">Kapasitas & Batas Pembelian:</span>
+                    <span class="font-bold text-slate-900">
+                      {product.min_order && product.min_order > 1 ? `Min. Order: ${product.min_order} pcs/porsi` : 'Bisa beli eceran (Min. 1 pcs)'}
+                      {product.max_order ? ` • Maks. ${product.max_order} per transaksi` : ''}
+                      {product.production_capacity ? ` (${product.production_capacity})` : ''}
+                    </span>
+                  </div>
+
+                  <div class="space-y-1">
+                    <span class="text-slate-500 block">Jangkauan Pengiriman:</span>
+                    <span class="font-bold text-slate-900">
+                      {deliveryLabels[product.delivery_coverage || 'all_sumenep'] || 'Seluruh Wilayah Sumenep'}
+                    </span>
+                  </div>
+
+                  {product.shelf_life_notes && (
+                    <div class="space-y-1">
+                      <span class="text-slate-500 block">Ketahanan / Masa Simpan:</span>
+                      <span class="font-bold text-slate-900">
+                        {product.shelf_life_notes}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-600">
@@ -441,14 +517,15 @@ const pageDescription = product
                 <span>Kirim Pesan WhatsApp</span>
               </a>
 
-              {product.shopee_url && (
+              {marketplace && (
                 <a
                   href={product.shopee_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="w-full min-h-[44px] py-2.5 px-4 bg-[#ee4d2d] hover:bg-[#d73211] active:scale-[0.98] text-white rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer"
+                  class={`w-full min-h-[44px] py-2.5 px-4 ${marketplace.bgClass} active:scale-[0.98] rounded-lg font-bold text-xs sm:text-sm flex items-center justify-center gap-2 transition cursor-pointer shadow-xs`}
                 >
-                  <span>Checkout di Shopee</span>
+                  <AppIcon name="external-link" size="xs" />
+                  <span>{marketplace.label}</span>
                 </a>
               )}
             </div>
@@ -488,8 +565,8 @@ const pageDescription = product
               <dl class="pt-3 border-t border-slate-200 space-y-2 text-xs text-slate-600">
                 <div class="flex items-center justify-between gap-2">
                   <dt>Status Penjual</dt>
-                  <dd class={product.is_verified ? 'text-emerald-700 font-bold' : 'text-slate-700 font-semibold'}>
-                    {product.is_verified ? 'Terverifikasi MWC' : 'Terdaftar'}
+                  <dd class={Number(product.is_verified) === 2 ? 'text-amber-800 font-bold' : product.is_verified ? 'text-emerald-700 font-bold' : 'text-slate-700 font-semibold'}>
+                    {Number(product.is_verified) === 2 ? '⭐ Mitra Resmi Konsumsi' : product.is_verified ? 'Terverifikasi MWC' : 'Terdaftar'}
                   </dd>
                 </div>
                 <div class="flex items-center justify-between gap-2">
@@ -669,15 +746,15 @@ const pageDescription = product
                 {formatRupiah(product.price)}
               </span>
             </div>
-            {product.shopee_url && (
+            {marketplace && (
               <a
                 href={product.shopee_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                class="min-h-[44px] py-2.5 px-3 bg-[#ee4d2d] active:bg-[#d73211] text-white rounded-lg font-bold text-xs flex items-center justify-center gap-1 transition shrink-0"
-                title="Beli di Shopee"
+                class={`min-h-[44px] py-2.5 px-3 ${marketplace.bgClass} active:scale-[0.98] rounded-lg font-bold text-xs flex items-center justify-center gap-1 transition shrink-0`}
+                title={marketplace.label}
               >
-                <span>Shopee</span>
+                <span>{marketplace.name}</span>
               </a>
             )}
             <a

@@ -11,11 +11,22 @@ interface Props {
     zone_id: number;
     ranting?: string | null;
     address?: string | null;
+    is_verified?: boolean | number | null;
+    verification_status?: string | null;
+    verification_note?: string | null;
+    verification_submitted_at?: string | null;
+    order_modes?: string | null;
+    daily_capacity?: string | null;
+    order_lead_time_days?: number | null;
+    delivery_coverage?: string | null;
+    max_bulk_order?: number | null;
+    shelf_life_notes?: string | null;
     nib?: string | null;
     halal_cert?: string | null;
     pirt?: string | null;
     bpom?: string | null;
     other_legalities?: string | null;
+    products?: Array<any>;
   };
   zones: Array<{ id: number; name: string }>;
 }
@@ -24,9 +35,135 @@ const { store, zones } = Astro.props;
 const hasAnyLegality = Boolean(
   store.nib || store.halal_cert || store.pirt || store.bpom || store.other_legalities
 );
+
+const isVerifiedTier2 = Number(store.is_verified) === 2;
+const isVerifiedTier1 = Number(store.is_verified) === 1;
+const isPendingReview = store.verification_status === 'submitted';
+const isRejected = store.verification_status === 'rejected';
+
+const productCount = store.products?.length ?? 0;
+const hasProducts = productCount >= 2;
+const hasAddress = Boolean(store.address && store.address.trim().length >= 5);
+const hasPhone = Boolean(store.phone && store.phone.length >= 9);
+const canApplyVerification = hasProducts && hasAddress && hasPhone && !isVerifiedTier1 && !isVerifiedTier2 && !isPendingReview;
+
+const activeOrderModes = (store.order_modes || '').split(',');
+const isBulkCatering = activeOrderModes.includes('bulk_catering');
 ---
 
 <section id="panel-profile" class="tab-panel px-4 sm:px-6 lg:px-8 py-5 sm:py-6 space-y-6">
+  <!-- WIDGET STATUS VERIFIKASI MWC NU -->
+  <div class="rounded-xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xs">
+    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+      <div class="space-y-1.5 flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Status Verifikasi Toko</span>
+          {isVerifiedTier2 ? (
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300">
+              <span class="text-amber-600">⭐</span>
+              <span>Tier 2: Mitra Resmi Konsumsi &amp; Berizin</span>
+            </span>
+          ) : isVerifiedTier1 ? (
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-900 border border-emerald-300">
+              <AppIcon name="check" size="xs" class="text-emerald-700" />
+              <span>Tier 1: Terverifikasi MWC NU</span>
+            </span>
+          ) : isPendingReview ? (
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-50 text-sky-900 border border-sky-300">
+              <span class="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+              <span>Menunggu Peninjauan MWC</span>
+            </span>
+          ) : isRejected ? (
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-900 border border-rose-300">
+              <span class="w-2 h-2 rounded-full bg-rose-500"></span>
+              <span>Perlu Perbaikan Data</span>
+            </span>
+          ) : (
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+              <span>Belum Terverifikasi</span>
+            </span>
+          )}
+        </div>
+
+        {isVerifiedTier2 ? (
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Alhamdulillah! Toko Anda memegang status <strong>Mitra Resmi Konsumsi MWC NU</strong> dengan perizinan usaha lengkap. Toko Anda diprioritaskan pada pengadaan konsumsi acara akbar dan bazar jam'iyyah.
+          </p>
+        ) : isVerifiedTier1 ? (
+          <div class="space-y-1">
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Toko Anda telah terverifikasi resmi oleh Pengurus MWC NU. Lencana centang hijau aktif di katalog.
+            </p>
+            <p class="text-[11px] text-amber-800 bg-amber-50/70 p-2 rounded-lg border border-amber-200 leading-relaxed">
+              💡 <strong>Ingin naik ke Tier 2 (Mitra Resmi Konsumsi)?</strong> Lengkapi data legalitas (NIB / Halal / P-IRT) serta kapasitas pesanan partai besar di formulir bawah ini.
+            </p>
+          </div>
+        ) : isPendingReview ? (
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Pengajuan verifikasi Anda sedang dalam proses verifikasi lapangan oleh Pengurus MWC NU kecamatan Anda. Anda akan menerima notifikasi begitu peninjauan selesai.
+          </p>
+        ) : isRejected ? (
+          <div class="p-3 bg-rose-50 rounded-lg border border-rose-200 text-xs text-rose-900 space-y-1">
+            <strong>Catatan Pengurus MWC:</strong>
+            <p class="font-medium text-rose-800">{store.verification_note || 'Mohon lengkapi profil, perjelas alamat usaha, dan sesuaikan data kapasitas pesanan Anda.'}</p>
+          </div>
+        ) : (
+          <p class="text-xs text-slate-600 leading-relaxed">
+            Dapatkan lencana resmi <strong>✓ Terverifikasi MWC NU</strong> untuk membangun kepercayaan warga Nahdliyin yang berbelanja langsung via WhatsApp.
+          </p>
+        )}
+      </div>
+
+      {!isVerifiedTier1 && !isVerifiedTier2 && (
+        <div class="shrink-0 flex flex-col items-start sm:items-end gap-2">
+          <button
+            type="button"
+            id="btn-apply-verification"
+            disabled={!canApplyVerification || isPendingReview}
+            class={`min-h-[44px] px-4 py-2 rounded-lg text-xs font-bold inline-flex items-center gap-1.5 transition cursor-pointer shadow-xs active:scale-[0.98] ${
+              canApplyVerification && !isPendingReview
+                ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                : 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed shadow-none'
+            }`}
+          >
+            <AppIcon name="shield" size="xs" />
+            <span>{isPendingReview ? 'Sedang Ditinjau' : isRejected ? 'Ajukan Ulang Verifikasi' : 'Ajukan Verifikasi MWC'}</span>
+          </button>
+        </div>
+      )}
+    </div>
+
+    {/* CHECKLIST SYARAT VERIFIKASI TIER 1 */}
+    {!isVerifiedTier1 && !isVerifiedTier2 && (
+      <div class="mt-4 pt-3.5 border-t border-slate-200 space-y-2">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+          <div class={`p-2.5 rounded-lg border flex items-center gap-2 ${hasPhone ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+            <span class={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${hasPhone ? 'bg-emerald-700 text-white' : 'bg-slate-300 text-slate-700'}`}>
+              {hasPhone ? '✓' : '1'}
+            </span>
+            <span class="truncate">Nomor WA Terverifikasi</span>
+          </div>
+
+          <div class={`p-2.5 rounded-lg border flex items-center gap-2 ${hasAddress ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+            <span class={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${hasAddress ? 'bg-emerald-700 text-white' : 'bg-slate-300 text-slate-700'}`}>
+              {hasAddress ? '✓' : '2'}
+            </span>
+            <span class="truncate">Alamat Jelas Lokasi Fisik</span>
+          </div>
+
+          <div class={`p-2.5 rounded-lg border flex items-center gap-2 ${hasProducts ? 'bg-emerald-50/60 border-emerald-200 text-emerald-900' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+            <span class={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 text-[10px] font-bold ${hasProducts ? 'bg-emerald-700 text-white' : 'bg-slate-300 text-slate-700'}`}>
+              {hasProducts ? '✓' : '3'}
+            </span>
+            <span class="truncate">Min. 2 Produk ({productCount}/2)</span>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-500">
+          💡 3 syarat di atas untuk lencana <strong>Tier 1: Terverifikasi MWC</strong>. Untuk naik ke <strong>⭐ Tier 2 (Mitra Konsumsi NU)</strong>, isi kesiapan pesanan acara dan legalitas usaha di bawah.
+        </p>
+      </div>
+    )}
+  </div>
   <!-- FORM UPLOAD LOGO TOKO -->
   <div id="store-logo-section" class="space-y-4 pb-6 border-b border-slate-200">
     <div class="pb-1.5 border-b border-slate-200 flex items-center justify-between gap-2">
@@ -172,7 +309,7 @@ const hasAnyLegality = Boolean(
 
       <div class="space-y-1">
         <label for="editStoreAddress" class="block text-xs font-medium text-slate-700">
-          Alamat Lengkap Usaha / Dusun
+          Alamat Lengkap Usaha / Dusun <span class="text-rose-500">*</span>
         </label>
         <input
           type="text"
@@ -182,10 +319,63 @@ const hasAnyLegality = Boolean(
           placeholder="Contoh: Jl. Raya Gapura No. 12, Dusun Karang Anyar"
           class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
         />
+        <p class="text-[11px] text-slate-500">Wajib diisi jelas untuk keperluan peninjauan fisik oleh pengurus MWC.</p>
       </div>
     </div>
 
-    <!-- SECTION 2: Legalitas & Sertifikasi Usaha (Collapsible on Mobile when empty) -->
+    <!-- SECTION 2: Kesiapan Acara NU & Pesanan Partai Besar (Syarat Mitra Tier 2) -->
+    <div class="space-y-4 pt-2">
+      <div class="pb-1.5 border-b border-slate-200 flex items-center justify-between">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-800 flex items-center gap-1.5">
+          <AppIcon name="calendar" size="xs" class="text-slate-600" />
+          <span>Kesiapan Konsumsi Acara NU &amp; Partai Besar</span>
+        </h3>
+        <span class="text-xs text-amber-700 font-semibold">* Syarat Mitra Tier 2</span>
+      </div>
+
+      <div class="p-3 bg-amber-50/60 rounded-lg border border-amber-200 text-xs text-amber-950 leading-relaxed">
+        <strong>Penting:</strong> Data ini menjadi rujukan Pengurus MWC dan Ranting NU ketika mencari penyedia katering atau konsumsi untuk kegiatan jam'iyyah (Lailatul Ijtima', Konferensi MWC/Ranting, Pengajian Akbar, dan Harlah).
+      </div>
+
+      <!-- Checkbox Kesanggupan Partai Besar / Acara NU -->
+      <label class="flex items-start gap-3 p-3.5 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer bg-white transition">
+        <input
+          type="checkbox"
+          id="cb-bulk-catering"
+          name="orderModesList"
+          value="bulk_catering"
+          checked={isBulkCatering}
+          class="mt-0.5 rounded text-emerald-700 focus:ring-emerald-700"
+        />
+        <div class="text-xs space-y-0.5">
+          <span class="font-bold text-slate-900 block">Sanggup Menerima Pesanan Konsumsi / Acara NU</span>
+          <span class="text-slate-600 text-[11px] block leading-relaxed">
+            Toko kami bersedia dan sanggup menyediakan konsumsi makanan/minuman partai besar atau katering untuk kegiatan jam'iyyah NU dan hajatan warga.
+          </span>
+        </div>
+      </label>
+      <input type="hidden" id="editStoreOrderModes" name="orderModes" value={store.order_modes || ''} />
+
+      <div class="space-y-1">
+        <label for="editStoreMaxBulkOrder" class="block text-xs font-medium text-slate-700">
+          Kapasitas Maksimum Pesanan Partai Besar (Opsional)
+        </label>
+        <input
+          type="number"
+          id="editStoreMaxBulkOrder"
+          name="maxBulkOrder"
+          value={store.max_bulk_order ?? ''}
+          placeholder="Contoh: 300 (porsi / kotak / bungkus)"
+          min="1"
+          class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg px-3 py-2 text-sm sm:text-xs font-mono text-slate-900 focus:border-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-700/15"
+        />
+        <p class="text-[11px] text-slate-500">
+          Estimasi batas jumlah pesanan maksimal yang aman dapat disiapkan toko Anda sekaligus untuk satu agenda acara.
+        </p>
+      </div>
+    </div>
+
+    <!-- SECTION 3: Legalitas & Sertifikasi Usaha (Collapsible on Mobile when empty) -->
     <div class="space-y-4 pt-2">
       <button
         type="button"

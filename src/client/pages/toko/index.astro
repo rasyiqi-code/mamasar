@@ -308,7 +308,18 @@ const activeZone = zones.find((z) => z.slug === currentZone);
                           {store.name}
                         </a>
                         <div class="flex items-center gap-1.5 text-xs text-slate-600 min-w-0">
-                          {Boolean(store.is_verified) && (
+                          {Number(store.is_verified) === 2 ? (
+                            <span
+                              class="shrink-0 inline-flex items-center text-amber-500 text-xs"
+                              title="Mitra Resmi Konsumsi Acara NU & Berizin"
+                              aria-label="Mitra Resmi"
+                            >
+                              ⭐
+                              {(store.address || true) && (
+                                <span aria-hidden="true" class={`text-slate-300 px-1 ${store.address ? '' : 'hidden sm:inline'}`}>·</span>
+                              )}
+                            </span>
+                          ) : Boolean(store.is_verified) ? (
                             <span
                               class="shrink-0 inline-flex items-center text-emerald-700"
                               title="Terverifikasi MWC NU"
@@ -319,7 +330,7 @@ const activeZone = zones.find((z) => z.slug === currentZone);
                                 <span aria-hidden="true" class={`text-slate-300 px-1 ${store.address ? '' : 'hidden sm:inline'}`}>·</span>
                               )}
                             </span>
-                          )}
+                          ) : null}
                           <p class={`truncate ${store.address ? '' : 'hidden sm:block'}`}>
                             {store.address || 'Kabupaten Sumenep, Madura'}
                           </p>

@@ -46,6 +46,14 @@ export function toUMKM(row: UMKMJoinRow): UMKM & { zone_name: string; zone_slug:
     other_legalities: row.other_legalities ?? undefined,
     maps_url: row.maps_url ?? undefined,
     qris_image_url: row.qris_image_url ?? undefined,
+    order_modes: row.order_modes ?? 'ready_stock',
+    daily_capacity: row.daily_capacity ?? undefined,
+    order_lead_time_days: row.order_lead_time_days ?? 1,
+    delivery_coverage: row.delivery_coverage ?? 'local_village',
+    max_bulk_order: row.max_bulk_order ?? undefined,
+    shelf_life_notes: row.shelf_life_notes ?? undefined,
+    verification_status: row.verification_status ?? (row.is_verified ? 'verified' : 'unverified'),
+    verification_submitted_at: row.verification_submitted_at ? row.verification_submitted_at.toISOString() : undefined,
     bump_credits: row.bump_credits ?? 3,
   };
 }
@@ -233,6 +241,13 @@ export async function setupUMKMForUser(
     zoneId: number;
     address?: string;
     ranting?: string;
+    orderModes?: string;
+    maxBulkOrder?: number;
+    nib?: string;
+    halalCert?: string;
+    pirt?: string;
+    bpom?: string;
+    otherLegalities?: string;
   },
   options?: { claimStoreId?: number; skipClaim?: boolean }
 ): Promise<SetupUMKMResult> {
@@ -244,16 +259,27 @@ export async function setupUMKMForUser(
     .where(eq(schema.umkm.user_id, userId));
 
   if (existing) {
+    const updateFields: Record<string, any> = {
+      name: data.name,
+      phone: cleanPhone,
+      zone_id: data.zoneId,
+      address: data.address || '',
+      ranting: data.ranting || null,
+    };
+    if (data.orderModes !== undefined) updateFields.order_modes = data.orderModes || '';
+    if (data.maxBulkOrder !== undefined) updateFields.max_bulk_order = data.maxBulkOrder;
+    if (data.nib !== undefined) updateFields.nib = data.nib || null;
+    if (data.halalCert !== undefined) updateFields.halal_cert = data.halalCert || null;
+    if (data.pirt !== undefined) updateFields.pirt = data.pirt || null;
+    if (data.bpom !== undefined) updateFields.bpom = data.bpom || null;
+    if (data.otherLegalities !== undefined) updateFields.other_legalities = data.otherLegalities || null;
+
     await getDb()
       .update(schema.umkm)
-      .set({
-        name: data.name,
-        phone: cleanPhone,
-        zone_id: data.zoneId,
-        address: data.address || '',
-        ranting: data.ranting || null,
-      })
+      .set(updateFields)
       .where(eq(schema.umkm.id, existing.id));
+
+    invalidateCatalogCaches();
     return { outcome: 'linked', storeId: existing.id, claimed: false };
   }
 
@@ -273,16 +299,26 @@ export async function setupUMKMForUser(
 
       if (!claimed) return { outcome: 'claim_failed' as const };
 
+      const updateFields: Record<string, any> = {
+        name: data.name,
+        zone_id: data.zoneId,
+        address: data.address || '',
+        ranting: data.ranting || null,
+      };
+      if (data.orderModes !== undefined) updateFields.order_modes = data.orderModes || '';
+      if (data.maxBulkOrder !== undefined) updateFields.max_bulk_order = data.maxBulkOrder;
+      if (data.nib !== undefined) updateFields.nib = data.nib || null;
+      if (data.halalCert !== undefined) updateFields.halal_cert = data.halalCert || null;
+      if (data.pirt !== undefined) updateFields.pirt = data.pirt || null;
+      if (data.bpom !== undefined) updateFields.bpom = data.bpom || null;
+      if (data.otherLegalities !== undefined) updateFields.other_legalities = data.otherLegalities || null;
+
       await tx
         .update(schema.umkm)
-        .set({
-          name: data.name,
-          zone_id: data.zoneId,
-          address: data.address || '',
-          ranting: data.ranting || null,
-        })
+        .set(updateFields)
         .where(eq(schema.umkm.id, claimed.id));
 
+      invalidateCatalogCaches();
       return { outcome: 'linked' as const, storeId: claimed.id, claimed: true };
     });
   }
@@ -303,6 +339,13 @@ export async function setupUMKMForUser(
       ranting: data.ranting || null,
       is_verified: 0,
       address: data.address || '',
+      order_modes: data.orderModes || '',
+      max_bulk_order: data.maxBulkOrder ?? null,
+      nib: data.nib || null,
+      halal_cert: data.halalCert || null,
+      pirt: data.pirt || null,
+      bpom: data.bpom || null,
+      other_legalities: data.otherLegalities || null,
     })
     .returning({ id: schema.umkm.id });
 
@@ -316,12 +359,27 @@ export async function getUMKMForVerification(zoneId?: number): Promise<UMKMVerif
       id: schema.umkm.id,
       name: schema.umkm.name,
       slug: schema.umkm.slug,
+      logo_url: schema.umkm.logo_url,
       phone: schema.umkm.phone,
       address: schema.umkm.address,
       ranting: schema.umkm.ranting,
       is_verified: schema.umkm.is_verified,
       verified_at: schema.umkm.verified_at,
       verification_note: schema.umkm.verification_note,
+      verification_status: schema.umkm.verification_status,
+      verification_submitted_at: schema.umkm.verification_submitted_at,
+      nib: schema.umkm.nib,
+      halal_cert: schema.umkm.halal_cert,
+      pirt: schema.umkm.pirt,
+      bpom: schema.umkm.bpom,
+      other_legalities: schema.umkm.other_legalities,
+      maps_url: schema.umkm.maps_url,
+      order_modes: schema.umkm.order_modes,
+      daily_capacity: schema.umkm.daily_capacity,
+      order_lead_time_days: schema.umkm.order_lead_time_days,
+      delivery_coverage: schema.umkm.delivery_coverage,
+      max_bulk_order: schema.umkm.max_bulk_order,
+      shelf_life_notes: schema.umkm.shelf_life_notes,
       zone_id: schema.umkm.zone_id,
       zone_name: schema.zones.name,
       zone_slug: schema.zones.slug,
@@ -336,18 +394,33 @@ export async function getUMKMForVerification(zoneId?: number): Promise<UMKMVerif
     .leftJoin(schema.users, eq(schema.umkm.user_id, schema.users.id));
 
   const rows = await (zoneId ? query.where(eq(schema.umkm.zone_id, zoneId)) : query)
-    .orderBy(asc(schema.umkm.is_verified), asc(schema.umkm.created_at));
+    .orderBy(asc(schema.umkm.is_verified), desc(schema.umkm.verification_submitted_at), asc(schema.umkm.created_at));
 
   return rows.map((row) => ({
     id: row.id,
     name: row.name,
     slug: row.slug ?? undefined,
+    logo_url: row.logo_url ?? undefined,
     phone: row.phone,
     address: row.address ?? undefined,
     ranting: row.ranting ?? undefined,
     is_verified: row.is_verified ?? 0,
     verified_at: row.verified_at ? row.verified_at.toISOString() : undefined,
     verification_note: row.verification_note ?? undefined,
+    verification_status: row.verification_status ?? (row.is_verified ? 'verified' : 'unverified'),
+    verification_submitted_at: row.verification_submitted_at ? row.verification_submitted_at.toISOString() : undefined,
+    nib: row.nib ?? undefined,
+    halal_cert: row.halal_cert ?? undefined,
+    pirt: row.pirt ?? undefined,
+    bpom: row.bpom ?? undefined,
+    other_legalities: row.other_legalities ?? undefined,
+    maps_url: row.maps_url ?? undefined,
+    order_modes: row.order_modes ?? 'ready_stock',
+    daily_capacity: row.daily_capacity ?? undefined,
+    order_lead_time_days: row.order_lead_time_days ?? 1,
+    delivery_coverage: row.delivery_coverage ?? 'local_village',
+    max_bulk_order: row.max_bulk_order ?? undefined,
+    shelf_life_notes: row.shelf_life_notes ?? undefined,
     zone_id: row.zone_id,
     zone_name: row.zone_name,
     zone_slug: row.zone_slug,
@@ -380,17 +453,24 @@ export async function getUMKMScope(umkmId: number): Promise<{
 
 export async function setUMKMVerified(
   umkmId: number,
-  verified: boolean,
-  options?: { actorUserId?: number; note?: string }
+  verified: boolean | number,
+  options?: { actorUserId?: number; note?: string; tier?: number }
 ): Promise<boolean> {
   return await getDb().transaction(async (tx) => {
     const now = new Date();
+    const isVerif = Boolean(verified);
+    const tier = options?.tier ?? (typeof verified === 'number' && verified > 0 ? verified : 1);
+    const verificationStatus = isVerif
+      ? (tier === 2 ? 'verified_mitra' : 'verified_mwc')
+      : (options?.note ? 'rejected' : 'unverified');
+
     const rows = await tx
       .update(schema.umkm)
       .set({
-        is_verified: verified ? 1 : 0,
+        is_verified: isVerif ? tier : 0,
+        verification_status: verificationStatus,
         verified_by_user_id: options?.actorUserId ?? null,
-        verified_at: verified ? now : null,
+        verified_at: isVerif ? now : null,
         verification_note: options?.note ?? null,
       })
       .where(eq(schema.umkm.id, umkmId))
@@ -408,10 +488,10 @@ export async function setUMKMVerified(
       await recordAuditLog(
         {
           actorUserId: options?.actorUserId,
-          action: verified ? 'umkm.verify' : 'umkm.unverify',
+          action: isVerif ? (tier === 2 ? 'umkm.verify_mitra' : 'umkm.verify_mwc') : 'umkm.unverify',
           targetType: 'umkm',
           targetId: store.id,
-          metadata: { zone_id: store.zone_id, note: options?.note },
+          metadata: { zone_id: store.zone_id, tier, note: options?.note },
         },
         tx
       );
@@ -421,14 +501,22 @@ export async function setUMKMVerified(
 
     if (store.user_id) {
       try {
+        const title = isVerif
+          ? (tier === 2 ? 'Selamat! Toko Terverifikasi Mitra Resmi Konsumsi NU' : 'Toko Anda Telah Diverifikasi MWC NU')
+          : (options?.note ? 'Pemberitahuan Perbaikan Verifikasi Toko' : 'Status Verifikasi Toko Diperbarui');
+
+        const body = isVerif
+          ? (tier === 2
+              ? `Toko "${store.name}" telah lolos verifikasi Tier 2 (Mitra Resmi Konsumsi & Berizin). Toko Anda kini menjadi prioritas pengadaan konsumsi acara NU!`
+              : `Toko "${store.name}" telah diverifikasi MWC NU. Lencana resmi kini aktif di etalase katalog.`)
+          : `Pengurus memberikan catatan verifikasi untuk toko "${store.name}"${options?.note ? `: "${options.note}". Silakan perbaiki data di profil toko Anda.` : '.'}`;
+
         await createNotification(
           {
             userId: store.user_id,
-            title: verified ? 'Toko Anda Telah Diverifikasi' : 'Status Verifikasi Toko Diperbarui',
-            body: verified
-              ? `Toko "${store.name}" telah diverifikasi oleh pengurus dan lencana terverifikasi kini aktif di katalog.`
-              : `Status verifikasi toko "${store.name}" dicabut${options?.note ? `: ${options.note}` : '.'}`,
-            link: '/dashboard',
+            title,
+            body,
+            link: '/dashboard/profil',
           },
           tx
         );
@@ -442,6 +530,64 @@ export async function setUMKMVerified(
     if (ok) invalidateCatalogCaches();
     return ok;
   });
+}
+
+export async function submitStoreVerification(
+  umkmId: number,
+  userId: number
+): Promise<{ success: boolean; message: string }> {
+  const [store] = await getDb()
+    .select({
+      id: schema.umkm.id,
+      name: schema.umkm.name,
+      phone: schema.umkm.phone,
+      address: schema.umkm.address,
+      daily_capacity: schema.umkm.daily_capacity,
+      verification_status: schema.umkm.verification_status,
+      is_verified: schema.umkm.is_verified,
+    })
+    .from(schema.umkm)
+    .where(and(eq(schema.umkm.id, umkmId), eq(schema.umkm.user_id, userId)))
+    .limit(1);
+
+  if (!store) {
+    return { success: false, message: 'Toko tidak ditemukan atau bukan milik akun Anda.' };
+  }
+
+  const [{ count }] = await getDb()
+    .select({ count: sql<number>`count(*)::int` })
+    .from(schema.products)
+    .where(eq(schema.products.umkm_id, umkmId));
+
+  if (count < 2) {
+    return {
+      success: false,
+      message: 'Syarat verifikasi belum terpenuhi: Toko wajib memiliki minimal 2 produk aktif di etalase.',
+    };
+  }
+
+  if (!store.address || store.address.trim().length < 5) {
+    return {
+      success: false,
+      message: 'Syarat verifikasi belum terpenuhi: Lengkapi alamat jelas lokasi toko atau tempat produksi.',
+    };
+  }
+
+  const now = new Date();
+  await getDb()
+    .update(schema.umkm)
+    .set({
+      verification_status: 'submitted',
+      verification_submitted_at: now,
+      verification_note: null,
+    })
+    .where(eq(schema.umkm.id, umkmId));
+
+  invalidateCatalogCaches();
+  return {
+    success: true,
+    message: 'Pengajuan verifikasi berhasil dikirim! Pengurus MWC NU akan meninjau kelayakan toko Anda.',
+  };
 }
 
 export async function deleteUMKM(umkmId: number, options?: { actorUserId?: number }): Promise<boolean> {
@@ -489,6 +635,12 @@ export async function updateUMKMProfile(
     pirt?: string;
     bpom?: string;
     otherLegalities?: string;
+    orderModes?: string;
+    dailyCapacity?: string;
+    orderLeadTimeDays?: number;
+    deliveryCoverage?: string;
+    maxBulkOrder?: number;
+    shelfLifeNotes?: string;
   }
 ): Promise<boolean> {
   const [existing] = await getDb()
@@ -513,6 +665,12 @@ export async function updateUMKMProfile(
   if (data.pirt !== undefined) updateFields.pirt = data.pirt || null;
   if (data.bpom !== undefined) updateFields.bpom = data.bpom || null;
   if (data.otherLegalities !== undefined) updateFields.other_legalities = data.otherLegalities || null;
+  if (data.orderModes !== undefined) updateFields.order_modes = data.orderModes || 'ready_stock';
+  if (data.dailyCapacity !== undefined) updateFields.daily_capacity = data.dailyCapacity || null;
+  if (data.orderLeadTimeDays !== undefined) updateFields.order_lead_time_days = data.orderLeadTimeDays;
+  if (data.deliveryCoverage !== undefined) updateFields.delivery_coverage = data.deliveryCoverage || 'local_village';
+  if (data.maxBulkOrder !== undefined) updateFields.max_bulk_order = data.maxBulkOrder;
+  if (data.shelfLifeNotes !== undefined) updateFields.shelf_life_notes = data.shelfLifeNotes || null;
 
   await getDb()
     .update(schema.umkm)

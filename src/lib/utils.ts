@@ -73,6 +73,9 @@ export function createProductWhatsAppUrl(params: {
   price: number;
   zoneName?: string;
   productUrl?: string;
+  orderLeadTimeDays?: number;
+  minOrder?: number;
+  stockStatus?: string;
 }): string {
   const cleanPhone = formatPhoneForWhatsApp(params.phone);
   const formattedPrice = formatRupiah(params.price);
@@ -83,11 +86,20 @@ export function createProductWhatsAppUrl(params: {
     message += `\n📍 *Wilayah:* ${params.zoneName}`;
   }
 
+  if (params.stockStatus === 'po' || (params.orderLeadTimeDays !== undefined && params.orderLeadTimeDays > 0)) {
+    const days = params.orderLeadTimeDays || 1;
+    message += `\n⏱️ *Estimasi PO:* H-${days}`;
+  }
+
+  if (params.minOrder && params.minOrder > 1) {
+    message += `\n🛒 *Minimal Pesan:* ${params.minOrder} pcs/porsi`;
+  }
+
   if (params.productUrl) {
     message += `\n🔗 *Link:* ${params.productUrl}`;
   }
 
-  message += `\n\nApakah barang ini masih tersedia? Terima kasih.`;
+  message += `\n\nApakah barang ini bisa dipesan? Terima kasih.`;
 
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }
@@ -115,6 +127,34 @@ export function getOptimizedImageUrl(url: string, width: number): string {
   } catch {
     return url;
   }
+}
+
+/**
+ * Detects marketplace platform from URL and returns appropriate name, CTA label, and styling.
+ * Supports Shopee, Tokopedia, TikTok Shop, Lazada, Blibli, Bukalapak, or general online store.
+ */
+export function getMarketplaceInfo(url?: string | null): { name: string; label: string; bgClass: string } | null {
+  if (!url) return null;
+  const lower = url.toLowerCase();
+  if (lower.includes('shopee') || lower.includes('shp.ee')) {
+    return { name: 'Shopee', label: 'Beli di Shopee', bgClass: 'bg-[#ee4d2d] hover:bg-[#d73211] text-white' };
+  }
+  if (lower.includes('tokopedia') || lower.includes('tokopedia.link')) {
+    return { name: 'Tokopedia', label: 'Beli di Tokopedia', bgClass: 'bg-[#03ac0e] hover:bg-[#028a0b] text-white' };
+  }
+  if (lower.includes('tiktok.com')) {
+    return { name: 'TikTok Shop', label: 'Beli di TikTok Shop', bgClass: 'bg-slate-900 hover:bg-black text-white' };
+  }
+  if (lower.includes('lazada')) {
+    return { name: 'Lazada', label: 'Beli di Lazada', bgClass: 'bg-[#0f146d] hover:bg-[#0a0d4c] text-white' };
+  }
+  if (lower.includes('blibli')) {
+    return { name: 'Blibli', label: 'Beli di Blibli', bgClass: 'bg-[#0095da] hover:bg-[#007bb5] text-white' };
+  }
+  if (lower.includes('bukalapak')) {
+    return { name: 'Bukalapak', label: 'Beli di Bukalapak', bgClass: 'bg-[#e31f51] hover:bg-[#b81841] text-white' };
+  }
+  return { name: 'Toko Online', label: 'Buka Toko Online', bgClass: 'bg-slate-800 hover:bg-slate-900 text-white' };
 }
 
 /**

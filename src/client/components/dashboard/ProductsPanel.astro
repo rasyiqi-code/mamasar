@@ -19,6 +19,11 @@ interface Product {
   shopee_url?: string;
   is_featured?: number | null;
   featured_until?: string | null;
+  order_lead_time_days?: number | null;
+  min_order?: number | null;
+  max_order?: number | null;
+  delivery_coverage?: string | null;
+  shelf_life_notes?: string | null;
 }
 
 interface Props {
@@ -195,6 +200,11 @@ const promoStatusBadge: Record<string, { label: string; cls: string }> = {
               data-shopee={prod.shopee_url || ''}
               data-stock-status={prod.stock_status || (prod.is_sold_out ? 'sold_out' : 'ready')}
               data-capacity={prod.production_capacity || ''}
+              data-lead-time={prod.order_lead_time_days ?? 0}
+              data-min-order={prod.min_order ?? 1}
+              data-max-order={prod.max_order || ''}
+              data-delivery-coverage={prod.delivery_coverage || 'all_sumenep'}
+              data-shelf-life={prod.shelf_life_notes || ''}
               class="min-h-[44px] sm:min-h-[40px] px-3 py-1 bg-white hover:bg-slate-100 text-slate-700 font-medium text-xs rounded-lg border border-slate-200 transition cursor-pointer inline-flex items-center justify-center"
             >
               Edit

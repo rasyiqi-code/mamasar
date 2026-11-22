@@ -115,7 +115,7 @@ if (!userStore) {
               </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div class="space-y-1.5">
                 <label for="price" class="block text-xs font-bold text-slate-700">
                   Harga (Rp) <span class="text-rose-600">*</span>
@@ -152,19 +152,6 @@ if (!userStore) {
                   />
                 </div>
               </div>
-
-              <div class="space-y-1.5">
-                <label for="shopeeUrl" class="block text-xs font-bold text-slate-700">
-                  Link Toko Online (Opsional)
-                </label>
-                <input
-                  type="url"
-                  id="shopeeUrl"
-                  name="shopeeUrl"
-                  placeholder="https://shopee.co.id/..."
-                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
-                />
-              </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -178,21 +165,116 @@ if (!userStore) {
                   required
                   class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 cursor-pointer transition"
                 >
-                  <option value="ready" selected>Ready Stock</option>
-                  <option value="po">Pre-Order</option>
+                  <option value="ready" selected>Ready Stock (Tersedia)</option>
+                  <option value="po">Pre-Order (PO)</option>
                   <option value="sold_out">Habis</option>
                 </select>
               </div>
 
               <div class="space-y-1.5">
+                <label for="orderLeadTimeDays" class="block text-xs font-bold text-slate-700">
+                  Waktu Persiapan / Pengerjaan
+                </label>
+                <select
+                  id="orderLeadTimeDays"
+                  name="orderLeadTimeDays"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 cursor-pointer transition"
+                >
+                  <option value="0" selected>Langsung Siap / Same-day</option>
+                  <option value="1">PO H-1 (Siap 1 Hari)</option>
+                  <option value="2">PO H-2 (Siap 2 Hari)</option>
+                  <option value="3">PO H-3 (Siap 3 Hari)</option>
+                  <option value="7">PO H-7 (Siap 1 Minggu)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label for="minOrder" class="block text-xs font-bold text-slate-700">
+                  Minimal Pesanan
+                </label>
+                <input
+                  type="number"
+                  id="minOrder"
+                  name="minOrder"
+                  min="1"
+                  value="1"
+                  placeholder="1"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+                />
+              </div>
+
+              <div class="space-y-1.5">
+                <label for="maxOrder" class="block text-xs font-bold text-slate-700">
+                  Maksimal Pesanan (Opsional)
+                </label>
+                <input
+                  type="number"
+                  id="maxOrder"
+                  name="maxOrder"
+                  min="1"
+                  placeholder="Contoh: 300"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
                 <label for="productionCapacity" class="block text-xs font-bold text-slate-700">
-                  Kapasitas / Estimasi (Opsional)
+                  Kapasitas Produksi (Opsional)
                 </label>
                 <input
                   type="text"
                   id="productionCapacity"
                   name="productionCapacity"
-                  placeholder="Contoh: 50 bungkus/hari atau PO 2 hari"
+                  placeholder="Contoh: 50 bungkus/hari"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+                />
+              </div>
+
+              <div class="space-y-1.5">
+                <label for="shelfLifeNotes" class="block text-xs font-bold text-slate-700">
+                  Ketahanan Produk (Khusus Makanan / Basah)
+                </label>
+                <input
+                  type="text"
+                  id="shelfLifeNotes"
+                  name="shelfLifeNotes"
+                  placeholder="Contoh: 2 hari suhu ruang, 1 bulan freezer"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1.5">
+                <label for="deliveryCoverage" class="block text-xs font-bold text-slate-700">
+                  Jangkauan Pengiriman
+                </label>
+                <select
+                  id="deliveryCoverage"
+                  name="deliveryCoverage"
+                  class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 cursor-pointer transition"
+                >
+                  <option value="all_sumenep" selected>Seluruh Sumenep (COD / Ekspedisi)</option>
+                  <option value="pickup_only">Ambil di Tempat Saja (Pickup)</option>
+                  <option value="local_village">Sekitar Desa / Kelurahan Terdekat</option>
+                  <option value="mwc_wide">Satu Wilayah MWC NU (Kecamatan)</option>
+                  <option value="island_delivery">Aman Kirim ke Kepulauan (Tahan Kapal)</option>
+                </select>
+              </div>
+
+              <div class="space-y-1.5">
+                <label for="shopeeUrl" class="block text-xs font-bold text-slate-700">
+                  Link Toko Online / Marketplace (Opsional)
+                </label>
+                <input
+                  type="url"
+                  id="shopeeUrl"
+                  name="shopeeUrl"
+                  placeholder="Shopee, Tokopedia, TikTok Shop, Web, dll..."
                   class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
                 />
               </div>
@@ -292,7 +374,7 @@ if (!userStore) {
         <aside
           id="sidebar-drawer"
           aria-label="Pratinjau dan Bantuan"
-          class="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md bg-white p-5 shadow-2xl overflow-y-auto transition-transform duration-300 ease-in-out translate-x-full lg:translate-x-0 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:p-0 lg:shadow-none lg:overflow-visible lg:col-span-4 lg:space-y-6 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20"
+          class="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md bg-white p-5 shadow-2xl overflow-y-auto transition-transform duration-300 ease-in-out translate-x-full lg:translate-x-0 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:p-0 lg:shadow-none lg:overflow-visible lg:col-span-4 lg:space-y-6 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20 lg:bg-transparent"
         >
           {/* Mobile Drawer Header with Close Button (Hidden on Desktop) */}
           <div class="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-200 lg:hidden">
@@ -573,24 +655,32 @@ if (!userStore) {
       }
 
       const filesToProcess = Array.from(files).slice(0, remainingSlots);
+      if (btnSubmitProduct) {
+        btnSubmitProduct.disabled = true;
+      }
       if (compressStatusEl) {
         compressStatusEl.textContent = `Mengompres ${filesToProcess.length} foto otomatis...`;
         compressStatusEl.classList.remove('hidden');
       }
 
-      for (const file of filesToProcess) {
-        try {
-          const dataUrl = await compressFileToDataUrl(file);
-          if (photos.length < 4) {
-            photos.push(dataUrl);
+      try {
+        for (const file of filesToProcess) {
+          try {
+            const dataUrl = await compressFileToDataUrl(file);
+            if (photos.length < 4) {
+              photos.push(dataUrl);
+            }
+          } catch (err) {
+            console.error('Failed to compress image:', err);
           }
-        } catch (err) {
-          console.error('Failed to compress image:', err);
         }
+      } finally {
+        if (compressStatusEl) compressStatusEl.classList.add('hidden');
+        if (btnSubmitProduct) {
+          btnSubmitProduct.disabled = false;
+        }
+        syncHiddenInputs();
       }
-
-      if (compressStatusEl) compressStatusEl.classList.add('hidden');
-      syncHiddenInputs();
     }
 
     imageInput?.addEventListener('change', () => {
@@ -604,7 +694,21 @@ if (!userStore) {
     });
 
     const DRAFT_KEY = 'mamasar_ad_draft';
-    const draftFields = ['productName', 'category', 'price', 'originalPrice', 'shopeeUrl', 'stockStatus', 'productionCapacity', 'description'];
+    const draftFields = [
+      'productName',
+      'category',
+      'price',
+      'originalPrice',
+      'shopeeUrl',
+      'stockStatus',
+      'orderLeadTimeDays',
+      'productionCapacity',
+      'minOrder',
+      'maxOrder',
+      'deliveryCoverage',
+      'shelfLifeNotes',
+      'description',
+    ];
 
     function saveAdDraft() {
       try {
@@ -670,7 +774,8 @@ if (!userStore) {
 
       if (previewStockBadge) {
         if (stockVal === 'po') {
-          previewStockBadge.textContent = 'Pre-Order';
+          const leadDays = (document.getElementById('orderLeadTimeDays') as HTMLSelectElement | null)?.value;
+          previewStockBadge.textContent = leadDays && leadDays !== '0' ? `PO H-${leadDays}` : 'Pre-Order';
           previewStockBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500 text-white shadow-sm';
         } else if (stockVal === 'sold_out') {
           previewStockBadge.textContent = 'Habis';
@@ -717,6 +822,33 @@ if (!userStore) {
 
     restoreAdDraft();
     updatePreview();
+
+    const stockStatusSelect = document.getElementById('stockStatus') as HTMLSelectElement | null;
+    const orderLeadTimeSelect = document.getElementById('orderLeadTimeDays') as HTMLSelectElement | null;
+
+    stockStatusSelect?.addEventListener('change', () => {
+      if (!orderLeadTimeSelect) return;
+      if (stockStatusSelect.value === 'po' && orderLeadTimeSelect.value === '0') {
+        orderLeadTimeSelect.value = '1';
+      } else if (stockStatusSelect.value === 'ready' && orderLeadTimeSelect.value !== '0') {
+        orderLeadTimeSelect.value = '0';
+      }
+      saveAdDraft();
+      updatePreview();
+    });
+
+    orderLeadTimeSelect?.addEventListener('change', () => {
+      if (!stockStatusSelect) return;
+      const days = Number(orderLeadTimeSelect.value);
+      if (days > 0 && stockStatusSelect.value === 'ready') {
+        stockStatusSelect.value = 'po';
+      } else if (days === 0 && stockStatusSelect.value === 'po') {
+        stockStatusSelect.value = 'ready';
+      }
+      saveAdDraft();
+      updatePreview();
+    });
+
     for (const id of draftFields) {
       document.getElementById(id)?.addEventListener('input', () => {
         saveAdDraft();
@@ -731,6 +863,7 @@ if (!userStore) {
     // Submit Iklan Produk
     productForm?.addEventListener('submit', async (e) => {
       e.preventDefault();
+      syncHiddenInputs();
 
       if (btnSubmitProduct) {
         btnSubmitProduct.disabled = true;

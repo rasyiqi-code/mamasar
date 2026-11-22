@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   formatPhoneForWhatsApp,
   getImageSrcSet,
+  getMarketplaceInfo,
   getOptimizedImageUrl,
   isValidIndonesianPhone,
   slugify,
@@ -42,6 +43,39 @@ describe('utils: phone, slug, and ImageKit transformations', () => {
     assert.equal(getOptimizedImageUrl('/uploads/local.jpg', 400), '/uploads/local.jpg');
     assert.equal(getImageSrcSet('/uploads/local.jpg'), undefined);
   });
+
+  it('detects diverse marketplaces and external store links correctly', () => {
+    // Shopee
+    const shopee = getMarketplaceInfo('https://shopee.co.id/product/123/456');
+    assert.equal(shopee?.name, 'Shopee');
+    assert.equal(shopee?.label, 'Beli di Shopee');
+    assert.ok(shopee?.bgClass.includes('#ee4d2d'));
+
+    // Tokopedia
+    const tokopedia = getMarketplaceInfo('https://www.tokopedia.com/toko-nu/rengginang');
+    assert.equal(tokopedia?.name, 'Tokopedia');
+    assert.equal(tokopedia?.label, 'Beli di Tokopedia');
+    assert.ok(tokopedia?.bgClass.includes('#03ac0e'));
+
+    // TikTok Shop
+    const tiktok = getMarketplaceInfo('https://www.tiktok.com/@toko.nu/video/123');
+    assert.equal(tiktok?.name, 'TikTok Shop');
+    assert.equal(tiktok?.label, 'Beli di TikTok Shop');
+
+    // Lazada
+    const lazada = getMarketplaceInfo('https://www.lazada.co.id/products/item.html');
+    assert.equal(lazada?.name, 'Lazada');
+    assert.equal(lazada?.label, 'Beli di Lazada');
+
+    // General Web / Instagram / Linktree
+    const generic = getMarketplaceInfo('https://toko-madura.com/produk');
+    assert.equal(generic?.name, 'Toko Online');
+    assert.equal(generic?.label, 'Buka Toko Online');
+
+    // Empty URL
+    assert.equal(getMarketplaceInfo(''), null);
+    assert.equal(getMarketplaceInfo(undefined), null);
+  });
 });
 
 describe('storage: magic-byte detection and size validation', () => {
@@ -72,5 +106,44 @@ describe('storage: magic-byte detection and size validation', () => {
       () => extractAndValidateImage({ imageBase64: fakeBase64 }),
       (err) => err instanceof InvalidUploadError && err.message.includes('Format gambar tidak valid')
     );
+  });
+
+  it('correctly handles gallery images JSON parsing and array representation', async () => {
+    const { toProduct } = await import('../src/lib/modules/products.ts');
+
+    const mockRow: any = {
+      id: 1,
+      umkm_id: 1,
+      umkm_name: 'Toko NU',
+      umkm_phone: '081234567890',
+      zone_id: 1,
+      zone_name: 'Kota Sumenep',
+      zone_slug: 'kota-sumenep',
+      name: 'Produk Uji Multi-Foto',
+      slug: 'produk-uji-multi-foto',
+      price: 15000,
+      category: 'Makanan & Minuman',
+      image_url: 'https://ik.imagekit.io/mamasar/products/main.jpg',
+      gallery_images: JSON.stringify([
+        'https://ik.imagekit.io/mamasar/products/foto2.jpg',
+        'https://ik.imagekit.io/mamasar/products/foto3.jpg',
+      ]),
+      created_at: new Date(),
+    };
+
+    const prod = toProduct(mockRow);
+    assert.ok(Array.isArray(prod.gallery_images));
+    assert.equal(prod.gallery_images.length, 2);
+    assert.equal(prod.gallery_images[0], 'https://ik.imagekit.io/mamasar/products/foto2.jpg');
+    assert.equal(prod.gallery_images[1], 'https://ik.imagekit.io/mamasar/products/foto3.jpg');
+
+    // Total photos should be 1 (main) + 2 (gallery) = 3
+    const totalPhotos = 1 + (Array.isArray(prod.gallery_images) ? prod.gallery_images.length : 0);
+    assert.equal(totalPhotos, 3);
+
+    // Empty or null gallery
+    const prodEmpty = toProduct({ ...mockRow, gallery_images: null });
+    assert.ok(Array.isArray(prodEmpty.gallery_images));
+    assert.equal(prodEmpty.gallery_images.length, 0);
   });
 });

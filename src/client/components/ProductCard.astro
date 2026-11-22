@@ -54,6 +54,7 @@ const hasDiscount = Boolean(product.original_price && product.original_price > p
 const isFeatured =
   Boolean(product.is_featured) &&
   (!product.featured_until || new Date(product.featured_until) > new Date());
+const isTier2Store = Number(product.is_verified) === 2;
 const isVerifiedStore = Boolean(product.is_verified);
 
 function formatRelativeDate(isoDate?: string): string {
@@ -186,11 +187,11 @@ const storeInitials =
           )}
           {(isVerifiedStore || isFeatured) && (
             <span
-              class="absolute -bottom-0.5 -right-0.5 bg-emerald-700 text-white w-4 h-4 rounded-full ring-2 ring-white shadow-xs flex items-center justify-center"
-              title={isVerifiedStore ? 'Toko Terverifikasi MWC NU' : 'Unggulan'}
-              aria-label={isVerifiedStore ? 'Terverifikasi' : 'Unggulan'}
+              class={`absolute -bottom-0.5 -right-0.5 text-white w-4 h-4 rounded-full ring-2 ring-white shadow-xs flex items-center justify-center text-[10px] ${isTier2Store ? 'bg-amber-500' : 'bg-emerald-700'}`}
+              title={isTier2Store ? 'Mitra Resmi Konsumsi Acara NU & Berizin' : isVerifiedStore ? 'Toko Terverifikasi MWC NU' : 'Unggulan'}
+              aria-label={isTier2Store ? 'Mitra Resmi' : isVerifiedStore ? 'Terverifikasi' : 'Unggulan'}
             >
-              <AppIcon name={isVerifiedStore ? 'check' : 'star'} size="xs" class="w-2.5 h-2.5" />
+              {isTier2Store ? '⭐' : <AppIcon name={isVerifiedStore ? 'check' : 'star'} size="xs" class="w-2.5 h-2.5" />}
             </span>
           )}
         </a>
@@ -262,7 +263,11 @@ const storeInitials =
             class="inline-flex items-center gap-1 truncate hover:text-emerald-700 hover:underline min-w-0"
             title={`Toko ${product.umkm_name}`}
           >
-            {isVerifiedStore && <AppIcon name="verified" size="xs" class="text-emerald-700 shrink-0" />}
+            {isTier2Store ? (
+              <span class="text-amber-500 shrink-0 text-xs" title="Mitra Resmi Konsumsi Acara NU & Berizin">⭐</span>
+            ) : isVerifiedStore ? (
+              <AppIcon name="verified" size="xs" class="text-emerald-700 shrink-0" />
+            ) : null}
             <span class="truncate">{product.umkm_name}</span>
           </a>
           <a
@@ -290,11 +295,15 @@ const storeInitials =
               <AppIcon name="store" size="xs" class="text-slate-400 shrink-0" />
               <span class="truncate">{product.umkm_name}</span>
             </a>
-            {isVerifiedStore && (
+            {isTier2Store ? (
+              <span class="text-amber-600 shrink-0 inline-flex items-center gap-0.5 text-xs font-bold" title="Mitra Resmi Konsumsi Acara NU & Berizin">
+                ⭐
+              </span>
+            ) : isVerifiedStore ? (
               <span class="text-emerald-700 shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold" title="Toko Terverifikasi MWC NU">
                 <AppIcon name="verified" size="xs" />
               </span>
-            )}
+            ) : null}
           </div>
         </>
       )}

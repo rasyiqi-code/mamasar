@@ -517,7 +517,202 @@ export function initAdminClient() {
   }
   initAdminUserManagement();
 
-  // Handle Verify Store
+  // Handle Evaluate & Verify Store Modal
+  const evalModal = document.getElementById('modal-evaluate-store') as HTMLElement | null;
+  const evalForm = document.getElementById('form-evaluate-store') as HTMLFormElement | null;
+  const btnCloseEval = document.getElementById('btn-close-evaluate-modal');
+  const btnEvalApprove = document.getElementById('btn-eval-approve') as HTMLButtonElement | null;
+  const btnEvalReject = document.getElementById('btn-eval-reject') as HTMLButtonElement | null;
+  const btnEvalRevoke = document.getElementById('btn-eval-revoke') as HTMLButtonElement | null;
+
+  function closeEvalModal() {
+    if (evalModal) evalModal.classList.add('hidden');
+  }
+
+  btnCloseEval?.addEventListener('click', closeEvalModal);
+  evalModal?.addEventListener('click', (e) => {
+    if (e.target === evalModal) closeEvalModal();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-action="open-evaluate-store"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const storeJson = btn.dataset.store;
+      if (!storeJson || !evalModal) return;
+
+      try {
+        const store = JSON.parse(storeJson);
+        const storeIdInput = document.getElementById('eval-store-id') as HTMLInputElement | null;
+        if (storeIdInput) storeIdInput.value = String(store.id);
+
+        const nameEl = document.getElementById('eval-store-name');
+        if (nameEl) nameEl.textContent = store.name;
+
+        const initialsEl = document.getElementById('eval-store-initials');
+        if (initialsEl) initialsEl.textContent = (store.name || 'UM').slice(0, 2).toUpperCase();
+
+        const badgeEl = document.getElementById('eval-store-status-badge');
+        if (badgeEl) {
+          if (Number(store.is_verified) === 2) {
+            badgeEl.textContent = '⭐ Tier 2: Mitra Resmi';
+            badgeEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-300';
+          } else if (Number(store.is_verified) === 1) {
+            badgeEl.textContent = '✓ Tier 1: Terverifikasi MWC';
+            badgeEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300';
+          } else if (store.verification_status === 'submitted') {
+            badgeEl.textContent = 'Menunggu Peninjauan';
+            badgeEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-sky-100 text-sky-900 border border-sky-300';
+          } else {
+            badgeEl.textContent = 'Belum Verifikasi';
+            badgeEl.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-300';
+          }
+        }
+
+        const zoneEl = document.getElementById('eval-store-zone');
+        if (zoneEl) zoneEl.textContent = `MWC ${store.zone_name}`;
+
+        const rantingEl = document.getElementById('eval-store-ranting');
+        if (rantingEl) rantingEl.textContent = store.ranting ? `Desa ${store.ranting}` : 'Desa belum diisi';
+
+        const productsEl = document.getElementById('eval-store-products');
+        if (productsEl) productsEl.textContent = `${store.product_count || 0} produk aktif`;
+
+        const ownerEl = document.getElementById('eval-owner');
+        if (ownerEl) {
+          ownerEl.textContent = store.owner_name
+            ? `${store.owner_name} (${store.owner_email || ''})`
+            : (store.owner_email || 'Data awal (Belum terhubung akun)');
+        }
+
+        const phoneEl = document.getElementById('eval-phone');
+        if (phoneEl) phoneEl.textContent = store.phone || '-';
+
+        const waLink = document.getElementById('eval-wa-link') as HTMLAnchorElement | null;
+        if (waLink) {
+          const rawPhone = (store.phone || '').replace(/[^0-9]/g, '');
+          const cleanPhone = rawPhone.startsWith('0') ? '62' + rawPhone.slice(1) : rawPhone;
+          waLink.href = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(`Assalamu'alaikum, kami dari Pengurus MWC NU mengonfirmasi toko "${store.name}" di Mamasar.`)}`;
+        }
+
+        const addrEl = document.getElementById('eval-address');
+        if (addrEl) addrEl.textContent = store.address || 'Alamat belum diisi lengkap oleh pemilik toko.';
+
+        // Kesiapan Acara NU & Partai Besar
+        const isBulk = (store.order_modes || '').includes('bulk_catering');
+        const modesEl = document.getElementById('eval-order-modes');
+        if (modesEl) {
+          modesEl.textContent = isBulk ? '✓ Sanggup Katering / Acara NU' : 'Belum / Tidak Menerima';
+          modesEl.className = isBulk ? 'font-bold text-emerald-800' : 'font-medium text-slate-600';
+        }
+
+        const bulkEl = document.getElementById('eval-max-bulk');
+        if (bulkEl) {
+          bulkEl.textContent = store.max_bulk_order ? `Hingga ${store.max_bulk_order} porsi/kotak` : 'Belum ditentukan';
+        }
+
+        // Legalities
+        const nibEl = document.getElementById('eval-nib');
+        if (nibEl) nibEl.textContent = store.nib || 'Tidak Ada';
+
+        const halalEl = document.getElementById('eval-halal');
+        if (halalEl) halalEl.textContent = store.halal_cert || 'Tidak Ada';
+
+        const pirtEl = document.getElementById('eval-pirt');
+        if (pirtEl) pirtEl.textContent = store.pirt || 'Tidak Ada';
+
+        const bpomEl = document.getElementById('eval-bpom');
+        if (bpomEl) bpomEl.textContent = store.bpom || 'Tidak Ada';
+
+        // Suggest Tier 2 if legalities + bulk readiness are present
+        const hasLegality = Boolean(store.nib || store.halal_cert || store.pirt || store.bpom);
+        const hasBulkReadiness = Boolean(isBulk || store.max_bulk_order);
+        const radioTier1 = evalForm?.querySelector<HTMLInputElement>('input[name="tier"][value="1"]');
+        const radioTier2 = evalForm?.querySelector<HTMLInputElement>('input[name="tier"][value="2"]');
+
+        if (Number(store.is_verified) === 2) {
+          if (radioTier2) radioTier2.checked = true;
+        } else if (Number(store.is_verified) === 1) {
+          if (radioTier1) radioTier1.checked = true;
+        } else if (hasLegality && hasBulkReadiness) {
+          if (radioTier2) radioTier2.checked = true;
+        } else {
+          if (radioTier1) radioTier1.checked = true;
+        }
+
+        const noteInput = document.getElementById('eval-note') as HTMLTextAreaElement | null;
+        if (noteInput) noteInput.value = store.verification_note || '';
+
+        // Revoke button visibility
+        if (btnEvalRevoke) {
+          if (Number(store.is_verified) > 0) {
+            btnEvalRevoke.classList.remove('hidden');
+          } else {
+            btnEvalRevoke.classList.add('hidden');
+          }
+        }
+
+        evalModal.classList.remove('hidden');
+      } catch (err: any) {
+        notify('Gagal membaca data evaluasi toko: ' + err.message, true);
+      }
+    });
+  });
+
+  async function submitEvaluation(verified: boolean, notePromptIfEmpty = false) {
+    if (!evalForm) return;
+    const storeIdInput = document.getElementById('eval-store-id') as HTMLInputElement | null;
+    const umkmId = storeIdInput?.value;
+    if (!umkmId) return;
+
+    const tierInput = evalForm.querySelector<HTMLInputElement>('input[name="tier"]:checked');
+    const tier = tierInput?.value || '1';
+    const noteInput = document.getElementById('eval-note') as HTMLTextAreaElement | null;
+    const note = noteInput?.value.trim() || '';
+
+    if (notePromptIfEmpty && !note) {
+      alert('Harap tuliskan catatan alasan perbaikan atau kendala agar pemilik toko dapat memperbaiki datanya.');
+      noteInput?.focus();
+      return;
+    }
+
+    const form = new FormData();
+    form.set('umkmId', umkmId);
+    form.set('verified', verified ? '1' : '0');
+    form.set('tier', tier);
+    if (note) form.set('note', note);
+
+    if (btnEvalApprove) btnEvalApprove.disabled = true;
+    if (btnEvalReject) btnEvalReject.disabled = true;
+    if (btnEvalRevoke) btnEvalRevoke.disabled = true;
+
+    try {
+      const res = await fetch('/api/umkm/verify', { method: 'POST', body: form });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        notify('✅ ' + (data.message || 'Status verifikasi berhasil diperbarui!'));
+        setTimeout(() => window.location.reload(), 900);
+      } else {
+        notify(data.message || 'Gagal menyimpan evaluasi verifikasi.', true);
+        if (btnEvalApprove) btnEvalApprove.disabled = false;
+        if (btnEvalReject) btnEvalReject.disabled = false;
+        if (btnEvalRevoke) btnEvalRevoke.disabled = false;
+      }
+    } catch (err: any) {
+      notify('Kendala server: ' + err.message, true);
+      if (btnEvalApprove) btnEvalApprove.disabled = false;
+      if (btnEvalReject) btnEvalReject.disabled = false;
+      if (btnEvalRevoke) btnEvalRevoke.disabled = false;
+    }
+  }
+
+  btnEvalApprove?.addEventListener('click', () => submitEvaluation(true, false));
+  btnEvalReject?.addEventListener('click', () => submitEvaluation(false, true));
+  btnEvalRevoke?.addEventListener('click', () => {
+    if (confirm('Yakin ingin mencabut status verifikasi toko ini? Lencana akan dinonaktifkan dari katalog publik.')) {
+      submitEvaluation(false, false);
+    }
+  });
+
+  // Handle Legacy Quick Verify Store (Fallback)
   document.querySelectorAll<HTMLButtonElement>('[data-action="verify-store"]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const umkmId = btn.dataset.id;

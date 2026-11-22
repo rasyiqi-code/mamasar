@@ -83,11 +83,20 @@ export function toProduct(row: ProductRow): Product {
     is_sold_out: row.is_sold_out ?? 0,
     stock_status: row.stock_status ?? 'ready',
     production_capacity: row.production_capacity ?? undefined,
+    order_lead_time_days: row.order_lead_time_days ?? 0,
+    min_order: row.min_order ?? 1,
+    max_order: row.max_order ?? undefined,
+    delivery_coverage: row.delivery_coverage ?? 'all_sumenep',
+    shelf_life_notes: row.shelf_life_notes ?? undefined,
     is_featured: row.is_featured ?? 0,
     featured_until: row.featured_until ? row.featured_until.toISOString() : undefined,
     bumped_at: row.bumped_at ? row.bumped_at.toISOString() : undefined,
     shopee_url: row.shopee_url ?? undefined,
-    created_at: row.created_at!.toISOString(),
+    created_at: row.created_at
+      ? typeof row.created_at === 'string'
+        ? row.created_at
+        : row.created_at.toISOString()
+      : new Date().toISOString(),
   };
 }
 
@@ -264,6 +273,11 @@ export async function createUMKMAndProduct(data: {
   shopeeUrl?: string;
   stockStatus?: string;
   productionCapacity?: string;
+  orderLeadTimeDays?: number;
+  minOrder?: number;
+  maxOrder?: number;
+  deliveryCoverage?: string;
+  shelfLifeNotes?: string;
   isSoldOut?: number;
   createdByUserId?: number;
 }): Promise<{ umkmId: number; productId: number; slug: string }> {
@@ -311,11 +325,18 @@ export async function createUMKMAndProduct(data: {
         original_price: data.originalPrice || null,
         category: data.category,
         image_url: data.imageUrl,
-        gallery_images: data.galleryImages ? (typeof data.galleryImages === 'string' ? data.galleryImages : JSON.stringify(data.galleryImages)) : null,
+        gallery_images: data.galleryImages && (!Array.isArray(data.galleryImages) || data.galleryImages.length > 0)
+          ? (typeof data.galleryImages === 'string' ? data.galleryImages : JSON.stringify(data.galleryImages))
+          : null,
         description: data.description || `${data.productName} dari ${data.umkmName}, Sumenep.`,
         shopee_url: data.shopeeUrl || null,
         stock_status: data.stockStatus || 'ready',
         production_capacity: data.productionCapacity || null,
+        order_lead_time_days: data.orderLeadTimeDays !== undefined ? data.orderLeadTimeDays : 0,
+        min_order: data.minOrder !== undefined ? data.minOrder : 1,
+        max_order: data.maxOrder || null,
+        delivery_coverage: data.deliveryCoverage || 'all_sumenep',
+        shelf_life_notes: data.shelfLifeNotes || null,
         is_sold_out: data.isSoldOut !== undefined ? data.isSoldOut : (data.stockStatus === 'sold_out' ? 1 : 0),
       })
       .returning({ id: schema.products.id });
@@ -465,6 +486,11 @@ export async function addProductToUMKM(
     shopeeUrl?: string;
     stockStatus?: string;
     productionCapacity?: string;
+    orderLeadTimeDays?: number;
+    minOrder?: number;
+    maxOrder?: number;
+    deliveryCoverage?: string;
+    shelfLifeNotes?: string;
     isSoldOut?: number;
   }
 ): Promise<{ productId: number; slug: string }> {
@@ -485,11 +511,18 @@ export async function addProductToUMKM(
       original_price: data.originalPrice || null,
       category: data.category,
       image_url: data.imageUrl,
-      gallery_images: data.galleryImages ? (typeof data.galleryImages === 'string' ? data.galleryImages : JSON.stringify(data.galleryImages)) : null,
+      gallery_images: data.galleryImages && (!Array.isArray(data.galleryImages) || data.galleryImages.length > 0)
+        ? (typeof data.galleryImages === 'string' ? data.galleryImages : JSON.stringify(data.galleryImages))
+        : null,
       description: data.description || `${data.name} dari ${storeName}, Sumenep.`,
       shopee_url: data.shopeeUrl || null,
       stock_status: data.stockStatus || 'ready',
       production_capacity: data.productionCapacity || null,
+      order_lead_time_days: data.orderLeadTimeDays !== undefined ? data.orderLeadTimeDays : 0,
+      min_order: data.minOrder !== undefined ? data.minOrder : 1,
+      max_order: data.maxOrder || null,
+      delivery_coverage: data.deliveryCoverage || 'all_sumenep',
+      shelf_life_notes: data.shelfLifeNotes || null,
       is_sold_out: data.isSoldOut !== undefined ? data.isSoldOut : (data.stockStatus === 'sold_out' ? 1 : 0),
       bumped_at: new Date(),
     })
@@ -516,6 +549,11 @@ export async function updateProduct(
     shopeeUrl?: string;
     stockStatus?: string;
     productionCapacity?: string;
+    orderLeadTimeDays?: number;
+    minOrder?: number;
+    maxOrder?: number;
+    deliveryCoverage?: string;
+    shelfLifeNotes?: string;
     isSoldOut?: number;
   }
 ): Promise<boolean> {
@@ -539,7 +577,7 @@ export async function updateProduct(
   }
 
   if (data.galleryImages !== undefined) {
-    updateFields.gallery_images = data.galleryImages
+    updateFields.gallery_images = data.galleryImages && (!Array.isArray(data.galleryImages) || data.galleryImages.length > 0)
       ? typeof data.galleryImages === 'string'
         ? data.galleryImages
         : JSON.stringify(data.galleryImages)
@@ -557,6 +595,26 @@ export async function updateProduct(
 
   if (data.productionCapacity !== undefined) {
     updateFields.production_capacity = data.productionCapacity || null;
+  }
+
+  if (data.orderLeadTimeDays !== undefined) {
+    updateFields.order_lead_time_days = data.orderLeadTimeDays;
+  }
+
+  if (data.minOrder !== undefined) {
+    updateFields.min_order = data.minOrder;
+  }
+
+  if (data.maxOrder !== undefined) {
+    updateFields.max_order = data.maxOrder || null;
+  }
+
+  if (data.deliveryCoverage !== undefined) {
+    updateFields.delivery_coverage = data.deliveryCoverage || 'all_sumenep';
+  }
+
+  if (data.shelfLifeNotes !== undefined) {
+    updateFields.shelf_life_notes = data.shelfLifeNotes || null;
   }
 
   if (data.isSoldOut !== undefined) {

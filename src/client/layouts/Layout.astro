@@ -16,6 +16,7 @@ interface Props {
   noindex?: boolean;
   schema?: Record<string, any>;
   hideMobileNav?: boolean;
+  fullWidth?: boolean;
 }
 
 const {
@@ -26,6 +27,7 @@ const {
   noindex = false,
   schema,
   hideMobileNav = false,
+  fullWidth = false,
 } = Astro.props;
 
 const defaultCanonical = new URL(Astro.url.pathname, Astro.url.origin).href;
@@ -308,7 +310,7 @@ const navLinkClass = (active: boolean) =>
     </aside>
 
     <!-- Main Content Area: Zero margin on mobile (full-edge), Centered Container on Desktop -->
-    <main id="main" tabindex="-1" class="flex-1 w-full mx-auto px-0 sm:px-6 lg:px-8 max-w-site">
+    <main id="main" tabindex="-1" class={`flex-1 w-full ${fullWidth ? '' : 'mx-auto px-0 sm:px-6 lg:px-8 max-w-site'}`}>
       <slot />
     </main>
 

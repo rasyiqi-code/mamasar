@@ -23,21 +23,23 @@ import {
 } from '../context';
 
 async function resolveGalleryImages(
-  rawJson: string,
+  raw: unknown,
   filterExistingUrl: boolean
 ): Promise<string[] | undefined> {
-  if (!rawJson) return undefined;
-  let parsed: unknown = null;
-  try {
-    parsed = JSON.parse(rawJson);
-  } catch {
-    return undefined;
+  if (!raw) return undefined;
+  let parsed: unknown = raw;
+  if (typeof raw === 'string') {
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return undefined;
+    }
   }
   if (!Array.isArray(parsed)) return undefined;
 
   const items = await Promise.all(
     parsed.map(async (item: unknown) => {
-      if (typeof item !== 'string') return '';
+      if (typeof item !== 'string' || !item) return '';
       if (item.startsWith('data:image')) {
         return await saveUploadedImage({ imageBase64: item });
       }
@@ -47,7 +49,7 @@ async function resolveGalleryImages(
       return item;
     })
   );
-  return filterExistingUrl ? items.filter(Boolean) : items;
+  return items.filter(Boolean);
 }
 
 export const productsRoutes = new Elysia({ name: 'routes:products', prefix: '/products' })
@@ -138,10 +140,18 @@ export const productsRoutes = new Elysia({ name: 'routes:products', prefix: '/pr
       const shopeeUrl = strField(data, 'shopeeUrl') || undefined;
       const stockStatus = strField(data, 'stockStatus') || 'ready';
       const productionCapacity = strField(data, 'productionCapacity') || undefined;
+      const rawLeadTime = strField(data, 'orderLeadTimeDays');
+      const orderLeadTimeDays = rawLeadTime !== '' && !isNaN(Number(rawLeadTime)) ? Number(rawLeadTime) : undefined;
+      const rawMinOrder = strField(data, 'minOrder');
+      const minOrder = rawMinOrder !== '' && !isNaN(Number(rawMinOrder)) ? Math.max(1, Number(rawMinOrder)) : undefined;
+      const rawMaxOrder = strField(data, 'maxOrder');
+      const maxOrder = rawMaxOrder !== '' && !isNaN(Number(rawMaxOrder)) ? Number(rawMaxOrder) : undefined;
+      const deliveryCoverage = strField(data, 'deliveryCoverage') || undefined;
+      const shelfLifeNotes = strField(data, 'shelfLifeNotes') || undefined;
       const rawOrigPrice = strField(data, 'originalPrice');
       const originalPrice =
         rawOrigPrice && Number(rawOrigPrice) > 0 ? Number(rawOrigPrice) : undefined;
-      const galleryImages = (await resolveGalleryImages(strField(data, 'galleryImages'), false)) || [];
+      const galleryImages = (await resolveGalleryImages(data?.galleryImages, false)) || [];
       const imageUrl = await saveUploadedImage({ imageFile, imageBase64 });
 
       if (targetUmkmId) {
@@ -156,6 +166,11 @@ export const productsRoutes = new Elysia({ name: 'routes:products', prefix: '/pr
           shopeeUrl,
           stockStatus,
           productionCapacity,
+          orderLeadTimeDays,
+          minOrder,
+          maxOrder,
+          deliveryCoverage,
+          shelfLifeNotes,
         });
 
         return jsonResponse(
@@ -184,6 +199,11 @@ export const productsRoutes = new Elysia({ name: 'routes:products', prefix: '/pr
         shopeeUrl,
         stockStatus,
         productionCapacity,
+        orderLeadTimeDays,
+        minOrder,
+        maxOrder,
+        deliveryCoverage,
+        shelfLifeNotes,
         createdByUserId: user.id,
       });
 
@@ -225,9 +245,17 @@ export const productsRoutes = new Elysia({ name: 'routes:products', prefix: '/pr
       const shopeeUrl = strField(data, 'shopeeUrl') || undefined;
       const stockStatus = strField(data, 'stockStatus') || undefined;
       const productionCapacity = strField(data, 'productionCapacity') || undefined;
+      const rawLeadTime = strField(data, 'orderLeadTimeDays');
+      const orderLeadTimeDays = rawLeadTime !== '' && !isNaN(Number(rawLeadTime)) ? Number(rawLeadTime) : undefined;
+      const rawMinOrder = strField(data, 'minOrder');
+      const minOrder = rawMinOrder !== '' && !isNaN(Number(rawMinOrder)) ? Math.max(1, Number(rawMinOrder)) : undefined;
+      const rawMaxOrder = strField(data, 'maxOrder');
+      const maxOrder = rawMaxOrder !== '' && !isNaN(Number(rawMaxOrder)) ? Number(rawMaxOrder) : undefined;
+      const deliveryCoverage = strField(data, 'deliveryCoverage') || undefined;
+      const shelfLifeNotes = strField(data, 'shelfLifeNotes') || undefined;
       const rawOrigPrice = strField(data, 'originalPrice');
       const originalPrice = rawOrigPrice ? Number(rawOrigPrice) : undefined;
-      const galleryImages = await resolveGalleryImages(strField(data, 'galleryImages'), true);
+      const galleryImages = await resolveGalleryImages(data?.galleryImages, true);
 
       if (!productId || !name || !price) {
         return jsonResponse(
@@ -255,6 +283,11 @@ export const productsRoutes = new Elysia({ name: 'routes:products', prefix: '/pr
         shopeeUrl,
         stockStatus,
         productionCapacity,
+        orderLeadTimeDays,
+        minOrder,
+        maxOrder,
+        deliveryCoverage,
+        shelfLifeNotes,
       });
 
       if (!success) {

@@ -113,6 +113,14 @@ async function runMigration() {
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS created_by_user_id INTEGER REFERENCES users(id) ON DELETE SET NULL;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS slug VARCHAR(255);`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS logo_url TEXT;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS order_modes TEXT DEFAULT 'ready_stock';`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS daily_capacity VARCHAR(100);`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS order_lead_time_days INTEGER DEFAULT 1;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS delivery_coverage VARCHAR(50) DEFAULT 'local_village';`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS max_bulk_order INTEGER;`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS shelf_life_notes VARCHAR(150);`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS verification_status VARCHAR(30) DEFAULT 'unverified';`;
+  await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS verification_submitted_at TIMESTAMP WITH TIME ZONE;`;
   await sql`CREATE UNIQUE INDEX IF NOT EXISTS uq_umkm_slug ON umkm(slug) WHERE slug IS NOT NULL;`;
   await sql`ALTER TABLE umkm ADD COLUMN IF NOT EXISTS claimed_at TIMESTAMP WITH TIME ZONE;`;
   await sql`CREATE UNIQUE INDEX IF NOT EXISTS uq_umkm_user_id ON umkm(user_id) WHERE user_id IS NOT NULL;`;
@@ -123,6 +131,11 @@ async function runMigration() {
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS featured_until TIMESTAMP WITH TIME ZONE;`;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS stock_status VARCHAR(20) NOT NULL DEFAULT 'ready';`;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS production_capacity VARCHAR(255);`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS order_lead_time_days INTEGER DEFAULT 0;`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS min_order INTEGER DEFAULT 1;`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS max_order INTEGER;`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS delivery_coverage VARCHAR(50) DEFAULT 'all_sumenep';`;
+  await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS shelf_life_notes VARCHAR(150);`;
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS shopee_url TEXT;`;
   await sql`ALTER TABLE products ALTER COLUMN views SET DEFAULT 0;`;
 

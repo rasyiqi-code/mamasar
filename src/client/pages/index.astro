@@ -117,10 +117,11 @@ function buildFilterUrl(updates: Record<string, string | null>) {
   title="Mamasar | Direktori Iklan UMKM Sumenep"
   noindex={isFiltered || safePage > 1}
   canonicalUrl={`${Astro.url.origin}/`}
+  fullWidth={true}
 >
   <div class="space-y-6 sm:space-y-12 py-2 sm:py-6">
     <!-- HERO SEARCH & CATEGORY STRIP -->
-    <section class="text-center space-y-3.5 sm:space-y-5 pt-1 sm:pt-4 px-3 sm:px-0">
+    <section class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 text-center space-y-3.5 sm:space-y-5 pt-1 sm:pt-4">
       <div class="space-y-1.5 sm:space-y-2">
         <h1 class="text-xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-snug">
           Mau beli apa dari{" "}
@@ -292,8 +293,8 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
     {/* 1. TODAY'S FEATURED SELECTION (Mobile Swipe Carousel + Desktop 4-Col Grid) */}
     {showDiscoverySections && spotlightProducts.length > 0 && (
-      <section class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-100/75 border-y border-emerald-200/70 py-5 sm:py-9">
-        <div class="space-y-3 sm:space-y-4">
+      <section class="w-full bg-gradient-to-r from-emerald-50 via-teal-50/80 to-emerald-100/75 border-y border-emerald-200/70 py-5 sm:py-9">
+        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
           <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
             Pilihan Unggulan Hari Ini
           </h2>
@@ -318,7 +319,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
     {/* 2. KABAR & PANDUAN UMKM + SLIM PROMO BANNER (Banner hidden on mobile: Bottom Nav already carries + CTA) */}
     {showDiscoverySections && (
-      <section class="space-y-5 sm:space-y-6 px-3 sm:px-0">
+      <section class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-5 sm:space-y-6">
         {articles.length > 0 && (
           <div class="space-y-3.5 sm:space-y-4">
             <div class="flex items-center justify-between gap-3">
@@ -393,7 +394,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
     {/* 3. MOST FAVORITED / POPULAR LISTINGS (Mobile Horizontal Carousel + Desktop 4-Col Row) */}
     {showDiscoverySections && popularProducts.length > 0 && (
-      <section class="space-y-3 sm:space-y-4 px-3 sm:px-0">
+      <section class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
             Produk Paling Diminati
@@ -431,9 +432,9 @@ function buildFilterUrl(updates: Record<string, string | null>) {
     {showDiscoverySections && featuredStores.length > 0 && (
       <section
         id="toko-warga"
-        class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 bg-slate-100/90 border-y border-slate-200/80 py-5 sm:py-9"
+        class="w-full bg-slate-100/90 border-y border-slate-200/80 py-5 sm:py-9"
       >
-        <div class="space-y-3 sm:space-y-4">
+        <div class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4">
           <div class="flex items-center justify-between gap-3">
             <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight">
               Toko &amp; Pengrajin Unggulan
@@ -473,7 +474,15 @@ function buildFilterUrl(updates: Record<string, string | null>) {
                     </div>
                   )}
 
-                  {Boolean(seller.is_verified) && (
+                  {Number(seller.is_verified) === 2 ? (
+                    <span
+                      class="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-amber-500 text-white w-6 h-6 rounded-full shadow-xs flex items-center justify-center ring-2 ring-white text-xs"
+                      title="Mitra Resmi Konsumsi Acara NU & Berizin"
+                      aria-label="Mitra Resmi"
+                    >
+                      ⭐
+                    </span>
+                  ) : Boolean(seller.is_verified) ? (
                     <span
                       class="absolute top-2 left-2 sm:top-2.5 sm:left-2.5 bg-emerald-700 text-white w-6 h-6 rounded-full shadow-xs flex items-center justify-center ring-2 ring-white"
                       title="Toko Terverifikasi MWC NU"
@@ -481,7 +490,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
                     >
                       <AppIcon name="check" size="xs" class="w-3.5 h-3.5" />
                     </span>
-                  )}
+                  ) : null}
 
                   <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 via-black/45 to-transparent p-3 sm:p-4 text-left">
                     <h3 class="font-black text-sm sm:text-base text-white line-clamp-1 leading-tight">
@@ -502,7 +511,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
     <!-- 5. MAIN CATALOG GRID (5-Column Desktop Dense Marketplace Grid + Pagination) -->
     <section
       id="katalog-terbaru"
-      class="space-y-3 sm:space-y-4 px-3 sm:px-0 pt-1"
+      class="max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-3 sm:space-y-4 pt-1"
     >
       <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex items-center justify-between gap-3 pb-2.5 sm:pb-3 border-b border-slate-200">
         <div class="min-w-0">
@@ -786,7 +795,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
       <section
         id="recent-viewed-section"
         data-default-image={DEFAULT_PRODUCT_IMAGE}
-        class="hidden space-y-4 px-3 sm:px-0 pt-2"
+        class="hidden max-w-site mx-auto px-3 sm:px-6 lg:px-8 space-y-4 pt-2"
       >
         <div class="flex items-center justify-between gap-3">
           <h2 class="text-lg sm:text-xl font-black text-slate-900 tracking-tight">

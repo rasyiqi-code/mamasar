@@ -125,14 +125,66 @@ const {
         <input type="hidden" id="claimStoreIdInput" name="claimStoreId" value="" />
         <input type="hidden" id="skipClaimInput" name="skipClaim" value="" />
 
-        {/* Section 1: Informasi Toko */}
+        {/* Section 1: Identitas & Informasi Toko */}
         <div class="space-y-4">
           <div class="pb-2 border-b border-slate-200 flex items-center justify-between">
             <h2 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
               <AppIcon name="store" size="xs" class="text-emerald-700" />
-              <span>Informasi Toko</span>
+              <span>Identitas &amp; Informasi Toko</span>
             </h2>
             <span class="text-xs text-slate-600">* Wajib</span>
+          </div>
+
+          {/* Upload Foto Profil / Logo Toko */}
+          <div class="flex items-center gap-3.5 p-3 rounded-lg border border-slate-200 bg-slate-50/70">
+            <div class="w-16 h-16 sm:w-18 sm:h-18 rounded-xl border border-slate-200 bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center relative shadow-xs">
+              <img
+                id="setup-logo-preview"
+                src=""
+                alt="Logo Toko"
+                class="w-full h-full object-cover hidden"
+              />
+              <span
+                id="setup-logo-fallback"
+                class="w-full h-full bg-emerald-700 text-white flex items-center justify-center font-bold text-lg sm:text-xl tracking-tight select-none uppercase"
+              >
+                UB
+              </span>
+            </div>
+
+            <div class="space-y-1.5 flex-1 min-w-0">
+              <div class="flex items-center justify-between gap-2">
+                <span class="block text-xs font-bold text-slate-700">Foto Profil / Logo Toko</span>
+                <span class="text-[11px] text-slate-500 font-medium">Opsional</span>
+              </div>
+              <input
+                type="file"
+                id="setupStoreLogo"
+                name="logoFile"
+                accept="image/jpeg,image/png,image/webp"
+                class="sr-only"
+              />
+              <div class="flex flex-wrap items-center gap-2">
+                <label
+                  for="setupStoreLogo"
+                  class="min-h-[38px] px-3.5 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-semibold text-slate-800 inline-flex items-center gap-1.5 cursor-pointer transition shadow-2xs"
+                >
+                  <AppIcon name="upload" size="xs" class="text-slate-600" />
+                  <span id="btn-select-logo-text">Pilih Foto / Logo</span>
+                </label>
+                <button
+                  type="button"
+                  id="btn-remove-setup-logo"
+                  class="min-h-[38px] px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold inline-flex items-center gap-1 cursor-pointer transition hidden"
+                >
+                  <AppIcon name="trash" size="xs" />
+                  <span>Hapus</span>
+                </button>
+              </div>
+              <p class="text-[11px] text-slate-500 leading-relaxed">
+                Format JPG, PNG, atau WebP (maks. 2 MB). Disarankan rasio persegi (1:1).
+              </p>
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -236,19 +288,141 @@ const {
 
           <div class="space-y-1.5">
             <label for="storeAddress" class="block text-xs font-bold text-slate-700">
-              Alamat Lengkap / Dusun
+              Alamat Lengkap / Dusun Fisik <span class="text-rose-600">*</span>
             </label>
             <input
               type="text"
               id="storeAddress"
               name="address"
               placeholder="Contoh: Dusun Karang Anyar, RT 01 RW 02"
+              required
               class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
             />
+            <p class="text-[11px] text-slate-500">Wajib diisi jelas untuk peninjauan fisik verifikasi oleh pengurus MWC.</p>
           </div>
         </div>
 
-        {/* Section 3: Persetujuan Privasi (Persis pasang-iklan.astro) */}
+        {/* Section 3: Kesiapan Acara NU & Pesanan Partai Besar (Syarat Mitra Tier 2) */}
+        <div class="space-y-4 pt-2">
+          <div class="pb-2 border-b border-slate-200 flex items-center justify-between">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+              <AppIcon name="calendar" size="xs" class="text-emerald-700" />
+              <span>Kesiapan Konsumsi Acara NU &amp; Partai Besar</span>
+            </h2>
+            <span class="text-xs text-amber-700 font-semibold">* Syarat Mitra Tier 2</span>
+          </div>
+
+          <div class="p-3 bg-amber-50/60 rounded-lg border border-amber-200 text-xs text-amber-950 leading-relaxed">
+            <strong>Penting:</strong> Data ini menjadi rujukan Pengurus MWC dan Ranting NU saat mencari penyedia katering atau konsumsi untuk kegiatan jam'iyyah (Lailatul Ijtima', Konferensi MWC/Ranting, Pengajian Akbar, Harlah).
+          </div>
+
+          <label class="flex items-start gap-3 p-3.5 rounded-lg border border-slate-200 hover:bg-slate-50 cursor-pointer bg-white transition">
+            <input
+              type="checkbox"
+              id="cb-setup-bulk-catering"
+              name="orderModesList"
+              value="bulk_catering"
+              class="mt-0.5 rounded text-emerald-700 focus:ring-emerald-700"
+            />
+            <div class="text-xs space-y-0.5">
+              <span class="font-bold text-slate-900 block">Sanggup Menerima Pesanan Konsumsi / Acara NU</span>
+              <span class="text-slate-600 text-[11px] block leading-relaxed">
+                Toko kami bersedia dan sanggup menyediakan konsumsi makanan/minuman partai besar atau katering untuk kegiatan jam'iyyah NU dan hajatan warga.
+              </span>
+            </div>
+          </label>
+          <input type="hidden" id="setupStoreOrderModes" name="orderModes" value="" />
+
+          <div class="space-y-1.5">
+            <label for="setupMaxBulkOrder" class="block text-xs font-bold text-slate-700">
+              Kapasitas Maksimum Pesanan Partai Besar (Opsional)
+            </label>
+            <input
+              type="number"
+              id="setupMaxBulkOrder"
+              name="maxBulkOrder"
+              placeholder="Contoh: 300 (porsi / kotak / bungkus)"
+              min="1"
+              class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+            />
+            <p class="text-[11px] text-slate-500">
+              Estimasi batas jumlah pesanan maksimal yang aman dapat disiapkan toko Anda sekaligus untuk satu agenda acara.
+            </p>
+          </div>
+        </div>
+
+        {/* Section 4: Legalitas & Izin Usaha (Opsional) */}
+        <div class="space-y-4 pt-2">
+          <div class="pb-2 border-b border-slate-200 flex items-center justify-between">
+            <h2 class="text-xs font-black uppercase tracking-wider text-slate-800 flex items-center gap-2">
+              <AppIcon name="shield" size="xs" class="text-emerald-700" />
+              <span>Legalitas &amp; Izin Usaha</span>
+            </h2>
+            <span class="text-xs text-slate-600">Opsional</span>
+          </div>
+
+          <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-xs text-slate-700 leading-relaxed">
+            💡 <em>Opsional.</em> Dapat Anda isi sekarang atau dilengkapi kapan saja. Toko yang memiliki legalitas berhak mendapatkan lencana resmi <strong>⭐ Tier 2 (Mitra Berizin &amp; Konsumsi NU)</strong>.
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label for="setupStoreNib" class="block text-xs font-bold text-slate-700">
+                Nomor Induk Berusaha (NIB OSS)
+              </label>
+              <input
+                type="text"
+                id="setupStoreNib"
+                name="nib"
+                placeholder="Contoh: 1234567890123"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="setupStoreHalal" class="block text-xs font-bold text-slate-700">
+                Sertifikat Halal (BPJPH / Kemenag)
+              </label>
+              <input
+                type="text"
+                id="setupStoreHalal"
+                name="halalCert"
+                placeholder="Contoh: ID35110001234560723"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label for="setupStorePirt" class="block text-xs font-bold text-slate-700">
+                Izin P-IRT (Dinkes)
+              </label>
+              <input
+                type="text"
+                id="setupStorePirt"
+                name="pirt"
+                placeholder="Contoh: P-IRT 2063529010123-26"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+              />
+            </div>
+
+            <div class="space-y-1.5">
+              <label for="setupStoreBpom" class="block text-xs font-bold text-slate-700">
+                Nomor Registrasi BPOM (MD/ML)
+              </label>
+              <input
+                type="text"
+                id="setupStoreBpom"
+                name="bpom"
+                placeholder="Contoh: BPOM RI MD 231435001234"
+                class="w-full min-h-[44px] bg-white border border-slate-300 rounded-lg p-2.5 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-500 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 transition"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Section 5: Persetujuan Privasi (Persis pasang-iklan.astro) */}
         <label for="storeSetupConsent" class="flex items-start gap-2.5 pt-2 cursor-pointer text-xs text-slate-700">
           <input
             type="checkbox"
@@ -261,7 +435,7 @@ const {
           </span>
         </label>
 
-        {/* Section 4: Bilah Tombol Aksi (Batal & Buka Toko) */}
+        {/* Section 6: Bilah Tombol Aksi (Batal & Buka Toko) */}
         <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
           <a
             href="/"
@@ -291,7 +465,7 @@ const {
       <aside
         id="sidebar-drawer"
         aria-label="Pratinjau dan Tips Toko"
-        class="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md bg-white p-5 shadow-2xl overflow-y-auto transition-transform duration-300 ease-in-out translate-x-full lg:translate-x-0 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:p-0 lg:shadow-none lg:overflow-visible lg:col-span-4 lg:space-y-6 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20"
+        class="fixed inset-y-0 right-0 z-50 w-full max-w-sm sm:max-w-md bg-white p-5 shadow-2xl overflow-y-auto transition-transform duration-300 ease-in-out translate-x-full lg:translate-x-0 lg:static lg:z-auto lg:w-auto lg:max-w-none lg:p-0 lg:shadow-none lg:overflow-visible lg:col-span-4 lg:space-y-6 lg:border-l lg:border-slate-200 lg:pl-8 lg:sticky lg:top-20 lg:bg-transparent"
       >
         {/* Mobile Drawer Header with Close Button (Hidden on Desktop) */}
         <div class="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-200 lg:hidden">
@@ -324,9 +498,10 @@ const {
             <div class="flex items-start gap-3">
               <div
                 id="preview-store-avatar"
-                class="w-11 h-11 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-black text-sm shrink-0 select-none uppercase tracking-wider"
+                class="w-11 h-11 rounded-lg bg-emerald-800 text-white flex items-center justify-center font-black text-sm shrink-0 select-none uppercase tracking-wider overflow-hidden"
               >
-                UB
+                <img id="preview-store-avatar-img" src="" alt="Logo Toko" class="w-full h-full object-cover hidden" />
+                <span id="preview-store-avatar-initials">UB</span>
               </div>
 
               <div class="min-w-0 flex-1 space-y-1">
@@ -399,6 +574,18 @@ const {
             <li id="chk-store-address" class="flex items-center gap-1.5 text-slate-600">
               <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0" data-dot></span>
               <span>Alamat Usaha</span>
+            </li>
+            <li id="chk-store-logo" class="flex items-center gap-1.5 text-slate-600">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0" data-dot></span>
+              <span>Foto / Logo</span>
+            </li>
+            <li id="chk-store-catering" class="flex items-center gap-1.5 text-slate-600">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0" data-dot></span>
+              <span>Katering Acara</span>
+            </li>
+            <li id="chk-store-legality" class="flex items-center gap-1.5 text-slate-600">
+              <span class="w-2 h-2 rounded-full bg-slate-300 shrink-0" data-dot></span>
+              <span>Legalitas Izin</span>
             </li>
           </ul>
         </section>
@@ -493,8 +680,76 @@ const {
     var rantingInput = document.getElementById('storeRanting');
     var addressInput = document.getElementById('storeAddress');
 
+    var cbBulk = document.getElementById('cb-setup-bulk-catering');
+    var hiddenOrderModes = document.getElementById('setupStoreOrderModes');
+    var maxBulkInput = document.getElementById('setupMaxBulkOrder');
+
+    var nibInput = document.getElementById('setupStoreNib');
+    var halalInput = document.getElementById('setupStoreHalal');
+    var pirtInput = document.getElementById('setupStorePirt');
+    var bpomInput = document.getElementById('setupStoreBpom');
+
+    var logoInput = document.getElementById('setupStoreLogo');
+    var logoPreviewImg = document.getElementById('setup-logo-preview');
+    var setupLogoFallback = document.getElementById('setup-logo-fallback');
+    var btnRemoveLogo = document.getElementById('btn-remove-setup-logo');
+    var btnSelectLogoText = document.getElementById('btn-select-logo-text');
+
+    var pAvatarImg = document.getElementById('preview-store-avatar-img');
+    var pAvatarInitials = document.getElementById('preview-store-avatar-initials');
+    var chkLogo = document.getElementById('chk-store-logo');
+    var currentLogoObjectUrl = null;
+
+    if (logoInput) {
+      logoInput.addEventListener('change', function() {
+        var file = logoInput.files && logoInput.files[0];
+        if (!file) return;
+
+        if (currentLogoObjectUrl) URL.revokeObjectURL(currentLogoObjectUrl);
+        currentLogoObjectUrl = URL.createObjectURL(file);
+
+        if (logoPreviewImg && setupLogoFallback) {
+          logoPreviewImg.src = currentLogoObjectUrl;
+          logoPreviewImg.classList.remove('hidden');
+          setupLogoFallback.classList.add('hidden');
+        }
+        if (btnRemoveLogo) btnRemoveLogo.classList.remove('hidden');
+        if (btnSelectLogoText) btnSelectLogoText.textContent = 'Ganti Foto';
+
+        if (pAvatarImg && pAvatarInitials) {
+          pAvatarImg.src = currentLogoObjectUrl;
+          pAvatarImg.classList.remove('hidden');
+          pAvatarInitials.classList.add('hidden');
+        }
+        if (chkLogo) updateDot(chkLogo, true);
+      });
+    }
+
+    if (btnRemoveLogo && logoInput) {
+      btnRemoveLogo.addEventListener('click', function() {
+        logoInput.value = '';
+        if (currentLogoObjectUrl) {
+          URL.revokeObjectURL(currentLogoObjectUrl);
+          currentLogoObjectUrl = null;
+        }
+        if (logoPreviewImg && setupLogoFallback) {
+          logoPreviewImg.removeAttribute('src');
+          logoPreviewImg.classList.add('hidden');
+          setupLogoFallback.classList.remove('hidden');
+        }
+        btnRemoveLogo.classList.add('hidden');
+        if (btnSelectLogoText) btnSelectLogoText.textContent = 'Pilih Foto / Logo';
+
+        if (pAvatarImg && pAvatarInitials) {
+          pAvatarImg.removeAttribute('src');
+          pAvatarImg.classList.add('hidden');
+          pAvatarInitials.classList.remove('hidden');
+        }
+        if (chkLogo) updateDot(chkLogo, false);
+      });
+    }
+
     var pName = document.getElementById('preview-store-name');
-    var pAvatar = document.getElementById('preview-store-avatar');
     var pZone = document.getElementById('preview-store-zone');
     var pAddress = document.getElementById('preview-store-address');
 
@@ -502,6 +757,8 @@ const {
     var chkPhone = document.getElementById('chk-store-phone');
     var chkZone = document.getElementById('chk-store-zone');
     var chkAddress = document.getElementById('chk-store-address');
+    var chkCatering = document.getElementById('chk-store-catering');
+    var chkLegality = document.getElementById('chk-store-legality');
 
     function updateDot(el, isDone) {
       if (!el) return;
@@ -520,11 +777,10 @@ const {
       if (nameInput && pName) {
         var val = nameInput.value.trim();
         pName.textContent = val || 'UD Barokah Jaya';
-        if (pAvatar) {
-          var words = (val || 'UD Barokah Jaya').split(/\s+/).filter(Boolean);
-          var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : val ? val.slice(0, 2).toUpperCase() : 'UB';
-          pAvatar.textContent = initials;
-        }
+        var words = (val || 'UD Barokah Jaya').split(/\s+/).filter(Boolean);
+        var initials = words.length >= 2 ? (words[0][0] + words[1][0]).toUpperCase() : val ? val.slice(0, 2).toUpperCase() : 'UB';
+        if (pAvatarInitials) pAvatarInitials.textContent = initials;
+        if (setupLogoFallback) setupLogoFallback.textContent = initials;
         updateDot(chkName, Boolean(val));
       }
       if (phoneInput) {
@@ -545,6 +801,20 @@ const {
         pAddress.textContent = parts.length > 0 ? parts.join(', ') : 'Dusun Karang Anyar, Gapura';
         if (chkAddress) updateDot(chkAddress, Boolean(aVal));
       }
+      if (cbBulk && hiddenOrderModes) {
+        hiddenOrderModes.value = cbBulk.checked ? 'bulk_catering' : '';
+        var hasBulk = cbBulk.checked || Boolean(maxBulkInput && maxBulkInput.value.trim());
+        if (chkCatering) updateDot(chkCatering, hasBulk);
+      }
+      if (chkLegality) {
+        var hasLeg = Boolean(
+          (nibInput && nibInput.value.trim()) ||
+          (halalInput && halalInput.value.trim()) ||
+          (pirtInput && pirtInput.value.trim()) ||
+          (bpomInput && bpomInput.value.trim())
+        );
+        updateDot(chkLegality, hasLeg);
+      }
     }
 
     if (nameInput) nameInput.addEventListener('input', syncStorePreview);
@@ -552,6 +822,12 @@ const {
     if (zoneSelect) zoneSelect.addEventListener('change', syncStorePreview);
     if (rantingInput) rantingInput.addEventListener('input', syncStorePreview);
     if (addressInput) addressInput.addEventListener('input', syncStorePreview);
+    if (cbBulk) cbBulk.addEventListener('change', syncStorePreview);
+    if (maxBulkInput) maxBulkInput.addEventListener('input', syncStorePreview);
+    if (nibInput) nibInput.addEventListener('input', syncStorePreview);
+    if (halalInput) halalInput.addEventListener('input', syncStorePreview);
+    if (pirtInput) pirtInput.addEventListener('input', syncStorePreview);
+    if (bpomInput) bpomInput.addEventListener('input', syncStorePreview);
 
     // Initial sync
     syncStorePreview();

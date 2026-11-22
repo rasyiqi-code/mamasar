@@ -8,6 +8,7 @@ import {
   isPetugas,
   setUMKMVerified,
   setupUMKMForUser,
+  submitStoreVerification,
   transferUMKMOwnership,
   updateUMKMLogo,
   updateUMKMProfile,
@@ -140,6 +141,14 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
       const claimStoreId = rawClaimId ? Number(rawClaimId) : undefined;
       const skipClaim = strField(data, 'skipClaim') === '1';
 
+      const orderModes = strField(data, 'orderModes') || undefined;
+      const maxBulkOrder = data && data.maxBulkOrder !== undefined && data.maxBulkOrder !== '' ? Number(strField(data, 'maxBulkOrder')) : undefined;
+      const nib = strField(data, 'nib') || undefined;
+      const halalCert = strField(data, 'halalCert') || undefined;
+      const pirt = strField(data, 'pirt') || undefined;
+      const bpom = strField(data, 'bpom') || undefined;
+      const otherLegalities = strField(data, 'otherLegalities') || undefined;
+
       if (!name || !phone || !zoneId) {
         return jsonResponse(
           { success: false, message: 'Nama Toko, No. WhatsApp, dan Wilayah MWC wajib diisi.' },
@@ -159,7 +168,20 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
 
       const result = await setupUMKMForUser(
         user.id,
-        { name, phone, zoneId, address, ranting },
+        {
+          name,
+          phone,
+          zoneId,
+          address,
+          ranting,
+          orderModes,
+          maxBulkOrder,
+          nib,
+          halalCert,
+          pirt,
+          bpom,
+          otherLegalities,
+        },
         { claimStoreId, skipClaim }
       );
 
@@ -184,6 +206,22 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
           },
           409
         );
+      }
+
+      // Simpan foto/logo profil toko jika diunggah saat registrasi
+      const logoFile = fileField(data, 'logoFile') || fileField(data, 'imageFile');
+      const logoBase64 = typeof data?.imageBase64 === 'string' ? data.imageBase64 : null;
+      if (result.storeId && (logoFile || logoBase64)) {
+        try {
+          const rawLogoUrl = await saveStoreLogo({
+            imageFile: logoFile,
+            imageBase64: logoBase64,
+            storeId: result.storeId,
+          });
+          await updateUMKMLogo(result.storeId, user.id, rawLogoUrl);
+        } catch (uploadErr) {
+          console.warn('Gagal mengunggah logo toko saat registrasi buka-toko:', uploadErr);
+        }
       }
 
       return jsonResponse(
@@ -222,6 +260,12 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
       const pirt = strField(data, 'pirt');
       const bpom = strField(data, 'bpom');
       const otherLegalities = strField(data, 'otherLegalities');
+      const orderModes = strField(data, 'orderModes') || undefined;
+      const dailyCapacity = strField(data, 'dailyCapacity') || undefined;
+      const orderLeadTimeDays = data && data.orderLeadTimeDays !== undefined && data.orderLeadTimeDays !== '' ? Number(strField(data, 'orderLeadTimeDays')) : undefined;
+      const deliveryCoverage = strField(data, 'deliveryCoverage') || undefined;
+      const maxBulkOrder = data && data.maxBulkOrder !== undefined && data.maxBulkOrder !== '' ? Number(strField(data, 'maxBulkOrder')) : undefined;
+      const shelfLifeNotes = strField(data, 'shelfLifeNotes') || undefined;
 
       if (!name || !phone || !zoneId) {
         return jsonResponse(
@@ -251,6 +295,12 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
         pirt,
         bpom,
         otherLegalities,
+        orderModes,
+        dailyCapacity,
+        orderLeadTimeDays,
+        deliveryCoverage,
+        maxBulkOrder,
+        shelfLifeNotes,
       });
 
       if (!success) {
@@ -343,6 +393,22 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
       return jsonError(500, 'Terjadi kesalahan server saat menghapus logo.', err);
     }
   })
+  .post('/apply-verification', async ({ request }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user || !user.umkm) {
+        return jsonResponse(
+          { success: false, message: 'Silakan masuk dengan akun pemilik toko.' },
+          401
+        );
+      }
+
+      const result = await submitStoreVerification(user.umkm.id, user.id);
+      return jsonResponse(result, result.success ? 200 : 400);
+    } catch (err) {
+      return jsonError(500, 'Terjadi kesalahan server saat mengajukan verifikasi.', err);
+    }
+  })
   .post('/verify', async ({ request, body }) => {
     try {
       const user = await resolveRequestUser(request);
@@ -359,6 +425,7 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
       const data = body as ParsedBody;
       const umkmId = Number(strField(data, 'umkmId'));
       const verified = strField(data, 'verified') === '1';
+      const tier = data && data.tier !== undefined && data.tier !== '' ? Number(strField(data, 'tier')) : 1;
       const note = strField(data, 'note') || undefined;
 
       if (!umkmId) {
@@ -380,17 +447,23 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
         );
       }
 
-      const success = await setUMKMVerified(umkmId, verified, { actorUserId: user.id, note });
+      const success = await setUMKMVerified(umkmId, verified, { actorUserId: user.id, note, tier });
       if (!success) {
         return jsonResponse({ success: false, message: 'Toko tidak ditemukan.' }, 404);
       }
 
+      const successMessage = verified
+        ? (tier === 2
+            ? 'Alhamdulillah! Toko telah diverifikasi sebagai Mitra Resmi Konsumsi & Berizin (Tier 2).'
+            : 'Alhamdulillah! Toko telah diverifikasi resmi MWC NU (Tier 1).')
+        : (note
+            ? 'Catatan evaluasi/perbaikan verifikasi telah dikirimkan ke pemilik toko.'
+            : 'Status verifikasi toko telah dicabut.');
+
       return jsonResponse(
         {
           success: true,
-          message: verified
-            ? 'Alhamdulillah! Toko telah diverifikasi - badge Verified tampil di katalog.'
-            : 'Verifikasi toko telah dicabut.',
+          message: successMessage,
         },
         200
       );

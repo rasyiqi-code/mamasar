@@ -335,6 +335,49 @@ export function initDashboardClient() {
 
   // Edit Store Profile Form
   const editStoreForm = document.getElementById('edit-store-form') as HTMLFormElement | null;
+  const orderModesHidden = document.getElementById('editStoreOrderModes') as HTMLInputElement | null;
+  const orderModesCheckboxes = document.querySelectorAll<HTMLInputElement>('input[name="orderModesList"]');
+
+  orderModesCheckboxes.forEach((cb) => {
+    cb.addEventListener('change', () => {
+      if (!orderModesHidden) return;
+      const selected: string[] = [];
+      orderModesCheckboxes.forEach((box) => {
+        if (box.checked) selected.push(box.value);
+      });
+      orderModesHidden.value = selected.join(',');
+    });
+  });
+
+  // Apply Verification Button
+  const btnApplyVerification = document.getElementById('btn-apply-verification') as HTMLButtonElement | null;
+  btnApplyVerification?.addEventListener('click', async () => {
+    if (!confirm('Ajukan peninjauan verifikasi resmi MWC NU untuk toko Anda sekarang? Pastikan nama, kontak WhatsApp, dan alamat fisik toko sudah terisi dengan benar.')) {
+      return;
+    }
+
+    btnApplyVerification.disabled = true;
+    const originalText = btnApplyVerification.innerHTML;
+    btnApplyVerification.innerHTML = '<span>Mengirimkan...</span>';
+
+    try {
+      const res = await fetch('/api/umkm/apply-verification', { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        notify('✅ ' + (data.message || 'Pengajuan verifikasi berhasil dikirim!'));
+        setTimeout(() => window.location.reload(), 900);
+      } else {
+        notify(data.message || 'Gagal mengajukan verifikasi toko.', true);
+        btnApplyVerification.disabled = false;
+        btnApplyVerification.innerHTML = originalText;
+      }
+    } catch (err: any) {
+      notify('Kendala server: ' + err.message, true);
+      btnApplyVerification.disabled = false;
+      btnApplyVerification.innerHTML = originalText;
+    }
+  });
+
   editStoreForm?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn-submit-edit-store') as HTMLButtonElement | null;
@@ -420,6 +463,11 @@ export function initDashboardClient() {
       const stockStatus = btn.getAttribute('data-stock-status') || 'ready';
       const capacity = btn.getAttribute('data-capacity') || '';
       const originalPrice = btn.getAttribute('data-original-price') || '';
+      const leadTime = btn.getAttribute('data-lead-time') || '0';
+      const minOrder = btn.getAttribute('data-min-order') || '1';
+      const maxOrder = btn.getAttribute('data-max-order') || '';
+      const deliveryCoverage = btn.getAttribute('data-delivery-coverage') || 'all_sumenep';
+      const shelfLife = btn.getAttribute('data-shelf-life') || '';
 
       const idInput = document.getElementById('editProductId') as HTMLInputElement | null;
       const nameInput = document.getElementById('editProdName') as HTMLInputElement | null;
@@ -430,6 +478,11 @@ export function initDashboardClient() {
       const shopeeInput = document.getElementById('editProdShopee') as HTMLInputElement | null;
       const stockStatusSelect = document.getElementById('editProdStockStatus') as HTMLSelectElement | null;
       const capacityInput = document.getElementById('editProdCapacity') as HTMLInputElement | null;
+      const leadTimeSelect = document.getElementById('editProdLeadTime') as HTMLSelectElement | null;
+      const minOrderInput = document.getElementById('editProdMinOrder') as HTMLInputElement | null;
+      const maxOrderInput = document.getElementById('editProdMaxOrder') as HTMLInputElement | null;
+      const deliverySelect = document.getElementById('editProdDeliveryCoverage') as HTMLSelectElement | null;
+      const shelfLifeInput = document.getElementById('editProdShelfLife') as HTMLInputElement | null;
 
       if (idInput) idInput.value = id;
       if (nameInput) nameInput.value = name;
@@ -440,12 +493,37 @@ export function initDashboardClient() {
       if (shopeeInput) shopeeInput.value = shopee;
       if (stockStatusSelect) stockStatusSelect.value = stockStatus;
       if (capacityInput) capacityInput.value = capacity;
+      if (leadTimeSelect) leadTimeSelect.value = leadTime;
+      if (minOrderInput) minOrderInput.value = minOrder;
+      if (maxOrderInput) maxOrderInput.value = maxOrder;
+      if (deliverySelect) deliverySelect.value = deliveryCoverage;
+      if (shelfLifeInput) shelfLifeInput.value = shelfLife;
       if (editImageBase64) editImageBase64.value = '';
       if (editCompressInfo) editCompressInfo.textContent = '';
       if (editCameraInput) editCameraInput.value = '';
 
       openModal('edit-product');
     });
+  });
+
+  const editStockSelect = document.getElementById('editProdStockStatus') as HTMLSelectElement | null;
+  const editLeadSelect = document.getElementById('editProdLeadTime') as HTMLSelectElement | null;
+  editStockSelect?.addEventListener('change', () => {
+    if (!editLeadSelect) return;
+    if (editStockSelect.value === 'po' && editLeadSelect.value === '0') {
+      editLeadSelect.value = '1';
+    } else if (editStockSelect.value === 'ready' && editLeadSelect.value !== '0') {
+      editLeadSelect.value = '0';
+    }
+  });
+  editLeadSelect?.addEventListener('change', () => {
+    if (!editStockSelect) return;
+    const days = Number(editLeadSelect.value);
+    if (days > 0 && editStockSelect.value === 'ready') {
+      editStockSelect.value = 'po';
+    } else if (days === 0 && editStockSelect.value === 'po') {
+      editStockSelect.value = 'ready';
+    }
   });
 
   // Submit Edit Product

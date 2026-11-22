@@ -11,6 +11,21 @@ interface UMKMStore {
   ranting?: string | null;
   zone_name: string;
   is_verified?: boolean | number | null;
+  verification_status?: string | null;
+  verification_note?: string | null;
+  verification_submitted_at?: string | null;
+  nib?: string | null;
+  halal_cert?: string | null;
+  pirt?: string | null;
+  bpom?: string | null;
+  other_legalities?: string | null;
+  maps_url?: string | null;
+  order_modes?: string | null;
+  daily_capacity?: string | null;
+  order_lead_time_days?: number | null;
+  delivery_coverage?: string | null;
+  max_bulk_order?: number | null;
+  shelf_life_notes?: string | null;
   product_count?: number;
   user_id?: number | null;
   owner_name?: string | null;
@@ -188,6 +203,12 @@ function storeInitials(name: string): string {
                   <div class="min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
                       <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
+                      {store.verification_status === 'submitted' && (
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-sky-900 bg-sky-50 px-2 py-0.5 rounded border border-sky-300">
+                          <span class="w-1.5 h-1.5 rounded-full bg-sky-600 animate-pulse"></span>
+                          <span>Menunggu Peninjauan</span>
+                        </span>
+                      )}
                       {!store.user_id && !store.owner_email && (
                         <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                           Data Awal (Belum Diklaim)
@@ -251,13 +272,13 @@ function storeInitials(name: string): string {
                 </button>
                 <button
                   type="button"
-                  data-action="verify-store"
-                  data-id={store.id}
-                  data-verified="1"
+                  data-action="open-evaluate-store"
+                  data-store={JSON.stringify(store)}
                   class="inline-flex items-center justify-center gap-1 h-9 sm:h-8 px-3 sm:px-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs rounded-md transition cursor-pointer active:scale-[0.98]"
+                  title="Evaluasi fisik, izin, dan kemampuan pesanan"
                 >
-                  <AppIcon name="check" size="xs" />
-                  <span>Verifikasi</span>
+                  <AppIcon name="shield" size="xs" />
+                  <span>Evaluasi &amp; Verifikasi</span>
                 </button>
                 <button
                   type="button"
@@ -332,10 +353,17 @@ function storeInitials(name: string): string {
                   <div class="min-w-0">
                     <div class="flex items-center gap-2 flex-wrap">
                       <h3 class="font-bold text-sm text-slate-900">{store.name}</h3>
-                      <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                        <AppIcon name="check" size="xs" />
-                        <span>Terverifikasi</span>
-                      </span>
+                      {Number(store.is_verified) === 2 ? (
+                        <span class="inline-flex items-center gap-1 text-[11px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
+                          <span class="text-amber-600">⭐</span>
+                          <span>Mitra Resmi (Tier 2)</span>
+                        </span>
+                      ) : (
+                        <span class="inline-flex items-center gap-1 text-xs font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          <AppIcon name="check" size="xs" />
+                          <span>Terverifikasi MWC</span>
+                        </span>
+                      )}
                       {!store.user_id && !store.owner_email && (
                         <span class="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
                           Data Awal (Belum Diklaim)
@@ -399,13 +427,12 @@ function storeInitials(name: string): string {
                 </button>
                 <button
                   type="button"
-                  data-action="verify-store"
-                  data-id={store.id}
-                  data-verified="0"
-                  class="h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-amber-50 text-amber-800 border border-amber-300 font-semibold text-xs rounded-md transition cursor-pointer active:scale-[0.98]"
-                  title="Cabut status verifikasi"
+                  data-action="open-evaluate-store"
+                  data-store={JSON.stringify(store)}
+                  class="h-9 sm:h-8 px-3 sm:px-2.5 bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-semibold text-xs rounded-md transition cursor-pointer active:scale-[0.98]"
+                  title="Tinjau, naikkan tier, atau ubah status verifikasi"
                 >
-                  Cabut
+                  <span>Tinjau Status</span>
                 </button>
                 <button
                   type="button"
@@ -538,6 +565,226 @@ function storeInitials(name: string): string {
             <AppIcon name="check" size="xs" />
             <span>Simpan Pelimpahan</span>
           </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Evaluasi & Verifikasi Toko (Khusus Admin PCNU & Pengurus MWC) -->
+  <div
+    id="modal-evaluate-store"
+    class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modal-evaluate-title"
+  >
+    <div class="w-full max-w-2xl bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]">
+      <div class="px-5 py-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center justify-center shrink-0">
+            <AppIcon name="shield" size="sm" />
+          </div>
+          <div>
+            <h3 id="modal-evaluate-title" class="font-bold text-sm text-slate-900">Evaluasi &amp; Verifikasi Toko</h3>
+            <p class="text-xs text-slate-500">Telaah fisik, kepatuhan produk, legalitas, dan kesiapan pemenuhan pesanan</p>
+          </div>
+        </div>
+        <button
+          type="button"
+          id="btn-close-evaluate-modal"
+          class="text-slate-400 hover:text-slate-600 p-1 rounded-lg hover:bg-slate-200/50 transition cursor-pointer"
+          aria-label="Tutup Modal"
+        >
+          <AppIcon name="x" size="sm" />
+        </button>
+      </div>
+
+      <form id="form-evaluate-store" class="p-5 space-y-4 overflow-y-auto flex-1">
+        <input type="hidden" id="eval-store-id" name="umkmId" value="" />
+        <input type="hidden" id="eval-decision-verified" name="verified" value="1" />
+
+        <!-- Header Info Toko -->
+        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex items-start gap-3">
+          <div id="eval-store-initials" class="w-12 h-12 rounded-lg bg-emerald-700 text-white flex items-center justify-center font-bold text-base shrink-0">
+            UM
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <h4 id="eval-store-name" class="font-bold text-base text-slate-900">-</h4>
+              <span id="eval-store-status-badge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-200 text-slate-700">-</span>
+            </div>
+            <p class="text-xs text-slate-600 mt-0.5">
+              <span id="eval-store-zone">-</span> · <span id="eval-store-ranting">-</span> · <span id="eval-store-products" class="font-semibold text-slate-800">-</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Section 1: Kontak & Lokasi Usaha -->
+        <div class="space-y-2">
+          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <AppIcon name="store" size="xs" class="text-slate-500" />
+            <span>1. Identitas &amp; Lokasi Fisik</span>
+          </h5>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+              <span class="text-slate-500 block text-[11px]">Akun / Pemilik:</span>
+              <span id="eval-owner" class="font-semibold text-slate-900">-</span>
+            </div>
+            <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 flex items-center justify-between">
+              <div>
+                <span class="text-slate-500 block text-[11px]">WhatsApp:</span>
+                <span id="eval-phone" class="font-mono font-bold text-slate-900">-</span>
+              </div>
+              <a
+                id="eval-wa-link"
+                href="#"
+                target="_blank"
+                class="px-2.5 py-1 text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-300 rounded hover:bg-emerald-100 transition inline-flex items-center gap-1"
+              >
+                <span>Uji WA</span>
+                <AppIcon name="external-link" size="xs" />
+              </a>
+            </div>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-lg border border-slate-200 text-xs">
+            <span class="text-slate-500 block text-[11px]">Alamat Fisik / Tempat Usaha:</span>
+            <span id="eval-address" class="font-medium text-slate-900">-</span>
+          </div>
+        </div>
+
+        <!-- Section 2: Kesiapan Konsumsi Acara NU & Partai Besar -->
+        <div class="space-y-2">
+          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <AppIcon name="calendar" size="xs" class="text-slate-500" />
+            <span>2. Kesiapan Konsumsi Acara NU &amp; Partai Besar</span>
+          </h5>
+          <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2 text-xs">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <span class="text-slate-500 block text-[11px]">Sanggup Konsumsi Acara NU:</span>
+                <span id="eval-order-modes" class="font-bold text-slate-900">-</span>
+              </div>
+              <div>
+                <span class="text-slate-500 block text-[11px]">Maksimum Partai Besar:</span>
+                <span id="eval-max-bulk" class="font-bold text-emerald-800">-</span>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-500 pt-1.5 border-t border-slate-200">
+              * Rincian logistik per item (status stok, lead time pengerjaan, jangkauan pengiriman) dikelola langsung pada masing-masing produk.
+            </p>
+          </div>
+        </div>
+
+        <!-- Section 3: Legalitas & Izin Usaha -->
+        <div class="space-y-2">
+          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+            <AppIcon name="shield" size="xs" class="text-slate-500" />
+            <span>3. Legalitas &amp; Sertifikasi Usaha</span>
+          </h5>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+            <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+              <span class="text-[11px] text-slate-500 block">NIB OSS:</span>
+              <span id="eval-nib" class="font-mono font-bold text-slate-900 truncate block">-</span>
+            </div>
+            <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+              <span class="text-[11px] text-slate-500 block">Halal BPJPH:</span>
+              <span id="eval-halal" class="font-mono font-bold text-slate-900 truncate block">-</span>
+            </div>
+            <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+              <span class="text-[11px] text-slate-500 block">P-IRT:</span>
+              <span id="eval-pirt" class="font-mono font-bold text-slate-900 truncate block">-</span>
+            </div>
+            <div class="p-2 bg-slate-50 rounded-lg border border-slate-200">
+              <span class="text-[11px] text-slate-500 block">BPOM:</span>
+              <span id="eval-bpom" class="font-mono font-bold text-slate-900 truncate block">-</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 4: Form Keputusan Verifikasi -->
+        <div class="space-y-3 pt-3 border-t border-slate-200">
+          <h5 class="text-xs font-bold uppercase tracking-wider text-slate-900">
+            4. Penetapan Keputusan Verifikator
+          </h5>
+
+          <div class="space-y-2">
+            <label class="block text-xs font-semibold text-slate-700">Tingkat Verifikasi (Tier):</label>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <label class="flex items-start gap-2.5 p-3 rounded-lg border border-slate-200 hover:border-emerald-600 cursor-pointer bg-white">
+                <input
+                  type="radio"
+                  name="tier"
+                  value="1"
+                  checked
+                  class="mt-0.5 text-emerald-700 focus:ring-emerald-700"
+                />
+                <div class="text-xs">
+                  <span class="font-bold text-slate-900 block flex items-center gap-1">
+                    <span class="text-emerald-700">✓</span> Tier 1: Terverifikasi MWC
+                  </span>
+                  <span class="text-slate-500 text-[11px]">Identitas &amp; toko fisik valid di MWC, siap transaksi retail warga</span>
+                </div>
+              </label>
+
+              <label class="flex items-start gap-2.5 p-3 rounded-lg border border-slate-200 hover:border-amber-600 cursor-pointer bg-white">
+                <input
+                  type="radio"
+                  name="tier"
+                  value="2"
+                  class="mt-0.5 text-amber-600 focus:ring-amber-600"
+                />
+                <div class="text-xs">
+                  <span class="font-bold text-slate-900 block flex items-center gap-1">
+                    <span class="text-amber-600">⭐</span> Tier 2: Mitra Resmi Konsumsi
+                  </span>
+                  <span class="text-slate-500 text-[11px]">Memiliki izin resmi (NIB/Halal/P-IRT) + kapasitas konsumsi kegiatan NU</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="space-y-1">
+            <label for="eval-note" class="block text-xs font-semibold text-slate-700">
+              Catatan Verifikator / Alasan Perbaikan:
+            </label>
+            <textarea
+              id="eval-note"
+              name="note"
+              rows="2"
+              placeholder="Contoh: Disetujui lencana MWC / Harap perjelas titik Maps tempat produksi Anda."
+              class="w-full text-xs border border-slate-300 rounded-lg p-2.5 bg-white text-slate-900 focus:border-emerald-700 focus:ring-1 focus:ring-emerald-700 outline-none"
+            ></textarea>
+            <p class="text-[11px] text-slate-500">Catatan ini akan dikirimkan langsung ke dashboard notifikasi pemilik toko.</p>
+          </div>
+        </div>
+
+        <!-- Tombol Aksi -->
+        <div class="flex items-center justify-between gap-2 pt-3 border-t border-slate-200">
+          <button
+            type="button"
+            id="btn-eval-revoke"
+            class="hidden min-h-[38px] px-3.5 py-1.5 text-xs font-semibold text-rose-700 bg-rose-50 border border-rose-200 rounded-lg hover:bg-rose-100 transition cursor-pointer"
+          >
+            Cabut Verifikasi
+          </button>
+
+          <div class="flex items-center gap-2 ml-auto">
+            <button
+              type="button"
+              id="btn-eval-reject"
+              class="min-h-[38px] px-3.5 py-1.5 text-xs font-semibold text-amber-800 bg-amber-50 border border-amber-300 rounded-lg hover:bg-amber-100 transition cursor-pointer"
+            >
+              Minta Perbaikan
+            </button>
+            <button
+              type="button"
+              id="btn-eval-approve"
+              class="min-h-[38px] px-4 py-1.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg transition cursor-pointer shadow-xs inline-flex items-center gap-1.5"
+            >
+              <AppIcon name="check" size="xs" />
+              <span>Setujui Verifikasi</span>
+            </button>
+          </div>
         </div>
       </form>
     </div>
