@@ -15,6 +15,7 @@ export interface SeedUMKM {
   pirt?: string;
   maps_url?: string;
   qris_image_url?: string;
+  logo_url?: string;
 }
 
 export interface SeedProduct {
