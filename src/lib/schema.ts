@@ -35,13 +35,20 @@ export const users = pgTable('users', {
   created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
 });
 
-export const sessions = pgTable('sessions', {
-  id: varchar('id', { length: 255 }).primaryKey(),
-  user_id: integer('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
-});
+export const sessions = pgTable(
+  'sessions',
+  {
+    id: varchar('id', { length: 255 }).primaryKey(),
+    user_id: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    expires_at: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (t) => [
+    index('idx_sessions_user').on(t.user_id),
+    index('idx_sessions_expires').on(t.expires_at),
+  ]
+);
 
 export const umkm = pgTable(
   'umkm',
@@ -77,32 +84,42 @@ export const umkm = pgTable(
     uniqueIndex('uq_umkm_user_id')
       .on(t.user_id)
       .where(sql`${t.user_id} IS NOT NULL`),
+    index('idx_umkm_zone').on(t.zone_id),
   ]
 );
 
-export const products = pgTable('products', {
-  id: serial('id').primaryKey(),
-  umkm_id: integer('umkm_id')
-    .notNull()
-    .references(() => umkm.id, { onDelete: 'cascade' }),
-  name: varchar('name', { length: 255 }).notNull(),
-  slug: varchar('slug', { length: 255 }).notNull().unique(),
-  price: integer('price').notNull(),
-  original_price: integer('original_price'),
-  category: varchar('category', { length: 100 }).notNull(),
-  image_url: text('image_url').notNull(),
-  gallery_images: text('gallery_images'),
-  description: text('description'),
-  views: integer('views').default(0),
-  is_sold_out: integer('is_sold_out').default(0),
-  stock_status: varchar('stock_status', { length: 50 }).default('ready'),
-  production_capacity: varchar('production_capacity', { length: 255 }),
-  shopee_url: text('shopee_url'),
-  is_featured: integer('is_featured').default(0),
-  featured_until: timestamp('featured_until', { withTimezone: true }),
-  bumped_at: timestamp('bumped_at', { withTimezone: true }).defaultNow(),
-  created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
-});
+export const products = pgTable(
+  'products',
+  {
+    id: serial('id').primaryKey(),
+    umkm_id: integer('umkm_id')
+      .notNull()
+      .references(() => umkm.id, { onDelete: 'cascade' }),
+    name: varchar('name', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull().unique(),
+    price: integer('price').notNull(),
+    original_price: integer('original_price'),
+    category: varchar('category', { length: 100 }).notNull(),
+    image_url: text('image_url').notNull(),
+    gallery_images: text('gallery_images'),
+    description: text('description'),
+    views: integer('views').default(0),
+    is_sold_out: integer('is_sold_out').default(0),
+    stock_status: varchar('stock_status', { length: 50 }).default('ready'),
+    production_capacity: varchar('production_capacity', { length: 255 }),
+    shopee_url: text('shopee_url'),
+    is_featured: integer('is_featured').default(0),
+    featured_until: timestamp('featured_until', { withTimezone: true }),
+    bumped_at: timestamp('bumped_at', { withTimezone: true }).defaultNow(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  },
+  (t) => [
+    index('idx_products_umkm').on(t.umkm_id),
+    index('idx_products_category').on(t.category),
+    index('idx_products_bumped').on(t.bumped_at.desc(), t.created_at.desc()),
+    index('idx_products_featured').on(t.is_featured, t.featured_until),
+  ]
+);
 
 export const articles = pgTable('articles', {
   id: serial('id').primaryKey(),

@@ -40,7 +40,7 @@ const absoluteOgImage = image.startsWith('http') ? image : new URL(image, Astro.
 const zones = await getAllZones();
 const currentYear = new Date().getFullYear();
 
-const user = await resolveUser(Astro.request);
+const user = Astro.locals?.user !== undefined ? Astro.locals.user : await resolveUser(Astro.request);
 const isSuperadmin = isPCNU(user);
 const isPetugas = isRanting(user);
 const currentPath = Astro.url.pathname;

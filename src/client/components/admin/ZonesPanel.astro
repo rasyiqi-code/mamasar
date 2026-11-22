@@ -400,13 +400,24 @@ const filterBtnClass =
 </style>
 
 <script>
-  import L from 'leaflet';
-  import 'leaflet/dist/leaflet.css';
+  import type * as LeafletType from 'leaflet';
 
   const sumenepCenter: [number, number] = [-7.0167, 113.8667];
-  let mapInstance: L.Map | null = null;
+  let mapInstance: LeafletType.Map | null = null;
   let toolbarInitialized = false;
-  const markersMap = new Map<string, L.CircleMarker>();
+  const markersMap = new Map<string, LeafletType.CircleMarker>();
+  let leafletPromise: Promise<typeof LeafletType> | null = null;
+
+  async function loadLeaflet(): Promise<typeof LeafletType> {
+    if (!leafletPromise) {
+      leafletPromise = (async () => {
+        const mod = await import('leaflet');
+        await import('leaflet/dist/leaflet.css');
+        return (mod.default || mod) as typeof LeafletType;
+      })();
+    }
+    return leafletPromise;
+  }
 
   function escapePopupHtml(value: unknown): string {
     return String(value ?? '')
@@ -417,7 +428,7 @@ const filterBtnClass =
       .replace(/'/g, '&#39;');
   }
 
-  function initZonesMap() {
+  async function initZonesMap() {
     const mapContainer = document.getElementById('zones-leaflet-map');
     const jsonEl = document.getElementById('zones-geo-data-json');
     if (!mapContainer || !jsonEl) return;
@@ -426,6 +437,8 @@ const filterBtnClass =
       mapInstance.invalidateSize();
       return;
     }
+
+    const L = await loadLeaflet();
 
     let zonesData: Array<{
       name: string;
@@ -641,13 +654,20 @@ const filterBtnClass =
     });
   });
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-      initZonesToolbar();
-      setTimeout(initZonesMap, 250);
-    });
-  } else {
+  function checkAndInitZones() {
     initZonesToolbar();
-    setTimeout(initZonesMap, 250);
+    const isZonesActive =
+      window.location.hash === '#zones' ||
+      document.getElementById('panel-zones')?.classList.contains('active') ||
+      !document.getElementById('panel-zones')?.classList.contains('hidden');
+    if (isZonesActive) {
+      setTimeout(initZonesMap, 250);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkAndInitZones);
+  } else {
+    checkAndInitZones();
   }
 </script>

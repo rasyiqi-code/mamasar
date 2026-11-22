@@ -4,7 +4,7 @@ import StoreSetupCard from '../components/dashboard/StoreSetupCard.astro';
 import { resolveUser } from '../../lib/neon-auth';
 import { getUMKMByUserId, getAllZones, isSuperadmin, isPetugas } from '../../lib/db';
 
-const user = await resolveUser(Astro.request);
+const user = Astro.locals?.user !== undefined ? Astro.locals.user : await resolveUser(Astro.request);
 if (!user) {
   const currentPath = Astro.url.pathname + Astro.url.search;
   return Astro.redirect(`/login?redirect=${encodeURIComponent(currentPath)}`);
@@ -39,5 +39,3 @@ const isCadre = isPetugas(user);
     notice={notice}
   />
 </Layout>
-
-<script src="../scripts/dashboard.client.ts"></script>

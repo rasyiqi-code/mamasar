@@ -8,8 +8,9 @@ import {
   getProducts,
   getProductsCount,
   getMostFavoritedProducts,
-  getAllUMKM,
-  getArticles,
+  getFeaturedStores,
+  getStoresCount,
+  getRecentArticles,
   getUserFavoriteIds,
 } from '../../lib/db';
 import { resolveUser } from '../../lib/neon-auth';
@@ -32,10 +33,6 @@ const PAGE_SIZE = 15;
 const requestedPage = Number.parseInt(url.searchParams.get('page') || '1', 10);
 const currentPage = Number.isFinite(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 
-const zones = await getAllZones();
-const sellers = await getAllUMKM();
-const articles = await getArticles();
-
 const filterOptions = {
   zoneSlug: currentZone,
   category: currentCategory,
@@ -45,23 +42,6 @@ const filterOptions = {
   verifiedOnly: currentVerified === '1',
 };
 
-const totalProducts = await getProductsCount(filterOptions);
-const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
-const safePage = Math.min(currentPage, totalPages);
-const offset = (safePage - 1) * PAGE_SIZE;
-
-const products = await getProducts({
-  ...filterOptions,
-  limit: PAGE_SIZE,
-  offset,
-});
-
-const verifiedSellers = [...sellers].sort(
-  (a, b) =>
-    Number(Boolean(b.is_verified)) - Number(Boolean(a.is_verified)) ||
-    b.product_count - a.product_count
-);
-
 const isFiltered =
   currentZone !== 'semua' ||
   currentCategory !== 'semua' ||
@@ -69,16 +49,39 @@ const isFiltered =
   currentStock !== 'semua' ||
   currentVerified === '1';
 
-const showDiscoverySections = !isFiltered && safePage === 1;
+const offset = (currentPage - 1) * PAGE_SIZE;
+const showDiscoverySections = !isFiltered && currentPage === 1;
+const sessionUser = Astro.locals?.user !== undefined ? Astro.locals.user : await resolveUser(Astro.request);
 
-const spotlightProducts = showDiscoverySections
-  ? (await getProducts({ limit: 4, sort: 'newest' })).slice(0, 4)
-  : [];
+// Parallelize all independent DB operations concurrently via Promise.all
+const [
+  zones,
+  totalProducts,
+  products,
+  popularProducts,
+  featuredStores,
+  totalStores,
+  articles,
+  userFavIds,
+] = await Promise.all([
+  getAllZones(),
+  getProductsCount(filterOptions),
+  getProducts({
+    ...filterOptions,
+    limit: PAGE_SIZE,
+    offset,
+  }),
+  showDiscoverySections ? getMostFavoritedProducts(4) : Promise.resolve([]),
+  showDiscoverySections ? getFeaturedStores(4) : Promise.resolve([]),
+  showDiscoverySections ? getStoresCount() : Promise.resolve(0),
+  showDiscoverySections ? getRecentArticles(3) : Promise.resolve([]),
+  sessionUser ? getUserFavoriteIds(sessionUser.id) : Promise.resolve([]),
+]);
 
-const popularProducts = showDiscoverySections ? await getMostFavoritedProducts(4) : [];
-
-const sessionUser = showDiscoverySections ? await resolveUser(Astro.request) : null;
-const ssrFavCount = sessionUser ? (await getUserFavoriteIds(sessionUser.id)).length : null;
+const totalPages = Math.max(1, Math.ceil(totalProducts / PAGE_SIZE));
+const safePage = Math.min(currentPage, totalPages);
+const spotlightProducts = showDiscoverySections ? products.slice(0, 4) : [];
+const ssrFavCount = sessionUser ? userFavIds.length : null;
 
 function buildFilterUrl(updates: Record<string, string | null>) {
   const params = new URLSearchParams(url.searchParams);
@@ -245,7 +248,13 @@ function buildFilterUrl(updates: Record<string, string | null>) {
           <div class="flex overflow-x-auto snap-x snap-mandatory gap-3 pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-4 sm:overflow-visible no-scrollbar scroll-pl-3 scroll-pr-8">
             {spotlightProducts.map((p, idx) => (
               <div class="w-[74vw] max-w-[270px] shrink-0 snap-start sm:w-auto sm:max-w-none">
-                <ProductCard product={p} variant="spotlight" highlight={idx === 0} />
+                <ProductCard
+                  product={p}
+                  variant="spotlight"
+                  highlight={idx === 0}
+                  imageLoading={idx === 0 ? 'eager' : 'lazy'}
+                  fetchPriority={idx === 0 ? 'high' : 'auto'}
+                />
               </div>
             ))}
             <div class="w-4 shrink-0 sm:hidden" aria-hidden="true" />
@@ -358,7 +367,7 @@ function buildFilterUrl(updates: Record<string, string | null>) {
     )}
 
     {/* 4. BEST SELLERS / TOP UMKM PORTRAIT SHOWCASE (Contained Hairline Band) */}
-    {showDiscoverySections && verifiedSellers.length > 0 && (
+    {showDiscoverySections && featuredStores.length > 0 && (
       <section id="toko-warga" class="-mx-0 sm:-mx-6 lg:-mx-8 px-3 sm:px-6 lg:px-8 bg-slate-100/90 border-y border-slate-200/80 py-5 sm:py-9">
         <div class="space-y-3 sm:space-y-4">
           <div class="flex items-center justify-between gap-3">
@@ -369,13 +378,13 @@ function buildFilterUrl(updates: Record<string, string | null>) {
               href="/toko"
               class="min-h-[40px] sm:min-h-0 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition inline-flex items-center gap-1 shrink-0"
             >
-              <span>Semua ({sellers.length})</span>
+              <span>Semua ({totalStores})</span>
               <AppIcon name="arrow-right" size="xs" />
             </a>
           </div>
 
           <div class="-mx-3 sm:mx-0 grid grid-cols-2 lg:grid-cols-4 gap-0.5 sm:gap-4 [&>a]:rounded-none sm:[&>a]:rounded-lg [&>a]:border-0 sm:[&>a]:border">
-            {verifiedSellers.slice(0, 4).map((seller) => {
+            {featuredStores.map((seller) => {
               const coverImg = seller.sample_images[0] ? getOptimizedImageUrl(seller.sample_images[0], 500) : null;
               return (
                 <a

@@ -40,7 +40,8 @@ if (product) {
   }
 
   if (!viewedIds.includes(product.id)) {
-    await incrementProductViews(product.slug);
+    // Non-blocking view increment without halting critical SSR rendering
+    incrementProductViews(product.slug).catch(() => {});
     currentViews += 1;
     const nextViewed = [...viewedIds, product.id].slice(-20);
     Astro.cookies.set('mamasar_viewed', JSON.stringify(nextViewed), {
@@ -90,10 +91,14 @@ if (product) {
     limit: 12,
   });
 
-  const existingIds = new Set([product.id, ...sameCategory.map((p) => p.id)]);
-  const backfill = await getProducts({ limit: 16 });
-  const additional = backfill.filter((p) => !existingIds.has(p.id));
-  relatedProducts = [...sameCategory, ...additional].slice(0, 12);
+  if (sameCategory.length < 12) {
+    const existingIds = new Set([product.id, ...sameCategory.map((p) => p.id)]);
+    const backfill = await getProducts({ limit: 16 });
+    const additional = backfill.filter((p) => !existingIds.has(p.id));
+    relatedProducts = [...sameCategory, ...additional].slice(0, 12);
+  } else {
+    relatedProducts = sameCategory;
+  }
 }
 
 const priceValidUntil = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
@@ -773,7 +778,8 @@ const pageDescription = product
                   width="176"
                   height="176"
                   class="w-44 h-44 object-contain"
-                  loading="eager"
+                  loading="lazy"
+                  decoding="async"
                 />
                 <div class="text-center space-y-0.5">
                   <p class="text-xs font-black text-slate-800">

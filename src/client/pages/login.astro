@@ -3,7 +3,7 @@ import AppLayout from '../layouts/AppLayout.astro';
 import AuthCard from '../components/dashboard/AuthCard.astro';
 import { resolveUser } from '../../lib/neon-auth';
 
-const user = await resolveUser(Astro.request);
+const user = Astro.locals?.user !== undefined ? Astro.locals.user : await resolveUser(Astro.request);
 const redirectParam = Astro.url.searchParams.get('redirect');
 
 // Jika sudah masuk, arahkan langsung ke halaman tujuan atau /dashboard
@@ -37,5 +37,3 @@ const intent = Astro.url.searchParams.get('intent');
     </script>
   )}
 </AppLayout>
-
-<script src="../scripts/dashboard.client.ts"></script>

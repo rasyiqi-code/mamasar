@@ -157,3 +157,5 @@ export async function resolveUser(
 
   return null;
 }
+
+export type ResolvedUser = NonNullable<Awaited<ReturnType<typeof resolveUser>>>;

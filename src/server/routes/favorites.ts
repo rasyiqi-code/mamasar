@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia';
 import {
+  clearUserFavorites,
   getProductsByIds,
   getUserFavoriteIds,
   syncGuestFavorites,
@@ -88,5 +89,16 @@ export const favoritesRoutes = new Elysia({ name: 'routes:favorites', prefix: '/
       return jsonResponse({ success: true, favorites: currentFavorites }, 200);
     } catch (err) {
       return jsonError(500, 'Gagal menyinkronkan favorit.', err);
+    }
+  })
+  .post('/clear', async ({ request }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (user) {
+        await clearUserFavorites(user.id);
+      }
+      return jsonResponse({ success: true, cleared: true }, 200);
+    } catch (err) {
+      return jsonError(500, 'Gagal mengosongkan daftar favorit.', err);
     }
   });

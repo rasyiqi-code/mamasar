@@ -53,8 +53,18 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Skip dynamic API and admin mutation routes from caching
-  if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/uploads/')) {
+  // Skip dynamic API and authenticated private routes from caching
+  if (
+    url.pathname.startsWith('/api/') ||
+    url.pathname.startsWith('/uploads/') ||
+    url.pathname.startsWith('/dashboard') ||
+    url.pathname.startsWith('/admin') ||
+    url.pathname.startsWith('/login') ||
+    url.pathname.startsWith('/masuk') ||
+    url.pathname.startsWith('/buka-toko') ||
+    url.pathname.startsWith('/daftar-kader') ||
+    url.pathname.startsWith('/daftar-petugas')
+  ) {
     return;
   }
 

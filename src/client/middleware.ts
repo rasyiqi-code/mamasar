@@ -3,9 +3,22 @@ import { isHttpsRequest } from '../lib/security';
 import { resolveUser } from '../lib/neon-auth';
 
 export const onRequest = defineMiddleware(async (context, next) => {
+  const cookieHeader = context.request.headers.get('cookie') || '';
+  const hasAuthCookie =
+    cookieHeader.includes('mamasar_session') ||
+    cookieHeader.includes('neon-auth') ||
+    cookieHeader.includes('neon_auth') ||
+    cookieHeader.includes('better-auth');
+
+  // Single resolution per SSR request lifecycle stored in context.locals.user
+  let user = null;
+  if (hasAuthCookie) {
+    user = await resolveUser(context.request);
+  }
+  context.locals.user = user;
+
   // Lindungi seluruh rute /dashboard agar pengguna belum login langsung diarahkan ke /login
   if (context.url.pathname.startsWith('/dashboard')) {
-    const user = await resolveUser(context.request);
     if (!user) {
       const currentPath = context.url.pathname + context.url.search;
       const query = currentPath && currentPath !== '/dashboard' ? `?redirect=${encodeURIComponent(currentPath)}` : '';

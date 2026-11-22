@@ -15,6 +15,8 @@ interface Props {
   badgeColor?: 'indigo' | 'amber' | 'emerald' | 'rose';
   isSoldOut?: boolean;
   views?: number;
+  imageLoading?: 'lazy' | 'eager';
+  fetchPriority?: 'high' | 'low' | 'auto';
 }
 
 const {
@@ -28,6 +30,8 @@ const {
   badgeColor = 'emerald',
   isSoldOut = Boolean(product.is_sold_out),
   views = product.views ?? 0,
+  imageLoading = 'lazy',
+  fetchPriority = 'auto',
 } = Astro.props;
 
 const waLink = createProductWhatsAppUrl({
@@ -110,7 +114,8 @@ const storeInitials =
           width="400"
           height="300"
           alt={product.name}
-          loading="lazy"
+          loading={imageLoading}
+          fetchpriority={fetchPriority !== 'auto' ? fetchPriority : undefined}
           decoding="async"
           onerror={`this.onerror=null;this.src='${DEFAULT_PRODUCT_IMAGE}';`}
           class={`w-full h-full object-cover group-hover:scale-105 transition duration-300 ${

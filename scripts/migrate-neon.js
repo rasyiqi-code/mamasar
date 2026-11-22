@@ -126,6 +126,15 @@ async function runMigration() {
   await sql`ALTER TABLE products ADD COLUMN IF NOT EXISTS shopee_url TEXT;`;
   await sql`ALTER TABLE products ALTER COLUMN views SET DEFAULT 0;`;
 
+  // Performance Indexes for Core Tables
+  await sql`CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_sessions_expires ON sessions(expires_at);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_umkm_zone ON umkm(zone_id);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_products_umkm ON products(umkm_id);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_products_bumped ON products(bumped_at DESC, created_at DESC);`;
+  await sql`CREATE INDEX IF NOT EXISTS idx_products_featured ON products(is_featured, featured_until);`;
+
   // Tabel Favorit Sinkron Database
   await sql`
     CREATE TABLE IF NOT EXISTS favorites (
@@ -393,8 +402,8 @@ async function runMigration() {
     for (const p of SEED_PRODUCTS) {
       const umkmId = umkmMap.get(p.umkm_name) || 1;
       await sql`
-        INSERT INTO products (umkm_id, name, slug, price, category, image_url, description, views, is_sold_out, production_capacity, shopee_url, bumped_at)
-        VALUES (${umkmId}, ${p.name}, ${p.slug}, ${p.price}, ${p.category}, ${p.image_url}, ${p.description}, ${p.views || 0}, ${p.is_sold_out || 0}, ${p.production_capacity || null}, ${p.shopee_url || null}, CURRENT_TIMESTAMP)
+        INSERT INTO products (umkm_id, name, slug, price, category, image_url, gallery_images, description, views, is_sold_out, production_capacity, shopee_url, bumped_at)
+        VALUES (${umkmId}, ${p.name}, ${p.slug}, ${p.price}, ${p.category}, ${p.image_url}, ${p.gallery_images || '[]'}, ${p.description}, ${p.views || 0}, ${p.is_sold_out || 0}, ${p.production_capacity || null}, ${p.shopee_url || null}, CURRENT_TIMESTAMP)
         ON CONFLICT (slug) DO NOTHING;
       `;
     }

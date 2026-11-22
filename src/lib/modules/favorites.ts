@@ -41,3 +41,8 @@ export async function syncGuestFavorites(userId: number, productIds: number[]): 
     }
   }
 }
+
+export async function clearUserFavorites(userId: number): Promise<boolean> {
+  await getDb().delete(schema.favorites).where(eq(schema.favorites.user_id, userId));
+  return true;
+}

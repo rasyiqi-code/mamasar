@@ -3,14 +3,14 @@ import { resolveUser } from '../../../lib/neon-auth';
 import { getUMKMByUserId } from '../../../lib/db';
 import DashboardWorkspace from '../../components/dashboard/DashboardWorkspace.astro';
 
-const user = await resolveUser(Astro.request);
+const user = Astro.locals?.user !== undefined ? Astro.locals.user : await resolveUser(Astro.request);
 if (!user) {
   const currentPath = Astro.url.pathname + Astro.url.search;
   const query = currentPath && currentPath !== '/dashboard/produk' ? `?redirect=${encodeURIComponent(currentPath)}` : '';
   return Astro.redirect(`/login${query}`);
 }
 
-const store = await getUMKMByUserId(user.id);
+const store = user.umkm ?? (await getUMKMByUserId(user.id));
 if (!store) {
   return Astro.redirect('/buka-toko');
 }

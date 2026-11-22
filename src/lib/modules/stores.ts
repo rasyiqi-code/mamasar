@@ -103,6 +103,45 @@ export async function getAllUMKM(options?: {
   return loadStores();
 }
 
+export async function getStoresCount(): Promise<number> {
+  return getOrSetCache('stores:count', 60_000, async () => {
+    const [row] = await getDb()
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.umkm);
+    return Number(row?.count ?? 0);
+  });
+}
+
+export async function getFeaturedStores(
+  limit = 4
+): Promise<(UMKM & { product_count: number; zone_slug: string; sample_images: string[] })[]> {
+  return getOrSetCache(`stores:featured:${limit}`, 60_000, async () => {
+    const rows = await getDb()
+      .select({
+        ...getTableColumns(schema.umkm),
+        zone_name: schema.zones.name,
+        zone_slug: schema.zones.slug,
+        product_count: sql<number>`count(${schema.products.id})::int`,
+        sample_images_str: sql<string | null>`string_agg(${schema.products.image_url}, ',')`,
+      })
+      .from(schema.umkm)
+      .innerJoin(schema.zones, eq(schema.umkm.zone_id, schema.zones.id))
+      .leftJoin(schema.products, eq(schema.products.umkm_id, schema.umkm.id))
+      .groupBy(schema.umkm.id, schema.zones.name, schema.zones.slug)
+      .orderBy(desc(schema.umkm.is_verified), desc(sql`count(${schema.products.id})`), asc(schema.umkm.id))
+      .limit(limit);
+
+    return Promise.all(
+      rows.map(async (r) => ({
+        ...toUMKM(r),
+        logo_url: (await resolveAvatarUrl(r.logo_url)) ?? undefined,
+        product_count: r.product_count,
+        sample_images: r.sample_images_str ? String(r.sample_images_str).split(',').filter(Boolean) : [],
+      }))
+    );
+  });
+}
+
 export async function getUMKMById(idOrSlug: number | string): Promise<(UMKM & {
   zone_name: string;
   zone_slug: string;

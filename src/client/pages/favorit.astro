@@ -420,18 +420,13 @@ function formatRupiah(amount: number) {
       localStorage.removeItem('mamasar_favorites');
 
       if (isLoggedIn) {
-        // Toggle off all visible favorites
-        const cards = document.querySelectorAll('[data-remove-fav]');
-        for (const card of cards) {
-          const id = Number(card.getAttribute('data-remove-fav'));
-          try {
-            await fetch('/api/favorites/toggle', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ productId: id }),
-            });
-          } catch {}
-        }
+        // Atomic single clear call instead of N+1 sequential toggle requests
+        try {
+          await fetch('/api/favorites/clear', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } catch {}
       }
 
       if (container) container.innerHTML = '';

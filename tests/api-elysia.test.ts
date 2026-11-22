@@ -120,5 +120,12 @@ describe('Elysia backend (/api)', () => {
       new Request('http://localhost/api/events', { method: 'POST', body: new FormData() })
     );
     assert.equal(eventPostRes.status, 401);
+
+    const favClearRes = await app.handle(
+      new Request('http://localhost/api/favorites/clear', { method: 'POST' })
+    );
+    assert.equal(favClearRes.status, 200);
+    const favClearBody = (await favClearRes.json()) as { success: boolean; cleared: boolean };
+    assert.equal(favClearBody.success, true);
   });
 });

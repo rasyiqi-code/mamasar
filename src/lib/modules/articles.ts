@@ -3,6 +3,7 @@ import * as schema from '../schema';
 import { getDb } from '../client';
 import type { Article } from './types';
 import { slugify } from '../utils';
+import { getOrSetCache, invalidateCache } from '../cache';
 
 function toArticle(row: typeof schema.articles.$inferSelect): Article {
   return {
@@ -18,8 +19,38 @@ function toArticle(row: typeof schema.articles.$inferSelect): Article {
 }
 
 export async function getArticles(): Promise<Article[]> {
-  const rows = await getDb().select().from(schema.articles).orderBy(asc(schema.articles.id));
-  return rows.map(toArticle);
+  return getOrSetCache('articles:all', 120_000, async () => {
+    const rows = await getDb().select().from(schema.articles).orderBy(asc(schema.articles.id));
+    return rows.map(toArticle);
+  });
+}
+
+export async function getRecentArticles(limit = 3): Promise<Omit<Article, 'content'>[]> {
+  return getOrSetCache(`articles:recent:${limit}`, 120_000, async () => {
+    const rows = await getDb()
+      .select({
+        id: schema.articles.id,
+        title: schema.articles.title,
+        slug: schema.articles.slug,
+        category: schema.articles.category,
+        image_url: schema.articles.image_url,
+        summary: schema.articles.summary,
+        created_at: schema.articles.created_at,
+      })
+      .from(schema.articles)
+      .orderBy(asc(schema.articles.id))
+      .limit(limit);
+
+    return rows.map((r) => ({
+      id: r.id,
+      title: r.title,
+      slug: r.slug,
+      category: r.category,
+      image_url: r.image_url,
+      summary: r.summary,
+      created_at: r.created_at!.toISOString(),
+    }));
+  });
 }
 
 export async function getArticleBySlug(slug: string): Promise<Article | undefined> {
@@ -64,6 +95,7 @@ export async function createArticle(input: CreateArticleInput): Promise<Article>
       content: input.content ?? null,
     })
     .returning();
+  invalidateCache('articles:');
   return toArticle(created);
 }
 
@@ -85,6 +117,7 @@ export async function updateArticle(
     .set(values)
     .where(eq(schema.articles.id, id))
     .returning();
+  invalidateCache('articles:');
   return updated ? toArticle(updated) : undefined;
 }
 
@@ -94,5 +127,6 @@ export async function deleteArticle(id: number): Promise<boolean> {
     .delete(schema.articles)
     .where(eq(schema.articles.id, id))
     .returning({ id: schema.articles.id });
+  invalidateCache('articles:');
   return Boolean(deleted);
 }
