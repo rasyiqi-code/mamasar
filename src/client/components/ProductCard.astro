@@ -275,9 +275,11 @@ const storeInitials =
             target="_blank"
             rel="noopener noreferrer"
             aria-label={`Hubungi WhatsApp ${product.umkm_name} untuk ${product.name}`}
-            class="hidden sm:inline shrink-0 text-emerald-700 hover:text-emerald-800 font-bold whitespace-nowrap"
+            class="shrink-0 inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-1.5 py-0.5 rounded text-[11px] font-bold whitespace-nowrap transition cursor-pointer"
+            title={`Hubungi WhatsApp ${product.umkm_name}`}
           >
-            WA
+            <AppIcon name="whatsapp" size="xs" class="text-emerald-600 shrink-0" />
+            <span>WA</span>
           </a>
         </div>
       ) : (
@@ -295,15 +297,28 @@ const storeInitials =
               <AppIcon name="store" size="xs" class="text-slate-400 shrink-0" />
               <span class="truncate">{product.umkm_name}</span>
             </a>
-            {isTier2Store ? (
-              <span class="text-amber-600 shrink-0 inline-flex items-center gap-0.5 text-xs font-bold" title="Mitra Resmi Konsumsi Acara NU & Berizin">
-                ⭐
-              </span>
-            ) : isVerifiedStore ? (
-              <span class="text-emerald-700 shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold" title="Toko Terverifikasi MWC NU">
-                <AppIcon name="verified" size="xs" />
-              </span>
-            ) : null}
+            <div class="flex items-center gap-1.5 shrink-0">
+              {isTier2Store ? (
+                <span class="text-amber-600 shrink-0 inline-flex items-center gap-0.5 text-xs font-bold" title="Mitra Resmi Konsumsi Acara NU & Berizin">
+                  ⭐
+                </span>
+              ) : isVerifiedStore ? (
+                <span class="text-emerald-700 shrink-0 inline-flex items-center gap-0.5 text-xs font-semibold" title="Toko Terverifikasi MWC NU">
+                  <AppIcon name="verified" size="xs" />
+                </span>
+              ) : null}
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`Hubungi WhatsApp ${product.umkm_name} untuk ${product.name}`}
+                class="inline-flex items-center gap-1 text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200/80 px-1.5 py-0.5 rounded text-[11px] font-bold whitespace-nowrap transition cursor-pointer"
+                title={`Hubungi WhatsApp ${product.umkm_name}`}
+              >
+                <AppIcon name="whatsapp" size="xs" class="text-emerald-600 shrink-0" />
+                <span>WA</span>
+              </a>
+            </div>
           </div>
         </>
       )}
