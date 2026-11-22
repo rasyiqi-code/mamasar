@@ -591,6 +591,122 @@ export function initAdminClient() {
     });
   });
 
+  // --- TRANSFER STORE OWNERSHIP MODAL ---
+  const transferModal = document.getElementById('modal-transfer-store');
+  const transferForm = document.getElementById('form-transfer-store') as HTMLFormElement | null;
+  const transferStoreIdInput = document.getElementById('transfer-store-id') as HTMLInputElement | null;
+  const transferStoreNameEl = document.getElementById('transfer-store-name');
+  const transferCurrentOwnerEl = document.getElementById('transfer-current-owner');
+  const transferUserSearchInput = document.getElementById('transfer-user-search') as HTMLInputElement | null;
+  const transferUserSelect = document.getElementById('transfer-user-select') as HTMLSelectElement | null;
+  const btnCloseTransferModal = document.getElementById('btn-close-transfer-modal');
+  const btnCancelTransfer = document.getElementById('btn-cancel-transfer');
+  const btnSubmitTransfer = document.getElementById('btn-submit-transfer') as HTMLButtonElement | null;
+
+  function closeTransferModal() {
+    transferModal?.classList.add('hidden');
+    transferForm?.reset();
+    if (transferUserSearchInput) transferUserSearchInput.value = '';
+    filterTransferUsers('');
+  }
+
+  function filterTransferUsers(query: string) {
+    if (!transferUserSelect) return;
+    const cleanQ = query.toLowerCase().trim();
+    Array.from(transferUserSelect.options).forEach((opt) => {
+      if (!opt.value || opt.value === 'unlink') return;
+      const searchData = opt.dataset.search || opt.text.toLowerCase();
+      opt.hidden = Boolean(cleanQ && !searchData.includes(cleanQ));
+    });
+  }
+
+  transferUserSearchInput?.addEventListener('input', (e) => {
+    filterTransferUsers((e.target as HTMLInputElement).value);
+  });
+
+  btnCloseTransferModal?.addEventListener('click', closeTransferModal);
+  btnCancelTransfer?.addEventListener('click', closeTransferModal);
+
+  transferModal?.addEventListener('click', (e) => {
+    if (e.target === transferModal) {
+      closeTransferModal();
+    }
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-action="open-transfer-store"]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const umkmId = btn.dataset.id || '';
+      const name = btn.dataset.name || '-';
+      const currentUserId = btn.dataset.currentUserId || '';
+      const currentOwner = btn.dataset.currentOwner || 'Data Awal (Belum Ada Akun)';
+
+      if (transferStoreIdInput) transferStoreIdInput.value = umkmId;
+      if (transferStoreNameEl) transferStoreNameEl.textContent = name;
+      if (transferCurrentOwnerEl) transferCurrentOwnerEl.textContent = currentOwner;
+
+      if (transferUserSelect) {
+        transferUserSelect.value = currentUserId || '';
+        Array.from(transferUserSelect.options).forEach((opt) => {
+          opt.hidden = false;
+        });
+      }
+
+      if (transferUserSearchInput) {
+        transferUserSearchInput.value = '';
+      }
+
+      transferModal?.classList.remove('hidden');
+    });
+  });
+
+  transferForm?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!transferForm) return;
+
+    const umkmId = transferStoreIdInput?.value;
+    const targetUserId = transferUserSelect?.value;
+
+    if (!umkmId || !targetUserId) {
+      notify('Silakan pilih akun warga penerima.', true);
+      return;
+    }
+
+    if (btnSubmitTransfer) {
+      btnSubmitTransfer.disabled = true;
+      btnSubmitTransfer.textContent = 'Menyimpan...';
+    }
+
+    try {
+      const form = new FormData();
+      form.set('umkmId', umkmId);
+      form.set('targetUserId', targetUserId);
+
+      const res = await fetch('/api/umkm/transfer', {
+        method: 'POST',
+        body: form,
+      });
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        notify(data.message || 'Toko berhasil dilimpahkan!');
+        closeTransferModal();
+        setTimeout(() => window.location.reload(), 900);
+      } else {
+        notify(data.message || 'Gagal melimpahkan toko.', true);
+        if (btnSubmitTransfer) {
+          btnSubmitTransfer.disabled = false;
+          btnSubmitTransfer.textContent = 'Simpan Pelimpahan';
+        }
+      }
+    } catch (err: any) {
+      notify(err.message || 'Terjadi kesalahan jaringan.', true);
+      if (btnSubmitTransfer) {
+        btnSubmitTransfer.disabled = false;
+        btnSubmitTransfer.textContent = 'Simpan Pelimpahan';
+      }
+    }
+  });
+
   // --- EVENT MANAGEMENT MODAL & CRUD ---
   const eventModal = document.getElementById('modal-event') as HTMLDialogElement | null;
   const openAddEventBtns = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-open-add-event]'));

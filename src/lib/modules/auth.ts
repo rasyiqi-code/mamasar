@@ -18,6 +18,7 @@ export type Permission =
   | 'umkm:create_verified'
   | 'umkm:verify'
   | 'umkm:delete'
+  | 'umkm:transfer'
   | 'product:create'
   | 'promotion:review'
   | 'zones:manage'
@@ -120,6 +121,7 @@ export function can(
 
     case 'umkm:verify':
     case 'umkm:delete':
+    case 'umkm:transfer':
     case 'promotion:review': {
       if (isPCNU(user)) return true;
       if (!isMWCNU(user)) return false;

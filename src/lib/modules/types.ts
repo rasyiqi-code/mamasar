@@ -206,6 +206,8 @@ export interface UMKMVerificationRow {
   zone_id: number;
   zone_name: string;
   zone_slug: string;
+  user_id?: number | null;
+  owner_name?: string;
   owner_email?: string;
   product_count: number;
   created_at: string;

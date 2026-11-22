@@ -20,6 +20,8 @@ pnpm-debug.log*
 # uploads
 data/uploads/*
 !data/uploads/.gitkeep
+public/uploads/*
+!public/uploads/.gitkeep
 
 # sqlite temporary & backup files
 *.db-wal

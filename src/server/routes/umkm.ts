@@ -8,6 +8,7 @@ import {
   isPetugas,
   setUMKMVerified,
   setupUMKMForUser,
+  transferUMKMOwnership,
   updateUMKMLogo,
   updateUMKMProfile,
 } from '../../lib/db';
@@ -442,5 +443,56 @@ export const umkmRoutes = new Elysia({ name: 'routes:umkm', prefix: '/umkm' })
       );
     } catch (err) {
       return jsonError(500, 'Terjadi kesalahan server.', err);
+    }
+  })
+  .post('/transfer', async ({ request, body }) => {
+    try {
+      const user = await resolveRequestUser(request);
+      if (!user) {
+        return jsonResponse({ success: false, message: 'Silakan login terlebih dahulu.' }, 401);
+      }
+      if (!isPCNU(user) && user.role !== 'mwcnu') {
+        return jsonResponse(
+          { success: false, message: 'Akses khusus Admin PCNU / Pengurus MWCNU.' },
+          403
+        );
+      }
+
+      const data = body as ParsedBody;
+      const umkmId = Number(strField(data, 'umkmId'));
+      const targetUserIdRaw = strField(data, 'targetUserId');
+
+      if (!umkmId) {
+        return jsonResponse({ success: false, message: 'ID Toko diperlukan.' }, 400);
+      }
+
+      const scope = await getUMKMScope(umkmId);
+      if (!scope) {
+        return jsonResponse({ success: false, message: 'Toko tidak ditemukan.' }, 404);
+      }
+
+      if (!can(user, 'umkm:transfer', { zoneId: scope.zone_id })) {
+        return jsonResponse(
+          {
+            success: false,
+            message: 'Anda hanya dapat melimpahkan toko pada wilayah MWCNU Anda.',
+          },
+          403
+        );
+      }
+
+      const targetUserId =
+        targetUserIdRaw === '0' || targetUserIdRaw === '' || targetUserIdRaw === 'unlink'
+          ? null
+          : Number(targetUserIdRaw);
+
+      if (targetUserId !== null && isNaN(targetUserId)) {
+        return jsonResponse({ success: false, message: 'Akun user tujuan tidak valid.' }, 400);
+      }
+
+      const result = await transferUMKMOwnership(umkmId, targetUserId, { actorUserId: user.id });
+      return jsonResponse(result, result.success ? 200 : 400);
+    } catch (err) {
+      return jsonError(500, 'Terjadi kesalahan server saat melimpahkan toko.', err);
     }
   });

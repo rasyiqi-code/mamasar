@@ -286,6 +286,8 @@ export async function getUMKMForVerification(zoneId?: number): Promise<UMKMVerif
       zone_id: schema.umkm.zone_id,
       zone_name: schema.zones.name,
       zone_slug: schema.zones.slug,
+      user_id: schema.umkm.user_id,
+      owner_name: schema.users.name,
       owner_email: schema.users.email,
       product_count: sql<number>`(SELECT count(*)::int FROM ${schema.products} WHERE ${schema.products.umkm_id} = ${schema.umkm.id})`,
       created_at: schema.umkm.created_at,
@@ -310,6 +312,8 @@ export async function getUMKMForVerification(zoneId?: number): Promise<UMKMVerif
     zone_id: row.zone_id,
     zone_name: row.zone_name,
     zone_slug: row.zone_slug,
+    user_id: row.user_id ?? null,
+    owner_name: row.owner_name ?? undefined,
     owner_email: row.owner_email ?? undefined,
     product_count: row.product_count ?? 0,
     created_at: row.created_at!.toISOString(),
@@ -608,5 +612,107 @@ export async function createStoreByPetugas(
     phone: created.phone,
     address: data.address,
     ranting: data.ranting,
+  };
+}
+
+export async function transferUMKMOwnership(
+  umkmId: number,
+  targetUserId: number | null,
+  options: { actorUserId: number }
+): Promise<{ success: boolean; message: string }> {
+  const db = getDb();
+
+  const [store] = await db
+    .select({
+      id: schema.umkm.id,
+      name: schema.umkm.name,
+      user_id: schema.umkm.user_id,
+      zone_id: schema.umkm.zone_id,
+    })
+    .from(schema.umkm)
+    .where(eq(schema.umkm.id, umkmId))
+    .limit(1);
+
+  if (!store) {
+    return { success: false, message: 'Toko tidak ditemukan.' };
+  }
+
+  // Jika melepas kaitan akun (unlinking)
+  if (targetUserId === null) {
+    await db
+      .update(schema.umkm)
+      .set({
+        user_id: null,
+        claimed_at: null,
+      })
+      .where(eq(schema.umkm.id, umkmId));
+
+    invalidateCatalogCaches();
+
+    await recordAuditLog({
+      actorUserId: options.actorUserId,
+      action: 'umkm.unlink_ownership',
+      targetType: 'umkm',
+      targetId: umkmId,
+      metadata: { previous_user_id: store.user_id },
+    });
+
+    return {
+      success: true,
+      message: `Toko "${store.name}" berhasil dilepas kaitannya (menjadi Data Awal).`,
+    };
+  }
+
+  // Cek user tujuan
+  const [targetUser] = await db
+    .select({ id: schema.users.id, name: schema.users.name, email: schema.users.email })
+    .from(schema.users)
+    .where(eq(schema.users.id, targetUserId))
+    .limit(1);
+
+  if (!targetUser) {
+    return { success: false, message: 'Akun warga tujuan tidak ditemukan.' };
+  }
+
+  // Cek apakah akun tujuan sudah memiliki toko lain (karena aturan 1 akun = 1 toko)
+  const [existingStore] = await db
+    .select({ id: schema.umkm.id, name: schema.umkm.name })
+    .from(schema.umkm)
+    .where(eq(schema.umkm.user_id, targetUserId))
+    .limit(1);
+
+  if (existingStore && existingStore.id !== umkmId) {
+    return {
+      success: false,
+      message: `Akun ${targetUser.name} (${targetUser.email}) sudah memiliki toko "${existingStore.name}". Satu akun hanya boleh memiliki 1 toko.`,
+    };
+  }
+
+  // Update kepemilikan toko secara atomik
+  await db
+    .update(schema.umkm)
+    .set({
+      user_id: targetUserId,
+      claimed_at: new Date(),
+    })
+    .where(eq(schema.umkm.id, umkmId));
+
+  invalidateCatalogCaches();
+
+  await recordAuditLog({
+    actorUserId: options.actorUserId,
+    action: 'umkm.transfer_ownership',
+    targetType: 'umkm',
+    targetId: umkmId,
+    metadata: {
+      target_user_id: targetUserId,
+      target_user_email: targetUser.email,
+      previous_user_id: store.user_id,
+    },
+  });
+
+  return {
+    success: true,
+    message: `Alhamdulillah! Toko "${store.name}" berhasil dilimpahkan ke ${targetUser.name} (${targetUser.email}).`,
   };
 }

@@ -40,7 +40,7 @@ const zones = await getAllZones();
 const assignedZone = zones.find((z) => z.id === user.assigned_zone_id);
 
 const pendingPetugas = isSuper ? await getPendingPetugas() : [];
-const allUsers = isSuper ? await getAllUsersForAdmin() : [];
+const allUsers = await getAllUsersForAdmin();
 const allStores = await getUMKMForVerification();
 
 // Jika petugas/pengurus MWC, batasi daftar toko ke MWC penugasannya
@@ -212,7 +212,7 @@ const scopeBadgeText = isSuper ? 'PCNU Sumenep' : `MWC ${assignedZone?.name || '
         {isSuper && <AgentsPanel pendingPetugas={pendingPetugas} allUsers={allUsers} zones={zones} />}
 
         <!-- Tab: Kurasi & Moderasi Toko Warga -->
-        <StoresPanel pendingStores={pendingStores} verifiedStores={verifiedStores} />
+        <StoresPanel pendingStores={pendingStores} verifiedStores={verifiedStores} users={allUsers} />
 
         <!-- Tab: Pendataan Jemput Bola (Formulir Kamera & Entri Lapangan 2-Step) -->
         <EntryPanel user={user} assignedZone={assignedZone} zones={zones} stores={stores} isDefaultActive={!isSuper} />
