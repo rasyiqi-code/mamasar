@@ -283,7 +283,7 @@ export const SEED_PRODUCTS: SeedProduct[] = [
     slug: 'air-isi-ulang-tangere',
     price: 6000,
     category: 'Makanan & Minuman',
-    image_url: 'https://images.unsplash.com/photo-1548839140-29a749e1bc4e?auto=format&fit=crop&w=600&q=80',
+    image_url: 'https://ik.imagekit.io/mamasar/products/prod-2b17f6e8-ce05-4e39-8ffd-ca871a6bd063_jn5ojQ_Wv.jpg',
     description: 'Air minum higenis dan menyegarkan.',
     production_capacity: '10-30/hari',
     views: 0,
