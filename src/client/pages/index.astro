@@ -522,17 +522,19 @@ function buildFilterUrl(updates: Record<string, string | null>) {
               class="text-emerald-700 shrink-0"
             />
             <h2 class="text-base sm:text-xl font-black text-slate-900 tracking-tight truncate">
-              {isFiltered ? "Hasil Pencarian" : "Katalog Produk Warga NU"}
+              {isFiltered ? "Hasil Pencarian" : "Produk Terbaru"}
             </h2>
             <span class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200 tabular-nums shrink-0">
               {totalProducts}
             </span>
           </div>
-          <p class="hidden sm:block text-xs text-slate-600 mt-0.5">
-            Menampilkan <strong>{products.length}</strong> dari{" "}
-            <strong>{totalProducts}</strong> produk aktif (Halaman {safePage} /{" "}
-            {totalPages})
-          </p>
+          {isFiltered && (
+            <p class="hidden sm:block text-xs text-slate-600 mt-0.5">
+              Menampilkan <strong>{products.length}</strong> dari{" "}
+              <strong>{totalProducts}</strong> produk aktif (Halaman {safePage} /{" "}
+              {totalPages})
+            </p>
+          )}
         </div>
 
         {isFiltered && (
@@ -548,97 +550,99 @@ function buildFilterUrl(updates: Record<string, string | null>) {
       </div>
 
       <!-- Quick Filter & Sort Pills Strip -->
-      <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs scroll-pl-3 scroll-pr-6">
-        {/* Sort Pill Dropdown */}
-        <form method="GET" action="/#katalog-terbaru" class="shrink-0">
-          <input type="hidden" name="zona" value={currentZone} />
-          <input type="hidden" name="kategori" value={currentCategory} />
-          <input type="hidden" name="stok" value={currentStock} />
-          <input type="hidden" name="terverifikasi" value={currentVerified} />
-          <input type="hidden" name="q" value={searchQuery} />
-          <div class="relative inline-flex items-center">
-            <select
-              id="sort-select"
-              name="sort"
-              aria-label="Urutkan produk"
-              onchange="this.form.submit()"
-              class="appearance-none min-h-[38px] pl-3.5 pr-8 py-1.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-800 rounded-full text-xs font-semibold cursor-pointer shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="newest" selected={currentSort === "newest"}>
-                Terbaru
-              </option>
-              <option value="price_asc" selected={currentSort === "price_asc"}>
-                Harga Termurah
-              </option>
-              <option
-                value="price_desc"
-                selected={currentSort === "price_desc"}
+      {isFiltered && (
+        <div class="-mx-3 px-3 sm:mx-0 sm:px-0 flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5 text-xs scroll-pl-3 scroll-pr-6">
+          {/* Sort Pill Dropdown */}
+          <form method="GET" action="/#katalog-terbaru" class="shrink-0">
+            <input type="hidden" name="zona" value={currentZone} />
+            <input type="hidden" name="kategori" value={currentCategory} />
+            <input type="hidden" name="stok" value={currentStock} />
+            <input type="hidden" name="terverifikasi" value={currentVerified} />
+            <input type="hidden" name="q" value={searchQuery} />
+            <div class="relative inline-flex items-center">
+              <select
+                id="sort-select"
+                name="sort"
+                aria-label="Urutkan produk"
+                onchange="this.form.submit()"
+                class="appearance-none min-h-[38px] pl-3.5 pr-8 py-1.5 bg-white border border-slate-300 hover:border-slate-400 text-slate-800 rounded-full text-xs font-semibold cursor-pointer shadow-2xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
-                Harga Termahal
-              </option>
-            </select>
-            <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500">
-              <AppIcon name="chevron-down" size="xs" />
+                <option value="newest" selected={currentSort === "newest"}>
+                  Terbaru
+                </option>
+                <option value="price_asc" selected={currentSort === "price_asc"}>
+                  Harga Termurah
+                </option>
+                <option
+                  value="price_desc"
+                  selected={currentSort === "price_desc"}
+                >
+                  Harga Termahal
+                </option>
+              </select>
+              <div class="pointer-events-none absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500">
+                <AppIcon name="chevron-down" size="xs" />
+              </div>
             </div>
-          </div>
-        </form>
+          </form>
 
-        <span
-          class="h-4 w-px bg-slate-200 shrink-0 mx-0.5"
-          aria-hidden="true"
-        ></span>
+          <span
+            class="h-4 w-px bg-slate-200 shrink-0 mx-0.5"
+            aria-hidden="true"
+          ></span>
 
-        <a
-          href={buildFilterUrl({ stok: "semua" })}
-          class={`min-h-[38px] inline-flex items-center px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
-            currentStock === "semua"
-              ? "bg-slate-900 text-white border-slate-900 shadow-2xs"
-              : "bg-white text-slate-700 border-slate-200 hover:border-slate-400"
-          }`}
-        >
-          Semua Stok
-        </a>
-        <a
-          href={buildFilterUrl({ stok: "ready" })}
-          class={`min-h-[38px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
-            currentStock === "ready"
-              ? "bg-emerald-700 text-white border-emerald-700 shadow-2xs"
-              : "bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50"
-          }`}
-        >
-          <span
-            class={`w-1.5 h-1.5 rounded-full ${currentStock === "ready" ? "bg-white" : "bg-emerald-600"}`}
-          ></span>
-          <span>Ready Stock</span>
-        </a>
-        <a
-          href={buildFilterUrl({ stok: "po" })}
-          class={`min-h-[38px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
-            currentStock === "po"
-              ? "bg-amber-400 text-slate-950 border-amber-400 shadow-2xs font-bold"
-              : "bg-white text-amber-900 border-amber-300 hover:bg-amber-50"
-          }`}
-        >
-          <span
-            class={`w-1.5 h-1.5 rounded-full ${currentStock === "po" ? "bg-slate-900" : "bg-amber-600"}`}
-          ></span>
-          <span>Pre-Order (PO)</span>
-        </a>
-        <a
-          href={buildFilterUrl({
-            terverifikasi: currentVerified === "1" ? "0" : "1",
-          })}
-          class={`min-h-[38px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
-            currentVerified === "1"
-              ? "bg-emerald-700 text-white border-emerald-700 shadow-2xs"
-              : "bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50"
-          }`}
-        >
-          <AppIcon name="verified" size="xs" />
-          <span>Toko Terverifikasi</span>
-        </a>
-        <span class="w-3 shrink-0 sm:hidden" aria-hidden="true"></span>
-      </div>
+          <a
+            href={buildFilterUrl({ stok: "semua" })}
+            class={`min-h-[38px] inline-flex items-center px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
+              currentStock === "semua"
+                ? "bg-slate-900 text-white border-slate-900 shadow-2xs"
+                : "bg-white text-slate-700 border-slate-200 hover:border-slate-400"
+            }`}
+          >
+            Semua Stok
+          </a>
+          <a
+            href={buildFilterUrl({ stok: "ready" })}
+            class={`min-h-[38px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
+              currentStock === "ready"
+                ? "bg-emerald-700 text-white border-emerald-700 shadow-2xs"
+                : "bg-white text-emerald-800 border-emerald-200 hover:bg-emerald-50"
+            }`}
+          >
+            <span
+              class={`w-1.5 h-1.5 rounded-full ${currentStock === "ready" ? "bg-white" : "bg-emerald-600"}`}
+            ></span>
+            <span>Ready Stock</span>
+          </a>
+          <a
+            href={buildFilterUrl({ stok: "po" })}
+            class={`min-h-[38px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
+              currentStock === "po"
+                ? "bg-amber-400 text-slate-950 border-amber-400 shadow-2xs font-bold"
+                : "bg-white text-amber-900 border-amber-300 hover:bg-amber-50"
+            }`}
+          >
+            <span
+              class={`w-1.5 h-1.5 rounded-full ${currentStock === "po" ? "bg-slate-900" : "bg-amber-600"}`}
+            ></span>
+            <span>Pre-Order (PO)</span>
+          </a>
+          <a
+            href={buildFilterUrl({
+              terverifikasi: currentVerified === "1" ? "0" : "1",
+            })}
+            class={`min-h-[38px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition shrink-0 border text-xs ${
+              currentVerified === "1"
+                ? "bg-emerald-700 text-white border-emerald-700 shadow-2xs"
+                : "bg-white text-emerald-800 border-emerald-300 hover:bg-emerald-50"
+            }`}
+          >
+            <AppIcon name="verified" size="xs" />
+            <span>Toko Terverifikasi</span>
+          </a>
+          <span class="w-3 shrink-0 sm:hidden" aria-hidden="true"></span>
+        </div>
+      )}
 
       {isFiltered && (
         <div class="flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs pt-0.5">
@@ -730,7 +734,10 @@ function buildFilterUrl(updates: Record<string, string | null>) {
 
       {products.length > 0 ? (
         <div class="space-y-6">
-          <div class="-mx-3 sm:mx-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px sm:gap-4 bg-slate-200 sm:bg-transparent border-y sm:border-0 border-slate-200 [&>article]:rounded-none sm:[&>article]:rounded-lg [&>article]:border-0 sm:[&>article]:border [&>article]:shadow-none sm:[&>article]:shadow-xs">
+          <div
+            id="main-products-grid"
+            class="-mx-3 sm:mx-0 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px sm:gap-4 bg-slate-200 sm:bg-transparent border-y sm:border-0 border-slate-200 [&>article]:rounded-none sm:[&>article]:rounded-lg [&>article]:border-0 sm:[&>article]:border [&>article]:shadow-none sm:[&>article]:shadow-xs"
+          >
             {products.map((p) => (
               <ProductCard
                 product={p}
@@ -740,43 +747,32 @@ function buildFilterUrl(updates: Record<string, string | null>) {
             ))}
           </div>
 
-          {totalPages > 1 && (
-            <nav
-              aria-label="Navigasi Halaman Katalog"
-              class="flex items-center justify-center gap-2 pt-2"
-            >
-              {safePage > 1 ? (
-                <a
-                  href={buildFilterUrl({ page: String(safePage - 1) })}
-                  rel="prev"
-                  class="min-h-[44px] inline-flex items-center px-4 py-2 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl text-xs font-bold text-slate-700 transition"
-                >
-                  ← Sebelumnya
-                </a>
-              ) : (
-                <span class="min-h-[44px] inline-flex items-center px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-400">
-                  ← Sebelumnya
-                </span>
-              )}
-
-              <span class="text-xs font-bold text-slate-700 px-3 tabular-nums">
-                Halaman {safePage} dari {totalPages}
-              </span>
-
-              {safePage < totalPages ? (
-                <a
-                  href={buildFilterUrl({ page: String(safePage + 1) })}
-                  rel="next"
-                  class="min-h-[44px] inline-flex items-center px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition shadow-xs"
-                >
-                  Berikutnya →
-                </a>
-              ) : (
-                <span class="min-h-[44px] inline-flex items-center px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-400">
-                  Berikutnya →
-                </span>
-              )}
-            </nav>
+          {totalPages > 1 && safePage < totalPages && (
+            <div id="load-more-container" class="flex flex-col items-center justify-center pt-3 sm:pt-5">
+              <a
+                id="btn-load-more"
+                href={buildFilterUrl({ page: String(safePage + 1) })}
+                data-current-page={safePage}
+                data-total-pages={totalPages}
+                data-base-url={buildFilterUrl({ page: '__PAGE__' })}
+                class="min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-white hover:bg-slate-50 active:bg-slate-100 border border-slate-300 hover:border-slate-400 text-slate-800 rounded-xl text-xs sm:text-sm font-bold transition shadow-2xs hover:shadow-xs cursor-pointer group"
+              >
+                <AppIcon
+                  name="chevron-down"
+                  size="xs"
+                  class="text-slate-500 group-hover:text-emerald-700 transition"
+                />
+                <span id="load-more-text">Muat Lebih Banyak</span>
+                <span
+                  id="load-more-spinner"
+                  class="hidden animate-spin w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full"
+                  aria-hidden="true"
+                ></span>
+              </a>
+              <p id="load-more-info" class="text-2xs sm:text-xs text-slate-500 mt-2">
+                Menampilkan <span id="loaded-count">{products.length}</span> dari {totalProducts} produk
+              </p>
+            </div>
           )}
         </div>
       ) : (
@@ -852,6 +848,70 @@ function buildFilterUrl(updates: Record<string, string | null>) {
         heroPopularTags.classList.add("flex");
       }
     });
+
+    // Load More functionality for main catalog
+    const btnLoadMore = document.getElementById("btn-load-more") as HTMLAnchorElement | null;
+    const mainProductsGrid = document.getElementById("main-products-grid");
+
+    if (btnLoadMore && mainProductsGrid) {
+      btnLoadMore.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const currentPage = parseInt(btnLoadMore.dataset.currentPage || "1", 10);
+        const totalPages = parseInt(btnLoadMore.dataset.totalPages || "1", 10);
+        const nextPage = currentPage + 1;
+        if (nextPage > totalPages) return;
+
+        const spinnerText = document.getElementById("load-more-text");
+        const spinner = document.getElementById("load-more-spinner");
+        const chevron = btnLoadMore.querySelector("svg");
+
+        btnLoadMore.setAttribute("aria-busy", "true");
+        spinner?.classList.remove("hidden");
+        chevron?.classList.add("hidden");
+        if (spinnerText) spinnerText.textContent = "Memuat...";
+
+        try {
+          const nextUrl = btnLoadMore.href;
+          const res = await fetch(nextUrl);
+          if (!res.ok) throw new Error("Gagal memuat produk");
+          const html = await res.text();
+          const doc = new DOMParser().parseFromString(html, "text/html");
+          const incomingGrid = doc.getElementById("main-products-grid");
+
+          if (incomingGrid) {
+            const incomingCards = Array.from(incomingGrid.children);
+            incomingCards.forEach((card) => {
+              mainProductsGrid.appendChild(card);
+            });
+
+            // Update loaded count
+            const loadedCountEl = document.getElementById("loaded-count");
+            if (loadedCountEl) {
+              loadedCountEl.textContent = String(mainProductsGrid.children.length);
+            }
+
+            btnLoadMore.dataset.currentPage = String(nextPage);
+
+            if (nextPage >= totalPages) {
+              document.getElementById("load-more-container")?.remove();
+            } else {
+              const baseUrl = btnLoadMore.dataset.baseUrl || "";
+              btnLoadMore.href = baseUrl.replace("__PAGE__", String(nextPage + 1));
+              if (spinnerText) spinnerText.textContent = "Muat Lebih Banyak";
+              spinner?.classList.add("hidden");
+              chevron?.classList.remove("hidden");
+              btnLoadMore.removeAttribute("aria-busy");
+            }
+          }
+        } catch (err) {
+          console.error("Load more error:", err);
+          if (spinnerText) spinnerText.textContent = "Gagal memuat. Coba lagi";
+          spinner?.classList.add("hidden");
+          chevron?.classList.remove("hidden");
+          btnLoadMore.removeAttribute("aria-busy");
+        }
+      });
+    }
 
     // Sync favorite count badge on "Kelola Favorit (N)"
     const favLink = document.getElementById("home-favorites-count-link");
