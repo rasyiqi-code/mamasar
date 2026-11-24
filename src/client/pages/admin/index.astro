@@ -36,23 +36,22 @@ if (!isSuper && !isCadre) {
   return Astro.redirect('/daftar-kader?notice=unauthorized_admin');
 }
 
-const zones = await getAllZones();
-const assignedZone = zones.find((z) => z.id === user.assigned_zone_id);
+const [zones, pendingPetugas, allUsers, allStores, allEventOrders, articles] = await Promise.all([
+  getAllZones(),
+  isSuper ? getPendingPetugas() : Promise.resolve([]),
+  getAllUsersForAdmin(),
+  getUMKMForVerification(),
+  getEventOrders(),
+  isSuper ? getArticles() : Promise.resolve([]),
+]);
 
-const pendingPetugas = isSuper ? await getPendingPetugas() : [];
-const allUsers = await getAllUsersForAdmin();
-const allStores = await getUMKMForVerification();
+const assignedZone = zones.find((z) => z.id === user.assigned_zone_id);
 
 // Jika petugas/pengurus MWC, batasi daftar toko ke MWC penugasannya
 const stores = isSuper
   ? allStores
   : (user.assigned_zone_id ? allStores.filter((s) => s.zone_id === user.assigned_zone_id) : []);
 
-const events = isSuper
-  ? await getEvents()
-  : await getEvents({ zoneSlug: assignedZone?.slug });
-
-const allEventOrders = await getEventOrders();
 const eventOrders = isSuper
   ? allEventOrders
   : (user.assigned_zone_id ? allEventOrders.filter((o) => o.zone_id === user.assigned_zone_id) : []);
@@ -60,11 +59,13 @@ const eventOrders = isSuper
 const pendingStores = stores.filter((s) => !s.is_verified);
 const verifiedStores = stores.filter((s) => s.is_verified);
 const canReviewPromos = isSuper || (user.role === 'mwcnu' && Boolean(user.assigned_zone_id));
-const pendingPromotions = isSuper
-  ? await getAllPendingAdOrders()
-  : (canReviewPromos && user.assigned_zone_id ? await getAllPendingAdOrders(user.assigned_zone_id) : []);
 
-const articles = isSuper ? await getArticles() : [];
+const [events, pendingPromotions] = await Promise.all([
+  isSuper ? getEvents() : getEvents({ zoneSlug: assignedZone?.slug }),
+  isSuper
+    ? getAllPendingAdOrders()
+    : (canReviewPromos && user.assigned_zone_id ? getAllPendingAdOrders(user.assigned_zone_id) : Promise.resolve([])),
+]);
 
 const portalHeading = isSuper
   ? 'Pusat Kendali Admin PCNU Sumenep'

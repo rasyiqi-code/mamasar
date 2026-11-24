@@ -39,6 +39,15 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
     <meta name="apple-mobile-web-app-title" content="Mamasar" />
   </head>
   <body class="min-h-full bg-white text-slate-900 font-sans antialiased flex flex-col overflow-x-clip overscroll-x-contain selection:bg-emerald-500 selection:text-white">
+    <!-- Global Navigation Progress Bar for Instant Touch/Click Feedback in PWA & Mobile -->
+    <div
+      id="global-page-progress"
+      class="fixed top-0 left-0 right-0 h-1 bg-emerald-600 z-[9999] opacity-0 pointer-events-none transition-all duration-300"
+      style="width: 0%;"
+      role="progressbar"
+      aria-hidden="true"
+    ></div>
+
     <a href="#main" class="skip-link">Langsung ke konten</a>
 
     <!-- Main App Slot (Zero Front Web Header or Footer) -->
@@ -96,6 +105,56 @@ const fullTitle = title.includes(siteName) ? title : `${title} | ${siteName}`;
           navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => {});
         });
       }
+
+      // Instant Navigation Progress Bar (Eliminates perceived lag on page switch in PWA/Mobile)
+      const progressBar = document.getElementById('global-page-progress');
+      let progressTimer: any = null;
+
+      function startPageProgress() {
+        if (!progressBar) return;
+        clearTimeout(progressTimer);
+        progressBar.style.transition = 'width 150ms ease-out, opacity 100ms ease';
+        progressBar.style.opacity = '1';
+        progressBar.style.width = '35%';
+        progressTimer = setTimeout(() => {
+          progressBar.style.transition = 'width 800ms cubic-bezier(0.1, 0.5, 0.1, 1)';
+          progressBar.style.width = '82%';
+        }, 150);
+      }
+
+      function finishPageProgress() {
+        if (!progressBar) return;
+        clearTimeout(progressTimer);
+        progressBar.style.transition = 'width 120ms ease-in, opacity 200ms ease 100ms';
+        progressBar.style.width = '100%';
+        progressBar.style.opacity = '0';
+        setTimeout(() => {
+          progressBar.style.width = '0%';
+        }, 350);
+      }
+
+      document.addEventListener('click', (e) => {
+        const anchor = (e.target as HTMLElement)?.closest('a');
+        if (!anchor) return;
+        const href = anchor.getAttribute('href');
+        if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('tel:') || href.startsWith('mailto:')) return;
+        if (anchor.target === '_blank' || anchor.hasAttribute('download')) return;
+
+        try {
+          const targetUrl = new URL(anchor.href, window.location.href);
+          if (targetUrl.origin === window.location.origin && (targetUrl.pathname !== window.location.pathname || targetUrl.search !== window.location.search)) {
+            startPageProgress();
+          }
+        } catch {}
+      }, { passive: true });
+
+      window.addEventListener('pageshow', () => {
+        finishPageProgress();
+      });
+      window.addEventListener('beforeunload', () => {
+        startPageProgress();
+        if (progressBar) progressBar.style.width = '100%';
+      });
     </script>
   </body>
 </html>

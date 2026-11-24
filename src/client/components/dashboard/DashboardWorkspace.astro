@@ -30,9 +30,10 @@ export type DashboardSection = 'overview' | 'products' | 'cashbook' | 'profile' 
 interface Props {
   activeSection?: DashboardSection;
   user?: NonNullable<Awaited<ReturnType<typeof resolveUser>>>;
+  store?: any;
 }
 
-const { activeSection = 'overview', user: propUser } = Astro.props;
+const { activeSection = 'overview', user: propUser, store: propStore } = Astro.props;
 
 const user = propUser || (await resolveUser(Astro.request));
 
@@ -42,18 +43,19 @@ if (!user) {
   return Astro.redirect(`/login${redirectQuery}`);
 }
 
-const store = await getUMKMByUserId(user.id);
-const zones = await getAllZones();
-const avatarUrl = await resolveAvatarUrl(user.avatar_url);
+const store = propStore || user.umkm || (await getUMKMByUserId(user.id));
 
-const cashbookSummary = await getCashbookSummary(user.id, store?.id);
-const cashbookEntries = await getCashbookEntries(user.id, 50, store?.id);
-const adOrders = store && activeSection === 'products' ? await getAdOrdersByUmkm(store.id) : [];
-const bumpLedger = store && activeSection === 'products' ? await getBumpLedgerByUmkm(store.id, 10) : [];
-const notifications =
+const [zones, avatarUrl, cashbookSummary, cashbookEntries, adOrders, bumpLedger, notifications] = await Promise.all([
+  getAllZones(),
+  resolveAvatarUrl(user.avatar_url),
+  getCashbookSummary(user.id, store?.id),
+  getCashbookEntries(user.id, 50, store?.id),
+  store && activeSection === 'products' ? getAdOrdersByUmkm(store.id) : Promise.resolve([]),
+  store && activeSection === 'products' ? getBumpLedgerByUmkm(store.id, 10) : Promise.resolve([]),
   activeSection === 'overview' || activeSection === 'products'
-    ? await getNotificationsForUser(user.id, 5)
-    : [];
+    ? getNotificationsForUser(user.id, 5)
+    : Promise.resolve([]),
+]);
 
 const authError = Astro.url.searchParams.get('error');
 const intent = Astro.url.searchParams.get('intent');

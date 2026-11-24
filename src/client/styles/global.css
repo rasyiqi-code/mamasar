@@ -61,7 +61,7 @@
     overscroll-behavior: contain;
   }
 
-  /* R-39: Explicit cursor indicators on all interactive elements */
+  /* R-39: Explicit cursor indicators and touch responsiveness (eliminates 300ms tap delay in PWA) */
   a[href],
   button,
   summary,
@@ -71,6 +71,7 @@
   input[type="radio"],
   [role="button"] {
     cursor: pointer;
+    touch-action: manipulation;
   }
 
   :disabled,

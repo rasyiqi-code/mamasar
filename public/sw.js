@@ -21,28 +21,32 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// 2. Activate Event: Clean up outdated caches & claim clients immediately
+// 2. Activate Event: Clean up outdated caches, enable navigation preload & claim clients immediately
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((name) => {
-            if (name !== CACHE_NAME) {
-              return caches.delete(name);
-            }
-          })
-        );
-      })
-      .then(() => self.clients.claim())
+    (async () => {
+      if (self.registration.navigationPreload) {
+        try {
+          await self.registration.navigationPreload.enable();
+        } catch (_) {}
+      }
+      const cacheNames = await caches.keys();
+      await Promise.all(
+        cacheNames.map((name) => {
+          if (name !== CACHE_NAME) {
+            return caches.delete(name);
+          }
+        })
+      );
+      await self.clients.claim();
+    })()
   );
 });
 
 // 3. Fetch Event Strategy:
 // - Non-GET requests: Network only
 // - API calls (/api/*): Network only
-// - HTML Page Navigation: Network-First with cache fallback, then offline.html fallback
+// - HTML Page Navigation: Network-First (with Navigation Preload) -> Cache -> offline.html fallback
 // - Static Assets (images, css, js, fonts): Stale-While-Revalidate
 self.addEventListener('fetch', (event) => {
   const { request } = event;
@@ -53,7 +57,7 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Skip dynamic API and authenticated private routes from caching
+  // Skip dynamic API and authenticated private routes from caching (Use preload or direct network)
   if (
     url.pathname.startsWith('/api/') ||
     url.pathname.startsWith('/uploads/') ||
@@ -65,14 +69,31 @@ self.addEventListener('fetch', (event) => {
     url.pathname.startsWith('/daftar-kader') ||
     url.pathname.startsWith('/daftar-petugas')
   ) {
+    if (request.mode === 'navigate') {
+      event.respondWith(
+        (async () => {
+          try {
+            const preload = await event.preloadResponse;
+            if (preload) return preload;
+          } catch (_) {}
+          return fetch(request);
+        })()
+      );
+    }
     return;
   }
 
   // Strategy A: HTML Page Navigations (Network-First -> Cache -> Offline Fallback)
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((networkResponse) => {
+      (async () => {
+        try {
+          let preload = null;
+          try {
+            preload = await event.preloadResponse;
+          } catch (_) {}
+
+          const networkResponse = preload || (await fetch(request));
           if (networkResponse && networkResponse.status === 200) {
             const responseClone = networkResponse.clone();
             caches.open(CACHE_NAME).then((cache) => {
@@ -80,13 +101,19 @@ self.addEventListener('fetch', (event) => {
             });
           }
           return networkResponse;
-        })
-        .catch(async () => {
+        } catch (_) {
           const cachedResponse = await caches.match(request);
           if (cachedResponse) return cachedResponse;
           const offlinePage = await caches.match('/offline.html');
-          return offlinePage || new Response('Sedang offline', { status: 503, headers: { 'Content-Type': 'text/plain' } });
-        })
+          return (
+            offlinePage ||
+            new Response('Sedang offline', {
+              status: 503,
+              headers: { 'Content-Type': 'text/plain' },
+            })
+          );
+        }
+      })()
     );
     return;
   }
